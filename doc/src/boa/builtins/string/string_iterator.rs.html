@@ -102,7 +102,7 @@
         <span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>, <span class="ident">string::code_point_at</span>,
     },
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
@@ -177,7 +177,7 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;String Iterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="comment">// Create prototype</span>

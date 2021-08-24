@@ -8,8 +8,8 @@
 For example:</p>
 <pre><code class="language-javascript">let b = [];
 JSON.stringify([ // Create a recursion limiter for the root here
-   b,            // state for b's &amp;GcObject here is None
-   b,            // state for b's &amp;GcObject here is Visited
+   b,            // state for b's &amp;JsObject here is None
+   b,            // state for b's &amp;JsObject here is Visited
 ]);
 </code></pre>
 </div><h2 id="trait-implementations" class="small-section-header">Trait Implementations<a href="#trait-implementations" class="anchor"></a></h2><div id="trait-implementations-list"><details class="rustdoc-toggle implementors-toggle"><summary><div id="impl-Clone" class="impl has-srclink"><h3 class="code-header in-band">impl <a class="trait" href="https://doc.rust-lang.org/1.54.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="enum" href="enum.RecursionValueState.html" title="enum boa::object::gcobject::RecursionValueState">RecursionValueState</a></h3><a href="#impl-Clone" class="anchor"></a><a class="srclink" href="../../../src/boa/object/gcobject.rs.html#1030" title="goto source code">[src]</a></div></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><div id="method.clone" class="method trait-impl has-srclink"><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.54.0/core/clone/trait.Clone.html#tymethod.clone" class="fnname">clone</a>(&amp;self) -&gt; <a class="enum" href="enum.RecursionValueState.html" title="enum boa::object::gcobject::RecursionValueState">RecursionValueState</a></h4><a href="#method.clone" class="anchor"></a><a class="srclink" href="../../../src/boa/object/gcobject.rs.html#1030" title="goto source code">[src]</a></div></summary><div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/1.54.0/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>

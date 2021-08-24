@@ -219,7 +219,7 @@
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object::GcObject</span>,
+    <span class="ident">object::JsObject</span>,
     <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">indexmap</span>::{<span class="ident">Equivalent</span>, <span class="ident">IndexMap</span>};
@@ -401,7 +401,7 @@
     <span class="doccomment">/// Increases the lock counter and returns a lock object that will decrement the counter when dropped.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">map</span>: <span class="ident">GcObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapLock</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">map</span>: <span class="ident">JsObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapLock</span> {
         <span class="self">self</span>.<span class="ident">lock</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="ident">MapLock</span>(<span class="ident">map</span>)
     }
@@ -418,7 +418,7 @@
 
 <span class="doccomment">/// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MapLock</span>(<span class="ident">GcObject</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MapLock</span>(<span class="ident">JsObject</span>);
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">MapLock</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {

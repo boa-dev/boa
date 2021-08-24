@@ -198,7 +198,7 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object::GcObject</span>,
+    <span class="ident">object::JsObject</span>,
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
@@ -337,7 +337,7 @@
         <span class="bool-val">false</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// Object Environment Records return undefined as their</span>
         <span class="comment">// WithBaseObject unless their withEnvironment flag is true.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">with_environment</span> {

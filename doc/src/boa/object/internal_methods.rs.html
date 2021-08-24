@@ -991,13 +991,13 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
-    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">DescriptorKind</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">value</span>::{<span class="ident">JsValue</span>, <span class="ident">Type</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 
-<span class="kw">impl</span> <span class="ident">GcObject</span> {
+<span class="kw">impl</span> <span class="ident">JsObject</span> {
     <span class="doccomment">/// Check if object has property.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -1806,7 +1806,7 @@
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_constructable</span>()
     }
 
-    <span class="doccomment">/// Returns true if the GcObject is the global for a Realm</span>
+    <span class="doccomment">/// Returns true if the JsObject is the global for a Realm</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>, <span class="ident">ObjectData::Global</span>)
     }

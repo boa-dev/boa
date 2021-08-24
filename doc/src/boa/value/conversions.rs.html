@@ -372,14 +372,14 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">object</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;From&lt;Object&gt;&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="ident">JsValue::Object</span>(<span class="ident">GcObject::new</span>(<span class="ident">object</span>))
+        <span class="ident">JsValue::Object</span>(<span class="ident">JsObject::new</span>(<span class="ident">object</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">object</span>: <span class="ident">GcObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;From&lt;GcObject&gt;&quot;</span>, <span class="string">&quot;value&quot;</span>);
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;From&lt;JsObject&gt;&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="ident">JsValue::Object</span>(<span class="ident">object</span>)
     }
 }

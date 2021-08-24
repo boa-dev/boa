@@ -254,7 +254,7 @@
 
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::global_environment_record::GlobalEnvironmentRecord</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environment::environment_record_trait::EnvironmentRecordTrait</span>, <span class="ident">object::GcObject</span>, <span class="ident">BoaProfiler</span>,
+    <span class="ident">environment::environment_record_trait::EnvironmentRecordTrait</span>, <span class="ident">object::JsObject</span>, <span class="ident">BoaProfiler</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">gc::Gc</span>;
@@ -310,7 +310,7 @@
 <span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">EnvironmentError</span> {}
 
 <span class="kw">impl</span> <span class="ident">LexicalEnvironment</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">global</span>: <span class="ident">GcObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">global</span>: <span class="ident">JsObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalEnvironment::new&quot;</span>, <span class="string">&quot;env&quot;</span>);
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">GlobalEnvironmentRecord::new</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexical_env</span> <span class="op">=</span> <span class="self">Self</span> {

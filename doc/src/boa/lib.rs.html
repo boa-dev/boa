@@ -268,7 +268,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 <span class="doccomment">/// A convenience module that re-exports the most commonly-used Boa APIs</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::GcObject</span> <span class="kw">as</span> <span class="ident">JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>};
 }
 
 <span class="kw">use</span> <span class="ident">std::result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;

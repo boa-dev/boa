@@ -1127,9 +1127,9 @@
 <span id="1127">1127</span>
 <span id="1128">1128</span>
 </pre><pre class="rust">
-<span class="doccomment">//! This module implements the `GcObject` structure.</span>
+<span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The `GcObject` is a garbage collected Object.</span>
+<span class="doccomment">//! The `JsObject` is a garbage collected Object.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1167,7 +1167,7 @@
 
 <span class="doccomment">/// Garbage collected `Object`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GcObject</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsObject</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span>);
 
 <span class="doccomment">/// The body of a JavaScript function.</span>
 <span class="doccomment">///</span>
@@ -1180,8 +1180,8 @@
     <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">GcObject</span> {
-    <span class="doccomment">/// Create a new `GcObject` from a `Object`.</span>
+<span class="kw">impl</span> <span class="ident">JsObject</span> {
+    <span class="doccomment">/// Create a new `JsObject` from a `Object`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">Gc::new</span>(<span class="ident">GcCell::new</span>(<span class="ident">object</span>)))
@@ -1524,7 +1524,7 @@
         <span class="ident">hint</span>: <span class="ident">PreferredType</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: Type(O) is Object.</span>
-        <span class="comment">//      Already is GcObject by type.</span>
+        <span class="comment">//      Already is JsObject by type.</span>
         <span class="comment">// 2. Assert: Type(hint) is String and its value is either &quot;string&quot; or &quot;number&quot;.</span>
         <span class="macro">debug_assert!</span>(<span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType::String</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PreferredType::Number</span>);
 
@@ -1838,7 +1838,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1892,7 +1892,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__get_prototype_of__</span>();
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object_prototype</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
                     <span class="comment">//     c. If SameValue(P, O) is true, return true.</span>
-                    <span class="kw">if</span> <span class="ident">GcObject::equals</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="ident">object_prototype</span>) {
+                    <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="ident">object_prototype</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
                     }
                     <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().</span>
@@ -2123,14 +2123,14 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GcObject</span> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
 
-<span class="doccomment">/// An error returned by [`GcObject::try_borrow`](struct.GcObject.html#method.try_borrow).</span>
+<span class="doccomment">/// An error returned by [`JsObject::try_borrow`](struct.JsObject.html#method.try_borrow).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BorrowError</span>;
 
@@ -2143,7 +2143,7 @@
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">BorrowError</span> {}
 
-<span class="doccomment">/// An error returned by [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).</span>
+<span class="doccomment">/// An error returned by [`JsObject::try_borrow_mut`](struct.JsObject.html#method.try_borrow_mut).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BorrowMutError</span>;
 
@@ -2165,8 +2165,8 @@
     <span class="doccomment">/// ```javascript</span>
     <span class="doccomment">/// let b = [];</span>
     <span class="doccomment">/// JSON.stringify([ // Create a recursion limiter for the root here</span>
-    <span class="doccomment">///    b,            // state for b&#39;s &amp;GcObject here is None</span>
-    <span class="doccomment">///    b,            // state for b&#39;s &amp;GcObject here is Visited</span>
+    <span class="doccomment">///    b,            // state for b&#39;s &amp;JsObject here is None</span>
+    <span class="doccomment">///    b,            // state for b&#39;s &amp;JsObject here is Visited</span>
     <span class="doccomment">/// ]);</span>
     <span class="doccomment">/// ```</span>
     <span class="ident">Visited</span>,
@@ -2177,13 +2177,13 @@
 <span class="doccomment">/// multiple threads!</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RecursionLimiter</span> {
-    <span class="doccomment">/// If this was the first `GcObject` in the tree.</span>
+    <span class="doccomment">/// If this was the first `JsObject` in the tree.</span>
     <span class="ident">top_level</span>: <span class="ident">bool</span>,
     <span class="doccomment">/// The ptr being kept in the HashSet, so we can delete it when we drop.</span>
     <span class="ident">ptr</span>: <span class="ident">usize</span>,
-    <span class="doccomment">/// If this GcObject has been visited before in the graph, but not in the current branch.</span>
+    <span class="doccomment">/// If this JsObject has been visited before in the graph, but not in the current branch.</span>
     <span class="kw">pub</span> <span class="ident">visited</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// If this GcObject has been visited in the current branch of the graph.</span>
+    <span class="doccomment">/// If this JsObject has been visited in the current branch of the graph.</span>
     <span class="kw">pub</span> <span class="ident">live</span>: <span class="ident">bool</span>,
 }
 
@@ -2204,17 +2204,17 @@
 
 <span class="kw">impl</span> <span class="ident">RecursionLimiter</span> {
     <span class="macro">thread_local!</span> {
-        <span class="doccomment">/// The map of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph,</span>
+        <span class="doccomment">/// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,</span>
         <span class="doccomment">/// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)</span>
         <span class="kw">static</span> <span class="ident">SEEN</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">RecursionValueState</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>());
     }
 
-    <span class="doccomment">/// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.</span>
+    <span class="doccomment">/// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been</span>
-    <span class="doccomment">/// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained</span>
+    <span class="doccomment">/// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been</span>
+    <span class="doccomment">/// visited. The first `JsObject` visited will clear the hashset, while any others will check if they are contained</span>
     <span class="doccomment">/// by the hashset.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">GcObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We shouldn&#39;t have to worry too much about this being moved during Debug::fmt.</span>
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> (<span class="ident">o</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">let</span> (<span class="ident">top_level</span>, <span class="ident">visited</span>, <span class="ident">live</span>) <span class="op">=</span> <span class="self">Self</span><span class="ident">::SEEN</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">hm</span><span class="op">|</span> {
@@ -2238,7 +2238,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GcObject</span> {
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="self">self</span>);
 
@@ -2249,7 +2249,7 @@
         <span class="comment">// Instead, we check if the object has appeared before in the entire graph. This means that objects will appear</span>
         <span class="comment">// at most once, hopefully making things a bit clearer.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">limiter</span>.<span class="ident">visited</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">limiter</span>.<span class="ident">live</span> {
-            <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;GcObject&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">finish</span>()
+            <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;JsObject&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">finish</span>()
         } <span class="kw">else</span> {
             <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;{ ... }&quot;</span>)
         }

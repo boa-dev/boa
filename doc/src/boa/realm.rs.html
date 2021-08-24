@@ -57,7 +57,7 @@
     <span class="ident">environment</span>::{
         <span class="ident">global_environment_record::GlobalEnvironmentRecord</span>, <span class="ident">lexical_environment::LexicalEnvironment</span>,
     },
-    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">gc::Gc</span>;
@@ -67,7 +67,7 @@
 <span class="doccomment">/// In the specification these are called Realm Records.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Realm</span> {
-    <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">GcObject</span>,
+    <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">JsObject</span>,
     <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>,
 }
@@ -83,7 +83,7 @@
         <span class="comment">// Allow identification of the global object easily</span>
         <span class="ident">global</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::Global</span>;
 
-        <span class="kw">let</span> <span class="ident">gc_global</span> <span class="op">=</span> <span class="ident">GcObject::new</span>(<span class="ident">global</span>);
+        <span class="kw">let</span> <span class="ident">gc_global</span> <span class="op">=</span> <span class="ident">JsObject::new</span>(<span class="ident">global</span>);
 
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">GlobalEnvironmentRecord::new</span>(<span class="ident">gc_global</span>.<span class="ident">clone</span>(), <span class="ident">gc_global</span>.<span class="ident">clone</span>());

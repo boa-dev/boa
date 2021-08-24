@@ -227,20 +227,20 @@
         <span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">ArrayIterator</span>, <span class="ident">ForInIterator</span>, <span class="ident">MapIterator</span>,
         <span class="ident">SetIterator</span>,
     },
-    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorPrototypes</span> {
-    <span class="ident">iterator_prototype</span>: <span class="ident">GcObject</span>,
-    <span class="ident">array_iterator</span>: <span class="ident">GcObject</span>,
-    <span class="ident">set_iterator</span>: <span class="ident">GcObject</span>,
-    <span class="ident">string_iterator</span>: <span class="ident">GcObject</span>,
-    <span class="ident">regexp_string_iterator</span>: <span class="ident">GcObject</span>,
-    <span class="ident">map_iterator</span>: <span class="ident">GcObject</span>,
-    <span class="ident">for_in_iterator</span>: <span class="ident">GcObject</span>,
+    <span class="ident">iterator_prototype</span>: <span class="ident">JsObject</span>,
+    <span class="ident">array_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="ident">set_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="ident">string_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="ident">regexp_string_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="ident">map_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="ident">for_in_iterator</span>: <span class="ident">JsObject</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorPrototypes</span> {
@@ -270,37 +270,37 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">array_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">set_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">string_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regexp_string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">regexp_string_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">regexp_string_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">map_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_in_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">for_in_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">for_in_iterator</span>.<span class="ident">clone</span>()
     }
 }
@@ -343,7 +343,7 @@
 <span class="doccomment">///  - [ECMA reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object</span>
-<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();

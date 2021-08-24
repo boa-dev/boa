@@ -1253,7 +1253,7 @@
 <span class="kw">mod</span> <span class="ident">property_map</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::builtins::object::for_in_iterator::ForInIterator</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gcobject</span>::{<span class="ident">GcObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gcobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property_map</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.</span>
@@ -1969,7 +1969,7 @@
 
     <span class="doccomment">/// Build the function object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Object::function</span>(
             <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>(),
             <span class="self">self</span>.<span class="ident">context</span>
@@ -1985,11 +1985,11 @@
         <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>()));
         <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
 
-        <span class="ident">GcObject::new</span>(<span class="ident">function</span>)
+        <span class="ident">JsObject::new</span>(<span class="ident">function</span>)
     }
 
     <span class="doccomment">/// Initializes the `Function.prototype` function object.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build_function_prototype</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">GcObject</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build_function_prototype</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>();
         <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::Function</span>(<span class="self">self</span>.<span class="ident">function</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>());
         <span class="ident">object</span>.<span class="ident">set_prototype_instance</span>(
@@ -2042,7 +2042,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectInitializer</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>,
-    <span class="ident">object</span>: <span class="ident">GcObject</span>,
+    <span class="ident">object</span>: <span class="ident">JsObject</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> <span class="ident">ObjectInitializer</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
@@ -2095,7 +2095,7 @@
 
     <span class="doccomment">/// Build the object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">clone</span>()
     }
 }
@@ -2104,8 +2104,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConstructorBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>,
     <span class="ident">constructor_function</span>: <span class="ident">NativeFunction</span>,
-    <span class="ident">constructor_object</span>: <span class="ident">GcObject</span>,
-    <span class="ident">prototype</span>: <span class="ident">GcObject</span>,
+    <span class="ident">constructor_object</span>: <span class="ident">JsObject</span>,
+    <span class="ident">prototype</span>: <span class="ident">JsObject</span>,
     <span class="ident">name</span>: <span class="ident">JsString</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>,
     <span class="ident">callable</span>: <span class="ident">bool</span>,
@@ -2134,8 +2134,8 @@
         <span class="self">Self</span> {
             <span class="ident">context</span>,
             <span class="ident">constructor_function</span>: <span class="ident">constructor</span>,
-            <span class="ident">constructor_object</span>: <span class="ident">GcObject::new</span>(<span class="ident">Object::default</span>()),
-            <span class="ident">prototype</span>: <span class="ident">GcObject::new</span>(<span class="ident">Object::default</span>()),
+            <span class="ident">constructor_object</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
+            <span class="ident">prototype</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
@@ -2253,8 +2253,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
+        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -2274,8 +2274,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
+        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -2370,7 +2370,7 @@
     }
 
     <span class="doccomment">/// Build the constructor function object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="comment">// Create the native function</span>
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Function::Native</span> {
             <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">constructor_function</span>.<span class="ident">into</span>(),

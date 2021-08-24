@@ -77,13 +77,13 @@
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">boa</span>::{
     <span class="ident">exec::Executable</span>,
-    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property::Attribute</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="doccomment">/// Initializes the object in the context.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
     <span class="kw">let</span> <span class="ident">global_obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>();
 
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)

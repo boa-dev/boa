@@ -357,7 +357,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::NativeFunction</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">NativeObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
+    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
@@ -460,7 +460,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">build</span>()
     }
 
@@ -526,8 +526,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
+        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -544,8 +544,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
+        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>

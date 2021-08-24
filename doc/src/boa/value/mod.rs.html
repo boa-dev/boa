@@ -1075,7 +1075,7 @@
         <span class="ident">string::is_trimmable_whitespace</span>,
         <span class="ident">Number</span>,
     },
-    <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
@@ -1121,7 +1121,7 @@
     <span class="doccomment">/// `BigInt` - holds any arbitrary large signed integer.</span>
     <span class="ident">BigInt</span>(<span class="ident">JsBigInt</span>),
     <span class="doccomment">/// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.</span>
-    <span class="ident">Object</span>(<span class="ident">GcObject</span>),
+    <span class="ident">Object</span>(<span class="ident">JsObject</span>),
     <span class="doccomment">/// `Symbol` - A Symbol Primitive type.</span>
     <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
 }
@@ -1292,7 +1292,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
@@ -1687,28 +1687,28 @@
     <span class="doccomment">/// This function is equivalent to `Object(value)` in JavaScript</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">JsValue::Undefined</span> <span class="op">|</span> <span class="ident">JsValue::Null</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>))
             }
             <span class="ident">JsValue::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">boolean_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject::new</span>(<span class="ident">Object::with_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
                     <span class="ident">prototype</span>.<span class="ident">into</span>(),
                     <span class="ident">ObjectData::Boolean</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
                 )))
             }
             <span class="ident">JsValue::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">number_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject::new</span>(<span class="ident">Object::with_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
                     <span class="ident">prototype</span>.<span class="ident">into</span>(),
                     <span class="ident">ObjectData::Number</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)),
                 )))
             }
             <span class="ident">JsValue::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">number_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject::new</span>(<span class="ident">Object::with_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
                     <span class="ident">prototype</span>.<span class="ident">into</span>(),
                     <span class="ident">ObjectData::Number</span>(<span class="kw-2">*</span><span class="ident">rational</span>),
                 )))
@@ -1716,7 +1716,7 @@
             <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">string_object</span>().<span class="ident">prototype</span>();
 
-                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">GcObject::new</span>(<span class="ident">Object::with_prototype</span>(
+                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
                     <span class="ident">prototype</span>.<span class="ident">into</span>(),
                     <span class="ident">ObjectData::String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
                 ));
@@ -1733,19 +1733,19 @@
             }
             <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">symbol_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject::new</span>(<span class="ident">Object::with_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
                     <span class="ident">prototype</span>.<span class="ident">into</span>(),
                     <span class="ident">ObjectData::Symbol</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
                 )))
             }
             <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">bigint_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">GcObject::new</span>(<span class="ident">Object::with_prototype</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
                     <span class="ident">prototype</span>.<span class="ident">into</span>(),
                     <span class="ident">ObjectData::BigInt</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),
                 )))
             }
-            <span class="ident">JsValue::Object</span>(<span class="ident">gcobject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">gcobject</span>.<span class="ident">clone</span>()),
+            <span class="ident">JsValue::Object</span>(<span class="ident">jsobject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">jsobject</span>.<span class="ident">clone</span>()),
         }
     }
 
