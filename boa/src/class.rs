@@ -62,7 +62,7 @@
 
 use crate::{
     builtins::function::NativeFunction,
-    object::{ConstructorBuilder, GcObject, NativeObject, ObjectData},
+    object::{ConstructorBuilder, GcObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -87,7 +87,7 @@ pub trait Class: NativeObject + Sized {
 ///
 /// This is automatically implemented, when a type implements `Class`.
 pub trait ClassConstructor: Class {
-    /// The raw constructor that mathces the `NativeFunction` signature.
+    /// The raw constructor that matches the `NativeFunction` signature.
     fn raw_constructor(
         this: &JsValue,
         args: &[JsValue],
@@ -102,9 +102,47 @@ impl<T: Class> ClassConstructor for T {
     where
         Self: Sized,
     {
-        let object_instance = Self::constructor(this, args, context)?;
-        this.set_data(ObjectData::NativeObject(Box::new(object_instance)));
-        Ok(this.clone())
+        if this.is_undefined() {
+            return context.throw_type_error(format!(
+                "cannot call constructor of native class `{}` without new",
+                T::NAME
+            ));
+        }
+
+        let class_constructor =
+            if let Some(obj) = context.global_object().get(T::NAME, context)?.as_object() {
+                obj
+            } else {
+                return context.throw_type_error(format!(
+                    "invalid constructor for native class `{}` ",
+                    T::NAME
+                ));
+            };
+        let class_prototype =
+            if let Some(obj) = class_constructor.get(PROTOTYPE, context)?.as_object() {
+                obj
+            } else {
+                return context.throw_type_error(format!(
+                    "invalid default prototype for native class `{}`",
+                    T::NAME
+                ));
+            };
+
+        let prototype = this
+            .as_object()
+            .and_then(|obj| {
+                obj.get(PROTOTYPE, context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or(class_prototype);
+
+        let native_instance = Self::constructor(this, args, context)?;
+        let object_instance = context.construct_object();
+        object_instance.set_prototype_instance(prototype.into());
+        object_instance.borrow_mut().data = ObjectData::NativeObject(Box::new(native_instance));
+        Ok(object_instance.into())
     }
 }
 
