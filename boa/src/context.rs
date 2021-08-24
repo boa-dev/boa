@@ -21,7 +21,7 @@ use crate::{
         },
         Parser,
     },
-    BoaProfiler, Executable, JsString, JsValue, Result,
+    BoaProfiler, Executable, JsResult, JsString, JsValue,
 };
 
 #[cfg(feature = "console")]
@@ -345,7 +345,7 @@ impl Context {
         f: &JsValue,
         this: &JsValue,
         args: &[JsValue],
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         match *f {
             JsValue::Object(ref object) => object.call(this, args, self),
             _ => self.throw_type_error("not a function"),
@@ -375,7 +375,7 @@ impl Context {
 
     /// Throws a `Error` with the specified message.
     #[inline]
-    pub fn throw_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -399,7 +399,7 @@ impl Context {
 
     /// Throws a `RangeError` with the specified message.
     #[inline]
-    pub fn throw_range_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_range_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -423,7 +423,7 @@ impl Context {
 
     /// Throws a `TypeError` with the specified message.
     #[inline]
-    pub fn throw_type_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_type_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -446,7 +446,7 @@ impl Context {
 
     /// Throws a `ReferenceError` with the specified message.
     #[inline]
-    pub fn throw_reference_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_reference_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -469,7 +469,7 @@ impl Context {
 
     /// Throws a `SyntaxError` with the specified message.
     #[inline]
-    pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_syntax_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -503,7 +503,7 @@ impl Context {
     }
 
     /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_eval_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -511,7 +511,7 @@ impl Context {
     }
 
     /// Throws a `URIError` with the specified message.
-    pub fn throw_uri_error<M>(&mut self, message: M) -> Result<JsValue>
+    pub fn throw_uri_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -525,7 +525,7 @@ impl Context {
         params: P,
         body: B,
         flags: FunctionFlags,
-    ) -> Result<JsValue>
+    ) -> JsResult<JsValue>
     where
         N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
@@ -602,7 +602,7 @@ impl Context {
         name: &str,
         length: usize,
         body: NativeFunction,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
@@ -633,9 +633,9 @@ impl Context {
     /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::closure).
     /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
-    pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> Result<()>
+    pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> Result<JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
     {
         let function = FunctionBuilder::closure(self, body)
             .name(name)
@@ -665,7 +665,7 @@ impl Context {
     }
 
     #[inline]
-    pub(crate) fn set_value(&mut self, node: &Node, value: JsValue) -> Result<JsValue> {
+    pub(crate) fn set_value(&mut self, node: &Node, value: JsValue) -> JsResult<JsValue> {
         match node {
             Node::Identifier(ref name) => {
                 self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
@@ -701,7 +701,7 @@ impl Context {
     /// context.register_global_class::<MyClass>();
     /// ```
     #[inline]
-    pub fn register_global_class<T>(&mut self) -> Result<()>
+    pub fn register_global_class<T>(&mut self) -> JsResult<()>
     where
         T: Class,
     {
@@ -781,7 +781,7 @@ impl Context {
     #[cfg(not(feature = "vm"))]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     #[inline]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<JsValue> {
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
         let src_bytes: &[u8] = src.as_ref();
 
@@ -815,7 +815,7 @@ impl Context {
     /// ```
     #[cfg(feature = "vm")]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<JsValue> {
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> JsResult<JsValue> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
         let src_bytes: &[u8] = src.as_ref();
 

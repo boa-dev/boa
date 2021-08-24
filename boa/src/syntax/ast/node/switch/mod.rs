@@ -4,7 +4,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -123,7 +123,7 @@ impl Switch {
 }
 
 impl Executable for Switch {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let val = self.val().run(context)?;
         let mut result = JsValue::null();
         let mut matched = false;

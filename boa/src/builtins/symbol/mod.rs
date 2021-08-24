@@ -24,7 +24,7 @@ use crate::{
     property::Attribute,
     symbol::{JsSymbol, WellKnownSymbols},
     value::JsValue,
-    BoaProfiler, Context, JsString, Result,
+    BoaProfiler, Context, JsResult, JsString,
 };
 
 use std::cell::RefCell;
@@ -163,7 +163,7 @@ impl Symbol {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if new_target.is_undefined() {
             return context.throw_type_error("Symbol is not a constructor");
         }
@@ -175,7 +175,7 @@ impl Symbol {
         Ok(JsSymbol::new(description).into())
     }
 
-    fn this_symbol_value(value: &JsValue, context: &mut Context) -> Result<JsSymbol> {
+    fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
         match value {
             JsValue::Symbol(ref symbol) => return Ok(symbol.clone()),
             JsValue::Object(ref object) => {
@@ -205,7 +205,7 @@ impl Symbol {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let symbol = Self::this_symbol_value(this, context)?;
         Ok(symbol.to_string().into())
     }
@@ -224,7 +224,7 @@ impl Symbol {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let symbol = Self::this_symbol_value(this, context)?;
         if let Some(ref description) = symbol.description() {
             Ok(description.clone().into())
@@ -241,7 +241,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.for
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for
-    pub(crate) fn for_(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn for_(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let stringKey be ? ToString(key).
         let string_key = args
             .get(0)
@@ -271,7 +271,11 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
-    pub(crate) fn key_for(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn key_for(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let sym = args.get(0).cloned().unwrap_or_default();
         // 1. If Type(sym) is not Symbol, throw a TypeError exception.
         if let Some(sym) = sym.as_symbol() {

@@ -17,7 +17,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsBigInt, JsValue, Result,
+    BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 #[cfg(test)]
 mod tests;
@@ -76,7 +76,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let data = match args.get(0) {
             Some(value) => value.to_bigint(context)?,
             None => JsBigInt::zero(),
@@ -95,7 +95,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &JsValue, context: &mut Context) -> Result<JsBigInt> {
+    fn this_bigint_value(value: &JsValue, context: &mut Context) -> JsResult<JsBigInt> {
         match value {
             // 1. If Type(value) is BigInt, return value.
             JsValue::BigInt(ref bigint) => return Ok(bigint.clone()),
@@ -130,7 +130,7 @@ impl BigInt {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let radix = if !args.is_empty() {
             args[0].to_integer(context)? as i32
         } else {
@@ -159,7 +159,7 @@ impl BigInt {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_bigint_value(this, context)?))
     }
 
@@ -174,7 +174,7 @@ impl BigInt {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
@@ -200,7 +200,7 @@ impl BigInt {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let (modulo, _) = Self::calculate_as_uint_n(args, context)?;
 
         Ok(JsValue::new(modulo))
@@ -211,7 +211,7 @@ impl BigInt {
     /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
-    fn calculate_as_uint_n(args: &[JsValue], context: &mut Context) -> Result<(JsBigInt, u32)> {
+    fn calculate_as_uint_n(args: &[JsValue], context: &mut Context) -> JsResult<(JsBigInt, u32)> {
         use std::convert::TryFrom;
 
         let undefined_value = JsValue::undefined();

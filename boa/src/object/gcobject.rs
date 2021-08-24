@@ -17,7 +17,7 @@ use crate::{
     symbol::WellKnownSymbols,
     syntax::ast::node::RcStatementList,
     value::PreferredType,
-    Context, Executable, JsValue, Result,
+    Context, Executable, JsResult, JsValue,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Value as JSONValue};
@@ -130,7 +130,7 @@ impl GcObject {
         args: &[JsValue],
         context: &mut Context,
         construct: bool,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this_function_object = self.clone();
         let mut has_parameter_expressions = false;
 
@@ -345,7 +345,12 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
     #[inline]
-    pub fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn call(
+        &self,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         self.call_construct(this, args, context, false)
     }
 
@@ -362,7 +367,7 @@ impl GcObject {
         args: &[JsValue],
         new_target: &JsValue,
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         self.call_construct(new_target, args, context, true)
     }
 
@@ -388,7 +393,7 @@ impl GcObject {
         &self,
         context: &mut Context,
         hint: PreferredType,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Assert: Type(O) is Object.
         //      Already is GcObject by type.
         // 2. Assert: Type(hint) is String and its value is either "string" or "number".
@@ -439,7 +444,7 @@ impl GcObject {
     }
 
     /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
+    pub(crate) fn to_json(&self, context: &mut Context) -> JsResult<Option<JSONValue>> {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
             Err(context.construct_type_error("cyclic object value"))
@@ -704,7 +709,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
     #[inline]
-    pub fn get_method<K>(&self, context: &mut Context, key: K) -> Result<Option<GcObject>>
+    pub fn get_method<K>(&self, context: &mut Context, key: K) -> JsResult<Option<GcObject>>
     where
         K: Into<PropertyKey>,
     {
@@ -737,7 +742,7 @@ impl GcObject {
         &self,
         context: &mut Context,
         value: &JsValue,
-    ) -> Result<bool> {
+    ) -> JsResult<bool> {
         // 1. If IsCallable(C) is false, return false.
         if !self.is_callable() {
             return Ok(false);
@@ -789,7 +794,7 @@ impl GcObject {
         &self,
         default_constructor: JsValue,
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").
@@ -828,7 +833,7 @@ impl GcObject {
         }
     }
 
-    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+    pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1 is implemented on the method `to_property_descriptor` of value
 
         // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -929,7 +934,7 @@ impl GcObject {
         source: &JsValue,
         excluded_keys: Vec<K>,
         context: &mut Context,
-    ) -> Result<()>
+    ) -> JsResult<()>
     where
         K: Into<PropertyKey>,
     {

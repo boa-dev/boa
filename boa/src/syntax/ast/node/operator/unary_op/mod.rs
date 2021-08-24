@@ -2,7 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
-    Context, JsBigInt, JsValue, Result,
+    Context, JsBigInt, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -50,7 +50,7 @@ impl UnaryOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         Ok(match self.op() {
             op::UnaryOp::Minus => self.target().run(context)?.neg(context)?,
             op::UnaryOp::Plus => JsValue::new(self.target().run(context)?.to_number(context)?),

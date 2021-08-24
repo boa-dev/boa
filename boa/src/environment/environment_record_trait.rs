@@ -13,7 +13,7 @@ use crate::{environment::lexical_environment::VariableScope, object::GcObject};
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
     gc::{Finalize, Trace},
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt::Debug;
 
@@ -39,7 +39,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
-    ) -> Result<()>;
+    ) -> JsResult<()>;
 
     /// Create a new but uninitialized immutable binding in an Environment Record.
     /// The String value N is the text of the bound name.
@@ -50,12 +50,13 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: String,
         strict: bool,
         context: &mut Context,
-    ) -> Result<()>;
+    ) -> JsResult<()>;
 
     /// Set the value of an already existing but uninitialized binding in an Environment Record.
     /// The String value N is the text of the bound name.
     /// V is the value for the binding and is a value of any ECMAScript language type.
-    fn initialize_binding(&self, name: &str, value: JsValue, context: &mut Context) -> Result<()>;
+    fn initialize_binding(&self, name: &str, value: JsValue, context: &mut Context)
+        -> JsResult<()>;
 
     /// Set the value of an already existing mutable binding in an Environment Record.
     /// The String value `name` is the text of the bound name.
@@ -67,14 +68,18 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         value: JsValue,
         strict: bool,
         context: &mut Context,
-    ) -> Result<()>;
+    ) -> JsResult<()>;
 
     /// Returns the value of an already existing binding from an Environment Record.
     /// The String value N is the text of the bound name.
     /// S is used to identify references originating in strict mode code or that
     /// otherwise require strict mode reference semantics.
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context)
-        -> Result<JsValue>;
+    fn get_binding_value(
+        &self,
+        name: &str,
+        strict: bool,
+        context: &mut Context,
+    ) -> JsResult<JsValue>;
 
     /// Delete a binding from an Environment Record.
     /// The String value name is the text of the bound name.
@@ -87,7 +92,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn has_this_binding(&self) -> bool;
 
     /// Return the `this` binding from the environment
-    fn get_this_binding(&self, context: &mut Context) -> Result<JsValue>;
+    fn get_this_binding(&self, context: &mut Context) -> JsResult<JsValue>;
 
     /// Determine if an Environment Record establishes a super method binding.
     /// Return true if it does and false if it does not.
@@ -110,7 +115,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn get_environment_type(&self) -> EnvironmentType;
 
     /// Return the `this` binding from the environment or try to get it from outer environments
-    fn recursive_get_this_binding(&self, context: &mut Context) -> Result<JsValue> {
+    fn recursive_get_this_binding(&self, context: &mut Context) -> JsResult<JsValue> {
         if self.has_this_binding() {
             self.get_this_binding(context)
         } else {
@@ -128,7 +133,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         deletion: bool,
         scope: VariableScope,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         match scope {
             VariableScope::Block => self.create_mutable_binding(name, deletion, false, context),
             VariableScope::Function => self
@@ -145,7 +150,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         deletion: bool,
         scope: VariableScope,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         match scope {
             VariableScope::Block => self.create_immutable_binding(name, deletion, context),
             VariableScope::Function => self
@@ -162,7 +167,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         value: JsValue,
         strict: bool,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         if self.has_binding(name) {
             self.set_mutable_binding(name, value, strict, context)
         } else {
@@ -178,7 +183,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: &str,
         value: JsValue,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         if self.has_binding(name) {
             self.initialize_binding(name, value, context)
         } else {
@@ -198,7 +203,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     }
 
     /// Retrieve binding from current or any outer environment
-    fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> Result<JsValue> {
+    fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> JsResult<JsValue> {
         if self.has_binding(name) {
             self.get_binding_value(name, false, context)
         } else {

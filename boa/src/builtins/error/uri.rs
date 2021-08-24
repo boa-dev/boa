@@ -15,7 +15,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     profiler::BoaProfiler,
     property::Attribute,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 
 /// JavaScript `URIError` impleentation.
@@ -59,7 +59,7 @@ impl UriError {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {

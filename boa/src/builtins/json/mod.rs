@@ -20,7 +20,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use serde::Serialize;
 use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
@@ -68,7 +68,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let arg = args
             .get(0)
             .cloned()
@@ -102,7 +102,7 @@ impl Json {
         context: &mut Context,
         holder: &mut JsValue,
         key: &PropertyKey,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let value = holder.get_field(key.clone(), context)?;
 
         if let JsValue::Object(ref object) = value {
@@ -144,7 +144,7 @@ impl Json {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let object = match args.get(0) {
             None => return Ok(JsValue::undefined()),
             Some(obj) => obj,

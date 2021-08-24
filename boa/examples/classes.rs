@@ -2,7 +2,7 @@ use boa::{
     class::{Class, ClassBuilder},
     gc::{Finalize, Trace},
     property::Attribute,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 
 // We create a new struct that is going to represent a person.
@@ -26,7 +26,7 @@ struct Person {
 // or any function that matches that signature.
 impl Person {
     /// This function says hello
-    fn say_hello(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn say_hello(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -57,7 +57,7 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is called when we do `new Person()`
-    fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<Self> {
+    fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
         // We get the first argument. If it is unavailable we get `undefined`. And, then call `to_string()`.
         //
         // This is equivalent to `String(arg)`.
@@ -81,7 +81,7 @@ impl Class for Person {
     }
 
     /// This is where the object is intitialized.
-    fn init(class: &mut ClassBuilder) -> Result<()> {
+    fn init(class: &mut ClassBuilder) -> JsResult<()> {
         // we add a inheritable method `sayHello` with length `0` the amount of args it takes.
         //
         // This function is added to `Person.prototype.sayHello()`

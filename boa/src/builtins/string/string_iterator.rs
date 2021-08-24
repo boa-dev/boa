@@ -6,7 +6,7 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 #[derive(Debug, Clone, Finalize, Trace)]
@@ -23,7 +23,7 @@ impl StringIterator {
         }
     }
 
-    pub fn create_string_iterator(context: &mut Context, string: JsValue) -> Result<JsValue> {
+    pub fn create_string_iterator(context: &mut Context, string: JsValue) -> JsResult<JsValue> {
         let string_iterator = JsValue::new_object(context);
         string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
         string_iterator
@@ -33,7 +33,7 @@ impl StringIterator {
         Ok(string_iterator)
     }
 
-    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(string_iterator) = object.as_string_iterator_mut() {
