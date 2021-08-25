@@ -316,6 +316,28 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
@@ -328,6 +350,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax::ast::node::Identifier</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax::lexer::TokenKind</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
@@ -451,6 +474,27 @@
             <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>));
+        }
+
+        <span class="comment">// Peek for &#39;}&#39; or &#39;,&#39; to indicate shorthand property name</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>)<span class="question-mark">?</span> {
+            <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
+                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>)
+                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
+                        <span class="comment">// ident is both the name and value in a shorthand property</span>
+                        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">to_string</span>();
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">Identifier::from</span>(<span class="ident">ident</span>.<span class="ident">to_owned</span>());
+                        <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::property</span>(<span class="ident">name</span>, <span class="ident">value</span>));
+                    } <span class="kw">else</span> {
+                        <span class="comment">// Anything besides an identifier is a syntax error</span>
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(<span class="ident">token</span>.<span class="ident">clone</span>(), <span class="string">&quot;object literal&quot;</span>));
+                    }
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            }
         }
 
         <span class="kw">let</span> <span class="ident">prop_name</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
