@@ -1,8 +1,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            Declaration, DeclarationList, FormalParameter, FunctionExpr, MethodDefinitionKind,
-            Object, PropertyDefinition,
+            Declaration, DeclarationList, FormalParameter, FunctionExpr, Identifier,
+            MethodDefinitionKind, Object, PropertyDefinition,
         },
         Const,
     },
@@ -201,5 +201,63 @@ fn check_object_short_function_set() {
             .into(),
         )
         .into()],
+    );
+}
+
+#[test]
+fn check_object_shorthand_property_names() {
+    let object_properties = vec![PropertyDefinition::property("a", Identifier::from("a"))];
+
+    check_parser(
+        "const a = true;
+            const x = { a };
+        ",
+        vec![
+            DeclarationList::Const(
+                vec![Declaration::new("a", Some(Const::from(true).into()))].into(),
+            )
+            .into(),
+            DeclarationList::Const(
+                vec![Declaration::new(
+                    "x",
+                    Some(Object::from(object_properties).into()),
+                )]
+                .into(),
+            )
+            .into(),
+        ],
+    );
+}
+
+#[test]
+fn check_object_shorthand_multiple_properties() {
+    let object_properties = vec![
+        PropertyDefinition::property("a", Identifier::from("a")),
+        PropertyDefinition::property("b", Identifier::from("b")),
+    ];
+
+    check_parser(
+        "const a = true;
+            const b = false;
+            const x = { a, b, };
+        ",
+        vec![
+            DeclarationList::Const(
+                vec![Declaration::new("a", Some(Const::from(true).into()))].into(),
+            )
+            .into(),
+            DeclarationList::Const(
+                vec![Declaration::new("b", Some(Const::from(false).into()))].into(),
+            )
+            .into(),
+            DeclarationList::Const(
+                vec![Declaration::new(
+                    "x",
+                    Some(Object::from(object_properties).into()),
+                )]
+                .into(),
+            )
+            .into(),
+        ],
     );
 }

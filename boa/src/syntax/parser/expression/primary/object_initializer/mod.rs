@@ -9,6 +9,7 @@
 
 #[cfg(test)]
 mod tests;
+use crate::syntax::ast::node::Identifier;
 use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
@@ -132,6 +133,27 @@ where
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
+        }
+
+        // Peek for '}' or ',' to indicate shorthand property name
+        if let Some(next_token) = cursor.peek(1)? {
+            match next_token.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBlock)
+                | TokenKind::Punctuator(Punctuator::Comma) => {
+                    let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+                    if let TokenKind::Identifier(ident) = token.kind() {
+                        // ident is both the name and value in a shorthand property
+                        let name = ident.to_string();
+                        let value = Identifier::from(ident.to_owned());
+                        cursor.next()?.expect("token vanished"); // Consume the token.
+                        return Ok(node::PropertyDefinition::property(name, value));
+                    } else {
+                        // Anything besides an identifier is a syntax error
+                        return Err(ParseError::unexpected(token.clone(), "object literal"));
+                    }
+                }
+                _ => {}
+            }
         }
 
         let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
