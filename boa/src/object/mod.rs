@@ -80,13 +80,14 @@ pub struct Object {
     extensible: bool,
 }
 
-/// Defines the different types of objects.
+/// Defines the kind of an object and its internal methods
 #[derive(Trace, Finalize)]
 pub struct ObjectData {
     kind: ObjectKind,
     internal_methods: &'static InternalObjectMethods,
 }
 
+/// Defines the different types of objects.
 #[derive(Debug, Trace, Finalize)]
 pub enum ObjectKind {
     Array,
@@ -113,6 +114,7 @@ pub enum ObjectKind {
 }
 
 impl ObjectData {
+    /// Create the `Array` object data and reference its exclusive internal methods
     pub fn array() -> Self {
         Self {
             kind: ObjectKind::Array,
@@ -120,120 +122,159 @@ impl ObjectData {
         }
     }
 
+    /// Create the `ArrayIterator` object data
     pub fn array_iterator(array_iterator: ArrayIterator) -> Self {
         Self {
             kind: ObjectKind::ArrayIterator(array_iterator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Map` object data
     pub fn map(map: OrderedMap<JsValue>) -> Self {
         Self {
             kind: ObjectKind::Map(map),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `MapIterator` object data
     pub fn map_iterator(map_iterator: MapIterator) -> Self {
         Self {
             kind: ObjectKind::MapIterator(map_iterator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `RegExp` object data
     pub fn reg_exp(reg_exp: Box<RegExp>) -> Self {
         Self {
             kind: ObjectKind::RegExp(reg_exp),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `RegExpStringIterator` object data
     pub fn reg_exp_string_iterator(reg_exp_string_iterator: RegExpStringIterator) -> Self {
         Self {
             kind: ObjectKind::RegExpStringIterator(reg_exp_string_iterator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `BigInt` object data
     pub fn big_int(big_int: JsBigInt) -> Self {
         Self {
             kind: ObjectKind::BigInt(big_int),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Boolean` object data
     pub fn boolean(boolean: bool) -> Self {
         Self {
             kind: ObjectKind::Boolean(boolean),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `ForInIterator` object data
     pub fn for_in_iterator(for_in_iterator: ForInIterator) -> Self {
         Self {
             kind: ObjectKind::ForInIterator(for_in_iterator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Function` object data
     pub fn function(function: Function) -> Self {
         Self {
             kind: ObjectKind::Function(function),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Set` object data
     pub fn set(set: OrderedSet<JsValue>) -> Self {
         Self {
             kind: ObjectKind::Set(set),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `SetIterator` object data
     pub fn set_iterator(set_iterator: SetIterator) -> Self {
         Self {
             kind: ObjectKind::SetIterator(set_iterator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `String` object data and reference its exclusive internal methods
     pub fn string(string: JsString) -> Self {
         Self {
             kind: ObjectKind::String(string),
             internal_methods: &STRING_EXOTIC_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `StringIterator` object data
     pub fn string_iterator(string_iterator: StringIterator) -> Self {
         Self {
             kind: ObjectKind::StringIterator(string_iterator),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Number` object data
     pub fn number(number: f64) -> Self {
         Self {
             kind: ObjectKind::Number(number),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Symbol` object data
     pub fn symbol(symbol: JsSymbol) -> Self {
         Self {
             kind: ObjectKind::Symbol(symbol),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Error` object data
     pub fn error() -> Self {
         Self {
             kind: ObjectKind::Error,
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Ordinary` object data
     pub fn ordinary() -> Self {
         Self {
             kind: ObjectKind::Ordinary,
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Date` object data
     pub fn date(date: Date) -> Self {
         Self {
             kind: ObjectKind::Date(date),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `Global` object data
     pub fn global() -> Self {
         Self {
             kind: ObjectKind::Global,
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `NativeObject` object data
     pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
         Self {
             kind: ObjectKind::NativeObject(native_object),
