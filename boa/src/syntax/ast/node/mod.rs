@@ -484,6 +484,16 @@ pub enum PropertyDefinition {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     Property(Box<str>, Node),
 
+    /// Binds a computed property name to a JavaScript value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
+    ComputedPropertyName(Node, Node),
+
     /// A property of an object can also refer to a function or a getter or setter method.
     ///
     /// More information:
