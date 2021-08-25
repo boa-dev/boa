@@ -214,11 +214,15 @@ fn check_object_shorthand_property_names() {
         ",
         vec![
             DeclarationList::Const(
-                vec![Declaration::new("a", Some(Const::from(true).into()))].into(),
+                vec![Declaration::new_with_identifier(
+                    "a",
+                    Some(Const::from(true).into()),
+                )]
+                .into(),
             )
             .into(),
             DeclarationList::Const(
-                vec![Declaration::new(
+                vec![Declaration::new_with_identifier(
                     "x",
                     Some(Object::from(object_properties).into()),
                 )]
@@ -243,15 +247,23 @@ fn check_object_shorthand_multiple_properties() {
         ",
         vec![
             DeclarationList::Const(
-                vec![Declaration::new("a", Some(Const::from(true).into()))].into(),
+                vec![Declaration::new_with_identifier(
+                    "a",
+                    Some(Const::from(true).into()),
+                )]
+                .into(),
             )
             .into(),
             DeclarationList::Const(
-                vec![Declaration::new("b", Some(Const::from(false).into()))].into(),
+                vec![Declaration::new_with_identifier(
+                    "b",
+                    Some(Const::from(false).into()),
+                )]
+                .into(),
             )
             .into(),
             DeclarationList::Const(
-                vec![Declaration::new(
+                vec![Declaration::new_with_identifier(
                     "x",
                     Some(Object::from(object_properties).into()),
                 )]

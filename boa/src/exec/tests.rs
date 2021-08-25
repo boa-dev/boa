@@ -758,7 +758,7 @@ mod in_operator {
         "#;
 
         check_output(&[TestAction::TestEq(
-            &scenario,
+            scenario,
             "Uncaught \"TypeError\": \"a is not a constructor\"",
         )]);
     }
