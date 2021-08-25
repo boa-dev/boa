@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["json_to_pretty_string",""]],"struct":[["Json","JavaScript `JSON` global object."]]});
+initSidebarItems({"struct":[["Json","JavaScript `JSON` global object."],["StateRecord",""]]});
