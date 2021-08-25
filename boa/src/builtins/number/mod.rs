@@ -151,7 +151,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.min_value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
-    pub(crate) const MIN_VALUE: f64 = f64::MIN;
+    pub(crate) const MIN_VALUE: f64 = f64::MIN_POSITIVE;
 
     /// `Number( value )`
     pub(crate) fn constructor(
