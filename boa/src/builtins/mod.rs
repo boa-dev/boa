@@ -114,6 +114,17 @@ pub fn init(context: &mut Context) {
 }
 
 pub trait JsArgs {
+    /// Utility function to `get` a parameter from
+    /// a `[JsValue]` or default to `JsValue::Undefined`
+    /// if `get` returns `None`.
+    ///
+    /// Call this if you are thinking of calling something similar to
+    /// `args.get(n).cloned().unwrap_or_default()` or
+    /// `args.get(n).unwrap_or(&undefined)`.
+    ///
+    /// This returns a reference for efficiency, in case
+    /// you only need to call methods of `JsValue`, so
+    /// try to minimize calling `clone`.
     fn get_or_undefined(&self, index: usize) -> &JsValue;
 }
 

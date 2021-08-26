@@ -268,7 +268,7 @@ impl Json {
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
-            .create_data_property_or_throw("", args.get(0).cloned().unwrap_or_default(), context)
+            .create_data_property_or_throw("", args.get_or_undefined(0).clone(), context)
             .expect("CreateDataPropertyOrThrow should never fail here");
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
