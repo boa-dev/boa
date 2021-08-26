@@ -6,6 +6,12 @@ use crate::{
 
 use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
+/// Definitions of the internal object methods for string exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects
 pub(crate) static STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
     __get_own_property__: string_exotic_get_own_property,
     __define_own_property__: string_exotic_define_own_property,

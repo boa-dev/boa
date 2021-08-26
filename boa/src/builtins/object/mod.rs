@@ -146,7 +146,7 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            define_properties(&obj, properties, context)?;
+            object_define_properties(&obj, properties, context)?;
             return Ok(obj.into());
         }
 
@@ -417,7 +417,7 @@ impl Object {
         let arg_obj = arg.as_object();
         if let Some(obj) = arg_obj {
             let props = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
-            define_properties(&obj, props, context)?;
+            object_define_properties(&obj, props, context)?;
             Ok(arg)
         } else {
             context.throw_type_error("Expected an object")
@@ -696,24 +696,47 @@ impl Object {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
 #[inline]
-fn define_properties(object: &JsObject, props: JsValue, context: &mut Context) -> JsResult<()> {
+fn object_define_properties(
+    object: &JsObject,
+    props: JsValue,
+    context: &mut Context,
+) -> JsResult<()> {
+    // 1. Assert: Type(O) is Object.
+    // 2. Let props be ? ToObject(Properties).
     let props = &props.to_object(context)?;
+
+    // 3. Let keys be ? props.[[OwnPropertyKeys]]().
     let keys = props.__own_property_keys__(context)?;
+
+    // 4. Let descriptors be a new empty List.
     let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
 
+    // 5. For each element nextKey of keys, do
     for next_key in keys {
+        // a. Let propDesc be ? props.[[GetOwnProperty]](nextKey).
+        // b. If propDesc is not undefined and propDesc.[[Enumerable]] is true, then
         if let Some(prop_desc) = props.__get_own_property__(&next_key, context)? {
             if prop_desc.expect_enumerable() {
+                // i. Let descObj be ? Get(props, nextKey).
                 let desc_obj = props.get(next_key.clone(), context)?;
+
+                // ii. Let desc be ? ToPropertyDescriptor(descObj).
                 let desc = desc_obj.to_property_descriptor(context)?;
+
+                // iii. Append the pair (a two element List) consisting of nextKey and desc to the end of descriptors.
                 descriptors.push((next_key, desc));
             }
         }
     }
 
+    // 6. For each element pair of descriptors, do
+    // a. Let P be the first element of pair.
+    // b. Let desc be the second element of pair.
     for (p, d) in descriptors {
+        // c. Perform ? DefinePropertyOrThrow(O, P, desc).
         object.define_property_or_throw(p, d, context)?;
     }
 
+    // 7. Return O.
     Ok(())
 }

@@ -8,7 +8,7 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        Number,
+        Array, Number,
     },
     object::{JsObject, Object, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
@@ -128,30 +128,12 @@ impl JsValue {
             JSONValue::String(v) => Self::new(v),
             JSONValue::Bool(v) => Self::new(v),
             JSONValue::Array(vs) => {
-                let array_prototype = context.standard_objects().array_object().prototype();
-                let new_obj: JsValue =
-                    Object::with_prototype(array_prototype.into(), ObjectData::array()).into();
-                let length = vs.len();
-                for (idx, json) in vs.into_iter().enumerate() {
-                    new_obj.set_property(
-                        idx.to_string(),
-                        PropertyDescriptor::builder()
-                            .value(Self::from_json(json, context))
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true),
-                    );
-                }
-                new_obj.set_property(
-                    "length",
-                    // TODO: Fix length attribute
-                    PropertyDescriptor::builder()
-                        .value(length)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(true),
-                );
-                new_obj
+                let vs: Vec<_> = vs
+                    .into_iter()
+                    .map(|json| Self::from_json(json, context))
+                    .collect();
+
+                Array::create_array_from_list(vs, context).into()
             }
             JSONValue::Object(obj) => {
                 let new_obj = JsValue::new_object(context);

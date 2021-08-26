@@ -190,15 +190,34 @@ impl String {
         Ok(Self::string_create(string, prototype, context).into())
     }
 
+    /// Abstract function `StringCreate( value, prototype )`.
+    ///
+    /// Call this function if you want to create a `String` exotic object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringcreate
     fn string_create(value: JsString, prototype: JsObject, context: &mut Context) -> JsObject {
+        // 7. Let length be the number of code unit elements in value.
+        let len = value.encode_utf16().count();
+
+        // 1. Let S be ! MakeBasicObject(« [[Prototype]], [[Extensible]], [[StringData]] »).
+        // 2. Set S.[[Prototype]] to prototype.
+        // 3. Set S.[[StringData]] to value.
+        // 4. Set S.[[GetOwnProperty]] as specified in 10.4.3.1.
+        // 5. Set S.[[DefineOwnProperty]] as specified in 10.4.3.2.
+        // 6. Set S.[[OwnPropertyKeys]] as specified in 10.4.3.3.
         let s = context.construct_object();
-
         s.set_prototype_instance(prototype.into());
+        s.borrow_mut().data = ObjectData::string(value);
 
+        // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
+        // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
         s.define_property_or_throw(
             "length",
             PropertyDescriptor::builder()
-                .value(value.encode_utf16().count())
+                .value(len)
                 .writable(false)
                 .enumerable(false)
                 .configurable(false),
@@ -206,8 +225,7 @@ impl String {
         )
         .expect("length definition for a new string must not fail");
 
-        s.borrow_mut().data = ObjectData::string(value);
-
+        // 9. Return S.
         s
     }
 
