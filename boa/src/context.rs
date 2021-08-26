@@ -635,7 +635,7 @@ impl Context {
     #[inline]
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
         let function = FunctionBuilder::closure(self, body)
             .name(name)

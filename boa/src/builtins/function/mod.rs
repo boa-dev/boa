@@ -15,25 +15,54 @@ use crate::object::PROTOTYPE;
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
-    gc::{custom_trace, empty_trace, Finalize, Trace},
+    gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData},
     property::{Attribute, PropertyDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
 use bitflags::bitflags;
-
+use dyn_clone::DynClone;
+use sealed::Sealed;
 use std::fmt::{self, Debug};
-use std::rc::Rc;
 
 #[cfg(test)]
 mod tests;
 
-/// _fn(this, arguments, context) -> ResultValue_ - The signature of a native built-in function
+// Allows restricting closures to only `Copy` ones.
+// Used the sealed pattern to disallow external implementations
+// of `DynCopy`.
+mod sealed {
+    pub trait Sealed {}
+    impl<T: Copy> Sealed for T {}
+}
+pub trait DynCopy: Sealed {}
+impl<T: Copy> DynCopy for T {}
+
+/// Type representing a native built-in function a.k.a. function pointer.
+///
+/// Native functions need to have this signature in order to
+/// be callable from Javascript.
 pub type NativeFunction = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
 
-/// _fn(this, arguments, context) -> ResultValue_ - The signature of a closure built-in function
-pub type ClosureFunction = dyn Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
+/// Trait representing a native built-in closure.
+///
+/// Closures need to have this signature in order to
+/// be callable from Javascript, but most of the time the compiler
+/// is smart enough to correctly infer the types.
+pub trait ClosureFunction:
+    Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + DynCopy + DynClone + 'static
+{
+}
+
+// The `Copy` bound automatically infers `DynCopy` and `DynClone`
+impl<T> ClosureFunction for T where
+    T: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static
+{
+}
+
+// Allows cloning Box<dyn ClosureFunction>
+dyn_clone::clone_trait_object!(ClosureFunction);
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
@@ -83,14 +112,15 @@ unsafe impl Trace for FunctionFlags {
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Finalize)]
+#[derive(Trace, Finalize)]
 pub enum Function {
     Native {
         function: BuiltInFunction,
         constructable: bool,
     },
     Closure {
-        function: Rc<ClosureFunction>,
+        #[unsafe_ignore_trace]
+        function: Box<dyn ClosureFunction>,
         constructable: bool,
     },
     Ordinary {
@@ -105,18 +135,6 @@ impl Debug for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Function {{ ... }}")
     }
-}
-
-unsafe impl Trace for Function {
-    custom_trace!(this, {
-        match this {
-            Function::Native { .. } => {}
-            Function::Closure { .. } => {}
-            Function::Ordinary { environment, .. } => {
-                mark(environment);
-            }
-        }
-    });
 }
 
 impl Function {
