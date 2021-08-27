@@ -249,7 +249,7 @@
 
         <span class="comment">// 5. Return ! CreateIteratorFromClosure(closure, &quot;%RegExpStringIteratorPrototype%&quot;, %RegExpStringIteratorPrototype%).</span>
         <span class="kw">let</span> <span class="ident">regexp_string_iterator</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
-        <span class="ident">regexp_string_iterator</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::RegExpStringIterator</span>(<span class="self">Self</span><span class="ident">::new</span>(
+        <span class="ident">regexp_string_iterator</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::reg_exp_string_iterator</span>(<span class="self">Self</span><span class="ident">::new</span>(
             <span class="ident">matcher</span>.<span class="ident">clone</span>(),
             <span class="ident">string</span>,
             <span class="ident">global</span>,

@@ -183,7 +183,7 @@
         <span class="ident">kind</span>: <span class="ident">PropertyNameKind</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">let</span> <span class="ident">array_iterator</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
-        <span class="ident">array_iterator</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::ArrayIterator</span>(<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">array</span>, <span class="ident">kind</span>)));
+        <span class="ident">array_iterator</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::array_iterator</span>(<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">array</span>, <span class="ident">kind</span>)));
         <span class="ident">array_iterator</span>
             .<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;array iterator object&quot;</span>)

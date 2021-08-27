@@ -1035,57 +1035,6 @@
 <span id="1035">1035</span>
 <span id="1036">1036</span>
 <span id="1037">1037</span>
-<span id="1038">1038</span>
-<span id="1039">1039</span>
-<span id="1040">1040</span>
-<span id="1041">1041</span>
-<span id="1042">1042</span>
-<span id="1043">1043</span>
-<span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
-<span id="1058">1058</span>
-<span id="1059">1059</span>
-<span id="1060">1060</span>
-<span id="1061">1061</span>
-<span id="1062">1062</span>
-<span id="1063">1063</span>
-<span id="1064">1064</span>
-<span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1102,8 +1051,8 @@
         <span class="ident">lexical_environment::Environment</span>,
     },
     <span class="ident">exec::InterpreterState</span>,
+    <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">ObjectKind</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax::ast::node::RcStatementList</span>,
     <span class="ident">value::PreferredType</span>,
     <span class="ident">Context</span>, <span class="ident">Executable</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
@@ -1212,7 +1161,7 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody&gt;</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinarycallevaluatebody&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">fn</span> <span class="ident">call_construct</span>(
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">call_construct</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">this_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
@@ -1313,7 +1262,7 @@
                                     <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">body</span>.<span class="ident">function_declared_names</span>().<span class="ident">contains</span>(<span class="string">&quot;arguments&quot;</span>)))
                         {
                             <span class="comment">// Add arguments object</span>
-                            <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
+                            <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                             <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(
                                 <span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(),
                                 <span class="bool-val">false</span>,
@@ -1422,41 +1371,6 @@
                 }
             }
         }
-    }
-
-    <span class="doccomment">/// Call this object.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist&gt;</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">call_construct</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="bool-val">false</span>)
-    }
-
-    <span class="doccomment">/// Construct an instance of this object with the specified arguments.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">call_construct</span>(<span class="ident">new_target</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Converts an object to a primitive.</span>
@@ -1751,35 +1665,6 @@
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_native_object</span>()
     }
 
-    <span class="doccomment">/// Retrieves value of specific property, when the value of the property is expected to be a function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-    {
-        <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 2. Let func be ? GetV(V, P).</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 3. If func is either undefined or null, return undefined.</span>
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-        }
-
-        <span class="comment">// 4. If IsCallable(func) is false, throw a TypeError exception.</span>
-        <span class="comment">// 5. Return func.</span>
-        <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">object</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                .<span class="ident">construct_type_error</span>(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)),
-        }
-    }
-
     <span class="doccomment">/// Determines if `value` inherits from the instance object inheritance path.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -1809,14 +1694,14 @@
                 <span class="comment">// 6. Repeat,</span>
                 <span class="comment">//      a. Set O to ? O.[[GetPrototypeOf]]().</span>
                 <span class="comment">//      b. If O is null, return false.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__get_prototype_of__</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object_prototype</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
                     <span class="comment">//     c. If SameValue(P, O) is true, return true.</span>
                     <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="ident">object_prototype</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
                     }
                     <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().</span>
-                    <span class="ident">object</span> <span class="op">=</span> <span class="ident">object_prototype</span>.<span class="ident">__get_prototype_of__</span>();
+                    <span class="ident">object</span> <span class="op">=</span> <span class="ident">object_prototype</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
@@ -1826,59 +1711,6 @@
             }
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-        }
-    }
-
-    <span class="doccomment">/// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The abstract operation SpeciesConstructor takes arguments O (an Object) and defaultConstructor (a constructor).</span>
-    <span class="doccomment">/// It is used to retrieve the constructor that should be used to create new objects that are derived from O.</span>
-    <span class="doccomment">/// defaultConstructor is the constructor to use if a constructor @@species property cannot be found starting from O.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">species_constructor</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">default_constructor</span>: <span class="ident">JsValue</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Assert: Type(O) is Object.</span>
-
-        <span class="comment">// 2. Let C be ? Get(O, &quot;constructor&quot;).</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">get</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 3. If C is undefined, return defaultConstructor.</span>
-        <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">default_constructor</span>);
-        }
-
-        <span class="comment">// 4. If Type(C) is not Object, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_object</span>() {
-            <span class="ident">c</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>);
-        };
-
-        <span class="comment">// 5. Let S be ? Get(C, @@species).</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get</span>(<span class="ident">WellKnownSymbols::species</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 6. If S is either undefined or null, return defaultConstructor.</span>
-        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">default_constructor</span>);
-        }
-
-        <span class="comment">// 7. If IsConstructor(S) is true, return S.</span>
-        <span class="comment">// 8. Throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_object</span>() {
-            <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructable</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">s</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;property &#39;constructor&#39; is not a constructor&quot;</span>)
-            }
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>)
         }
     }
 
@@ -2002,7 +1834,7 @@
         <span class="comment">// 5. Let keys be ? from.[[OwnPropertyKeys]]().</span>
         <span class="comment">// 6. For each element nextKey of keys, do</span>
         <span class="kw">let</span> <span class="ident">excluded_keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">excluded_keys</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>()).<span class="ident">collect</span>();
-        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">from</span>.<span class="ident">own_property_keys</span>() {
+        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">from</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="comment">// a. Let excluded be false.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">excluded</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
@@ -2018,7 +1850,7 @@
             <span class="comment">// c. If excluded is false, then</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">excluded</span> {
                 <span class="comment">// i. Let desc be ? from.[[GetOwnProperty]](nextKey).</span>
-                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>);
+                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. If desc is not undefined and desc.[[Enumerable]] is true, then</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">desc</span> {
@@ -2040,6 +1872,72 @@
 
         <span class="comment">// 7. Return target.</span>
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Helper function for property insertion.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">insert</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+    {
+        <span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>)
+    }
+
+    <span class="doccomment">/// Helper function for property removal.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove</span>(<span class="ident">key</span>)
+    }
+
+    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If a field was already in the object with the same name that a `Some` is returned</span>
+    <span class="doccomment">/// with that field, otherwise None is returned.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+    {
+        <span class="self">self</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">property</span>)
+    }
+
+    <span class="doccomment">/// It determines if Object is a callable function with a `[[Call]]` internal method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_callable</span>()
+    }
+
+    <span class="doccomment">/// It determines if Object is a function object with a `[[Construct]]` internal method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isconstructor</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_constructable</span>()
+    }
+
+    <span class="doccomment">/// Returns true if the GcObject is the global for a Realm</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Global</span>,
+                ..
+            }
+        )
     }
 }
 

@@ -253,10 +253,6 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -273,12 +269,8 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::IntegerOrInfinity</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">builtins::BuiltIn</span>, <span class="ident">object::ConstructorBuilder</span>, <span class="ident">property::Attribute</span>, <span class="ident">symbol::WellKnownSymbols</span>,
+    <span class="ident">value::IntegerOrInfinity</span>, <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -365,7 +357,7 @@
             <span class="comment">//    a. Assert: Type(value.[[BigIntData]]) is BigInt.</span>
             <span class="comment">//    b. Return value.[[BigIntData]].</span>
             <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ObjectData::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_bigint</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>());
                 }
             }

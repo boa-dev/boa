@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["for_in_iterator",""]],"struct":[["Object","The global JavaScript object."]]});
+initSidebarItems({"fn":[["object_define_properties","The abstract operation ObjectDefineProperties"]],"mod":[["for_in_iterator",""]],"struct":[["Object","The global JavaScript object."]]});
