@@ -32,7 +32,7 @@ impl Realm {
         let mut global = Object::default();
 
         // Allow identification of the global object easily
-        global.data = ObjectData::Global;
+        global.data = ObjectData::global();
 
         let gc_global = JsObject::new(global);
 

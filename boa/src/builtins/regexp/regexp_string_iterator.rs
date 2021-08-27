@@ -67,7 +67,7 @@ impl RegExpStringIterator {
 
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
         let regexp_string_iterator = JsValue::new_object(context);
-        regexp_string_iterator.set_data(ObjectData::RegExpStringIterator(Self::new(
+        regexp_string_iterator.set_data(ObjectData::reg_exp_string_iterator(Self::new(
             matcher.clone(),
             string,
             global,

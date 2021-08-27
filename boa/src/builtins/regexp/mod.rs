@@ -361,7 +361,7 @@ impl RegExp {
             original_flags: f,
         };
 
-        this.set_data(ObjectData::RegExp(Box::new(regexp)));
+        this.set_data(ObjectData::reg_exp(Box::new(regexp)));
 
         // 16. Return obj.
         Ok(this.clone())

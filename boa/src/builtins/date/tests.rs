@@ -1,6 +1,6 @@
 #![allow(clippy::zero_prefixed_literal)]
 
-use crate::{forward, forward_val, object::ObjectData, Context, JsValue};
+use crate::{forward, forward_val, Context, JsValue};
 use chrono::prelude::*;
 
 // NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
@@ -14,7 +14,7 @@ fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
     };
 
     if let JsValue::Object(ref date_time) = date_time {
-        if let ObjectData::Date(ref date_time) = date_time.borrow().data {
+        if let Some(date_time) = date_time.borrow().as_date() {
             date_time.0
         } else {
             panic!("expected date")

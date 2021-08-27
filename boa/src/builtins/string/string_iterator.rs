@@ -25,7 +25,7 @@ impl StringIterator {
 
     pub fn create_string_iterator(context: &mut Context, string: JsValue) -> JsResult<JsValue> {
         let string_iterator = JsValue::new_object(context);
-        string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
+        string_iterator.set_data(ObjectData::string_iterator(Self::new(string)));
         string_iterator
             .as_object()
             .expect("array iterator object")

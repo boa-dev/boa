@@ -141,7 +141,7 @@ impl<T: Class> ClassConstructor for T {
         let native_instance = Self::constructor(this, args, context)?;
         let object_instance = context.construct_object();
         object_instance.set_prototype_instance(prototype.into());
-        object_instance.borrow_mut().data = ObjectData::NativeObject(Box::new(native_instance));
+        object_instance.borrow_mut().data = ObjectData::native_object(Box::new(native_instance));
         Ok(object_instance.into())
     }
 }

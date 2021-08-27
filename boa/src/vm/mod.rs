@@ -192,7 +192,8 @@ impl<'a> Vm<'a> {
                     )));
                 }
                 let key = lhs.to_property_key(self.context)?;
-                self.push(self.context.has_property(&rhs, &key));
+                let has_property = self.context.has_property(&rhs, &key)?;
+                self.push(has_property);
             }
             Opcode::InstanceOf => {
                 let y = self.pop();

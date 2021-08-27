@@ -656,11 +656,11 @@ impl Context {
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
     #[inline]
-    pub(crate) fn has_property(&self, obj: &JsValue, key: &PropertyKey) -> bool {
+    pub(crate) fn has_property(&mut self, obj: &JsValue, key: &PropertyKey) -> JsResult<bool> {
         if let Some(obj) = obj.as_object() {
-            obj.__has_property__(key)
+            obj.__has_property__(key, self)
         } else {
-            false
+            Ok(false)
         }
     }
 

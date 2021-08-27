@@ -8,8 +8,7 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        string::is_trimmable_whitespace,
-        Number,
+        Array, Number,
     },
     object::{JsObject, Object, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
@@ -129,30 +128,12 @@ impl JsValue {
             JSONValue::String(v) => Self::new(v),
             JSONValue::Bool(v) => Self::new(v),
             JSONValue::Array(vs) => {
-                let array_prototype = context.standard_objects().array_object().prototype();
-                let new_obj: JsValue =
-                    Object::with_prototype(array_prototype.into(), ObjectData::Array).into();
-                let length = vs.len();
-                for (idx, json) in vs.into_iter().enumerate() {
-                    new_obj.set_property(
-                        idx.to_string(),
-                        PropertyDescriptor::builder()
-                            .value(Self::from_json(json, context))
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true),
-                    );
-                }
-                new_obj.set_property(
-                    "length",
-                    // TODO: Fix length attribute
-                    PropertyDescriptor::builder()
-                        .value(length)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(true),
-                );
-                new_obj
+                let vs: Vec<_> = vs
+                    .into_iter()
+                    .map(|json| Self::from_json(json, context))
+                    .collect();
+
+                Array::create_array_from_list(vs, context).into()
             }
             JSONValue::Object(obj) => {
                 let new_obj = JsValue::new_object(context);
@@ -357,7 +338,8 @@ impl JsValue {
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         match self {
             Self::Object(ref object) => {
-                let property = object.__get_own_property__(&key);
+                // TODO: had to skip `__get_own_properties__` since we don't have context here
+                let property = object.borrow().properties().get(&key).cloned();
                 if property.is_some() {
                     return property;
                 }
@@ -390,8 +372,9 @@ impl JsValue {
         K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
+        // todo: call `__has_property__` instead of directly getting from object
         self.as_object()
-            .map(|object| object.__has_property__(&key.into()))
+            .map(|object| object.borrow().properties().contains_key(&key.into()))
             .unwrap_or(false)
     }
 
@@ -597,21 +580,21 @@ impl JsValue {
                 let prototype = context.standard_objects().boolean_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Boolean(*boolean),
+                    ObjectData::boolean(*boolean),
                 )))
             }
             JsValue::Integer(integer) => {
                 let prototype = context.standard_objects().number_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Number(f64::from(*integer)),
+                    ObjectData::number(f64::from(*integer)),
                 )))
             }
             JsValue::Rational(rational) => {
                 let prototype = context.standard_objects().number_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Number(*rational),
+                    ObjectData::number(*rational),
                 )))
             }
             JsValue::String(ref string) => {
@@ -619,7 +602,7 @@ impl JsValue {
 
                 let object = JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::String(string.clone()),
+                    ObjectData::string(string.clone()),
                 ));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
@@ -636,14 +619,14 @@ impl JsValue {
                 let prototype = context.standard_objects().symbol_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Symbol(symbol.clone()),
+                    ObjectData::symbol(symbol.clone()),
                 )))
             }
             JsValue::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::BigInt(bigint.clone()),
+                    ObjectData::big_int(bigint.clone()),
                 )))
             }
             JsValue::Object(jsobject) => Ok(jsobject.clone()),
@@ -777,30 +760,7 @@ impl JsValue {
             JsValue::Null => Ok(0.0),
             JsValue::Undefined => Ok(f64::NAN),
             JsValue::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            JsValue::String(ref string) => {
-                let string = string.trim_matches(is_trimmable_whitespace);
-
-                // TODO: write our own lexer to match syntax StrDecimalLiteral
-                match string {
-                    "" => Ok(0.0),
-                    "Infinity" | "+Infinity" => Ok(f64::INFINITY),
-                    "-Infinity" => Ok(f64::NEG_INFINITY),
-                    _ if matches!(
-                        string
-                            .chars()
-                            .take(4)
-                            .collect::<String>()
-                            .to_ascii_lowercase()
-                            .as_str(),
-                        "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
-                    ) =>
-                    {
-                        // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-                        Ok(f64::NAN)
-                    }
-                    _ => Ok(fast_float::parse(string).unwrap_or(f64::NAN)),
-                }
-            }
+            JsValue::String(ref string) => Ok(string.string_to_number()),
             JsValue::Rational(number) => Ok(number),
             JsValue::Integer(integer) => Ok(f64::from(integer)),
             JsValue::Symbol(_) => {

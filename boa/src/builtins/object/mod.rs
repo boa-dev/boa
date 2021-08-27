@@ -16,9 +16,10 @@
 use crate::{
     builtins::BuiltIn,
     object::{
-        ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
+        ConstructorBuilder, JsObject, Object as BuiltinObject, ObjectData, ObjectInitializer,
+        ObjectKind, PROTOTYPE,
     },
-    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyNameKind},
+    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{JsValue, Type},
     BoaProfiler, Context, JsResult,
@@ -132,9 +133,9 @@ impl Object {
         let properties = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsValue::new(BuiltinObject::with_prototype(
+            JsValue::Object(_) | JsValue::Null => JsObject::new(BuiltinObject::with_prototype(
                 prototype,
-                ObjectData::Ordinary,
+                ObjectData::ordinary(),
             )),
             _ => {
                 return context.throw_type_error(format!(
@@ -145,10 +146,11 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            return Object::define_properties(&JsValue::undefined(), &[obj, properties], context);
+            object_define_properties(&obj, properties, context)?;
+            return Ok(obj.into());
         }
 
-        Ok(obj)
+        Ok(obj.into())
     }
 
     /// `Object.getOwnPropertyDescriptor( object, property )`
@@ -173,7 +175,7 @@ impl Object {
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(context)?;
 
-            if let Some(desc) = object.__get_own_property__(&key) {
+            if let Some(desc) = object.__get_own_property__(&key, context)? {
                 return Ok(Self::from_property_descriptor(desc, context));
             }
         }
@@ -205,7 +207,7 @@ impl Object {
         for key in object.borrow().properties().keys() {
             let descriptor = {
                 let desc = object
-                    .__get_own_property__(&key)
+                    .__get_own_property__(&key, context)?
                     .expect("Expected property to be on object.");
                 Self::from_property_descriptor(desc, context)
             };
@@ -328,7 +330,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .__set_prototype_of__(proto);
+            .__set_prototype_of__(proto, ctx)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -413,9 +415,9 @@ impl Object {
     ) -> JsResult<JsValue> {
         let arg = args.get(0).cloned().unwrap_or_default();
         let arg_obj = arg.as_object();
-        if let Some(mut obj) = arg_obj {
+        if let Some(obj) = arg_obj {
             let props = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
-            obj.define_properties(props, context)?;
+            object_define_properties(&obj, props, context)?;
             Ok(arg)
         } else {
             context.throw_type_error("Expected an object")
@@ -471,16 +473,16 @@ impl Object {
         // 14. Else, let builtinTag be "Object".
         let builtin_tag = {
             let o = o.borrow();
-            match &o.data {
-                ObjectData::Array => "Array",
+            match o.kind() {
+                ObjectKind::Array => "Array",
                 // TODO: Arguments Exotic Objects are currently not supported
-                ObjectData::Function(_) => "Function",
-                ObjectData::Error => "Error",
-                ObjectData::Boolean(_) => "Boolean",
-                ObjectData::Number(_) => "Number",
-                ObjectData::String(_) => "String",
-                ObjectData::Date(_) => "Date",
-                ObjectData::RegExp(_) => "RegExp",
+                ObjectKind::Function(_) => "Function",
+                ObjectKind::Error => "Error",
+                ObjectKind::Boolean(_) => "Boolean",
+                ObjectKind::Number(_) => "Number",
+                ObjectKind::String(_) => "String",
+                ObjectKind::Date(_) => "Date",
+                ObjectKind::RegExp(_) => "RegExp",
                 _ => "Object",
             }
         };
@@ -542,7 +544,9 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
-        let own_property = this.to_object(context)?.__get_own_property__(&key);
+        let own_property = this
+            .to_object(context)?
+            .__get_own_property__(&key, context)?;
 
         Ok(own_property.map_or(JsValue::new(false), |own_prop| {
             JsValue::new(own_prop.enumerable())
@@ -580,11 +584,11 @@ impl Object {
                 // 3.a.i. Let from be ! ToObject(nextSource).
                 let from = source.to_object(context).unwrap();
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
-                let keys = from.own_property_keys();
+                let keys = from.__own_property_keys__(context)?;
                 // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                    if let Some(desc) = from.__get_own_property__(&key) {
+                    if let Some(desc) = from.__get_own_property__(&key, context)? {
                         // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
                         if desc.expect_enumerable() {
                             // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
@@ -683,4 +687,56 @@ impl Object {
 
         Ok(result.into())
     }
+}
+
+/// The abstract operation ObjectDefineProperties
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+#[inline]
+fn object_define_properties(
+    object: &JsObject,
+    props: JsValue,
+    context: &mut Context,
+) -> JsResult<()> {
+    // 1. Assert: Type(O) is Object.
+    // 2. Let props be ? ToObject(Properties).
+    let props = &props.to_object(context)?;
+
+    // 3. Let keys be ? props.[[OwnPropertyKeys]]().
+    let keys = props.__own_property_keys__(context)?;
+
+    // 4. Let descriptors be a new empty List.
+    let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
+
+    // 5. For each element nextKey of keys, do
+    for next_key in keys {
+        // a. Let propDesc be ? props.[[GetOwnProperty]](nextKey).
+        // b. If propDesc is not undefined and propDesc.[[Enumerable]] is true, then
+        if let Some(prop_desc) = props.__get_own_property__(&next_key, context)? {
+            if prop_desc.expect_enumerable() {
+                // i. Let descObj be ? Get(props, nextKey).
+                let desc_obj = props.get(next_key.clone(), context)?;
+
+                // ii. Let desc be ? ToPropertyDescriptor(descObj).
+                let desc = desc_obj.to_property_descriptor(context)?;
+
+                // iii. Append the pair (a two element List) consisting of nextKey and desc to the end of descriptors.
+                descriptors.push((next_key, desc));
+            }
+        }
+    }
+
+    // 6. For each element pair of descriptors, do
+    // a. Let P be the first element of pair.
+    // b. Let desc be the second element of pair.
+    for (p, d) in descriptors {
+        // c. Perform ? DefinePropertyOrThrow(O, P, desc).
+        object.define_property_or_throw(p, d, context)?;
+    }
+
+    // 7. Return O.
+    Ok(())
 }

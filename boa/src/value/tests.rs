@@ -249,7 +249,8 @@ fn string_length_is_not_enumerable() {
 
     let object = JsValue::new("foo").to_object(&mut context).unwrap();
     let length_desc = object
-        .__get_own_property__(&PropertyKey::from("length"))
+        .__get_own_property__(&PropertyKey::from("length"), &mut context)
+        .unwrap()
         .unwrap();
     assert!(!length_desc.expect_enumerable());
 }
@@ -261,7 +262,8 @@ fn string_length_is_in_utf16_codeunits() {
     // 😀 is one Unicode code point, but 2 UTF-16 code units
     let object = JsValue::new("😀").to_object(&mut context).unwrap();
     let length_desc = object
-        .__get_own_property__(&PropertyKey::from("length"))
+        .__get_own_property__(&PropertyKey::from("length"), &mut context)
+        .unwrap()
         .unwrap();
     assert_eq!(
         length_desc

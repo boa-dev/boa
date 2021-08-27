@@ -13,8 +13,8 @@ use crate::{
         lexical_environment::Environment,
     },
     exec::InterpreterState,
+    object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
-    symbol::WellKnownSymbols,
     syntax::ast::node::RcStatementList,
     value::PreferredType,
     Context, Executable, JsResult, JsValue,
@@ -123,7 +123,7 @@ impl JsObject {
     /// <https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody>
     /// <https://tc39.es/ecma262/#sec-ordinarycallevaluatebody>
     #[track_caller]
-    fn call_construct(
+    pub(super) fn call_construct(
         &self,
         this_target: &JsValue,
         args: &[JsValue],
@@ -224,7 +224,7 @@ impl JsObject {
                                     && !body.function_declared_names().contains("arguments")))
                         {
                             // Add arguments object
-                            let arguments_obj = create_unmapped_arguments_object(args);
+                            let arguments_obj = create_unmapped_arguments_object(args, context)?;
                             local_env.create_mutable_binding(
                                 "arguments".to_string(),
                                 false,
@@ -333,41 +333,6 @@ impl JsObject {
                 }
             }
         }
-    }
-
-    /// Call this object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
-    #[track_caller]
-    #[inline]
-    pub fn call(
-        &self,
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        self.call_construct(this, args, context, false)
-    }
-
-    /// Construct an instance of this object with the specified arguments.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
-    #[track_caller]
-    #[inline]
-    pub fn construct(
-        &self,
-        args: &[JsValue],
-        new_target: &JsValue,
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        self.call_construct(new_target, args, context, true)
     }
 
     /// Converts an object to a primitive.
@@ -662,35 +627,6 @@ impl JsObject {
         self.borrow().is_native_object()
     }
 
-    /// Retrieves value of specific property, when the value of the property is expected to be a function.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    #[inline]
-    pub fn get_method<K>(&self, context: &mut Context, key: K) -> JsResult<Option<JsObject>>
-    where
-        K: Into<PropertyKey>,
-    {
-        // 1. Assert: IsPropertyKey(P) is true.
-        // 2. Let func be ? GetV(V, P).
-        let value = self.get(key, context)?;
-
-        // 3. If func is either undefined or null, return undefined.
-        if value.is_null_or_undefined() {
-            return Ok(None);
-        }
-
-        // 4. If IsCallable(func) is false, throw a TypeError exception.
-        // 5. Return func.
-        match value.as_object() {
-            Some(object) if object.is_callable() => Ok(Some(object)),
-            _ => Err(context
-                .construct_type_error("value returned for property of object is not a function")),
-        }
-    }
-
     /// Determines if `value` inherits from the instance object inheritance path.
     ///
     /// More information:
@@ -720,14 +656,14 @@ impl JsObject {
                 // 6. Repeat,
                 //      a. Set O to ? O.[[GetPrototypeOf]]().
                 //      b. If O is null, return false.
-                let mut object = object.__get_prototype_of__();
+                let mut object = object.__get_prototype_of__(context)?;
                 while let Some(object_prototype) = object.as_object() {
                     //     c. If SameValue(P, O) is true, return true.
                     if JsObject::equals(&prototype, &object_prototype) {
                         return Ok(true);
                     }
                     // a. Set O to ? O.[[GetPrototypeOf]]().
-                    object = object_prototype.__get_prototype_of__();
+                    object = object_prototype.__get_prototype_of__(context)?;
                 }
 
                 Ok(false)
@@ -737,59 +673,6 @@ impl JsObject {
             }
         } else {
             Ok(false)
-        }
-    }
-
-    /// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
-    ///
-    /// The abstract operation SpeciesConstructor takes arguments O (an Object) and defaultConstructor (a constructor).
-    /// It is used to retrieve the constructor that should be used to create new objects that are derived from O.
-    /// defaultConstructor is the constructor to use if a constructor @@species property cannot be found starting from O.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
-    pub(crate) fn species_constructor(
-        &self,
-        default_constructor: JsValue,
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        // 1. Assert: Type(O) is Object.
-
-        // 2. Let C be ? Get(O, "constructor").
-        let c = self.clone().get("constructor", context)?;
-
-        // 3. If C is undefined, return defaultConstructor.
-        if c.is_undefined() {
-            return Ok(default_constructor);
-        }
-
-        // 4. If Type(C) is not Object, throw a TypeError exception.
-        let c = if let Some(c) = c.as_object() {
-            c
-        } else {
-            return context.throw_type_error("property 'constructor' is not an object");
-        };
-
-        // 5. Let S be ? Get(C, @@species).
-        let s = c.get(WellKnownSymbols::species(), context)?;
-
-        // 6. If S is either undefined or null, return defaultConstructor.
-        if s.is_null_or_undefined() {
-            return Ok(default_constructor);
-        }
-
-        // 7. If IsConstructor(S) is true, return S.
-        // 8. Throw a TypeError exception.
-        if let Some(obj) = s.as_object() {
-            if obj.is_constructable() {
-                Ok(s)
-            } else {
-                context.throw_type_error("property 'constructor' is not a constructor")
-            }
-        } else {
-            context.throw_type_error("property 'constructor' is not an object")
         }
     }
 
@@ -913,7 +796,7 @@ impl JsObject {
         // 5. Let keys be ? from.[[OwnPropertyKeys]]().
         // 6. For each element nextKey of keys, do
         let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(|e| e.into()).collect();
-        for key in from.own_property_keys() {
+        for key in from.__own_property_keys__(context)? {
             // a. Let excluded be false.
             let mut excluded = false;
 
@@ -929,7 +812,7 @@ impl JsObject {
             // c. If excluded is false, then
             if !excluded {
                 // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                let desc = from.__get_own_property__(&key);
+                let desc = from.__get_own_property__(&key, context)?;
 
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc {
@@ -951,6 +834,72 @@ impl JsObject {
 
         // 7. Return target.
         Ok(())
+    }
+
+    /// Helper function for property insertion.
+    #[inline]
+    #[track_caller]
+    pub(crate) fn insert<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.borrow_mut().insert(key, property)
+    }
+
+    /// Helper function for property removal.
+    #[inline]
+    #[track_caller]
+    pub(crate) fn remove(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        self.borrow_mut().remove(key)
+    }
+
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name that a `Some` is returned
+    /// with that field, otherwise None is returned.
+    #[inline]
+    pub fn insert_property<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.insert(key.into(), property)
+    }
+
+    /// It determines if Object is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[inline]
+    #[track_caller]
+    pub fn is_callable(&self) -> bool {
+        self.borrow().is_callable()
+    }
+
+    /// It determines if Object is a function object with a `[[Construct]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
+    #[inline]
+    #[track_caller]
+    pub fn is_constructable(&self) -> bool {
+        self.borrow().is_constructable()
+    }
+
+    /// Returns true if the GcObject is the global for a Realm
+    pub fn is_global(&self) -> bool {
+        matches!(
+            self.borrow().data,
+            ObjectData {
+                kind: ObjectKind::Global,
+                ..
+            }
+        )
     }
 }
 

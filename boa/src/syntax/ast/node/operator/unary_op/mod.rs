@@ -95,14 +95,14 @@ impl Executable for UnaryOp {
                         .obj()
                         .run(context)?
                         .to_object(context)?
-                        .__delete__(&get_const_field.field().into()),
+                        .__delete__(&get_const_field.field().into(), context)?,
                 ),
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
                     let res = obj
                         .to_object(context)?
-                        .__delete__(&field.to_property_key(context)?);
+                        .__delete__(&field.to_property_key(context)?, context)?;
                     return Ok(JsValue::new(res));
                 }
                 Node::Identifier(_) => JsValue::new(false),
