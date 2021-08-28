@@ -183,8 +183,7 @@ thread_local! {
                 inner: Inner::new(s),
                 _marker: PhantomData,
             };
-            let inserted = constants.insert(s);
-            debug_assert!(inserted);
+            constants.insert(s);
         }
 
         constants
