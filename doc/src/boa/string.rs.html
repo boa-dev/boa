@@ -524,6 +524,20 @@
 <span id="524">524</span>
 <span id="525">525</span>
 <span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::string::is_trimmable_whitespace</span>,
@@ -590,10 +604,13 @@
         <span class="kw">unsafe</span> { <span class="ident">NonNull::new_unchecked</span>(<span class="ident">inner</span>) }
     }
 
-    <span class="doccomment">/// Concatinate two string.</span>
+    <span class="doccomment">/// Concatenate array of strings.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">total_string_size</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">y</span>.<span class="ident">len</span>();
+    <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_string_size</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> <span class="ident">string</span> <span class="kw">in</span> <span class="ident">strings</span> {
+            <span class="ident">total_string_size</span> <span class="op">+</span><span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
+        }
 
         <span class="comment">// We get the layout of the `Inner` type and we extend by the size</span>
         <span class="comment">// of the string array.</span>
@@ -618,8 +635,11 @@
             <span class="macro">debug_assert!</span>(<span class="ident">std::ptr::eq</span>(<span class="ident">inner</span>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>().<span class="ident">add</span>(<span class="ident">offset</span>), <span class="ident">data</span>));
 
             <span class="comment">// Copy the two string data into data offset.</span>
-            <span class="ident">copy_nonoverlapping</span>(<span class="ident">x</span>.<span class="ident">as_ptr</span>(), <span class="ident">data</span>, <span class="ident">x</span>.<span class="ident">len</span>());
-            <span class="ident">copy_nonoverlapping</span>(<span class="ident">y</span>.<span class="ident">as_ptr</span>(), <span class="ident">data</span>.<span class="ident">add</span>(<span class="ident">x</span>.<span class="ident">len</span>()), <span class="ident">y</span>.<span class="ident">len</span>());
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="kw">for</span> <span class="ident">string</span> <span class="kw">in</span> <span class="ident">strings</span> {
+                <span class="ident">copy_nonoverlapping</span>(<span class="ident">string</span>.<span class="ident">as_ptr</span>(), <span class="ident">data</span>.<span class="ident">add</span>(<span class="ident">offset</span>), <span class="ident">string</span>.<span class="ident">len</span>());
+                <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
+            }
 
             <span class="ident">inner</span>
         };
@@ -671,7 +691,7 @@
         }
     }
 
-    <span class="doccomment">/// Concatinate two string.</span>
+    <span class="doccomment">/// Concatenate two string.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">U</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsString</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -681,7 +701,15 @@
         <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">as_ref</span>();
 
         <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Inner::concat</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+            <span class="ident">inner</span>: <span class="ident">Inner::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="ident">x</span>, <span class="ident">y</span>]),
+            <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
+        }
+    }
+
+    <span class="doccomment">/// Concatenate array of string.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concat_array</span>(<span class="ident">strings</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsString</span> {
+        <span class="self">Self</span> {
+            <span class="ident">inner</span>: <span class="ident">Inner::concat_array</span>(<span class="ident">strings</span>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
     }
