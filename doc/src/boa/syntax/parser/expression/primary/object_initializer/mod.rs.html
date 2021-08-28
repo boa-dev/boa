@@ -338,6 +338,18 @@
 <span id="338">338</span>
 <span id="339">339</span>
 <span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
@@ -474,6 +486,18 @@
             <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>));
+        }
+
+        <span class="comment">// ComputedPropertyName</span>
+        <span class="comment">// https://tc39.es/ecma262/#prod-ComputedPropertyName</span>
+        <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::OpenBracket</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
+            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBracket</span>, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Colon</span>, <span class="string">&quot;expected token &#39;:&#39;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::ComputedPropertyName</span>(<span class="ident">node</span>, <span class="ident">val</span>));
         }
 
         <span class="comment">// Peek for &#39;}&#39; or &#39;,&#39; to indicate shorthand property name</span>

@@ -638,6 +638,16 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -1124,6 +1134,16 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions</span>
     <span class="ident">Property</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Node</span>),
+
+    <span class="doccomment">/// Binds a computed property name to a JavaScript value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions</span>
+    <span class="ident">ComputedPropertyName</span>(<span class="ident">Node</span>, <span class="ident">Node</span>),
 
     <span class="doccomment">/// A property of an object can also refer to a function or a getter or setter method.</span>
     <span class="doccomment">///</span>
