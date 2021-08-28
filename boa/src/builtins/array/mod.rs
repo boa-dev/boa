@@ -464,7 +464,9 @@ impl Array {
             Some(object) if object.is_constructable() => object
                 .construct(&[len.into()], this, context)?
                 .as_object()
-                .unwrap(),
+                .ok_or_else(|| {
+                    context.construct_type_error("object constructor didn't return an object")
+                })?,
             _ => Array::array_create(len, None, context)?,
         };
 
