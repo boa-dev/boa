@@ -1,4 +1,9 @@
-use crate::{forward, forward_val, Context};
+use crate::{
+    forward, forward_val,
+    object::{FunctionBuilder, JsObject},
+    property::{Attribute, PropertyDescriptor},
+    Context, JsString,
+};
 
 #[allow(clippy::float_cmp)]
 #[test]
@@ -211,4 +216,49 @@ fn function_prototype_apply_on_object() {
         .as_boolean()
         .unwrap();
     assert!(boolean);
+}
+
+#[test]
+fn closure_capture_clone() {
+    let mut context = Context::new();
+
+    let string = JsString::from("Hello");
+    let object = context.construct_object();
+    object
+        .define_property_or_throw(
+            "key",
+            PropertyDescriptor::builder()
+                .value(" world!")
+                .writable(false)
+                .enumerable(false)
+                .configurable(false),
+            &mut context,
+        )
+        .unwrap();
+
+    let func = FunctionBuilder::closure_with_captures(
+        &mut context,
+        |_, _, context, captures| {
+            let data = captures.try_downcast_ref::<(JsString, JsObject)>(context)?;
+            let string = &data.0;
+            let object = &data.1;
+
+            let hw = JsString::concat(
+                string,
+                object
+                    .__get_own_property__(&"key".into(), context)?
+                    .and_then(|prop| prop.value().cloned())
+                    .and_then(|val| val.as_string().cloned())
+                    .ok_or_else(|| context.construct_type_error("invalid `key` property"))?,
+            );
+            Ok(hw.into())
+        },
+        (string.clone(), object.clone()),
+    )
+    .name("closure")
+    .build();
+
+    context.register_global_property("closure", func, Attribute::default());
+
+    assert_eq!(forward(&mut context, "closure()"), "\"Hello world!\"");
 }
