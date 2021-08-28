@@ -1034,7 +1034,6 @@
 <span id="1034">1034</span>
 <span id="1035">1035</span>
 <span id="1036">1036</span>
-<span id="1037">1037</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1063,7 +1062,6 @@
     <span class="ident">collections::HashMap</span>,
     <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>},
-    <span class="ident">rc::Rc</span>,
     <span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>,
 };
 
@@ -1084,7 +1082,7 @@
 <span class="kw">enum</span> <span class="ident">FunctionBody</span> {
     <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunction</span>),
     <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunction</span>),
-    <span class="ident">Closure</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">ClosureFunction</span><span class="op">&gt;</span>),
+    <span class="ident">Closure</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunction</span><span class="op">&gt;</span>),
     <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
 }
 
