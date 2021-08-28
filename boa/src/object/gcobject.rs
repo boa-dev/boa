@@ -25,7 +25,6 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{self, Debug, Display},
-    rc::Rc,
     result::Result as StdResult,
 };
 
@@ -46,7 +45,7 @@ pub struct JsObject(Gc<GcCell<Object>>);
 enum FunctionBody {
     BuiltInFunction(NativeFunction),
     BuiltInConstructor(NativeFunction),
-    Closure(Rc<ClosureFunction>),
+    Closure(Box<dyn ClosureFunction>),
     Ordinary(RcStatementList),
 }
 

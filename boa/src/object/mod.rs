@@ -15,13 +15,12 @@ use crate::{
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    BoaProfiler, Context, JsBigInt, JsString, JsSymbol, JsValue,
+    BoaProfiler, Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
     ops::{Deref, DerefMut},
-    rc::Rc,
 };
 
 #[cfg(test)]
@@ -1109,12 +1108,12 @@ impl<'context> FunctionBuilder<'context> {
     #[inline]
     pub fn closure<F>(context: &'context mut Context, function: F) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context) -> Result<JsValue, JsValue> + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
         Self {
             context,
             function: Some(Function::Closure {
-                function: Rc::new(function),
+                function: Box::new(function),
                 constructable: false,
             }),
             name: JsString::default(),
