@@ -16,8 +16,8 @@
 use crate::{
     builtins::BuiltIn,
     object::{
-        ConstructorBuilder, JsObject, Object as BuiltinObject, ObjectData, ObjectInitializer,
-        ObjectKind, PROTOTYPE,
+        ConstructorBuilder, IntegrityLevel, JsObject, Object as BuiltinObject, ObjectData,
+        ObjectInitializer, ObjectKind, PROTOTYPE,
     },
     property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -68,6 +68,10 @@ impl BuiltIn for Object {
         .static_method(Self::keys, "keys", 1)
         .static_method(Self::values, "values", 1)
         .static_method(Self::entries, "entries", 1)
+        .static_method(Self::seal, "seal", 1)
+        .static_method(Self::is_sealed, "isSealed", 1)
+        .static_method(Self::freeze, "freeze", 1)
+        .static_method(Self::is_frozen, "isFrozen", 1)
         .static_method(
             Self::get_own_property_descriptor,
             "getOwnPropertyDescriptor",
@@ -686,6 +690,96 @@ impl Object {
         let result = Array::create_array_from_list(name_list, context);
 
         Ok(result.into())
+    }
+
+    /// `Object.seal( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.seal
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
+    pub fn seal(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let o = args.get(0).cloned().unwrap_or_default();
+
+        if let Some(o) = o.as_object() {
+            // 2. Let status be ? SetIntegrityLevel(O, sealed).
+            let status = o.set_integrity_level(IntegrityLevel::Sealed, context)?;
+            // 3. If status is false, throw a TypeError exception.
+            if !status {
+                return context.throw_type_error("cannot seal object");
+            }
+        }
+        // 1. If Type(O) is not Object, return O.
+        // 4. Return O.
+        Ok(o)
+    }
+
+    /// `Object.isSealed( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.issealed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isSealed
+    pub fn is_sealed(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let o = args.get(0).cloned().unwrap_or_default();
+
+        // 1. If Type(O) is not Object, return true.
+        // 2. Return ? TestIntegrityLevel(O, sealed).
+        if let Some(o) = o.as_object() {
+            Ok(o.test_integrity_level(IntegrityLevel::Sealed, context)?
+                .into())
+        } else {
+            Ok(JsValue::new(true))
+        }
+    }
+
+    /// `Object.freeze( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.freeze
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+    pub fn freeze(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let o = args.get(0).cloned().unwrap_or_default();
+
+        if let Some(o) = o.as_object() {
+            // 2. Let status be ? SetIntegrityLevel(O, frozen).
+            let status = o.set_integrity_level(IntegrityLevel::Frozen, context)?;
+            // 3. If status is false, throw a TypeError exception.
+            if !status {
+                return context.throw_type_error("cannot freeze object");
+            }
+        }
+        // 1. If Type(O) is not Object, return O.
+        // 4. Return O.
+        Ok(o)
+    }
+
+    /// `Object.isFrozen( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.isfrozen
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isFrozen
+    pub fn is_frozen(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let o = args.get(0).cloned().unwrap_or_default();
+
+        // 1. If Type(O) is not Object, return true.
+        // 2. Return ? TestIntegrityLevel(O, frozen).
+        if let Some(o) = o.as_object() {
+            Ok(o.test_integrity_level(IntegrityLevel::Frozen, context)?
+                .into())
+        } else {
+            Ok(JsValue::new(true))
+        }
     }
 }
 

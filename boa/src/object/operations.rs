@@ -1,14 +1,58 @@
 use crate::{
     builtins::Array,
+    object::JsObject,
     property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::Type,
     Context, JsResult, JsValue,
 };
 
-use super::JsObject;
+/// Object integrity level.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IntegrityLevel {
+    /// Sealed object integrity level.
+    ///
+    /// Preventing new properties from being added to it and marking all existing
+    /// properties as non-configurable. Values of present properties can still be
+    /// changed as long as they are writable.
+    Sealed,
+
+    /// Frozen object integrity level
+    ///
+    /// A frozen object can no longer be changed; freezing an object prevents new
+    /// properties from being added to it, existing properties from being removed,
+    /// prevents changing the enumerability, configurability, or writability of
+    /// existing properties, and prevents the values of existing properties from
+    /// being changed. In addition, freezing an object also prevents its prototype
+    /// from being changed.
+    Frozen,
+}
+
+impl IntegrityLevel {
+    /// Returns `true` if the integrity level is sealed.
+    pub fn is_sealed(&self) -> bool {
+        matches!(self, Self::Sealed)
+    }
+
+    /// Returns `true` if the integrity level is frozen.
+    pub fn is_frozen(&self) -> bool {
+        matches!(self, Self::Frozen)
+    }
+}
 
 impl JsObject {
+    /// Cehck if object is extensible.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isextensible-o
+    #[inline]
+    pub fn is_extensible(&self, context: &mut Context) -> JsResult<bool> {
+        // 1. Return ? O.[[IsExtensible]]().
+        self.__is_extensible__(context)
+    }
+
     /// Get property from object or throw.
     ///
     /// More information:
@@ -16,7 +60,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
     #[inline]
-    pub(crate) fn get<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    pub fn get<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
     {
@@ -33,13 +77,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
     #[inline]
-    pub(crate) fn set<K, V>(
-        &self,
-        key: K,
-        value: V,
-        throw: bool,
-        context: &mut Context,
-    ) -> JsResult<bool>
+    pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -66,7 +104,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-    pub(crate) fn create_data_property<K, V>(
+    pub fn create_data_property<K, V>(
         &self,
         key: K,
         value: V,
@@ -96,7 +134,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
-    pub(crate) fn create_data_property_or_throw<K, V>(
+    pub fn create_data_property_or_throw<K, V>(
         &self,
         key: K,
         value: V,
@@ -126,7 +164,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
     #[inline]
-    pub(crate) fn define_property_or_throw<K, P>(
+    pub fn define_property_or_throw<K, P>(
         &self,
         key: K,
         desc: P,
@@ -156,11 +194,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
     #[inline]
-    pub(crate) fn delete_property_or_throw<K>(
-        &self,
-        key: K,
-        context: &mut Context,
-    ) -> JsResult<bool>
+    pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -212,9 +246,8 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
-    // NOTE: for now context is not used but it will in the future.
     #[inline]
-    pub(crate) fn has_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
+    pub fn has_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -231,7 +264,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
     #[inline]
-    pub(crate) fn has_own_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
+    pub fn has_own_property<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -254,7 +287,7 @@ impl JsObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
     #[inline]
-    pub(crate) fn call(
+    pub fn call(
         &self,
         this: &JsValue,
         args: &[JsValue],
@@ -271,7 +304,7 @@ impl JsObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     #[inline]
-    pub(crate) fn construct(
+    pub fn construct(
         &self,
         args: &[JsValue],
         new_target: &JsValue,
@@ -280,10 +313,127 @@ impl JsObject {
         self.call_construct(new_target, args, context, true)
     }
 
-    // todo: SetIntegrityLevel
+    /// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-setintegritylevel
+    #[inline]
+    pub fn set_integrity_level(
+        &self,
+        level: IntegrityLevel,
+        context: &mut Context,
+    ) -> JsResult<bool> {
+        // 1. Assert: Type(O) is Object.
+        // 2. Assert: level is either sealed or frozen.
 
-    // todo: TestIntegrityLevel
+        // 3. Let status be ? O.[[PreventExtensions]]().
+        let status = self.__prevent_extensions__(context)?;
+        // 4. If status is false, return false.
+        if !status {
+            return Ok(false);
+        }
 
+        // 5. Let keys be ? O.[[OwnPropertyKeys]]().
+        let keys = self.__own_property_keys__(context)?;
+
+        match level {
+            // 6. If level is sealed, then
+            IntegrityLevel::Sealed => {
+                // a. For each element k of keys, do
+                for k in keys {
+                    // i. Perform ? DefinePropertyOrThrow(O, k, PropertyDescriptor { [[Configurable]]: false }).
+                    self.define_property_or_throw(
+                        k,
+                        PropertyDescriptor::builder().configurable(false).build(),
+                        context,
+                    )?;
+                }
+            }
+            // 7. Else,
+            //     a. Assert: level is frozen.
+            IntegrityLevel::Frozen => {
+                // b. For each element k of keys, do
+                for k in keys {
+                    // i. Let currentDesc be ? O.[[GetOwnProperty]](k).
+                    let current_desc = self.__get_own_property__(&k, context)?;
+                    // ii. If currentDesc is not undefined, then
+                    if let Some(current_desc) = current_desc {
+                        // 1. If IsAccessorDescriptor(currentDesc) is true, then
+                        let desc = if current_desc.is_accessor_descriptor() {
+                            // a. Let desc be the PropertyDescriptor { [[Configurable]]: false }.
+                            PropertyDescriptor::builder().configurable(false).build()
+                        // 2. Else,
+                        } else {
+                            // a. Let desc be the PropertyDescriptor { [[Configurable]]: false, [[Writable]]: false }.
+                            PropertyDescriptor::builder()
+                                .configurable(false)
+                                .writable(false)
+                                .build()
+                        };
+                        // 3. Perform ? DefinePropertyOrThrow(O, k, desc).
+                        self.define_property_or_throw(k, desc, context)?;
+                    }
+                }
+            }
+        }
+
+        // 8. Return true.
+        Ok(true)
+    }
+
+    /// Check if the object is [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-testintegritylevel
+    #[inline]
+    pub fn test_integrity_level(
+        &self,
+        level: IntegrityLevel,
+        context: &mut Context,
+    ) -> JsResult<bool> {
+        // 1. Assert: Type(O) is Object.
+        // 2. Assert: level is either sealed or frozen.
+
+        // 3. Let extensible be ? IsExtensible(O).
+        let extensible = self.is_extensible(context)?;
+
+        // 4. If extensible is true, return false.
+        if extensible {
+            return Ok(false);
+        }
+
+        // 5. NOTE: If the object is extensible, none of its properties are examined.
+        // 6. Let keys be ? O.[[OwnPropertyKeys]]().
+        let keys = self.__own_property_keys__(context)?;
+
+        // 7. For each element k of keys, do
+        for k in keys {
+            // a. Let currentDesc be ? O.[[GetOwnProperty]](k).
+            let current_desc = self.__get_own_property__(&k, context)?;
+            // b. If currentDesc is not undefined, then
+            if let Some(current_desc) = current_desc {
+                // i. If currentDesc.[[Configurable]] is true, return false.
+                if current_desc.expect_configurable() {
+                    return Ok(false);
+                }
+                // ii. If level is frozen and IsDataDescriptor(currentDesc) is true, then
+                if level.is_frozen() && current_desc.is_data_descriptor() {
+                    // 1. If currentDesc.[[Writable]] is true, return false.
+                    if current_desc.expect_writable() {
+                        return Ok(false);
+                    }
+                }
+            }
+        }
+        // 8. Return true.
+        Ok(true)
+    }
+
+    #[inline]
     pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<usize> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).

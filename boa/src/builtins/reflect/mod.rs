@@ -330,7 +330,7 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
