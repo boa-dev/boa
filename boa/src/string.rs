@@ -2,6 +2,7 @@ use crate::{
     builtins::string::is_trimmable_whitespace,
     gc::{empty_trace, Finalize, Trace},
 };
+use rustc_hash::FxHashSet;
 use std::{
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
@@ -11,6 +12,183 @@ use std::{
     ops::Deref,
     ptr::{copy_nonoverlapping, NonNull},
 };
+
+const CONSTANTS_ARRAY: [&str; 127] = [
+    // Empty string
+    "",
+    // Misc
+    ",",
+    ":",
+    // Generic use
+    "name",
+    "length",
+    "arguments",
+    "prototype",
+    "constructor",
+    // typeof
+    "null",
+    "undefined",
+    "number",
+    "string",
+    "symbol",
+    "bigint",
+    "object",
+    "function",
+    // Property descriptor
+    "value",
+    "get",
+    "set",
+    "writable",
+    "enumerable",
+    "configurable",
+    // Object object
+    "Object",
+    "assing",
+    "create",
+    "toString",
+    "valueOf",
+    "is",
+    "seal",
+    "isSealed",
+    "freeze",
+    "isFrozen",
+    "keys",
+    "values",
+    "entries",
+    // Function object
+    "Function",
+    "apply",
+    "bind",
+    "call",
+    // Array object
+    "Array",
+    "from",
+    "isArray",
+    "of",
+    "get [Symbol.species]",
+    "copyWithin",
+    "entries",
+    "every",
+    "fill",
+    "filter",
+    "find",
+    "findIndex",
+    "flat",
+    "flatMap",
+    "forEach",
+    "includes",
+    "indexOf",
+    "join",
+    "map",
+    "reduce",
+    "reduceRight",
+    "reverse",
+    "shift",
+    "slice",
+    "some",
+    "sort",
+    "unshift",
+    "push",
+    "pop",
+    // String object
+    "String",
+    "charAt",
+    "charCodeAt",
+    "concat",
+    "endsWith",
+    "includes",
+    "indexOf",
+    "lastIndexOf",
+    "match",
+    "matchAll",
+    "normalize",
+    "padEnd",
+    "padStart",
+    "repeat",
+    "replace",
+    "replaceAll",
+    "search",
+    "slice",
+    "split",
+    "startsWith",
+    "substring",
+    "toLowerString",
+    "toUpperString",
+    "trim",
+    "trimEnd",
+    "trimStart",
+    // Number object
+    "Number",
+    // Boolean object
+    "Boolean",
+    // RegExp object
+    "RegExp",
+    "exec",
+    "test",
+    "flags",
+    "index",
+    "lastIndex",
+    // Symbol object
+    "Symbol",
+    "for",
+    "keyFor",
+    "description",
+    "[Symbol.toPrimitive]",
+    "",
+    // Map object
+    "Map",
+    "clear",
+    "delete",
+    "get",
+    "has",
+    "set",
+    "size",
+    // Set object
+    "Set",
+    // Reflect object
+    "Reflect",
+    // Error objects
+    "Error",
+    "TypeError",
+    "RangeError",
+    "SyntaxError",
+    "ReferenceError",
+    "EvalError",
+    "URIError",
+    "message",
+    // Date object
+    "Date",
+    "toJSON",
+];
+
+const MAX_CONSTANT_STRING_LENGTH: usize = {
+    let mut max = 0;
+    let mut i = 0;
+    while i < CONSTANTS_ARRAY.len() {
+        let len = CONSTANTS_ARRAY[i].len();
+        if len > max {
+            max = len;
+        }
+        i += 1;
+    }
+    max
+};
+
+thread_local! {
+    static CONSTANTS: FxHashSet<JsString> = {
+        let mut constants = FxHashSet::default();
+
+        for s in CONSTANTS_ARRAY.iter() {
+            let s = JsString {
+                inner: Inner::new(s),
+                _marker: PhantomData,
+            };
+            constants.insert(s);
+        }
+
+        constants
+    };
+}
 
 /// The inner representation of a [`JsString`].
 #[repr(C)]
@@ -140,10 +318,23 @@ impl Default for JsString {
 }
 
 impl JsString {
+    /// Create an empty string, same as calling default.
+    #[inline]
+    pub fn empty() -> Self {
+        JsString::default()
+    }
+
     /// Create a new JavaScript string.
     #[inline]
     pub fn new<S: AsRef<str>>(s: S) -> Self {
         let s = s.as_ref();
+
+        if s.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(s).cloned()) {
+                return constant;
+            }
+        }
+
         Self {
             inner: Inner::new(s),
             _marker: PhantomData,
@@ -159,18 +350,34 @@ impl JsString {
         let x = x.as_ref();
         let y = y.as_ref();
 
-        Self {
+        let this = Self {
             inner: Inner::concat_array(&[x, y]),
             _marker: PhantomData,
+        };
+
+        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+                return constant;
+            }
         }
+
+        this
     }
 
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> JsString {
-        Self {
+        let this = Self {
             inner: Inner::concat_array(strings),
             _marker: PhantomData,
+        };
+
+        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+                return constant;
+            }
         }
+
+        this
     }
 
     /// Return the inner representation.
