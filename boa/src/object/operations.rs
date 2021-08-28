@@ -29,12 +29,12 @@ pub enum IntegrityLevel {
 }
 
 impl IntegrityLevel {
-    /// Returns `true` if the integrity level is [`Sealed`].
+    /// Returns `true` if the integrity level is sealed.
     pub fn is_sealed(&self) -> bool {
         matches!(self, Self::Sealed)
     }
 
-    /// Returns `true` if the integrity level is [`Frozen`].
+    /// Returns `true` if the integrity level is frozen.
     pub fn is_frozen(&self) -> bool {
         matches!(self, Self::Frozen)
     }
