@@ -72,6 +72,8 @@ impl BuiltIn for Object {
         .static_method(Self::is_sealed, "isSealed", 1)
         .static_method(Self::freeze, "freeze", 1)
         .static_method(Self::is_frozen, "isFrozen", 1)
+        .static_method(Self::prevent_extensions, "preventExtensions", 1)
+        .static_method(Self::is_extensible, "isExtensible", 1)
         .static_method(
             Self::get_own_property_descriptor,
             "getOwnPropertyDescriptor",
@@ -779,6 +781,57 @@ impl Object {
                 .into())
         } else {
             Ok(JsValue::new(true))
+        }
+    }
+
+    /// `Object.preventExtensions( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.preventextensions
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/preventExtensions
+    pub fn prevent_extensions(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let o = args.get(0).cloned().unwrap_or_default();
+
+        if let Some(o) = o.as_object() {
+            // 2. Let status be ? O.[[PreventExtensions]]().
+            let status = o.__prevent_extensions__(context)?;
+            // 3. If status is false, throw a TypeError exception.
+            if !status {
+                return context.throw_type_error("cannot prevent extensions");
+            }
+        }
+        // 1. If Type(O) is not Object, return O.
+        // 4. Return O.
+        Ok(o)
+    }
+
+    /// `Object.isExtensible( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.isextensible
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isExtensible
+    pub fn is_extensible(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let o = args.get(0).cloned().unwrap_or_default();
+        // 1. If Type(O) is not Object, return false.
+        if let Some(o) = o.as_object() {
+            // 2. Return ? IsExtensible(O).
+            Ok(o.is_extensible(context)?.into())
+        } else {
+            Ok(JsValue::new(false))
         }
     }
 }
