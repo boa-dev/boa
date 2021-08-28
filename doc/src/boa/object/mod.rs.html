@@ -1629,6 +1629,7 @@
 <span id="1629">1629</span>
 <span id="1630">1630</span>
 <span id="1631">1631</span>
+<span id="1632">1632</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1667,6 +1668,7 @@
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::builtins::object::for_in_iterator::ForInIterator</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gcobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
 <span class="kw">use</span> <span class="ident">internal_methods::InternalObjectMethods</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations::IntegrityLevel</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property_map</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="self">self</span><span class="ident">::internal_methods</span>::{

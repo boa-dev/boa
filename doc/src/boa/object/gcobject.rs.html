@@ -1089,7 +1089,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">JsObject</span> {
-    <span class="doccomment">/// Create a new `JsObject` from a `Object`.</span>
+    <span class="doccomment">/// Create a new `GcObject` from a `Object`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">Gc::new</span>(<span class="ident">GcCell::new</span>(<span class="ident">object</span>)))

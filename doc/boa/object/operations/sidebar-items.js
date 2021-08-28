@@ -1,1 +1,1 @@
-initSidebarItems({});
+initSidebarItems({"enum":[["IntegrityLevel","Object integrity level."]]});
