@@ -5,7 +5,7 @@
 use super::{NativeObject, Object, PROTOTYPE};
 use crate::{
     builtins::function::{
-        create_unmapped_arguments_object, ClosureFunction, Function, NativeFunction,
+        create_unmapped_arguments_object, Captures, ClosureFunction, Function, NativeFunction,
     },
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
@@ -47,7 +47,7 @@ enum FunctionBody {
     BuiltInConstructor(NativeFunction),
     Closure {
         function: Box<dyn ClosureFunction>,
-        captures: JsObject,
+        captures: Captures,
     },
     Ordinary(RcStatementList),
 }
@@ -305,10 +305,9 @@ impl JsObject {
                 function(&JsValue::undefined(), args, context)
             }
             FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
-            FunctionBody::Closure {
-                function,
-                mut captures,
-            } => (function)(this_target, args, context, &mut captures),
+            FunctionBody::Closure { function, captures } => {
+                (function)(this_target, args, context, captures)
+            }
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
                 let this = context.get_this_binding();

@@ -11,14 +11,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-function-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
-use crate::context::StandardObjects;
-use crate::object::internal_methods::get_prototype_from_constructor;
-
 use crate::{
     builtins::{Array, BuiltIn},
+    context::StandardObjects,
     environment::lexical_environment::Environment,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, NativeObject, Object, ObjectData,
+    },
     property::{Attribute, PropertyDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
@@ -28,6 +29,7 @@ use dyn_clone::DynClone;
 
 use sealed::Sealed;
 use std::fmt::{self, Debug};
+use std::ops::{Deref, DerefMut};
 
 use super::JsArgs;
 
@@ -56,16 +58,13 @@ pub type NativeFunction = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsV
 /// be callable from Javascript, but most of the time the compiler
 /// is smart enough to correctly infer the types.
 pub trait ClosureFunction:
-    Fn(&JsValue, &[JsValue], &mut Context, &mut JsObject) -> JsResult<JsValue>
-    + DynCopy
-    + DynClone
-    + 'static
+    Fn(&JsValue, &[JsValue], &mut Context, Captures) -> JsResult<JsValue> + DynCopy + DynClone + 'static
 {
 }
 
 // The `Copy` bound automatically infers `DynCopy` and `DynClone`
 impl<T> ClosureFunction for T where
-    T: Fn(&JsValue, &[JsValue], &mut Context, &mut JsObject) -> JsResult<JsValue> + Copy + 'static
+    T: Fn(&JsValue, &[JsValue], &mut Context, Captures) -> JsResult<JsValue> + Copy + 'static
 {
 }
 
@@ -115,6 +114,83 @@ unsafe impl Trace for FunctionFlags {
     empty_trace!();
 }
 
+// We don't use a standalone `NativeObject` for `Captures` because it doesn't
+// guarantee that the internal type implements `Clone`.
+// This private trait guarantees that the internal type passed to `Captures`
+// implements `Clone`, and `DynClone` allows us to implement `Clone` for
+// `Box<dyn CapturesObject>`.
+trait CapturesObject: NativeObject + DynClone {}
+impl<T: NativeObject + Clone> CapturesObject for T {}
+dyn_clone::clone_trait_object!(CapturesObject);
+
+/// Wrapper for `Box<dyn NativeObject + Clone>` that allows passing additional
+/// captures through a `Copy` closure.
+///
+/// Any type implementing `Trace + Any + Debug + Clone`
+/// can be used as a capture context, so you can pass e.g. a String,
+/// a tuple or even a full struct.
+///
+/// You can downcast to any type and handle the fail case as you like
+/// with `downcast_ref` and `downcast_mut`, or you can use `try_downcast_ref`
+/// and `try_downcast_mut` to automatically throw a `TypeError` if the downcast
+/// fails.
+#[derive(Debug, Clone, Trace, Finalize)]
+pub struct Captures(Box<dyn CapturesObject>);
+
+impl Captures {
+    /// Creates a new capture context.
+    pub(crate) fn new<T>(captures: T) -> Self
+    where
+        T: NativeObject + Clone,
+    {
+        Self(Box::new(captures))
+    }
+
+    /// Downcasts `Captures` to the specified type, returning a reference to the
+    /// downcasted type if successful or `None` otherwise.
+    pub fn downcast_ref<T>(&self) -> Option<&T>
+    where
+        T: NativeObject + Clone,
+    {
+        self.0.deref().as_any().downcast_ref::<T>()
+    }
+
+    /// Mutably downcasts `Captures` to the specified type, returning a
+    /// mutable reference to the downcasted type if successful or `None` otherwise.
+    pub fn downcast_mut<T>(&mut self) -> Option<&mut T>
+    where
+        T: NativeObject + Clone,
+    {
+        self.0.deref_mut().as_mut_any().downcast_mut::<T>()
+    }
+
+    /// Downcasts `Captures` to the specified type, returning a reference to the
+    /// downcasted type if successful or a `TypeError` otherwise.
+    pub fn try_downcast_ref<T>(&self, context: &mut Context) -> JsResult<&T>
+    where
+        T: NativeObject + Clone,
+    {
+        self.0
+            .deref()
+            .as_any()
+            .downcast_ref::<T>()
+            .ok_or_else(|| context.construct_type_error("cannot downcast `Captures` to given type"))
+    }
+
+    /// Downcasts `Captures` to the specified type, returning a reference to the
+    /// downcasted type if successful or a `TypeError` otherwise.
+    pub fn try_downcast_mut<T>(&mut self, context: &mut Context) -> JsResult<&mut T>
+    where
+        T: NativeObject + Clone,
+    {
+        self.0
+            .deref_mut()
+            .as_mut_any()
+            .downcast_mut::<T>()
+            .ok_or_else(|| context.construct_type_error("cannot downcast `Captures` to given type"))
+    }
+}
+
 /// Boa representation of a Function Object.
 ///
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
@@ -130,7 +206,7 @@ pub enum Function {
         #[unsafe_ignore_trace]
         function: Box<dyn ClosureFunction>,
         constructable: bool,
-        captures: JsObject,
+        captures: Captures,
     },
     Ordinary {
         flags: FunctionFlags,

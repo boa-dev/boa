@@ -3,7 +3,7 @@
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
-        function::{Function, NativeFunction},
+        function::{Captures, Function, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         regexp::regexp_string_iterator::RegExpStringIterator,
@@ -1147,18 +1147,15 @@ impl<'context> FunctionBuilder<'context> {
         captures: C,
     ) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context, &mut JsObject) -> JsResult<JsValue>
-            + Copy
-            + 'static,
-        C: NativeObject,
+        F: Fn(&JsValue, &[JsValue], &mut Context, Captures) -> JsResult<JsValue> + Copy + 'static,
+        C: NativeObject + Clone,
     {
-        let captures = JsObject::new(Object::native_object(captures));
         Self {
             context,
             function: Some(Function::Closure {
                 function: Box::new(function),
                 constructable: false,
-                captures,
+                captures: Captures::new(captures),
             }),
             name: JsString::default(),
             length: 0,
