@@ -25,6 +25,7 @@ use crate::{
 };
 use bitflags::bitflags;
 use dyn_clone::DynClone;
+
 use sealed::Sealed;
 use std::fmt::{self, Debug};
 
@@ -55,13 +56,16 @@ pub type NativeFunction = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsV
 /// be callable from Javascript, but most of the time the compiler
 /// is smart enough to correctly infer the types.
 pub trait ClosureFunction:
-    Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + DynCopy + DynClone + 'static
+    Fn(&JsValue, &[JsValue], &mut Context, &mut JsObject) -> JsResult<JsValue>
+    + DynCopy
+    + DynClone
+    + 'static
 {
 }
 
 // The `Copy` bound automatically infers `DynCopy` and `DynClone`
 impl<T> ClosureFunction for T where
-    T: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static
+    T: Fn(&JsValue, &[JsValue], &mut Context, &mut JsObject) -> JsResult<JsValue> + Copy + 'static
 {
 }
 
@@ -126,6 +130,7 @@ pub enum Function {
         #[unsafe_ignore_trace]
         function: Box<dyn ClosureFunction>,
         constructable: bool,
+        captures: JsObject,
     },
     Ordinary {
         flags: FunctionFlags,

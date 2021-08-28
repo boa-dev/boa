@@ -1132,11 +1132,33 @@ impl<'context> FunctionBuilder<'context> {
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
+        Self::closure_with_captures(
+            context,
+            move |this, args, context, _| function(this, args, context),
+            (),
+        )
+    }
+
+    /// Create a new `FunctionBuilder` for creating a closure function with additional captures.
+    #[inline]
+    pub fn closure_with_captures<F, C>(
+        context: &'context mut Context,
+        function: F,
+        captures: C,
+    ) -> Self
+    where
+        F: Fn(&JsValue, &[JsValue], &mut Context, &mut JsObject) -> JsResult<JsValue>
+            + Copy
+            + 'static,
+        C: NativeObject,
+    {
+        let captures = JsObject::new(Object::native_object(captures));
         Self {
             context,
             function: Some(Function::Closure {
                 function: Box::new(function),
                 constructable: false,
+                captures,
             }),
             name: JsString::default(),
             length: 0,

@@ -45,7 +45,10 @@ pub struct JsObject(Gc<GcCell<Object>>);
 enum FunctionBody {
     BuiltInFunction(NativeFunction),
     BuiltInConstructor(NativeFunction),
-    Closure(Box<dyn ClosureFunction>),
+    Closure {
+        function: Box<dyn ClosureFunction>,
+        captures: JsObject,
+    },
     Ordinary(RcStatementList),
 }
 
@@ -151,7 +154,12 @@ impl JsObject {
                             FunctionBody::BuiltInFunction(function.0)
                         }
                     }
-                    Function::Closure { function, .. } => FunctionBody::Closure(function.clone()),
+                    Function::Closure {
+                        function, captures, ..
+                    } => FunctionBody::Closure {
+                        function: function.clone(),
+                        captures: captures.clone(),
+                    },
                     Function::Ordinary {
                         body,
                         params,
@@ -297,7 +305,10 @@ impl JsObject {
                 function(&JsValue::undefined(), args, context)
             }
             FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
-            FunctionBody::Closure(function) => (function)(this_target, args, context),
+            FunctionBody::Closure {
+                function,
+                mut captures,
+            } => (function)(this_target, args, context, &mut captures),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
                 let this = context.get_this_binding();
