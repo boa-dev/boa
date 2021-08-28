@@ -63,10 +63,13 @@ impl Inner {
         unsafe { NonNull::new_unchecked(inner) }
     }
 
-    /// Concatinate two string.
+    /// Concatenate array of strings.
     #[inline]
-    fn concat(x: &str, y: &str) -> NonNull<Inner> {
-        let total_string_size = x.len() + y.len();
+    fn concat_array(strings: &[&str]) -> NonNull<Inner> {
+        let mut total_string_size = 0;
+        for string in strings {
+            total_string_size += string.len();
+        }
 
         // We get the layout of the `Inner` type and we extend by the size
         // of the string array.
@@ -91,8 +94,11 @@ impl Inner {
             debug_assert!(std::ptr::eq(inner.cast::<u8>().add(offset), data));
 
             // Copy the two string data into data offset.
-            copy_nonoverlapping(x.as_ptr(), data, x.len());
-            copy_nonoverlapping(y.as_ptr(), data.add(x.len()), y.len());
+            let mut offset = 0;
+            for string in strings {
+                copy_nonoverlapping(string.as_ptr(), data.add(offset), string.len());
+                offset += string.len();
+            }
 
             inner
         };
@@ -144,7 +150,7 @@ impl JsString {
         }
     }
 
-    /// Concatinate two string.
+    /// Concatenate two string.
     pub fn concat<T, U>(x: T, y: U) -> JsString
     where
         T: AsRef<str>,
@@ -154,7 +160,15 @@ impl JsString {
         let y = y.as_ref();
 
         Self {
-            inner: Inner::concat(x, y),
+            inner: Inner::concat_array(&[x, y]),
+            _marker: PhantomData,
+        }
+    }
+
+    /// Concatenate array of string.
+    pub fn concat_array(strings: &[&str]) -> JsString {
+        Self {
+            inner: Inner::concat_array(strings),
             _marker: PhantomData,
         }
     }
