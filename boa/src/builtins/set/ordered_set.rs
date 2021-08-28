@@ -1,68 +1,113 @@
 use crate::gc::{custom_trace, Finalize, Trace};
-use indexmap::{
-    set::{IntoIter, Iter},
-    IndexSet,
-};
+use crate::object::JsObject;
+use crate::JsValue;
+use indexmap::{Equivalent, IndexSet};
+use std::hash::Hasher;
 use std::{
     collections::hash_map::RandomState,
     fmt::Debug,
     hash::{BuildHasher, Hash},
 };
 
-/// A newtype wrapping indexmap::IndexSet
-#[derive(Clone)]
-pub struct OrderedSet<V, S = RandomState>(IndexSet<V, S>)
-where
-    V: Hash + Eq;
+#[derive(PartialEq, Eq, Clone, Debug)]
+enum SetKey {
+    Key(JsValue),
+    Empty(usize), // Necessary to ensure empty keys are still unique.
+}
 
-impl<V: Eq + Hash + Trace, S: BuildHasher> Finalize for OrderedSet<V, S> {}
-unsafe impl<V: Eq + Hash + Trace, S: BuildHasher> Trace for OrderedSet<V, S> {
+impl SetKey {
+    fn as_key(&self) -> Option<&JsValue> {
+        match self {
+            SetKey::Key(key) => Some(key),
+            SetKey::Empty(_) => None,
+        }
+    }
+}
+
+// This ensures that a SetKey::Key(value) hashes to the same as value. The derived PartialEq implementation still holds.
+#[allow(clippy::derive_hash_xor_eq)]
+impl Hash for SetKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            SetKey::Key(v) => v.hash(state),
+            SetKey::Empty(e) => e.hash(state),
+        }
+    }
+}
+
+impl Equivalent<SetKey> for JsValue {
+    fn equivalent(&self, key: &SetKey) -> bool {
+        match key {
+            SetKey::Key(v) => v == self,
+            _ => false,
+        }
+    }
+}
+
+/// A newtype wrapping indexmap::IndexSet
+#[derive(Clone, Default)]
+pub struct OrderedSet<S = RandomState> {
+    set: IndexSet<SetKey, S>,
+    lock: u32,
+    empty_count: usize,
+}
+
+impl<S: BuildHasher> Finalize for OrderedSet<S> {}
+unsafe impl<S: BuildHasher> Trace for OrderedSet<S> {
     custom_trace!(this, {
-        for v in this.0.iter() {
-            mark(v);
+        for k in this.set.iter() {
+            if let SetKey::Key(key) = k {
+                mark(key);
+            }
         }
     });
 }
 
-impl<V: Hash + Eq + Debug> Debug for OrderedSet<V> {
+impl Debug for OrderedSet {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.0.fmt(formatter)
+        self.set.fmt(formatter)
     }
 }
 
-impl<V: Hash + Eq> Default for OrderedSet<V> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<V> OrderedSet<V>
-where
-    V: Hash + Eq,
-{
+impl OrderedSet {
     pub fn new() -> Self {
-        OrderedSet(IndexSet::new())
+        OrderedSet {
+            set: IndexSet::new(),
+            lock: 0,
+            empty_count: 0,
+        }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        OrderedSet(IndexSet::with_capacity(capacity))
+        OrderedSet {
+            set: IndexSet::with_capacity(capacity),
+            lock: 0,
+            empty_count: 0,
+        }
     }
 
-    /// Return the number of key-value pairs in the map.
+    /// Return the number of values in the set, including empty values.
     ///
     /// Computes in **O(1)** time.
-    pub fn size(&self) -> usize {
-        self.0.len()
+    pub fn full_len(&self) -> usize {
+        self.set.len()
     }
 
-    /// Returns true if the map contains no elements.
+    /// Gets the number of values in the set, not including empty values.
+    ///
+    /// Computes in **O(1)** time.
+    pub fn len(&self) -> usize {
+        self.set.len() - self.empty_count
+    }
+
+    /// Returns true if the set contains no elements.
     ///
     /// Computes in **O(1)** time.
     pub fn is_empty(&self) -> bool {
-        self.0.len() == 0
+        self.set.len() == 0
     }
 
-    /// Insert a value pair in the set.
+    /// Insert a value in the set.
     ///
     /// If an equivalent value already exists in the set: ???
     ///
@@ -70,17 +115,25 @@ where
     /// inserted, last in order, and false
     ///
     /// Computes in **O(1)** time (amortized average).
-    pub fn add(&mut self, value: V) -> bool {
-        self.0.insert(value)
+    pub fn add(&mut self, value: JsValue) -> bool {
+        self.set.insert(SetKey::Key(value))
     }
 
     /// Delete the `value` from the set and return true if successful
     ///
-    /// Return `false` if `value` is not in map.
+    /// Return `false` if `value` is not in set.
     ///
     /// Computes in **O(n)** time (average).
-    pub fn delete(&mut self, value: &V) -> bool {
-        self.0.shift_remove(value)
+    pub fn delete(&mut self, value: &JsValue) -> bool {
+        if self.lock == 0 {
+            self.set.shift_remove(value)
+        } else if self.set.contains(value) {
+            self.set.insert(SetKey::Empty(self.empty_count));
+            self.empty_count += 1;
+            self.set.swap_remove(value)
+        } else {
+            false
+        }
     }
 
     /// Checks if a given value is present in the set
@@ -88,43 +141,56 @@ where
     /// Return `true` if `value` is present in set, false otherwise.
     ///
     /// Computes in **O(n)** time (average).
-    pub fn contains(&self, value: &V) -> bool {
-        self.0.contains(value)
+    pub fn contains(&self, value: &JsValue) -> bool {
+        self.set.contains(value)
     }
 
     /// Get a key-value pair by index
-    /// Valid indices are 0 <= index < self.len()
+    /// Valid indices are 0 <= index < self.full_len()
     /// Computes in O(1) time.
-    pub fn get_index(&self, index: usize) -> Option<&V> {
-        self.0.get_index(index)
+    pub fn get_index(&self, index: usize) -> Option<&JsValue> {
+        self.set.get_index(index)?.as_key()
     }
 
     /// Return an iterator over the values of the set, in their order
-    pub fn iter(&self) -> Iter<'_, V> {
-        self.0.iter()
+    pub fn iter(&self) -> impl Iterator<Item = &JsValue> {
+        self.set.iter().filter_map(SetKey::as_key)
+    }
+
+    /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
+    ///
+    /// This allows objects to be removed from the set during iteration without affecting the indexes until the iteration has completed.
+    pub(crate) fn lock(&mut self, set: JsObject) -> SetLock {
+        self.lock += 1;
+        SetLock(set)
+    }
+
+    /// Decreases the lock counter and, if 0, removes all empty entries.
+    fn unlock(&mut self) {
+        self.lock -= 1;
+        if self.lock == 0 {
+            self.set.retain(|k| matches!(k, SetKey::Key(_)));
+            self.empty_count = 0;
+        }
     }
 }
 
-impl<'a, V, S> IntoIterator for &'a OrderedSet<V, S>
-where
-    V: Hash + Eq,
-    S: BuildHasher,
-{
-    type Item = &'a V;
-    type IntoIter = Iter<'a, V>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
+/// Increases the lock count of the set for the lifetime of the guard. This should not be dropped until iteration has completed.
+#[derive(Debug, Trace)]
+pub(crate) struct SetLock(JsObject);
+
+impl Clone for SetLock {
+    fn clone(&self) -> Self {
+        let mut set = self.0.borrow_mut();
+        let set = set.as_set_mut().expect("SetLock does not point to a set");
+        set.lock(self.0.clone())
     }
 }
 
-impl<V, S> IntoIterator for OrderedSet<V, S>
-where
-    V: Hash + Eq,
-    S: BuildHasher,
-{
-    type Item = V;
-    type IntoIter = IntoIter<V>;
-    fn into_iter(self) -> IntoIter<V> {
-        self.0.into_iter()
+impl Finalize for SetLock {
+    fn finalize(&self) {
+        let mut set = self.0.borrow_mut();
+        let set = set.as_set_mut().expect("SetLock does not point to a set");
+        set.unlock();
     }
 }

@@ -20,6 +20,7 @@ use crate::{
 use ordered_set::OrderedSet;
 
 pub mod set_iterator;
+use crate::builtins::set::ordered_set::SetLock;
 use set_iterator::SetIterator;
 
 pub mod ordered_set;
@@ -27,7 +28,7 @@ pub mod ordered_set;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Set(OrderedSet<JsValue>);
+pub(crate) struct Set(OrderedSet);
 
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
@@ -305,11 +306,7 @@ impl Set {
                 .throw_type_error("Method Set.prototype.entries called on incompatible receiver");
         }
 
-        Ok(SetIterator::create_set_iterator(
-            context,
-            this.clone(),
-            PropertyNameKind::KeyAndValue,
-        ))
+        SetIterator::create_set_iterator(context, this.clone(), PropertyNameKind::KeyAndValue)
     }
 
     /// `Set.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -342,7 +339,9 @@ impl Set {
 
         let mut index = 0;
 
-        while index < Set::get_size(this, context)? {
+        let lock = Set::lock(this, context)?;
+
+        while index < Set::get_size(this, context, true)? {
             let arguments = if let JsValue::Object(ref object) = this {
                 let object = object.borrow();
                 if let Some(set) = object.as_set_ref() {
@@ -362,19 +361,21 @@ impl Set {
             index += 1;
         }
 
+        drop(lock);
+
         Ok(JsValue::Undefined)
     }
 
-    /// `Map.prototype.has( key )`
+    /// `Set.prototype.has( key )`
     ///
-    /// This method checks if the map contains an entry with the given key.
+    /// This method checks if the set contains an entry with the given key.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.has
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/has
     pub(crate) fn has(
         this: &JsValue,
         args: &[JsValue],
@@ -419,23 +420,33 @@ impl Set {
                 .throw_type_error("Method Set.prototype.values called on incompatible receiver");
         }
 
-        Ok(SetIterator::create_set_iterator(
-            context,
-            this.clone(),
-            PropertyNameKind::Value,
-        ))
+        SetIterator::create_set_iterator(context, this.clone(), PropertyNameKind::Value)
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Set::get_size(this, context).map(JsValue::from)
+        Set::get_size(this, context, false).map(JsValue::from)
     }
 
-    /// Helper function to get the size of the set.
-    fn get_size(set: &JsValue, context: &mut Context) -> JsResult<usize> {
+    /// Helper function to get the size of the set. If `full` is true empty values will be counted.
+    fn get_size(set: &JsValue, context: &mut Context, full: bool) -> JsResult<usize> {
         if let JsValue::Object(ref object) = set {
             let object = object.borrow();
             if let Some(set) = object.as_set_ref() {
-                Ok(set.size())
+                Ok(if full { set.full_len() } else { set.len() })
+            } else {
+                Err(context.construct_type_error("'this' is not a Set"))
+            }
+        } else {
+            Err(context.construct_type_error("'this' is not a Set"))
+        }
+    }
+
+    /// Helper function to lock the set.
+    fn lock(set: &JsValue, context: &mut Context) -> JsResult<SetLock> {
+        if let JsValue::Object(ref object) = set {
+            let mut set = object.borrow_mut();
+            if let Some(set) = set.as_set_mut() {
+                Ok(set.lock(object.clone()))
             } else {
                 Err(context.construct_type_error("'this' is not a Set"))
             }

@@ -100,7 +100,7 @@ pub enum ObjectKind {
     Boolean(bool),
     ForInIterator(ForInIterator),
     Function(Function),
-    Set(OrderedSet<JsValue>),
+    Set(OrderedSet),
     SetIterator(SetIterator),
     String(JsString),
     StringIterator(StringIterator),
@@ -195,7 +195,7 @@ impl ObjectData {
     }
 
     /// Create the `Set` object data
-    pub fn set(set: OrderedSet<JsValue>) -> Self {
+    pub fn set(set: OrderedSet) -> Self {
         Self {
             kind: ObjectKind::Set(set),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -626,7 +626,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_set_ref(&self) -> Option<&OrderedSet<JsValue>> {
+    pub fn as_set_ref(&self) -> Option<&OrderedSet> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Set(ref set),
@@ -637,7 +637,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<JsValue>> {
+    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet> {
         match &mut self.data {
             ObjectData {
                 kind: ObjectKind::Set(set),

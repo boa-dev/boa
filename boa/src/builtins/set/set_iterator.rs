@@ -1,3 +1,5 @@
+use crate::builtins::set::ordered_set::SetLock;
+use crate::builtins::Set;
 use crate::{
     builtins::function::make_builtin_fn,
     builtins::iterable::create_iter_result_object,
@@ -21,18 +23,21 @@ pub struct SetIterator {
     iterated_set: JsValue,
     next_index: usize,
     iteration_kind: PropertyNameKind,
+    lock: SetLock,
 }
 
 impl SetIterator {
     pub(crate) const NAME: &'static str = "SetIterator";
 
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    fn new(set: JsValue, kind: PropertyNameKind) -> Self {
-        SetIterator {
+    fn new(set: JsValue, kind: PropertyNameKind, context: &mut Context) -> JsResult<Self> {
+        let lock = Set::lock(&set, context)?;
+        Ok(SetIterator {
             iterated_set: set,
             next_index: 0,
             iteration_kind: kind,
-        }
+            lock,
+        })
     }
 
     /// Abstract operation CreateSetIterator( set, kind )
@@ -44,17 +49,17 @@ impl SetIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createsetiterator
     pub(crate) fn create_set_iterator(
-        context: &Context,
+        context: &mut Context,
         set: JsValue,
         kind: PropertyNameKind,
-    ) -> JsValue {
+    ) -> JsResult<JsValue> {
         let set_iterator = JsValue::new_object(context);
-        set_iterator.set_data(ObjectData::set_iterator(Self::new(set, kind)));
+        set_iterator.set_data(ObjectData::set_iterator(Self::new(set, kind, context)?));
         set_iterator
             .as_object()
             .expect("set iterator object")
             .set_prototype_instance(context.iterator_prototypes().set_iterator().into());
-        set_iterator
+        Ok(set_iterator)
     }
 
     /// %SetIteratorPrototype%.next( )
@@ -83,7 +88,7 @@ impl SetIterator {
 
                 if let JsValue::Object(ref object) = m {
                     if let Some(entries) = object.borrow().as_set_ref() {
-                        let num_entries = entries.size();
+                        let num_entries = entries.full_len();
                         while index < num_entries {
                             let e = entries.get_index(index);
                             index += 1;

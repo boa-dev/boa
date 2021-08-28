@@ -246,3 +246,49 @@ fn not_a_function() {
         "\"TypeError: calling a builtin Set constructor without new is forbidden\""
     );
 }
+
+#[test]
+fn for_each_delete() {
+    let mut context = Context::new();
+    let init = r#"
+        let set = new Set(["a", "b", "c"]);
+        let result = [];
+        let i = 0;
+        set.forEach(function(value) {
+            if (i === 0) {
+                set.delete("a");
+                set.add("d");
+            }
+            i++;
+            result.push(value);
+        })
+    "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "result[0]"), "\"a\"");
+    assert_eq!(forward(&mut context, "result[1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "result[2]"), "\"c\"");
+    assert_eq!(forward(&mut context, "result[3]"), "\"d\"");
+}
+
+#[test]
+fn for_of_delete() {
+    let mut context = Context::new();
+    let init = r#"
+        let set = new Set(["a", "b", "c"]);
+        let result = [];
+        let i = 0;
+        for (a of set) {
+            if (i === 0) {
+                set.delete("a");
+                set.add("d");
+            }
+            i++;
+            result.push(a);
+        }
+    "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "result[0]"), "\"a\"");
+    assert_eq!(forward(&mut context, "result[1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "result[2]"), "\"c\"");
+    assert_eq!(forward(&mut context, "result[3]"), "\"d\"");
+}
