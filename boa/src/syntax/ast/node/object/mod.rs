@@ -64,6 +64,11 @@ impl Object {
                     value.display_no_indent(f, indent + 1)?;
                     writeln!(f, ",")?;
                 }
+                PropertyDefinition::ComputedPropertyName(key, value) => {
+                    writeln!(f, "{}{},", indentation, key)?;
+                    value.display_no_indent(f, indent + 1)?;
+                    writeln!(f, ",")?;
+                }
                 PropertyDefinition::SpreadObject(key) => {
                     writeln!(f, "{}...{},", indentation, key)?;
                 }
@@ -97,6 +102,16 @@ impl Executable for Object {
                 PropertyDefinition::Property(key, value) => {
                     obj.set_property(
                         key.clone(),
+                        PropertyDescriptor::builder()
+                            .value(value.run(context)?)
+                            .writable(true)
+                            .enumerable(true)
+                            .configurable(true),
+                    );
+                }
+                PropertyDefinition::ComputedPropertyName(key, value) => {
+                    obj.set_property(
+                        key.run(context)?.to_property_key(context)?,
                         PropertyDescriptor::builder()
                             .value(value.run(context)?)
                             .writable(true)

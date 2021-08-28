@@ -135,6 +135,18 @@ where
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
+        // ComputedPropertyName
+        // https://tc39.es/ecma262/#prod-ComputedPropertyName
+        if cursor.next_if(Punctuator::OpenBracket)?.is_some() {
+            let node = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
+                .parse(cursor)?;
+            cursor.expect(Punctuator::CloseBracket, "expected token ']'")?;
+            cursor.expect(Punctuator::Colon, "expected token ':'")?;
+            let val = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
+                .parse(cursor)?;
+            return Ok(node::PropertyDefinition::ComputedPropertyName(node, val));
+        }
+
         // Peek for '}' or ',' to indicate shorthand property name
         if let Some(next_token) = cursor.peek(1)? {
             match next_token.kind() {
