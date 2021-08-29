@@ -273,3 +273,24 @@ fn check_object_shorthand_multiple_properties() {
         ],
     );
 }
+
+#[test]
+fn check_object_spread() {
+    let object_properties = vec![
+        PropertyDefinition::property("a", Const::from(1)),
+        PropertyDefinition::spread_object(Identifier::from("b")),
+    ];
+
+    check_parser(
+        "const x = { a: 1, ...b };
+        ",
+        vec![DeclarationList::Const(
+            vec![Declaration::new_with_identifier(
+                "x",
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
+        )
+        .into()],
+    );
+}

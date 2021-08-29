@@ -119,6 +119,21 @@ fn object_field_set() {
 }
 
 #[test]
+fn object_spread() {
+    let scenario = r#"
+            var b = {x: -1, z: -3}
+            var a = {x: 1, y: 2, ...b};
+        "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("a.x", "-1"),
+        TestAction::TestEq("a.y", "2"),
+        TestAction::TestEq("a.z", "-3"),
+    ]);
+}
+
+#[test]
 fn spread_with_arguments() {
     let scenario = r#"
             const a = [1, "test", 3, 4];

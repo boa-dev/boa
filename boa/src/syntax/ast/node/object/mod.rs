@@ -161,7 +161,21 @@ impl Executable for Object {
                         )
                     }
                 },
-                _ => {} //unimplemented!("{:?} type of property", i),
+                // [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation
+                PropertyDefinition::SpreadObject(node) => {
+                    let val = node.run(context)?;
+
+                    if val.is_null_or_undefined() {
+                        continue;
+                    }
+
+                    obj.as_object().unwrap().copy_data_properties::<String>(
+                        &val,
+                        vec![],
+                        context,
+                    )?;
+                }
+                _ => {} // unimplemented!("{:?} type of property", i),
             }
         }
 
