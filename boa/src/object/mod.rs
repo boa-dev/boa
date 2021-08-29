@@ -1132,14 +1132,24 @@ impl<'context> FunctionBuilder<'context> {
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
-        Self::closure_with_captures(
+        Self {
             context,
-            move |this, args, context, _| function(this, args, context),
-            (),
-        )
+            function: Some(Function::Closure {
+                function: Box::new(move |this, args, context, _| function(this, args, context)),
+                constructable: false,
+                captures: Captures::new(()),
+            }),
+            name: JsString::default(),
+            length: 0,
+        }
     }
 
-    /// Create a new `FunctionBuilder` for creating a closure function with additional captures.
+    /// Create a new closure function with additional captures.
+    ///
+    /// # Note
+    ///
+    /// You can only move variables that implement `Debug + Any + Trace + Clone`.
+    /// In other words, only `NativeObject + Clone` objects are movable.
     #[inline]
     pub fn closure_with_captures<F, C>(
         context: &'context mut Context,
@@ -1147,13 +1157,16 @@ impl<'context> FunctionBuilder<'context> {
         captures: C,
     ) -> Self
     where
-        F: Fn(&JsValue, &[JsValue], &mut Context, Captures) -> JsResult<JsValue> + Copy + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context, &mut C) -> JsResult<JsValue> + Copy + 'static,
         C: NativeObject + Clone,
     {
         Self {
             context,
             function: Some(Function::Closure {
-                function: Box::new(function),
+                function: Box::new(move |this, args, context, mut captures: Captures| {
+                    let data = captures.try_downcast_mut::<C>(context)?;
+                    function(this, args, context, data)
+                }),
                 constructable: false,
                 captures: Captures::new(captures),
             }),

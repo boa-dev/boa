@@ -673,11 +673,20 @@ impl Context {
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
     ///
-    /// # Note
+    /// # Note #1
     ///
     /// If you want to make a function only `constructable`, or wish to bind it differently
     /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::closure).
     /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
+    ///
+    /// # Note #2
+    ///
+    /// This function will only accept `Copy` closures, meaning you cannot
+    /// move `Clone` types, just `Copy` types. If you need to move `Clone` types
+    /// as captures, see [`FunctionBuilder::closure_with_captures`].
+    ///
+    /// See <https://github.com/boa-dev/boa/issues/1515> for an explanation on
+    /// why we need to restrict the set of accepted closures.
     #[inline]
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
     where

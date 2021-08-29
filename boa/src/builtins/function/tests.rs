@@ -1,6 +1,6 @@
 use crate::{
     forward, forward_val,
-    object::{FunctionBuilder, JsObject},
+    object::FunctionBuilder,
     property::{Attribute, PropertyDescriptor},
     Context, JsString,
 };
@@ -239,9 +239,7 @@ fn closure_capture_clone() {
     let func = FunctionBuilder::closure_with_captures(
         &mut context,
         |_, _, context, captures| {
-            let data = captures.try_downcast_ref::<(JsString, JsObject)>(context)?;
-            let string = &data.0;
-            let object = &data.1;
+            let (string, object) = &captures;
 
             let hw = JsString::concat(
                 string,
