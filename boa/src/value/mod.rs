@@ -8,7 +8,7 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        Array, Number,
+        Number,
     },
     object::{JsObject, Object, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
@@ -16,7 +16,6 @@ use crate::{
     BoaProfiler, Context, JsBigInt, JsResult, JsString,
 };
 use gc::{Finalize, Trace};
-use serde_json::Value as JSONValue;
 use std::{
     collections::HashSet,
     convert::TryFrom,
@@ -113,45 +112,6 @@ impl JsValue {
     pub(crate) fn new_object(context: &Context) -> Self {
         let _timer = BoaProfiler::global().start_event("new_object", "value");
         context.construct_object().into()
-    }
-
-    /// Convert from a JSON value to a JS value
-    pub fn from_json(json: JSONValue, context: &mut Context) -> Self {
-        match json {
-            JSONValue::Number(v) => {
-                if let Some(Ok(integer_32)) = v.as_i64().map(i32::try_from) {
-                    Self::new(integer_32)
-                } else {
-                    Self::new(v.as_f64().expect("Could not convert value to f64"))
-                }
-            }
-            JSONValue::String(v) => Self::new(v),
-            JSONValue::Bool(v) => Self::new(v),
-            JSONValue::Array(vs) => {
-                let vs: Vec<_> = vs
-                    .into_iter()
-                    .map(|json| Self::from_json(json, context))
-                    .collect();
-
-                Array::create_array_from_list(vs, context).into()
-            }
-            JSONValue::Object(obj) => {
-                let new_obj = JsValue::new_object(context);
-                for (key, json) in obj.into_iter() {
-                    let value = Self::from_json(json, context);
-                    new_obj.set_property(
-                        key,
-                        PropertyDescriptor::builder()
-                            .value(value)
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true),
-                    );
-                }
-                new_obj
-            }
-            JSONValue::Null => Self::null(),
-        }
     }
 
     /// Returns true if the value is an object
@@ -302,16 +262,6 @@ impl JsValue {
             Self::Boolean(v) => v,
             _ => false,
         }
-    }
-
-    /// Removes a property from a [`JsValue`] object.
-    ///
-    /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.
-    pub(crate) fn remove_property<Key>(&self, key: Key) -> bool
-    where
-        Key: Into<PropertyKey>,
-    {
-        self.as_object().map(|x| x.remove(&key.into())).is_some()
     }
 
     /// Resolve the property in the object.
