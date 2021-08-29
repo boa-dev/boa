@@ -191,6 +191,20 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Object node.</span>
 
@@ -355,7 +369,21 @@
                         )
                     }
                 },
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">//unimplemented!(&quot;{:?} type of property&quot;, i),</span>
+                <span class="comment">// [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation</span>
+                <span class="ident">PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">node</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+                    <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_null_or_undefined</span>() {
+                        <span class="kw">continue</span>;
+                    }
+
+                    <span class="ident">obj</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>().<span class="ident">copy_data_properties</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">val</span>,
+                        <span class="macro">vec!</span>[],
+                        <span class="ident">context</span>,
+                    )<span class="question-mark">?</span>;
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">// unimplemented!(&quot;{:?} type of property&quot;, i),</span>
             }
         }
 
