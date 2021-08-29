@@ -336,8 +336,9 @@ fn json_parse_array_with_reviver() {
             if (typeof v == 'number') {
                 return v * 2;
             } else {
-                v
-        }})"#,
+                return v;
+            }
+        })"#,
     )
     .unwrap();
     assert_eq!(

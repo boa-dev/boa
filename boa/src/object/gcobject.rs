@@ -327,8 +327,11 @@ impl JsObject {
 
                     // 14. Return ? constructorEnv.GetThisBinding().
                     this
-                } else {
+                } else if context.executor().get_current_state() == &InterpreterState::Return {
                     result
+                } else {
+                    result?;
+                    Ok(JsValue::undefined())
                 }
             }
         }
