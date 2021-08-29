@@ -154,24 +154,11 @@ impl Executable for Object {
                         continue;
                     }
 
-                    let from = val.to_object(context)?;
-
-                    for key in from.__own_property_keys__(context)? {
-                        if let Some(desc) = from.__get_own_property__(&key, context)? {
-                            if let Some(true) = desc.enumerable() {
-                                let property = from.__get__(&key, from.clone().into(), context)?;
-
-                                obj.set_property(
-                                    key.clone(),
-                                    PropertyDescriptor::builder()
-                                        .value(property)
-                                        .writable(true)
-                                        .enumerable(true)
-                                        .configurable(true),
-                                );
-                            }
-                        }
-                    }
+                    obj.as_object().unwrap().copy_data_properties::<String>(
+                        &val,
+                        vec![],
+                        context,
+                    )?;
                 }
                 _ => {} // unimplemented!("{:?} type of property", i),
             }
