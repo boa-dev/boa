@@ -139,11 +139,9 @@ impl Json {
             if obj.is_array() {
                 // i. Let I be 0.
                 // ii. Let len be ? LengthOfArrayLike(val).
-                let mut i = 0;
-                let len = obj.length_of_array_like(context)? as i64;
-
                 // iii. Repeat, while I < len,
-                while i < len {
+                let len = obj.length_of_array_like(context)? as i64;
+                for i in 0..len {
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
                     let new_element = Self::internalize_json_property(
@@ -163,9 +161,6 @@ impl Json {
                         // a. Perform ? CreateDataProperty(val, prop, newElement).
                         obj.create_data_property(i, new_element, context)?;
                     }
-
-                    // 5. Set I to I + 1.
-                    i += 1;
                 }
             }
             // c. Else,
