@@ -13,8 +13,6 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use std::collections::HashSet;
-
 use crate::{
     builtins::{
         string::{is_leading_surrogate, is_trailing_surrogate},
@@ -172,7 +170,7 @@ impl Json {
                 // ii. If isArray is true, then
                 if replacer_obj.is_array() {
                     // 1. Set PropertyList to a new empty List.
-                    let mut property_set = HashSet::new();
+                    let mut property_set = indexmap::IndexSet::new();
 
                     // 2. Let len be ? LengthOfArrayLike(replacer).
                     let len = replacer_obj.length_of_array_like(context)?;
@@ -477,7 +475,7 @@ impl Json {
         state.indent = JsString::concat(&state.indent, &state.gap);
 
         // 5. If state.[[PropertyList]] is not undefined, then
-        let mut k = if let Some(p) = &state.property_list {
+        let k = if let Some(p) = &state.property_list {
             // a. Let K be state.[[PropertyList]].
             p.clone()
         // 6. Else,
@@ -487,9 +485,6 @@ impl Json {
             // Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
             keys.iter().map(|v| v.to_string(context).unwrap()).collect()
         };
-
-        // Sort the property key list, because the internal property hashmap of objects does not sort the properties.
-        k.sort();
 
         // 7. Let partial be a new empty List.
         let mut partial = Vec::new();
