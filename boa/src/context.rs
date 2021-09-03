@@ -273,6 +273,9 @@ pub struct Context {
 
     /// Whether or not to show trace of instructions being ran
     pub trace: bool,
+
+    /// Whether or not strict mode is active.
+    pub strict: bool,
 }
 
 impl Default for Context {
@@ -287,6 +290,7 @@ impl Default for Context {
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
+            strict: false,
         };
 
         // Add new builtIns to Context Realm
@@ -519,17 +523,16 @@ impl Context {
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<N, P, B>(
+    pub(crate) fn create_function<N, P>(
         &mut self,
         name: N,
         params: P,
-        body: B,
+        body: StatementList,
         flags: FunctionFlags,
     ) -> JsResult<JsValue>
     where
         N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
-        B: Into<StatementList>,
     {
         let name = name.into();
         let function_prototype: JsValue =
@@ -542,7 +545,7 @@ impl Context {
         let params_len = params.len();
         let func = Function::Ordinary {
             flags,
-            body: RcStatementList::from(body.into()),
+            body: RcStatementList::from(body),
             params,
             environment: self.get_current_environment().clone(),
         };

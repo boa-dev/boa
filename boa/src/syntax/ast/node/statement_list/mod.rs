@@ -11,6 +11,9 @@ use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// List of statements.
 ///
 /// Similar to `Node::Block` but without the braces.
@@ -24,12 +27,18 @@ use serde::{Deserialize, Serialize};
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
     items: Box<[Node]>,
+    strict: bool,
 }
 
 impl StatementList {
     /// Gets the list of items.
     pub fn items(&self) -> &[Node] {
         &self.items
+    }
+
+    /// Set the strict mode.
+    pub fn set_strict_mode(&mut self, strict: bool) {
+        self.strict = strict;
     }
 
     /// Implements the display formatting with indentation.
@@ -121,8 +130,21 @@ impl Executable for StatementList {
         context
             .executor()
             .set_current_state(InterpreterState::Executing);
+
+        let strict_before = context.strict;
+
+        if !context.strict && self.strict {
+            context.strict = true;
+        }
+
         for (i, item) in self.items().iter().enumerate() {
-            let val = item.run(context)?;
+            let val = match item.run(context) {
+                Ok(val) => val,
+                Err(e) => {
+                    context.strict = strict_before;
+                    return Err(e);
+                }
+            };
             match context.executor().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
@@ -145,6 +167,8 @@ impl Executable for StatementList {
             }
         }
 
+        context.strict = strict_before;
+
         Ok(obj)
     }
 }
@@ -154,7 +178,10 @@ where
     T: Into<Box<[Node]>>,
 {
     fn from(stm: T) -> Self {
-        Self { items: stm.into() }
+        Self {
+            items: stm.into(),
+            strict: false,
+        }
     }
 }
 

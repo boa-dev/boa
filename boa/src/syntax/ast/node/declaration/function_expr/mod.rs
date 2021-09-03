@@ -60,8 +60,8 @@ impl FunctionExpr {
     }
 
     /// Gets the body of the function declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
@@ -87,7 +87,7 @@ impl FunctionExpr {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        if self.body().is_empty() {
+        if self.body().items().is_empty() {
             f.write_str("{}")
         } else {
             f.write_str("{\n")?;
@@ -102,7 +102,7 @@ impl Executable for FunctionExpr {
         let val = context.create_function(
             self.name().unwrap_or(""),
             self.parameters().to_vec(),
-            self.body().to_vec(),
+            self.body().clone(),
             FunctionFlags::CONSTRUCTABLE,
         )?;
 

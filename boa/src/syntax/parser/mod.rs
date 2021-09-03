@@ -124,13 +124,17 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         match cursor.peek(0)? {
             Some(tok) => {
+                let mut strict = false;
                 match tok.kind() {
                     TokenKind::StringLiteral(string) if string.as_ref() == "use strict" => {
                         cursor.set_strict_mode(true);
+                        strict = true;
                     }
                     _ => {}
                 }
-                ScriptBody.parse(cursor)
+                let mut statement_list = ScriptBody.parse(cursor)?;
+                statement_list.set_strict_mode(strict);
+                Ok(statement_list)
             }
             None => Ok(StatementList::from(Vec::new())),
         }
