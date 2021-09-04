@@ -1797,13 +1797,17 @@ impl Array {
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
+
+        let start = args.get(0);
+        let delete_count = args.get(1);
+        let items = args.get(2..).unwrap_or(&[]);
         // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
         // 4. If relativeStart is -∞, let actualStart be 0.
         // 5. Else if relativeStart < 0, let actualStart be max(len + relativeStart, 0).
         // 6. Else, let actualStart be min(relativeStart, len).
-        let actual_start = Self::get_relative_start(context, args.get(0), len)?;
+        let actual_start = Self::get_relative_start(context, start, len)?;
         // 7. If start is not present, then
-        let insert_count = if args.get(0).is_none() || args.get(1).is_none() {
+        let insert_count = if start.is_none() || delete_count.is_none() {
             // 7a. Let insertCount be 0.
             // 8. Else if deleteCount is not present, then
             // a. Let insertCount be 0.
@@ -1811,41 +1815,32 @@ impl Array {
         // 9. Else,
         } else {
             // 9a. Let insertCount be the number of elements in items.
-            args.len().saturating_sub(2)
+            items.len()
         };
-        let actual_delete_count = if args.get(0).is_none() {
+        let actual_delete_count = if start.is_none() {
             // 7b. Let actualDeleteCount be 0.
             0
             // 8. Else if deleteCount is not present, then
-        } else if args.get(1).is_none() {
+        } else if delete_count.is_none() {
             // 8b. Let actualDeleteCount be len - actualStart.
             len - actual_start
         // 9. Else,
         } else {
             // b. Let dc be ? ToIntegerOrInfinity(deleteCount).
-            let dc = args
-                .get(1)
+            let dc = delete_count
                 .cloned()
                 .unwrap_or_default()
                 .to_integer_or_infinity(context)?;
             // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
             let max = len - actual_start;
             match dc {
-                IntegerOrInfinity::Integer(i) => {
-                    if i < 0 {
-                        0
-                    } else if i as usize > max {
-                        max
-                    } else {
-                        i as usize
-                    }
-                }
+                IntegerOrInfinity::Integer(i) => (i as usize).clamp(0, max),
                 IntegerOrInfinity::PositiveInfinity => max,
                 IntegerOrInfinity::NegativeInfinity => 0,
             }
         };
 
-        // 10. If len + insertCount - actualDeleteCount > 253 - 1, throw a TypeError exception.
+        // 10. If len + insertCount - actualDeleteCount > 2^53 - 1, throw a TypeError exception.
         if len + insert_count - actual_delete_count > Number::MAX_SAFE_INTEGER as usize {
             return context.throw_type_error("Target splice exceeded max safe integer value");
         }
@@ -1863,7 +1858,7 @@ impl Array {
                 // i. Let fromValue be ? Get(O, from).
                 let from_value = o.get(actual_start + k, context)?;
                 // ii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(k)), fromValue).
-                arr.create_data_property_or_throw(actual_start + k, from_value, context)?;
+                arr.create_data_property_or_throw(k, from_value, context)?;
             }
             // d. Set k to k + 1.
         }
@@ -1872,11 +1867,11 @@ impl Array {
         arr.set("length", actual_delete_count, true, context)?;
 
         // 15. Let itemCount be the number of elements in items.
-        let item_count = args.len().saturating_sub(2);
+        let item_count = items.len();
 
-        match item_count {
+        match item_count.cmp(&actual_delete_count) {
             // 16. If itemCount < actualDeleteCount, then
-            ic if ic < actual_delete_count => {
+            Ordering::Less => {
                 //     a. Set k to actualStart.
                 //     b. Repeat, while k < (len - actualDeleteCount),
                 for k in actual_start..(len - actual_delete_count) {
@@ -1910,7 +1905,7 @@ impl Array {
                 }
             }
             // 17. Else if itemCount > actualDeleteCount, then
-            ic if ic > actual_delete_count => {
+            Ordering::Greater => {
                 // a. Set k to (len - actualDeleteCount).
                 // b. Repeat, while k > actualStart,
                 for k in (actual_start + 1..=len - actual_delete_count).rev() {
@@ -1936,20 +1931,20 @@ impl Array {
                     // vi. Set k to k - 1.
                 }
             }
-            _ => {}
+            Ordering::Equal => {}
         };
 
         // 18. Set k to actualStart.
-        let mut k = actual_start;
-
         // 19. For each element E of items, do
         if item_count > 0 {
-            let items = args.split_at(2).1;
-            for item in items {
+            for (k, item) in items
+                .iter()
+                .enumerate()
+                .map(|(i, val)| (i + actual_start, val))
+            {
                 // a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
                 o.set(k, item, true, context)?;
                 // b. Set k to k + 1.
-                k += 1;
             }
         }
 
