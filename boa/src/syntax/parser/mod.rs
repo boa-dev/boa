@@ -133,7 +133,7 @@ where
                     _ => {}
                 }
                 let mut statement_list = ScriptBody.parse(cursor)?;
-                statement_list.set_strict_mode(strict);
+                statement_list.set_strict(strict);
                 Ok(statement_list)
             }
             None => Ok(StatementList::from(Vec::new())),

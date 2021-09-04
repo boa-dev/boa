@@ -97,7 +97,7 @@ impl Executable for UnaryOp {
                         .to_object(context)?
                         .__delete__(&get_const_field.field().into(), context)?;
 
-                    if !delete_status && context.strict {
+                    if !delete_status && context.strict() {
                         return context.throw_type_error("Cannot delete property");
                     } else {
                         JsValue::new(delete_status)

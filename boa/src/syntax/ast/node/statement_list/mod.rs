@@ -1,6 +1,7 @@
 //! Statement list node.
 
 use crate::{
+    context::StrictType,
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::{Declaration, Node},
@@ -32,12 +33,20 @@ pub struct StatementList {
 
 impl StatementList {
     /// Gets the list of items.
+    #[inline]
     pub fn items(&self) -> &[Node] {
         &self.items
     }
 
+    /// Get the strict mode.
+    #[inline]
+    pub fn strict(&self) -> bool {
+        self.strict
+    }
+
     /// Set the strict mode.
-    pub fn set_strict_mode(&mut self, strict: bool) {
+    #[inline]
+    pub fn set_strict(&mut self, strict: bool) {
         self.strict = strict;
     }
 
@@ -131,17 +140,19 @@ impl Executable for StatementList {
             .executor()
             .set_current_state(InterpreterState::Executing);
 
-        let strict_before = context.strict;
+        let strict_before = context.strict_type();
 
-        if !context.strict && self.strict {
-            context.strict = true;
+        match context.strict_type() {
+            StrictType::Off if self.strict => context.set_strict(StrictType::Function),
+            StrictType::Function if !self.strict => context.set_strict_mode_off(),
+            _ => {}
         }
 
         for (i, item) in self.items().iter().enumerate() {
             let val = match item.run(context) {
                 Ok(val) => val,
                 Err(e) => {
-                    context.strict = strict_before;
+                    context.set_strict(strict_before);
                     return Err(e);
                 }
             };
@@ -167,7 +178,7 @@ impl Executable for StatementList {
             }
         }
 
-        context.strict = strict_before;
+        context.set_strict(strict_before);
 
         Ok(obj)
     }

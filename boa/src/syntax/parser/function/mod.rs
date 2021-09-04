@@ -295,7 +295,7 @@ where
         cursor.set_strict_mode(global_strict_mode);
 
         let mut statement_list = statement_list?;
-        statement_list.set_strict_mode(strict);
+        statement_list.set_strict(strict);
         Ok(statement_list)
     }
 }

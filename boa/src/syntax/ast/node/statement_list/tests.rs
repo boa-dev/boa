@@ -72,3 +72,25 @@ fn strict_mode_global_active_in_function() {
 
     assert_eq!(&exec(scenario), "true");
 }
+
+#[test]
+fn strict_mode_function_in_function() {
+    let scenario = r#"
+        let throws = false;
+        function a(){
+            try {
+                delete Boolean.prototype;
+            } catch (e) {
+                throws = true;
+            }
+        }
+        function b(){
+            'use strict';
+            a();
+        }
+        b();
+        throws
+    "#;
+
+    assert_eq!(&exec(scenario), "false");
+}
