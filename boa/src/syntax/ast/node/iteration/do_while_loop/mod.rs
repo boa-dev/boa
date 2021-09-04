@@ -2,7 +2,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -74,7 +74,7 @@ impl DoWhileLoop {
 }
 
 impl Executable for DoWhileLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let mut result;
         loop {
             result = self.body().run(context)?;

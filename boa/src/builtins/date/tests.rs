@@ -1,6 +1,6 @@
 #![allow(clippy::zero_prefixed_literal)]
 
-use crate::{forward, forward_val, object::ObjectData, Context, Value};
+use crate::{forward, forward_val, Context, JsValue};
 use chrono::prelude::*;
 
 // NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
@@ -13,8 +13,8 @@ fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
         panic!("expected success")
     };
 
-    if let Value::Object(ref date_time) = date_time {
-        if let ObjectData::Date(ref date_time) = date_time.borrow().data {
+    if let JsValue::Object(ref date_time) = date_time {
+        if let Some(date_time) = date_time.borrow().as_date() {
             date_time.0
         } else {
             panic!("expected date")
@@ -63,11 +63,10 @@ fn date_this_time_value() {
     let message_property = &error
         .get_property("message")
         .expect("Expected 'message' property")
-        .as_data_descriptor()
-        .unwrap()
-        .value();
+        .expect_value()
+        .clone();
 
-    assert_eq!(Value::string("\'this\' is not a Date"), *message_property);
+    assert_eq!(JsValue::new("\'this\' is not a Date"), *message_property);
 }
 
 #[test]
@@ -213,7 +212,7 @@ fn date_ctor_parse_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let date_time = forward_val(&mut context, "Date.parse('2020-06-08T09:16:15.779-07:30')");
 
-    assert_eq!(Ok(Value::Rational(1591634775779f64)), date_time);
+    assert_eq!(Ok(JsValue::new(1591634775779f64)), date_time);
     Ok(())
 }
 
@@ -223,7 +222,7 @@ fn date_ctor_utc_call() -> Result<(), Box<dyn std::error::Error>> {
 
     let date_time = forward_val(&mut context, "Date.UTC(2020, 06, 08, 09, 16, 15, 779)");
 
-    assert_eq!(Ok(Value::Rational(1594199775779f64)), date_time);
+    assert_eq!(Ok(JsValue::new(1594199775779f64)), date_time);
     Ok(())
 }
 
@@ -232,7 +231,7 @@ fn date_ctor_utc_call_nan() -> Result<(), Box<dyn std::error::Error>> {
     fn check(src: &str) {
         let mut context = Context::new();
         let date_time = forward_val(&mut context, src).expect("Expected Success");
-        assert_eq!(Value::Rational(f64::NAN), date_time);
+        assert_eq!(JsValue::nan(), date_time);
     }
 
     check("Date.UTC(1/0, 06, 08, 09, 16, 15, 779)");
@@ -254,10 +253,10 @@ fn date_proto_get_date_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getDate()",
     );
-    assert_eq!(Ok(Value::Rational(08f64)), actual);
+    assert_eq!(Ok(JsValue::new(08f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getDate()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
 
     Ok(())
 }
@@ -270,10 +269,10 @@ fn date_proto_get_day_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getDay()",
     );
-    assert_eq!(Ok(Value::Rational(3f64)), actual);
+    assert_eq!(Ok(JsValue::new(3f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getDay()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -285,10 +284,10 @@ fn date_proto_get_full_year_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getFullYear()",
     );
-    assert_eq!(Ok(Value::Rational(2020f64)), actual);
+    assert_eq!(Ok(JsValue::new(2020f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getFullYear()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -300,10 +299,10 @@ fn date_proto_get_hours_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getHours()",
     );
-    assert_eq!(Ok(Value::Rational(09f64)), actual);
+    assert_eq!(Ok(JsValue::new(09f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getHours()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -315,10 +314,10 @@ fn date_proto_get_milliseconds_call() -> Result<(), Box<dyn std::error::Error>> 
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMilliseconds()",
     );
-    assert_eq!(Ok(Value::Rational(779f64)), actual);
+    assert_eq!(Ok(JsValue::new(779f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getMilliseconds()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -330,10 +329,10 @@ fn date_proto_get_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMinutes()",
     );
-    assert_eq!(Ok(Value::Rational(16f64)), actual);
+    assert_eq!(Ok(JsValue::new(16f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getMinutes()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -345,10 +344,10 @@ fn date_proto_get_month() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMonth()",
     );
-    assert_eq!(Ok(Value::Rational(06f64)), actual);
+    assert_eq!(Ok(JsValue::new(06f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getMonth()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
 
     Ok(())
 }
@@ -361,10 +360,10 @@ fn date_proto_get_seconds() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getSeconds()",
     );
-    assert_eq!(Ok(Value::Rational(15f64)), actual);
+    assert_eq!(Ok(JsValue::new(15f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getSeconds()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -381,10 +380,10 @@ fn date_proto_get_time() -> Result<(), Box<dyn std::error::Error>> {
         .ymd(2020, 07, 08)
         .and_hms_milli(09, 16, 15, 779)
         .timestamp_millis() as f64;
-    assert_eq!(Ok(Value::Rational(ts)), actual);
+    assert_eq!(Ok(JsValue::new(ts)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getTime()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -396,10 +395,10 @@ fn date_proto_get_year() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getYear()",
     );
-    assert_eq!(Ok(Value::Rational(120f64)), actual);
+    assert_eq!(Ok(JsValue::new(120f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getYear()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -409,27 +408,27 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut context,
-        "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset() === new Date('August 19, 1975 23:15:30 GMT-02:00').getTimezoneOffset()",
+        "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset() === new Date('1975-08-19T23:15:30-02:00').getTimezoneOffset()",
     );
 
     // NB: Host Settings, not TZ specified in the DateTime.
-    assert_eq!(Ok(Value::Boolean(true)), actual);
+    assert_eq!(Ok(JsValue::new(true)), actual);
 
     let actual = forward_val(
         &mut context,
-        "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset()",
+        "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
     );
 
     // The value of now().offset() depends on the host machine, so we have to replicate the method code here.
     let offset_seconds = chrono::Local::now().offset().local_minus_utc() as f64;
-    let offset_minutes = offset_seconds / 60f64;
-    assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
+    let offset_minutes = -offset_seconds / 60f64;
+    assert_eq!(Ok(JsValue::new(offset_minutes)), actual);
 
     let actual = forward_val(
         &mut context,
-        "new Date(1/0, 06, 08, 09, 16, 15, 779).getTimezoneOffset()",
+        "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
     );
-    assert_eq!(Ok(Value::Rational(offset_minutes)), actual);
+    assert_eq!(Ok(JsValue::new(offset_minutes)), actual);
     Ok(())
 }
 
@@ -441,10 +440,10 @@ fn date_proto_get_utc_date_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDate()",
     );
-    assert_eq!(Ok(Value::Rational(08f64)), actual);
+    assert_eq!(Ok(JsValue::new(08f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCDate()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
 
     Ok(())
 }
@@ -457,10 +456,10 @@ fn date_proto_get_utc_day_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDay()",
     );
-    assert_eq!(Ok(Value::Rational(3f64)), actual);
+    assert_eq!(Ok(JsValue::new(3f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCDay()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -472,10 +471,10 @@ fn date_proto_get_utc_full_year_call() -> Result<(), Box<dyn std::error::Error>>
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCFullYear()",
     );
-    assert_eq!(Ok(Value::Rational(2020f64)), actual);
+    assert_eq!(Ok(JsValue::new(2020f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCFullYear()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -487,10 +486,10 @@ fn date_proto_get_utc_hours_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCHours()",
     );
-    assert_eq!(Ok(Value::Rational(09f64)), actual);
+    assert_eq!(Ok(JsValue::new(09f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCHours()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -502,10 +501,10 @@ fn date_proto_get_utc_milliseconds_call() -> Result<(), Box<dyn std::error::Erro
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
     );
-    assert_eq!(Ok(Value::Rational(779f64)), actual);
+    assert_eq!(Ok(JsValue::new(779f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMilliseconds()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -517,10 +516,10 @@ fn date_proto_get_utc_minutes_call() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMinutes()",
     );
-    assert_eq!(Ok(Value::Rational(16f64)), actual);
+    assert_eq!(Ok(JsValue::new(16f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMinutes()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -532,10 +531,10 @@ fn date_proto_get_utc_month() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMonth()",
     );
-    assert_eq!(Ok(Value::Rational(06f64)), actual);
+    assert_eq!(Ok(JsValue::new(06f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMonth()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
 
     Ok(())
 }
@@ -548,10 +547,10 @@ fn date_proto_get_utc_seconds() -> Result<(), Box<dyn std::error::Error>> {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCSeconds()",
     );
-    assert_eq!(Ok(Value::Rational(15f64)), actual);
+    assert_eq!(Ok(JsValue::new(15f64)), actual);
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCSeconds()");
-    assert_eq!(Ok(Value::Rational(f64::NAN)), actual);
+    assert_eq!(Ok(JsValue::nan()), actual);
     Ok(())
 }
 
@@ -1217,7 +1216,7 @@ fn date_proto_to_date_string() -> Result<(), Box<dyn std::error::Error>> {
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toDateString()",
     )
     .expect("Successful eval");
-    assert_eq!(Value::string("Wed Jul 08 2020"), actual);
+    assert_eq!(JsValue::new("Wed Jul 08 2020"), actual);
 
     Ok(())
 }
@@ -1231,7 +1230,7 @@ fn date_proto_to_gmt_string() -> Result<(), Box<dyn std::error::Error>> {
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toGMTString()",
     )
     .expect("Successful eval");
-    assert_eq!(Value::string("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
+    assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
 
     Ok(())
 }
@@ -1245,7 +1244,7 @@ fn date_proto_to_iso_string() -> Result<(), Box<dyn std::error::Error>> {
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toISOString()",
     )
     .expect("Successful eval");
-    assert_eq!(Value::string("2020-07-08T09:16:15.779Z"), actual);
+    assert_eq!(JsValue::new("2020-07-08T09:16:15.779Z"), actual);
 
     Ok(())
 }
@@ -1259,7 +1258,7 @@ fn date_proto_to_json() -> Result<(), Box<dyn std::error::Error>> {
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toJSON()",
     )
     .expect("Successful eval");
-    assert_eq!(Value::string("2020-07-08T09:16:15.779Z"), actual);
+    assert_eq!(JsValue::new("2020-07-08T09:16:15.779Z"), actual);
 
     Ok(())
 }
@@ -1275,7 +1274,7 @@ fn date_proto_to_string() -> Result<(), Box<dyn std::error::Error>> {
     .ok();
 
     assert_eq!(
-        Some(Value::string(
+        Some(JsValue::new(
             Local
                 .from_local_datetime(&NaiveDateTime::new(
                     NaiveDate::from_ymd(2020, 6, 8),
@@ -1283,7 +1282,7 @@ fn date_proto_to_string() -> Result<(), Box<dyn std::error::Error>> {
                 ))
                 .earliest()
                 .unwrap()
-                .format("Wed Jul 08 2020 09:16:15 GMT%:z")
+                .format("Wed Jul 08 2020 09:16:15 GMT%z")
                 .to_string()
         )),
         actual
@@ -1303,7 +1302,7 @@ fn date_proto_to_time_string() -> Result<(), Box<dyn std::error::Error>> {
     .ok();
 
     assert_eq!(
-        Some(Value::string(
+        Some(JsValue::new(
             Local
                 .from_local_datetime(&NaiveDateTime::new(
                     NaiveDate::from_ymd(2020, 6, 8),
@@ -1311,7 +1310,7 @@ fn date_proto_to_time_string() -> Result<(), Box<dyn std::error::Error>> {
                 ))
                 .earliest()
                 .unwrap()
-                .format("09:16:15 GMT%:z")
+                .format("09:16:15 GMT%z")
                 .to_string()
         )),
         actual
@@ -1329,7 +1328,7 @@ fn date_proto_to_utc_string() -> Result<(), Box<dyn std::error::Error>> {
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toUTCString()",
     )
     .expect("Successful eval");
-    assert_eq!(Value::string("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
+    assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
 
     Ok(())
 }
@@ -1343,7 +1342,7 @@ fn date_proto_value_of() -> Result<(), Box<dyn std::error::Error>> {
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).valueOf()",
     )
     .expect("Successful eval");
-    assert_eq!(Value::number(1594199775779f64), actual);
+    assert_eq!(JsValue::new(1594199775779f64), actual);
 
     Ok(())
 }
@@ -1357,7 +1356,7 @@ fn date_neg() -> Result<(), Box<dyn std::error::Error>> {
         "-new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779))",
     )
     .expect("Successful eval");
-    assert_eq!(Value::number(-1594199775779f64), actual);
+    assert_eq!(JsValue::new(-1594199775779f64), actual);
 
     Ok(())
 }
@@ -1372,7 +1371,7 @@ fn date_json() -> Result<(), Box<dyn std::error::Error>> {
     )
     .expect("Successful eval");
     assert_eq!(
-        Value::string(r#"{"date":"2020-07-08T09:16:15.779Z"}"#),
+        JsValue::new(r#"{"date":"2020-07-08T09:16:15.779Z"}"#),
         actual
     );
 

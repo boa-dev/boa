@@ -1,4 +1,8 @@
-use crate::gc::{empty_trace, Finalize, Trace};
+use crate::{
+    builtins::string::is_trimmable_whitespace,
+    gc::{empty_trace, Finalize, Trace},
+};
+use rustc_hash::FxHashSet;
 use std::{
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
@@ -8,6 +12,183 @@ use std::{
     ops::Deref,
     ptr::{copy_nonoverlapping, NonNull},
 };
+
+const CONSTANTS_ARRAY: [&str; 127] = [
+    // Empty string
+    "",
+    // Misc
+    ",",
+    ":",
+    // Generic use
+    "name",
+    "length",
+    "arguments",
+    "prototype",
+    "constructor",
+    // typeof
+    "null",
+    "undefined",
+    "number",
+    "string",
+    "symbol",
+    "bigint",
+    "object",
+    "function",
+    // Property descriptor
+    "value",
+    "get",
+    "set",
+    "writable",
+    "enumerable",
+    "configurable",
+    // Object object
+    "Object",
+    "assing",
+    "create",
+    "toString",
+    "valueOf",
+    "is",
+    "seal",
+    "isSealed",
+    "freeze",
+    "isFrozen",
+    "keys",
+    "values",
+    "entries",
+    // Function object
+    "Function",
+    "apply",
+    "bind",
+    "call",
+    // Array object
+    "Array",
+    "from",
+    "isArray",
+    "of",
+    "get [Symbol.species]",
+    "copyWithin",
+    "entries",
+    "every",
+    "fill",
+    "filter",
+    "find",
+    "findIndex",
+    "flat",
+    "flatMap",
+    "forEach",
+    "includes",
+    "indexOf",
+    "join",
+    "map",
+    "reduce",
+    "reduceRight",
+    "reverse",
+    "shift",
+    "slice",
+    "some",
+    "sort",
+    "unshift",
+    "push",
+    "pop",
+    // String object
+    "String",
+    "charAt",
+    "charCodeAt",
+    "concat",
+    "endsWith",
+    "includes",
+    "indexOf",
+    "lastIndexOf",
+    "match",
+    "matchAll",
+    "normalize",
+    "padEnd",
+    "padStart",
+    "repeat",
+    "replace",
+    "replaceAll",
+    "search",
+    "slice",
+    "split",
+    "startsWith",
+    "substring",
+    "toLowerString",
+    "toUpperString",
+    "trim",
+    "trimEnd",
+    "trimStart",
+    // Number object
+    "Number",
+    // Boolean object
+    "Boolean",
+    // RegExp object
+    "RegExp",
+    "exec",
+    "test",
+    "flags",
+    "index",
+    "lastIndex",
+    // Symbol object
+    "Symbol",
+    "for",
+    "keyFor",
+    "description",
+    "[Symbol.toPrimitive]",
+    "",
+    // Map object
+    "Map",
+    "clear",
+    "delete",
+    "get",
+    "has",
+    "set",
+    "size",
+    // Set object
+    "Set",
+    // Reflect object
+    "Reflect",
+    // Error objects
+    "Error",
+    "TypeError",
+    "RangeError",
+    "SyntaxError",
+    "ReferenceError",
+    "EvalError",
+    "URIError",
+    "message",
+    // Date object
+    "Date",
+    "toJSON",
+];
+
+const MAX_CONSTANT_STRING_LENGTH: usize = {
+    let mut max = 0;
+    let mut i = 0;
+    while i < CONSTANTS_ARRAY.len() {
+        let len = CONSTANTS_ARRAY[i].len();
+        if len > max {
+            max = len;
+        }
+        i += 1;
+    }
+    max
+};
+
+thread_local! {
+    static CONSTANTS: FxHashSet<JsString> = {
+        let mut constants = FxHashSet::default();
+
+        for s in CONSTANTS_ARRAY.iter() {
+            let s = JsString {
+                inner: Inner::new(s),
+                _marker: PhantomData,
+            };
+            constants.insert(s);
+        }
+
+        constants
+    };
+}
 
 /// The inner representation of a [`JsString`].
 #[repr(C)]
@@ -60,10 +241,13 @@ impl Inner {
         unsafe { NonNull::new_unchecked(inner) }
     }
 
-    /// Concatinate two string.
+    /// Concatenate array of strings.
     #[inline]
-    fn concat(x: &str, y: &str) -> NonNull<Inner> {
-        let total_string_size = x.len() + y.len();
+    fn concat_array(strings: &[&str]) -> NonNull<Inner> {
+        let mut total_string_size = 0;
+        for string in strings {
+            total_string_size += string.len();
+        }
 
         // We get the layout of the `Inner` type and we extend by the size
         // of the string array.
@@ -88,8 +272,11 @@ impl Inner {
             debug_assert!(std::ptr::eq(inner.cast::<u8>().add(offset), data));
 
             // Copy the two string data into data offset.
-            copy_nonoverlapping(x.as_ptr(), data, x.len());
-            copy_nonoverlapping(y.as_ptr(), data.add(x.len()), y.len());
+            let mut offset = 0;
+            for string in strings {
+                copy_nonoverlapping(string.as_ptr(), data.add(offset), string.len());
+                offset += string.len();
+            }
 
             inner
         };
@@ -131,17 +318,30 @@ impl Default for JsString {
 }
 
 impl JsString {
+    /// Create an empty string, same as calling default.
+    #[inline]
+    pub fn empty() -> Self {
+        JsString::default()
+    }
+
     /// Create a new JavaScript string.
     #[inline]
     pub fn new<S: AsRef<str>>(s: S) -> Self {
         let s = s.as_ref();
+
+        if s.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(s).cloned()) {
+                return constant;
+            }
+        }
+
         Self {
             inner: Inner::new(s),
             _marker: PhantomData,
         }
     }
 
-    /// Concatinate two string.
+    /// Concatenate two string.
     pub fn concat<T, U>(x: T, y: U) -> JsString
     where
         T: AsRef<str>,
@@ -150,10 +350,34 @@ impl JsString {
         let x = x.as_ref();
         let y = y.as_ref();
 
-        Self {
-            inner: Inner::concat(x, y),
+        let this = Self {
+            inner: Inner::concat_array(&[x, y]),
             _marker: PhantomData,
+        };
+
+        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+                return constant;
+            }
         }
+
+        this
+    }
+
+    /// Concatenate array of string.
+    pub fn concat_array(strings: &[&str]) -> JsString {
+        let this = Self {
+            inner: Inner::concat_array(strings),
+            _marker: PhantomData,
+        };
+
+        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+                return constant;
+            }
+        }
+
+        this
     }
 
     /// Return the inner representation.
@@ -185,6 +409,81 @@ impl JsString {
     #[inline]
     pub fn ptr_eq(x: &Self, y: &Self) -> bool {
         x.inner == y.inner
+    }
+
+    /// `6.1.4.1 StringIndexOf ( string, searchValue, fromIndex )`
+    ///
+    /// Note: Instead of returning an isize with `-1` as the "not found" value,
+    /// We make use of the type system and return Option<usize> with None as the "not found" value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
+    pub(crate) fn index_of(&self, search_value: &Self, from_index: usize) -> Option<usize> {
+        // 1. Assert: Type(string) is String.
+        // 2. Assert: Type(searchValue) is String.
+        // 3. Assert: fromIndex is a non-negative integer.
+
+        // 4. Let len be the length of string.
+        let len = self.encode_utf16().count();
+
+        // 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
+        if search_value.is_empty() && from_index <= len {
+            return Some(from_index);
+        }
+
+        // 6. Let searchLen be the length of searchValue.
+        let search_len = search_value.encode_utf16().count();
+
+        // 7. For each integer i starting with fromIndex such that i ≤ len - searchLen, in ascending order, do
+        for i in from_index..=len {
+            if i as isize > (len as isize - search_len as isize) {
+                break;
+            }
+
+            // a. Let candidate be the substring of string from i to i + searchLen.
+            let candidate = String::from_utf16_lossy(
+                &self
+                    .encode_utf16()
+                    .skip(i)
+                    .take(search_len)
+                    .collect::<Vec<u16>>(),
+            );
+
+            // b. If candidate is the same sequence of code units as searchValue, return i.
+            if candidate == search_value.as_str() {
+                return Some(i);
+            }
+        }
+
+        // 8. Return -1.
+        None
+    }
+
+    pub(crate) fn string_to_number(&self) -> f64 {
+        let string = self.trim_matches(is_trimmable_whitespace);
+
+        // TODO: write our own lexer to match syntax StrDecimalLiteral
+        match string {
+            "" => 0.0,
+            "Infinity" | "+Infinity" => f64::INFINITY,
+            "-Infinity" => f64::NEG_INFINITY,
+            _ if matches!(
+                string
+                    .chars()
+                    .take(4)
+                    .collect::<String>()
+                    .to_ascii_lowercase()
+                    .as_str(),
+                "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
+            ) =>
+            {
+                // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                f64::NAN
+            }
+            _ => fast_float::parse(string).unwrap_or(f64::NAN),
+        }
     }
 }
 

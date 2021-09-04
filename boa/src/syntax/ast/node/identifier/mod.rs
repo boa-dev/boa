@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -34,7 +34,7 @@ pub struct Identifier {
 }
 
 impl Executable for Identifier {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("Identifier", "exec");
         context.get_binding_value(self.as_ref())
     }

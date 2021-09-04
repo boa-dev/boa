@@ -19,8 +19,8 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
-    value::{AbstractRelation, IntegerOrInfinity, Value},
-    BoaProfiler, Context, Result,
+    value::{AbstractRelation, IntegerOrInfinity, JsValue},
+    BoaProfiler, Context, JsResult,
 };
 use num_traits::{float::FloatCore, Num};
 
@@ -50,7 +50,7 @@ impl BuiltIn for Number {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
@@ -151,20 +151,20 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.min_value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_VALUE
-    pub(crate) const MIN_VALUE: f64 = f64::MIN;
+    pub(crate) const MIN_VALUE: f64 = f64::MIN_POSITIVE;
 
     /// `Number( value )`
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         let data = match args.get(0) {
             Some(value) => value.to_numeric_number(context)?,
             None => 0.0,
         };
         if new_target.is_undefined() {
-            return Ok(Value::from(data));
+            return Ok(JsValue::new(data));
         }
         let prototype = new_target
             .as_object()
@@ -175,16 +175,16 @@ impl Number {
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().object_object().prototype());
-        let this = Value::new_object(context);
+        let this = JsValue::new_object(context);
         this.as_object()
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
-        this.set_data(ObjectData::Number(data));
+        this.set_data(ObjectData::number(data));
 
         Ok(this)
     }
 
-    /// This function returns a `Result` of the number `Value`.
+    /// This function returns a `JsResult` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
     /// Otherwise an `TypeError` is thrown.
@@ -193,11 +193,11 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
-    fn this_number_value(value: &Value, context: &mut Context) -> Result<f64> {
+    fn this_number_value(value: &JsValue, context: &mut Context) -> JsResult<f64> {
         match *value {
-            Value::Integer(integer) => return Ok(f64::from(integer)),
-            Value::Rational(rational) => return Ok(rational),
-            Value::Object(ref object) => {
+            JsValue::Integer(integer) => return Ok(f64::from(integer)),
+            JsValue::Rational(rational) => return Ok(rational),
+            JsValue::Object(ref object) => {
                 if let Some(number) = object.borrow().as_number() {
                     return Ok(number);
                 }
@@ -229,13 +229,13 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_exponential(
-        this: &Value,
-        _: &[Value],
+        this: &JsValue,
+        _: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
         let this_str_num = Self::num_to_exponential(this_num);
-        Ok(Value::from(this_str_num))
+        Ok(JsValue::new(this_str_num))
     }
 
     /// `Number.prototype.toFixed( [digits] )`
@@ -249,7 +249,11 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_fixed(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer(context)? as i32 {
@@ -259,7 +263,7 @@ impl Number {
             None => 0,
         };
         let this_fixed_num = format!("{:.*}", precision, this_num);
-        Ok(Value::from(this_fixed_num))
+        Ok(JsValue::new(this_fixed_num))
     }
 
     /// `Number.prototype.toLocaleString( [locales [, options]] )`
@@ -277,13 +281,13 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_locale_string(
-        this: &Value,
-        _: &[Value],
+        this: &JsValue,
+        _: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
         let this_str_num = format!("{}", this_num);
-        Ok(Value::from(this_str_num))
+        Ok(JsValue::new(this_str_num))
     }
 
     /// flt_str_to_exp - used in to_precision
@@ -384,16 +388,16 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_precision(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         let precision = args.get(0).cloned().unwrap_or_default();
 
         // 1 & 6
         let mut this_num = Self::this_number_value(this, context)?;
         // 2
-        if precision == Value::undefined() {
+        if precision == JsValue::undefined() {
             return Self::to_string(this, &[], context);
         }
 
@@ -467,14 +471,14 @@ impl Number {
                 // iv, v
                 suffix.push_str(&exponent.to_string());
 
-                return Ok(Value::from(prefix + &suffix));
+                return Ok(JsValue::new(prefix + &suffix));
             }
         }
 
         // 11
         let e_inc = exponent + 1;
         if e_inc == precision_i32 {
-            return Ok(Value::from(prefix + &suffix));
+            return Ok(JsValue::new(prefix + &suffix));
         }
 
         // 12
@@ -488,7 +492,7 @@ impl Number {
         }
 
         // 14
-        Ok(Value::from(prefix + &suffix))
+        Ok(JsValue::new(prefix + &suffix))
     }
 
     // https://golang.org/src/math/nextafter.go
@@ -630,7 +634,11 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, context)?;
 
@@ -650,17 +658,17 @@ impl Number {
 
         // 5. If radixNumber = 10, return ! ToString(x).
         if radix == 10 {
-            return Ok(Value::from(Self::to_native_string(x)));
+            return Ok(JsValue::new(Self::to_native_string(x)));
         }
 
         if x == -0. {
-            return Ok(Value::from("0"));
+            return Ok(JsValue::new("0"));
         } else if x.is_nan() {
-            return Ok(Value::from("NaN"));
+            return Ok(JsValue::new("NaN"));
         } else if x.is_infinite() && x.is_sign_positive() {
-            return Ok(Value::from("Infinity"));
+            return Ok(JsValue::new("Infinity"));
         } else if x.is_infinite() && x.is_sign_negative() {
-            return Ok(Value::from("-Infinity"));
+            return Ok(JsValue::new("-Infinity"));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character
@@ -672,7 +680,7 @@ impl Number {
         // }
 
         // 6. Return the String representation of this Number value using the radix specified by radixNumber.
-        Ok(Value::from(Self::to_native_string_radix(x, radix)))
+        Ok(JsValue::new(Self::to_native_string_radix(x, radix)))
     }
 
     /// `Number.prototype.toString()`
@@ -685,8 +693,12 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(Value::from(Self::this_number_value(this, context)?))
+    pub(crate) fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_number_value(this, context)?))
     }
 
     /// Builtin javascript 'parseInt(str, radix)' function.
@@ -703,7 +715,11 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse_int(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let (Some(val), radix) = (args.get(0), args.get(1)) {
             // 1. Let inputString be ? ToString(string).
             let input_string = val.to_string(context)?;
@@ -738,7 +754,7 @@ impl Number {
             if var_r != 0 {
                 //     a. If R < 2 or R > 36, return NaN.
                 if !(2..=36).contains(&var_r) {
-                    return Ok(Value::nan());
+                    return Ok(JsValue::nan());
                 }
 
                 //     b. If R ≠ 16, set stripPrefix to false.
@@ -777,7 +793,7 @@ impl Number {
 
             // 13. If Z is empty, return NaN.
             if var_z.is_empty() {
-                return Ok(Value::nan());
+                return Ok(JsValue::nan());
             }
 
             // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the
@@ -796,17 +812,17 @@ impl Number {
             //     b. Return +0𝔽.
             if math_int == 0_f64 {
                 if sign == -1 {
-                    return Ok(Value::rational(-0_f64));
+                    return Ok(JsValue::new(-0_f64));
                 } else {
-                    return Ok(Value::rational(0_f64));
+                    return Ok(JsValue::new(0_f64));
                 }
             }
 
             // 16. Return 𝔽(sign × mathInt).
-            Ok(Value::rational(f64::from(sign) * math_int))
+            Ok(JsValue::new(f64::from(sign) * math_int))
         } else {
             // Not enough arguments to parseInt.
-            Ok(Value::nan())
+            Ok(JsValue::nan())
         }
     }
 
@@ -825,7 +841,11 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-    pub(crate) fn parse_float(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse_float(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
             let input_string = val.to_string(context)?;
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
@@ -833,29 +853,29 @@ impl Number {
 
             // TODO: write our own lexer to match syntax StrDecimalLiteral
             if s.starts_with("Infinity") || s.starts_with("+Infinity") {
-                Ok(Value::from(f64::INFINITY))
+                Ok(JsValue::new(f64::INFINITY))
             } else if s.starts_with("-Infinity") {
-                Ok(Value::from(f64::NEG_INFINITY))
+                Ok(JsValue::new(f64::NEG_INFINITY))
             } else if s_prefix_lower.starts_with("inf")
                 || s_prefix_lower.starts_with("+inf")
                 || s_prefix_lower.starts_with("-inf")
             {
                 // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-                Ok(Value::nan())
+                Ok(JsValue::nan())
             } else {
                 Ok(fast_float::parse_partial::<f64, _>(s)
                     .map(|(f, len)| {
                         if len > 0 {
-                            Value::rational(f)
+                            JsValue::new(f)
                         } else {
-                            Value::nan()
+                            JsValue::nan()
                         }
                     })
-                    .unwrap_or_else(|_| Value::nan()))
+                    .unwrap_or_else(|_| JsValue::nan()))
             }
         } else {
             // Not enough arguments to parseFloat.
-            Ok(Value::nan())
+            Ok(JsValue::nan())
         }
     }
 
@@ -874,10 +894,10 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
     pub(crate) fn global_is_finite(
-        _: &Value,
-        args: &[Value],
+        _: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
             Ok(number.is_finite().into())
@@ -900,7 +920,11 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
-    pub(crate) fn global_is_nan(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn global_is_nan(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
             Ok(number.is_nan().into())
@@ -923,11 +947,15 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isfinite
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
-    pub(crate) fn number_is_finite(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
-        Ok(Value::from(if let Some(val) = args.get(0) {
+    pub(crate) fn number_is_finite(
+        _: &JsValue,
+        args: &[JsValue],
+        _ctx: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::new(if let Some(val) = args.get(0) {
             match val {
-                Value::Integer(_) => true,
-                Value::Rational(number) => number.is_finite(),
+                JsValue::Integer(_) => true,
+                JsValue::Rational(number) => number.is_finite(),
                 _ => false,
             }
         } else {
@@ -946,10 +974,10 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.isinteger
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
     pub(crate) fn number_is_integer(
-        _: &Value,
-        args: &[Value],
+        _: &JsValue,
+        args: &[JsValue],
         _ctx: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         Ok(args.get(0).map_or(false, Self::is_integer).into())
     }
 
@@ -967,11 +995,15 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
-    pub(crate) fn number_is_nan(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
-        Ok(Value::from(if let Some(val) = args.get(0) {
+    pub(crate) fn number_is_nan(
+        _: &JsValue,
+        args: &[JsValue],
+        _ctx: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::new(if let Some(val) = args.get(0) {
             match val {
-                Value::Integer(_) => false,
-                Value::Rational(number) => number.is_nan(),
+                JsValue::Integer(_) => false,
+                JsValue::Rational(number) => number.is_nan(),
                 _ => false,
             }
         } else {
@@ -993,10 +1025,14 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
-    pub(crate) fn is_safe_integer(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
-        Ok(Value::from(match args.get(0) {
-            Some(Value::Integer(_)) => true,
-            Some(Value::Rational(number)) if Self::is_float_integer(*number) => {
+    pub(crate) fn is_safe_integer(
+        _: &JsValue,
+        args: &[JsValue],
+        _ctx: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::new(match args.get(0) {
+            Some(JsValue::Integer(_)) => true,
+            Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {
                 number.abs() <= Number::MAX_SAFE_INTEGER
             }
             _ => false,
@@ -1010,10 +1046,10 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
     #[inline]
-    pub(crate) fn is_integer(val: &Value) -> bool {
+    pub(crate) fn is_integer(val: &JsValue) -> bool {
         match val {
-            Value::Integer(_) => true,
-            Value::Rational(number) => Number::is_float_integer(*number),
+            JsValue::Integer(_) => true,
+            JsValue::Rational(number) => Number::is_float_integer(*number),
             _ => false,
         }
     }

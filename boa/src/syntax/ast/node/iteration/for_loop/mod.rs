@@ -3,7 +3,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -98,7 +98,7 @@ impl ForLoop {
 }
 
 impl Executable for ForLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
@@ -143,7 +143,7 @@ impl Executable for ForLoop {
         // pop the block env
         let _ = context.pop_environment();
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 

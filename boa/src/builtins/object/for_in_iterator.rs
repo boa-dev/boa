@@ -1,11 +1,11 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     gc::{Finalize, Trace},
-    object::{GcObject, ObjectData},
+    object::{JsObject, ObjectData},
+    property::PropertyDescriptor,
     property::PropertyKey,
-    property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsString, Result, Value,
+    BoaProfiler, Context, JsResult, JsString, JsValue,
 };
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
@@ -19,7 +19,7 @@ use std::collections::VecDeque;
 /// [spec]: https://tc39.es/ecma262/#sec-for-in-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ForInIterator {
-    object: Value,
+    object: JsValue,
     visited_keys: FxHashSet<JsString>,
     remaining_keys: VecDeque<JsString>,
     object_was_visited: bool,
@@ -28,7 +28,7 @@ pub struct ForInIterator {
 impl ForInIterator {
     pub(crate) const NAME: &'static str = "ForInIterator";
 
-    fn new(object: Value) -> Self {
+    fn new(object: JsValue) -> Self {
         ForInIterator {
             object,
             visited_keys: FxHashSet::default(),
@@ -45,9 +45,9 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(context: &Context, object: Value) -> Value {
-        let for_in_iterator = Value::new_object(context);
-        for_in_iterator.set_data(ObjectData::ForInIterator(Self::new(object)));
+    pub(crate) fn create_for_in_iterator(context: &Context, object: JsValue) -> JsValue {
+        let for_in_iterator = JsValue::new_object(context);
+        for_in_iterator.set_data(ObjectData::for_in_iterator(Self::new(object)));
         for_in_iterator
             .as_object()
             .expect("for in iterator object")
@@ -63,14 +63,14 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref o) = this {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        if let JsValue::Object(ref o) = this {
             let mut for_in_iterator = o.borrow_mut();
             if let Some(iterator) = for_in_iterator.as_for_in_iterator_mut() {
                 let mut object = iterator.object.to_object(context)?;
                 loop {
                     if !iterator.object_was_visited {
-                        let keys = object.own_property_keys();
+                        let keys = object.__own_property_keys__(context)?;
                         for k in keys {
                             match k {
                                 PropertyKey::String(ref k) => {
@@ -86,14 +86,14 @@ impl ForInIterator {
                     }
                     while let Some(r) = iterator.remaining_keys.pop_front() {
                         if !iterator.visited_keys.contains(&r) {
-                            if let Some(desc) =
-                                object.__get_own_property__(&PropertyKey::from(r.clone()))
+                            if let Some(desc) = object
+                                .__get_own_property__(&PropertyKey::from(r.clone()), context)?
                             {
                                 iterator.visited_keys.insert(r.clone());
-                                if desc.enumerable() {
+                                if desc.expect_enumerable() {
                                     return Ok(create_iter_result_object(
                                         context,
-                                        Value::from(r.to_string()),
+                                        JsValue::new(r.to_string()),
                                         false,
                                     ));
                                 }
@@ -105,10 +105,14 @@ impl ForInIterator {
                             object = o;
                         }
                         _ => {
-                            return Ok(create_iter_result_object(context, Value::undefined(), true))
+                            return Ok(create_iter_result_object(
+                                context,
+                                JsValue::undefined(),
+                                true,
+                            ))
                         }
                     }
-                    iterator.object = Value::from(object.clone());
+                    iterator.object = JsValue::new(object.clone());
                     iterator.object_was_visited = false;
                 }
             } else {
@@ -125,7 +129,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
@@ -134,10 +138,11 @@ impl ForInIterator {
         for_in_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-        let to_string_tag_property = DataDescriptor::new(
-            "For In Iterator",
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let to_string_tag_property = PropertyDescriptor::builder()
+            .value("For In Iterator")
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         for_in_iterator.insert(to_string_tag, to_string_tag_property);
         for_in_iterator
     }

@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-undefined
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
 
-use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, Value};
+use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, JsValue};
 
 #[cfg(test)]
 mod tests;
@@ -25,9 +25,9 @@ impl BuiltIn for Undefined {
         Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT
     }
 
-    fn init(_: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(_: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, Value::undefined(), Self::attribute())
+        (Self::NAME, JsValue::undefined(), Self::attribute())
     }
 }

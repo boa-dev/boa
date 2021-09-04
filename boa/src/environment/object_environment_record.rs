@@ -14,22 +14,21 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
-    object::GcObject,
+    object::JsObject,
     property::PropertyDescriptor,
-    property::{Attribute, DataDescriptor},
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
     // TODO: bindings should be an object.
-    pub bindings: Value,
+    pub bindings: JsValue,
     pub with_environment: bool,
     pub outer_env: Option<Environment>,
 }
 
 impl ObjectEnvironmentRecord {
-    pub fn new(object: Value, environment: Option<Environment>) -> ObjectEnvironmentRecord {
+    pub fn new(object: JsValue, environment: Option<Environment>) -> ObjectEnvironmentRecord {
         ObjectEnvironmentRecord {
             bindings: object,
             outer_env: environment,
@@ -61,15 +60,15 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         deletion: bool,
         _allow_name_reuse: bool,
         _context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &self.bindings;
-        let mut prop = DataDescriptor::new(
-            Value::undefined(),
-            Attribute::WRITABLE | Attribute::ENUMERABLE,
-        );
-        prop.set_configurable(deletion);
+        let prop = PropertyDescriptor::builder()
+            .value(JsValue::undefined())
+            .writable(true)
+            .enumerable(true)
+            .configurable(deletion);
 
         bindings.set_property(name, prop);
         Ok(())
@@ -80,11 +79,16 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         _name: String,
         _strict: bool,
         _context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         Ok(())
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &str,
+        value: JsValue,
+        context: &mut Context,
+    ) -> JsResult<()> {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
@@ -95,13 +99,15 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn set_mutable_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         strict: bool,
         _context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         debug_assert!(value.is_object() || value.is_function());
-        let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
-        property.set_configurable(strict);
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .enumerable(true)
+            .configurable(strict);
         self.bindings
             .as_object()
             .expect("binding object")
@@ -109,16 +115,24 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &str,
+        strict: bool,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if self.bindings.has_field(name) {
-            match self.bindings.get_property(name) {
-                Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
-                _ => Ok(Value::undefined()),
-            }
+            Ok(self
+                .bindings
+                .get_property(name)
+                .as_ref()
+                .and_then(|prop| prop.value())
+                .cloned()
+                .unwrap_or_default())
         } else if strict {
             context.throw_reference_error(format!("{} has no binding", name))
         } else {
-            Ok(Value::undefined())
+            Ok(JsValue::undefined())
         }
     }
 
@@ -131,15 +145,15 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         false
     }
 
-    fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
-        Ok(Value::undefined())
+    fn get_this_binding(&self, _context: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::undefined())
     }
 
     fn has_super_binding(&self) -> bool {
         false
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
+    fn with_base_object(&self) -> Option<JsObject> {
         // Object Environment Records return undefined as their
         // WithBaseObject unless their withEnvironment flag is true.
         if self.with_environment {

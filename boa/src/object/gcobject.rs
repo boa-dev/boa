@@ -1,26 +1,25 @@
-//! This module implements the `GcObject` structure.
+//! This module implements the `JsObject` structure.
 //!
-//! The `GcObject` is a garbage collected Object.
+//! The `JsObject` is a garbage collected Object.
 
 use super::{NativeObject, Object, PROTOTYPE};
 use crate::{
     builtins::function::{
-        create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
+        create_unmapped_arguments_object, ClosureFunction, Function, NativeFunction,
     },
-    context::StandardConstructor,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    symbol::WellKnownSymbols,
+    exec::InterpreterState,
+    object::{ObjectData, ObjectKind},
+    property::{PropertyDescriptor, PropertyKey},
     syntax::ast::node::RcStatementList,
     value::PreferredType,
-    Context, Executable, Result, Value,
+    Context, Executable, JsResult, JsValue,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
-use serde_json::{map::Map, Value as JSONValue};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -37,7 +36,7 @@ pub type RefMut<'a, T, U> = GcCellRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
-pub struct GcObject(Gc<GcCell<Object>>);
+pub struct JsObject(Gc<GcCell<Object>>);
 
 /// The body of a JavaScript function.
 ///
@@ -46,10 +45,11 @@ pub struct GcObject(Gc<GcCell<Object>>);
 enum FunctionBody {
     BuiltInFunction(NativeFunction),
     BuiltInConstructor(NativeFunction),
+    Closure(Box<dyn ClosureFunction>),
     Ordinary(RcStatementList),
 }
 
-impl GcObject {
+impl JsObject {
     /// Create a new `GcObject` from a `Object`.
     #[inline]
     pub fn new(object: Object) -> Self {
@@ -122,13 +122,13 @@ impl GcObject {
     /// <https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody>
     /// <https://tc39.es/ecma262/#sec-ordinarycallevaluatebody>
     #[track_caller]
-    fn call_construct(
+    pub(super) fn call_construct(
         &self,
-        this_target: &Value,
-        args: &[Value],
+        this_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
         construct: bool,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         let this_function_object = self.clone();
         let mut has_parameter_expressions = false;
 
@@ -139,17 +139,19 @@ impl GcObject {
                     .display()
                     .to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
-            } else if !construct && !function.is_callable() {
-                return context.throw_type_error("function object is not callable");
             } else {
                 match function {
-                    Function::BuiltIn(BuiltInFunction(function), flags) => {
-                        if flags.is_constructable() || construct {
-                            FunctionBody::BuiltInConstructor(*function)
+                    Function::Native {
+                        function,
+                        constructable,
+                    } => {
+                        if *constructable || construct {
+                            FunctionBody::BuiltInConstructor(function.0)
                         } else {
-                            FunctionBody::BuiltInFunction(*function)
+                            FunctionBody::BuiltInFunction(function.0)
                         }
                     }
+                    Function::Closure { function, .. } => FunctionBody::Closure(function.clone()),
                     Function::Ordinary {
                         body,
                         params,
@@ -175,7 +177,7 @@ impl GcObject {
                                     .prototype()
                                     .into()
                             };
-                            Value::from(Object::create(proto))
+                            JsValue::new(Object::create(proto))
                         } else {
                             this_target.clone()
                         };
@@ -196,7 +198,7 @@ impl GcObject {
                             } else {
                                 BindingStatus::Uninitialized
                             },
-                            Value::undefined(),
+                            JsValue::undefined(),
                         );
 
                         let mut arguments_in_parameter_names = false;
@@ -221,7 +223,7 @@ impl GcObject {
                                     && !body.function_declared_names().contains("arguments")))
                         {
                             // Add arguments object
-                            let arguments_obj = create_unmapped_arguments_object(args);
+                            let arguments_obj = create_unmapped_arguments_object(args, context)?;
                             local_env.create_mutable_binding(
                                 "arguments".to_string(),
                                 false,
@@ -246,7 +248,7 @@ impl GcObject {
                             }
 
                             let value = match args.get(i).cloned() {
-                                None | Some(Value::Undefined) => param
+                                None | Some(JsValue::Undefined) => param
                                     .init()
                                     .map(|init| init.run(context).ok())
                                     .flatten()
@@ -277,7 +279,7 @@ impl GcObject {
                                 } else {
                                     BindingStatus::Uninitialized
                                 },
-                                Value::undefined(),
+                                JsValue::undefined(),
                             );
                             context.push_environment(second_env);
                         }
@@ -295,9 +297,10 @@ impl GcObject {
                 function(this_target, args, context)
             }
             FunctionBody::BuiltInConstructor(function) => {
-                function(&Value::undefined(), args, context)
+                function(&JsValue::undefined(), args, context)
             }
             FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
+            FunctionBody::Closure(function) => (function)(this_target, args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
                 let this = context.get_this_binding();
@@ -308,42 +311,30 @@ impl GcObject {
                 context.pop_environment();
 
                 if construct {
+                    // https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+                    // 12. If result.[[Type]] is return, then
+                    if context.executor().get_current_state() == &InterpreterState::Return {
+                        // a. If Type(result.[[Value]]) is Object, return NormalCompletion(result.[[Value]]).
+                        if let Ok(v) = &result {
+                            if v.is_object() {
+                                return result;
+                            }
+                        }
+                    }
+
+                    // 13. Else, ReturnIfAbrupt(result).
+                    result?;
+
+                    // 14. Return ? constructorEnv.GetThisBinding().
                     this
-                } else {
+                } else if context.executor().get_current_state() == &InterpreterState::Return {
                     result
+                } else {
+                    result?;
+                    Ok(JsValue::undefined())
                 }
             }
         }
-    }
-
-    /// Call this object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
-    #[track_caller]
-    #[inline]
-    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        self.call_construct(this, args, context, false)
-    }
-
-    /// Construct an instance of this object with the specified arguments.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
-    #[track_caller]
-    #[inline]
-    pub fn construct(
-        &self,
-        args: &[Value],
-        new_target: &Value,
-        context: &mut Context,
-    ) -> Result<Value> {
-        self.call_construct(new_target, args, context, true)
     }
 
     /// Converts an object to a primitive.
@@ -368,9 +359,9 @@ impl GcObject {
         &self,
         context: &mut Context,
         hint: PreferredType,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         // 1. Assert: Type(O) is Object.
-        //      Already is GcObject by type.
+        //      Already is JsObject by type.
         // 2. Assert: Type(hint) is String and its value is either "string" or "number".
         debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
 
@@ -382,8 +373,8 @@ impl GcObject {
         if recursion_limiter.live {
             // we're in a recursive object, bail
             return Ok(match hint {
-                PreferredType::Number => Value::from(0),
-                PreferredType::String => Value::from(""),
+                PreferredType::Number => JsValue::new(0),
+                PreferredType::String => JsValue::new(""),
                 PreferredType::Default => unreachable!("checked type hint in step 2"),
             });
         }
@@ -399,10 +390,10 @@ impl GcObject {
         };
 
         // 5. For each name in methodNames in List order, do
-        let this = Value::from(self.clone());
+        let this = JsValue::new(self.clone());
         for name in &method_names {
             // a. Let method be ? Get(O, name).
-            let method: Value = this.get_field(*name, context)?;
+            let method: JsValue = this.get_field(*name, context)?;
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
@@ -416,148 +407,6 @@ impl GcObject {
 
         // 6. Throw a TypeError exception.
         context.throw_type_error("cannot convert object to primitive value")
-    }
-
-    /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
-        let rec_limiter = RecursionLimiter::new(self);
-        if rec_limiter.live {
-            Err(context.construct_type_error("cyclic object value"))
-        } else if self.is_array() {
-            let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
-            keys.sort_unstable();
-            let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
-            let this = Value::from(self.clone());
-            for key in keys {
-                let value = this.get_field(key, context)?;
-                if let Some(value) = value.to_json(context)? {
-                    arr.push(value);
-                } else {
-                    arr.push(JSONValue::Null);
-                }
-            }
-            Ok(Some(JSONValue::Array(arr)))
-        } else {
-            let mut new_obj = Map::new();
-            let this = Value::from(self.clone());
-            let keys: Vec<PropertyKey> = self.borrow().keys().collect();
-            for k in keys {
-                let key = k.clone();
-                let value = this.get_field(k.to_string(), context)?;
-                if let Some(value) = value.to_json(context)? {
-                    new_obj.insert(key.to_string(), value);
-                }
-            }
-            Ok(Some(JSONValue::Object(new_obj)))
-        }
-    }
-
-    /// Convert the object to a `PropertyDescriptor`
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
-        // 1. If Type(Obj) is not Object, throw a TypeError exception.
-        // 2. Let desc be a new Property Descriptor that initially has no fields.
-
-        let mut attribute = Attribute::empty();
-
-        // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
-        let has_enumerable = self.has_property("enumerable", context)?;
-        // 4. If hasEnumerable is true, then
-        //     a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
-        //     b. Set desc.[[Enumerable]] to enumerable.
-        if has_enumerable && self.get("enumerable", context)?.to_boolean() {
-            attribute |= Attribute::ENUMERABLE;
-        }
-
-        // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
-        let has_configurable = self.has_property("configurable", context)?;
-        // 6. If hasConfigurable is true, then
-        //     a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
-        //     b. Set desc.[[Configurable]] to configurable.
-        if has_configurable && self.get("configurable", context)?.to_boolean() {
-            attribute |= Attribute::CONFIGURABLE;
-        }
-
-        let mut value = None;
-        // 7. Let hasValue be ? HasProperty(Obj, "value").
-        let has_value = self.has_property("value", context)?;
-        // 8. If hasValue is true, then
-        if has_value {
-            // a. Let value be ? Get(Obj, "value").
-            // b. Set desc.[[Value]] to value.
-            value = Some(self.get("value", context)?);
-        }
-
-        // 9. Let hasWritable be ? HasProperty(Obj, ).
-        let has_writable = self.has_property("writable", context)?;
-        // 10. If hasWritable is true, then
-        if has_writable {
-            // a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
-            if self.get("writable", context)?.to_boolean() {
-                // b. Set desc.[[Writable]] to writable.
-                attribute |= Attribute::WRITABLE;
-            }
-        }
-
-        // 11. Let hasGet be ? HasProperty(Obj, "get").
-        let has_get = self.has_property("get", context)?;
-        // 12. If hasGet is true, then
-        let mut get = None;
-        if has_get {
-            // a. Let getter be ? Get(Obj, "get").
-            let getter = self.get("get", context)?;
-            // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
-            match getter {
-                Value::Object(ref object) if object.is_callable() => {
-                    // c. Set desc.[[Get]] to getter.
-                    get = Some(object.clone());
-                }
-                _ => {
-                    return Err(
-                        context.construct_type_error("Property descriptor getter must be callable")
-                    );
-                }
-            }
-        }
-
-        // 13. Let hasSet be ? HasProperty(Obj, "set").
-        let has_set = self.has_property("set", context)?;
-        // 14. If hasSet is true, then
-        let mut set = None;
-        if has_set {
-            // 14.a. Let setter be ? Get(Obj, "set").
-            let setter = self.get("set", context)?;
-            // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
-            match setter {
-                Value::Object(ref object) if object.is_callable() => {
-                    // 14.c. Set desc.[[Set]] to setter.
-                    set = Some(object.clone());
-                }
-                _ => {
-                    return Err(
-                        context.construct_type_error("Property descriptor setter must be callable")
-                    );
-                }
-            };
-        }
-
-        // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then
-        // 16. Return desc.
-        if get.is_some() || set.is_some() {
-            // 15.a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
-            if value.is_some() || has_writable {
-                return Err(context.construct_type_error("Invalid property descriptor. Cannot both specify accessors and a value or writable attribute"));
-            }
-
-            Ok(AccessorDescriptor::new(get, set, attribute).into())
-        } else if let Some(v) = value {
-            Ok(DataDescriptor::new(v, attribute).into())
-        } else {
-            Ok(DataDescriptor::new_without_value(attribute).into())
-        }
     }
 
     /// Return `true` if it is a native object and the native type is `T`.
@@ -621,7 +470,7 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[track_caller]
-    pub fn prototype_instance(&self) -> Value {
+    pub fn prototype_instance(&self) -> JsValue {
         self.borrow().prototype_instance().clone()
     }
 
@@ -633,7 +482,7 @@ impl GcObject {
     /// or if th prototype is not an object or undefined.
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&self, prototype: Value) -> bool {
+    pub fn set_prototype_instance(&self, prototype: JsValue) -> bool {
         self.borrow_mut().set_prototype_instance(prototype)
     }
 
@@ -780,35 +629,6 @@ impl GcObject {
         self.borrow().is_native_object()
     }
 
-    /// Retrieves value of specific property, when the value of the property is expected to be a function.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    #[inline]
-    pub fn get_method<K>(&self, context: &mut Context, key: K) -> Result<Option<GcObject>>
-    where
-        K: Into<PropertyKey>,
-    {
-        // 1. Assert: IsPropertyKey(P) is true.
-        // 2. Let func be ? GetV(V, P).
-        let value = self.get(key, context)?;
-
-        // 3. If func is either undefined or null, return undefined.
-        if value.is_null_or_undefined() {
-            return Ok(None);
-        }
-
-        // 4. If IsCallable(func) is false, throw a TypeError exception.
-        // 5. Return func.
-        match value.as_object() {
-            Some(object) if object.is_callable() => Ok(Some(object)),
-            _ => Err(context
-                .construct_type_error("value returned for property of object is not a function")),
-        }
-    }
-
     /// Determines if `value` inherits from the instance object inheritance path.
     ///
     /// More information:
@@ -819,8 +639,8 @@ impl GcObject {
     pub(crate) fn ordinary_has_instance(
         &self,
         context: &mut Context,
-        value: &Value,
-    ) -> Result<bool> {
+        value: &JsValue,
+    ) -> JsResult<bool> {
         // 1. If IsCallable(C) is false, return false.
         if !self.is_callable() {
             return Ok(false);
@@ -838,14 +658,14 @@ impl GcObject {
                 // 6. Repeat,
                 //      a. Set O to ? O.[[GetPrototypeOf]]().
                 //      b. If O is null, return false.
-                let mut object = object.__get_prototype_of__();
+                let mut object = object.__get_prototype_of__(context)?;
                 while let Some(object_prototype) = object.as_object() {
                     //     c. If SameValue(P, O) is true, return true.
-                    if GcObject::equals(&prototype, &object_prototype) {
+                    if JsObject::equals(&prototype, &object_prototype) {
                         return Ok(true);
                     }
                     // a. Set O to ? O.[[GetPrototypeOf]]().
-                    object = object_prototype.__get_prototype_of__();
+                    object = object_prototype.__get_prototype_of__(context)?;
                 }
 
                 Ok(false)
@@ -858,62 +678,241 @@ impl GcObject {
         }
     }
 
-    /// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
-    ///
-    /// The abstract operation SpeciesConstructor takes arguments O (an Object) and defaultConstructor (a constructor).
-    /// It is used to retrieve the constructor that should be used to create new objects that are derived from O.
-    /// defaultConstructor is the constructor to use if a constructor @@species property cannot be found starting from O.
+    pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
+        // 1 is implemented on the method `to_property_descriptor` of value
+
+        // 2. Let desc be a new Property Descriptor that initially has no fields.
+        let mut desc = PropertyDescriptor::builder();
+
+        // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
+        // 4. If hasEnumerable is true, then ...
+        if self.has_property("enumerable", context)? {
+            // a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
+            // b. Set desc.[[Enumerable]] to enumerable.
+            desc = desc.enumerable(self.get("enumerable", context)?.to_boolean());
+        }
+
+        // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
+        // 6. If hasConfigurable is true, then ...
+        if self.has_property("configurable", context)? {
+            // a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
+            // b. Set desc.[[Configurable]] to configurable.
+            desc = desc.configurable(self.get("configurable", context)?.to_boolean());
+        }
+
+        // 7. Let hasValue be ? HasProperty(Obj, "value").
+        // 8. If hasValue is true, then ...
+        if self.has_property("value", context)? {
+            // a. Let value be ? Get(Obj, "value").
+            // b. Set desc.[[Value]] to value.
+            desc = desc.value(self.get("value", context)?);
+        }
+
+        // 9. Let hasWritable be ? HasProperty(Obj, ).
+        // 10. If hasWritable is true, then ...
+        if self.has_property("writable", context)? {
+            // a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
+            // b. Set desc.[[Writable]] to writable.
+            desc = desc.writable(self.get("writable", context)?.to_boolean());
+        }
+
+        // 11. Let hasGet be ? HasProperty(Obj, "get").
+        // 12. If hasGet is true, then
+        let get = if self.has_property("get", context)? {
+            // a. Let getter be ? Get(Obj, "get").
+            let getter = self.get("get", context)?;
+            // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
+            // todo: extract IsCallable to be callable from Value
+            if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
+                return Err(
+                    context.construct_type_error("Property descriptor getter must be callable")
+                );
+            }
+            // c. Set desc.[[Get]] to getter.
+            Some(getter)
+        } else {
+            None
+        };
+
+        // 13. Let hasSet be ? HasProperty(Obj, "set").
+        // 14. If hasSet is true, then
+        let set = if self.has_property("set", context)? {
+            // 14.a. Let setter be ? Get(Obj, "set").
+            let setter = self.get("set", context)?;
+            // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
+            // todo: extract IsCallable to be callable from Value
+            if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {
+                return Err(
+                    context.construct_type_error("Property descriptor setter must be callable")
+                );
+            }
+            // 14.c. Set desc.[[Set]] to setter.
+            Some(setter)
+        } else {
+            None
+        };
+
+        // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...
+        // a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
+        if get.as_ref().or_else(|| set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
+            return Err(context.construct_type_error(
+                "Invalid property descriptor.\
+            Cannot both specify accessors and a value or writable attribute",
+            ));
+        }
+
+        desc = desc.maybe_get(get).maybe_set(set);
+
+        // 16. Return desc.
+        Ok(desc.build())
+    }
+
+    /// `7.3.25 CopyDataProperties ( target, source, excludedItems )`
     ///
     /// More information:
-    ///  - [ECMAScript reference][spec]
+    ///  - [ECMAScript][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
-    pub(crate) fn species_constructor(
-        &self,
-        default_donstructor: StandardConstructor,
+    /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
+    #[inline]
+    pub fn copy_data_properties<K>(
+        &mut self,
+        source: &JsValue,
+        excluded_keys: Vec<K>,
         context: &mut Context,
-    ) -> Result<Value> {
-        // 1. Assert: Type(O) is Object.
-
-        // 2. Let C be ? Get(O, "constructor").
-        let c = self.clone().get("constructor", context)?;
-
-        // 3. If C is undefined, return defaultConstructor.
-        if c.is_undefined() {
-            return Ok(Value::from(default_donstructor.prototype()));
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. Assert: Type(target) is Object.
+        // 2. Assert: excludedItems is a List of property keys.
+        // 3. If source is undefined or null, return target.
+        if source.is_null_or_undefined() {
+            return Ok(());
         }
 
-        // 4. If Type(C) is not Object, throw a TypeError exception.
-        if !c.is_object() {
-            return context.throw_type_error("property 'constructor' is not an object");
+        // 4. Let from be ! ToObject(source).
+        let from = source
+            .to_object(context)
+            .expect("function ToObject should never complete abruptly here");
+
+        // 5. Let keys be ? from.[[OwnPropertyKeys]]().
+        // 6. For each element nextKey of keys, do
+        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(|e| e.into()).collect();
+        for key in from.__own_property_keys__(context)? {
+            // a. Let excluded be false.
+            let mut excluded = false;
+
+            // b. For each element e of excludedItems, do
+            for e in &excluded_keys {
+                // i. If SameValue(e, nextKey) is true, then
+                if *e == key {
+                    // 1. Set excluded to true.
+                    excluded = true;
+                    break;
+                }
+            }
+            // c. If excluded is false, then
+            if !excluded {
+                // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+                let desc = from.__get_own_property__(&key, context)?;
+
+                // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+                if let Some(desc) = desc {
+                    if let Some(enumerable) = desc.enumerable() {
+                        if enumerable {
+                            // 1. Let propValue be ? Get(from, nextKey).
+                            let prop_value = from.__get__(&key, from.clone().into(), context)?;
+
+                            // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                            self.create_data_property_or_throw(key, prop_value, context)
+                                .expect(
+                                    "CreateDataPropertyOrThrow should never complete abruptly here",
+                                );
+                        }
+                    }
+                }
+            }
         }
 
-        // 5. Let S be ? Get(C, @@species).
-        let s = c.get_field(WellKnownSymbols::species(), context)?;
+        // 7. Return target.
+        Ok(())
+    }
 
-        // 6. If S is either undefined or null, return defaultConstructor.
-        if s.is_null_or_undefined() {
-            return Ok(Value::from(default_donstructor.prototype()));
-        }
+    /// Helper function for property insertion.
+    #[inline]
+    #[track_caller]
+    pub(crate) fn insert<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.borrow_mut().insert(key, property)
+    }
 
-        // 7. If IsConstructor(S) is true, return S.
-        // 8. Throw a TypeError exception.
-        if s.as_object().unwrap_or_default().is_constructable() {
-            Ok(s)
-        } else {
-            context.throw_type_error("property 'constructor' is not a constructor")
-        }
+    /// Helper function for property removal.
+    #[inline]
+    #[track_caller]
+    pub(crate) fn remove(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        self.borrow_mut().remove(key)
+    }
+
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name that a `Some` is returned
+    /// with that field, otherwise None is returned.
+    #[inline]
+    pub fn insert_property<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.insert(key.into(), property)
+    }
+
+    /// It determines if Object is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[inline]
+    #[track_caller]
+    pub fn is_callable(&self) -> bool {
+        self.borrow().is_callable()
+    }
+
+    /// It determines if Object is a function object with a `[[Construct]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
+    #[inline]
+    #[track_caller]
+    pub fn is_constructable(&self) -> bool {
+        self.borrow().is_constructable()
+    }
+
+    /// Returns true if the GcObject is the global for a Realm
+    pub fn is_global(&self) -> bool {
+        matches!(
+            self.borrow().data,
+            ObjectData {
+                kind: ObjectKind::Global,
+                ..
+            }
+        )
     }
 }
 
-impl AsRef<GcCell<Object>> for GcObject {
+impl AsRef<GcCell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &GcCell<Object> {
         &*self.0
     }
 }
 
-/// An error returned by [`GcObject::try_borrow`](struct.GcObject.html#method.try_borrow).
+/// An error returned by [`JsObject::try_borrow`](struct.JsObject.html#method.try_borrow).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BorrowError;
 
@@ -926,7 +925,7 @@ impl Display for BorrowError {
 
 impl Error for BorrowError {}
 
-/// An error returned by [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).
+/// An error returned by [`JsObject::try_borrow_mut`](struct.JsObject.html#method.try_borrow_mut).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BorrowMutError;
 
@@ -948,8 +947,8 @@ enum RecursionValueState {
     /// ```javascript
     /// let b = [];
     /// JSON.stringify([ // Create a recursion limiter for the root here
-    ///    b,            // state for b's &GcObject here is None
-    ///    b,            // state for b's &GcObject here is Visited
+    ///    b,            // state for b's &JsObject here is None
+    ///    b,            // state for b's &JsObject here is Visited
     /// ]);
     /// ```
     Visited,
@@ -960,13 +959,13 @@ enum RecursionValueState {
 /// multiple threads!
 #[derive(Debug)]
 pub struct RecursionLimiter {
-    /// If this was the first `GcObject` in the tree.
+    /// If this was the first `JsObject` in the tree.
     top_level: bool,
     /// The ptr being kept in the HashSet, so we can delete it when we drop.
     ptr: usize,
-    /// If this GcObject has been visited before in the graph, but not in the current branch.
+    /// If this JsObject has been visited before in the graph, but not in the current branch.
     pub visited: bool,
-    /// If this GcObject has been visited in the current branch of the graph.
+    /// If this JsObject has been visited in the current branch of the graph.
     pub live: bool,
 }
 
@@ -987,17 +986,17 @@ impl Drop for RecursionLimiter {
 
 impl RecursionLimiter {
     thread_local! {
-        /// The map of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph,
+        /// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,
         /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
         static SEEN: RefCell<HashMap<usize, RecursionValueState>> = RefCell::new(HashMap::new());
     }
 
-    /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
+    /// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.
     ///
-    /// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been
-    /// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained
+    /// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been
+    /// visited. The first `JsObject` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
-    pub fn new(o: &GcObject) -> Self {
+    pub fn new(o: &JsObject) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         let ptr = (o.as_ref() as *const _) as usize;
         let (top_level, visited, live) = Self::SEEN.with(|hm| {
@@ -1021,7 +1020,7 @@ impl RecursionLimiter {
     }
 }
 
-impl Debug for GcObject {
+impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(self);
 
@@ -1032,7 +1031,7 @@ impl Debug for GcObject {
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         if !limiter.visited && !limiter.live {
-            f.debug_tuple("GcObject").field(&self.0).finish()
+            f.debug_tuple("JsObject").field(&self.0).finish()
         } else {
             f.write_str("{ ... }")
         }

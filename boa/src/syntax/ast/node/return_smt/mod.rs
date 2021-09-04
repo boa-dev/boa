@@ -2,7 +2,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -61,10 +61,10 @@ impl Return {
 }
 
 impl Executable for Return {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let result = match self.expr() {
             Some(v) => v.run(context),
-            None => Ok(Value::undefined()),
+            None => Ok(JsValue::undefined()),
         };
         // Set flag for return
         context

@@ -1,12 +1,12 @@
 use boa::{
     exec::Executable,
-    object::{GcObject, ObjectInitializer},
+    object::{JsObject, ObjectInitializer},
     property::Attribute,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 
 /// Initializes the object in the context.
-pub(super) fn init(context: &mut Context) -> GcObject {
+pub(super) fn init(context: &mut Context) -> JsObject {
     let global_obj = context.global_object();
 
     let obj = ObjectInitializer::new(context)
@@ -16,7 +16,7 @@ pub(super) fn init(context: &mut Context) -> GcObject {
         // .property("agent", agent, Attribute::default())
         .build();
 
-    context.register_global_property("$262", obj.clone(), Attribute::default());
+    context.register_global_property("$262", obj.clone(), Attribute::empty());
 
     obj
 }
@@ -25,7 +25,7 @@ pub(super) fn init(context: &mut Context) -> GcObject {
 ///
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
-fn create_realm(_this: &Value, _: &[Value], _context: &mut Context) -> Result<Value> {
+fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     // eprintln!("called $262.createRealm()");
 
     let mut context = Context::new();
@@ -33,21 +33,25 @@ fn create_realm(_this: &Value, _: &[Value], _context: &mut Context) -> Result<Va
     // add the $262 object.
     let js_262 = init(&mut context);
 
-    Ok(Value::from(js_262))
+    Ok(JsValue::new(js_262))
 }
 
 /// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
 #[allow(dead_code)]
-fn detach_array_buffer(_this: &Value, _: &[Value], _context: &mut Context) -> Result<Value> {
+fn detach_array_buffer(
+    _this: &JsValue,
+    _: &[JsValue],
+    _context: &mut Context,
+) -> JsResult<JsValue> {
     todo!()
 }
 
 /// The `$262.evalScript()` function.
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
-fn eval_script(_this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     // eprintln!("called $262.evalScript()");
 
     if let Some(source_text) = args.get(0).and_then(|val| val.as_string()) {
@@ -57,7 +61,7 @@ fn eval_script(_this: &Value, args: &[Value], context: &mut Context) -> Result<V
             Ok(script) => script.run(context),
         }
     } else {
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 
@@ -67,6 +71,6 @@ fn eval_script(_this: &Value, args: &[Value], context: &mut Context) -> Result<V
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 #[allow(dead_code)]
-fn gc(_this: &Value, _: &[Value], _context: &mut Context) -> Result<Value> {
+fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     todo!()
 }

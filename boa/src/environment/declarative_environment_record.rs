@@ -11,8 +11,8 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
-    object::GcObject,
-    BoaProfiler, Context, Result, Value,
+    object::JsObject,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::FxHashMap;
@@ -24,7 +24,7 @@ use rustc_hash::FxHashMap;
 /// From this point onwards, a binding is referring to one of these structures.
 #[derive(Trace, Finalize, Debug, Clone)]
 pub struct DeclarativeEnvironmentRecordBinding {
-    pub value: Option<Value>,
+    pub value: Option<JsValue>,
     pub can_delete: bool,
     pub mutable: bool,
     pub strict: bool,
@@ -59,7 +59,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         deletion: bool,
         allow_name_reuse: bool,
         _context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         if !allow_name_reuse {
             assert!(
                 !self.env_rec.borrow().contains_key(name.as_str()),
@@ -85,7 +85,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         name: String,
         strict: bool,
         _context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         assert!(
             !self.env_rec.borrow().contains_key(name.as_str()),
             "Identifier {} has already been declared",
@@ -104,7 +104,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, _context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &str,
+        value: JsValue,
+        _context: &mut Context,
+    ) -> JsResult<()> {
         if let Some(ref mut record) = self.env_rec.borrow_mut().get_mut(name) {
             if record.value.is_none() {
                 record.value = Some(value);
@@ -118,10 +123,10 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     fn set_mutable_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         mut strict: bool,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         if self.env_rec.borrow().get(name).is_none() {
             if strict {
                 return Err(context.construct_reference_error(format!("{} not found", name)));
@@ -159,7 +164,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, _strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &str,
+        _strict: bool,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(binding) = self.env_rec.borrow().get(name) {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
@@ -189,15 +199,15 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
-    fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
-        Ok(Value::undefined())
+    fn get_this_binding(&self, _context: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::undefined())
     }
 
     fn has_super_binding(&self) -> bool {
         false
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
+    fn with_base_object(&self) -> Option<JsObject> {
         None
     }
 

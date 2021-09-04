@@ -16,19 +16,53 @@ use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
-    property::{Attribute, DataDescriptor},
+    object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData},
+    property::{Attribute, PropertyDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use bitflags::bitflags;
+use dyn_clone::DynClone;
+use sealed::Sealed;
 use std::fmt::{self, Debug};
 
 #[cfg(test)]
 mod tests;
 
-/// _fn(this, arguments, context) -> ResultValue_ - The signature of a built-in function
-pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
+// Allows restricting closures to only `Copy` ones.
+// Used the sealed pattern to disallow external implementations
+// of `DynCopy`.
+mod sealed {
+    pub trait Sealed {}
+    impl<T: Copy> Sealed for T {}
+}
+pub trait DynCopy: Sealed {}
+impl<T: Copy> DynCopy for T {}
+
+/// Type representing a native built-in function a.k.a. function pointer.
+///
+/// Native functions need to have this signature in order to
+/// be callable from Javascript.
+pub type NativeFunction = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
+
+/// Trait representing a native built-in closure.
+///
+/// Closures need to have this signature in order to
+/// be callable from Javascript, but most of the time the compiler
+/// is smart enough to correctly infer the types.
+pub trait ClosureFunction:
+    Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + DynCopy + DynClone + 'static
+{
+}
+
+// The `Copy` bound automatically infers `DynCopy` and `DynClone`
+impl<T> ClosureFunction for T where
+    T: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static
+{
+}
+
+// Allows cloning Box<dyn ClosureFunction>
+dyn_clone::clone_trait_object!(ClosureFunction);
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
@@ -52,31 +86,12 @@ impl Debug for BuiltInFunction {
 bitflags! {
     #[derive(Finalize, Default)]
     pub struct FunctionFlags: u8 {
-        const CALLABLE = 0b0000_0001;
         const CONSTRUCTABLE = 0b0000_0010;
         const LEXICAL_THIS_MODE = 0b0000_0100;
     }
 }
 
 impl FunctionFlags {
-    pub(crate) fn from_parameters(callable: bool, constructable: bool) -> Self {
-        let mut flags = Self::default();
-
-        if callable {
-            flags |= Self::CALLABLE;
-        }
-        if constructable {
-            flags |= Self::CONSTRUCTABLE;
-        }
-
-        flags
-    }
-
-    #[inline]
-    pub(crate) fn is_callable(&self) -> bool {
-        self.contains(Self::CALLABLE)
-    }
-
     #[inline]
     pub(crate) fn is_constructable(&self) -> bool {
         self.contains(Self::CONSTRUCTABLE)
@@ -97,9 +112,17 @@ unsafe impl Trace for FunctionFlags {
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Trace, Finalize)]
 pub enum Function {
-    BuiltIn(BuiltInFunction, FunctionFlags),
+    Native {
+        function: BuiltInFunction,
+        constructable: bool,
+    },
+    Closure {
+        #[unsafe_ignore_trace]
+        function: Box<dyn ClosureFunction>,
+        constructable: bool,
+    },
     Ordinary {
         flags: FunctionFlags,
         body: RcStatementList,
@@ -108,13 +131,19 @@ pub enum Function {
     },
 }
 
+impl Debug for Function {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Function {{ ... }}")
+    }
+}
+
 impl Function {
     // Adds the final rest parameters to the Environment as an array
     pub(crate) fn add_rest_param(
         &self,
         param: &FormalParameter,
         index: usize,
-        args_list: &[Value],
+        args_list: &[JsValue],
         context: &mut Context,
         local_env: &Environment,
     ) {
@@ -139,7 +168,7 @@ impl Function {
     pub(crate) fn add_arguments_to_environment(
         &self,
         param: &FormalParameter,
-        value: Value,
+        value: JsValue,
         local_env: &Environment,
         context: &mut Context,
     ) {
@@ -154,18 +183,11 @@ impl Function {
             .expect("Failed to intialize binding");
     }
 
-    /// Returns true if the function object is callable.
-    pub fn is_callable(&self) -> bool {
-        match self {
-            Self::BuiltIn(_, flags) => flags.is_callable(),
-            Self::Ordinary { flags, .. } => flags.is_callable(),
-        }
-    }
-
     /// Returns true if the function object is constructable.
     pub fn is_constructable(&self) -> bool {
         match self {
-            Self::BuiltIn(_, flags) => flags.is_constructable(),
+            Self::Native { constructable, .. } => *constructable,
+            Self::Closure { constructable, .. } => *constructable,
             Self::Ordinary { flags, .. } => flags.is_constructable(),
         }
     }
@@ -174,29 +196,39 @@ impl Function {
 /// Arguments.
 ///
 /// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
-pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
+pub fn create_unmapped_arguments_object(
+    arguments_list: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
     let len = arguments_list.len();
-    let obj = GcObject::new(Object::default());
+    let obj = JsObject::new(Object::default());
     // Set length
-    let length = DataDescriptor::new(
-        len,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    let length = PropertyDescriptor::builder()
+        .value(len)
+        .writable(true)
+        .enumerable(false)
+        .configurable(true);
     // Define length as a property
-    obj.ordinary_define_own_property("length".into(), length.into());
+    crate::object::internal_methods::ordinary_define_own_property(
+        &obj,
+        "length".into(),
+        length.into(),
+        context,
+    )?;
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let prop = DataDescriptor::new(
-            val.clone(),
-            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let prop = PropertyDescriptor::builder()
+            .value(val.clone())
+            .writable(true)
+            .enumerable(true)
+            .configurable(true);
 
         obj.insert(index, prop);
         index += 1;
     }
 
-    Value::from(obj)
+    Ok(JsValue::new(obj))
 }
 
 /// Creates a new member function of a `Object` or `prototype`.
@@ -220,7 +252,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 pub fn make_builtin_fn<N>(
     function: NativeFunction,
     name: N,
-    parent: &GcObject,
+    parent: &JsObject,
     length: usize,
     interpreter: &Context,
 ) where
@@ -230,21 +262,30 @@ pub fn make_builtin_fn<N>(
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
     let mut function = Object::function(
-        Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
+        Function::Native {
+            function: function.into(),
+            constructable: false,
+        },
         interpreter
             .standard_objects()
             .function_object()
             .prototype()
             .into(),
     );
-    let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-    function.insert_property("length", length, attribute);
-    function.insert_property("name", name.as_str(), attribute);
+    let attribute = PropertyDescriptor::builder()
+        .writable(false)
+        .enumerable(false)
+        .configurable(true);
+    function.insert_property("length", attribute.clone().value(length));
+    function.insert_property("name", attribute.value(name.as_str()));
 
     parent.clone().insert_property(
         name,
-        function,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        PropertyDescriptor::builder()
+            .value(function)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true),
     );
 }
 
@@ -254,7 +295,11 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(new_target: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(
+        new_target: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -264,21 +309,21 @@ impl BuiltInFunctionObject {
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().object_object().prototype());
-        let this = Value::new_object(context);
+        let this = JsValue::new_object(context);
 
         this.as_object()
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
 
-        this.set_data(ObjectData::Function(Function::BuiltIn(
-            BuiltInFunction(|_, _, _| Ok(Value::undefined())),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        )));
+        this.set_data(ObjectData::function(Function::Native {
+            function: BuiltInFunction(|_, _, _| Ok(JsValue::undefined())),
+            constructable: true,
+        }));
         Ok(this)
     }
 
-    fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        Ok(Value::undefined())
+    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::undefined())
     }
 
     /// `Function.prototype.call`
@@ -291,11 +336,11 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
-        let this_arg: Value = args.get(0).cloned().unwrap_or_default();
+        let this_arg: JsValue = args.get(0).cloned().unwrap_or_default();
         // TODO?: 3. Perform PrepareForTailCall
         let start = if !args.is_empty() { 1 } else { 0 };
         context.call(this, &this_arg, &args[start..])
@@ -312,7 +357,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
@@ -322,9 +367,6 @@ impl BuiltInFunctionObject {
             // TODO?: 3.a. PrepareForTailCall
             return context.call(this, &this_arg, &[]);
         }
-        let arg_array = arg_array.as_object().ok_or_else(|| {
-            context.construct_type_error("argList must be null, undefined or an object")
-        })?;
         let arg_list = arg_array.create_list_from_array_like(&[], context)?;
         // TODO?: 5. PrepareForTailCall
         context.call(this, &this_arg, &arg_list)
@@ -338,14 +380,13 @@ impl BuiltIn for BuiltInFunctionObject {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event("function", "init");
 
         let function_prototype = context.standard_objects().function_object().prototype();
-        FunctionBuilder::new(context, Self::prototype)
+        FunctionBuilder::native(context, Self::prototype)
             .name("")
             .length(0)
-            .callable(true)
             .constructable(false)
             .build_function_prototype(&function_prototype);
 

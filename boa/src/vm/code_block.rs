@@ -1,4 +1,4 @@
-use crate::{vm::Opcode, JsString, Value};
+use crate::{vm::Opcode, JsString, JsValue};
 
 use std::{convert::TryInto, fmt::Write, mem::size_of};
 
@@ -22,7 +22,7 @@ pub struct CodeBlock {
     pub(crate) code: Vec<u8>,
 
     /// Literals
-    pub(crate) literals: Vec<Value>,
+    pub(crate) literals: Vec<JsValue>,
 
     /// Variables names
     pub(crate) names: Vec<JsString>,
@@ -189,13 +189,7 @@ impl std::fmt::Display for CodeBlock {
         f.write_str("Literals:\n")?;
         if !self.literals.is_empty() {
             for (i, value) in self.literals.iter().enumerate() {
-                writeln!(
-                    f,
-                    "    {:04}: <{}> {}",
-                    i,
-                    value.get_type().as_str(),
-                    value.display()
-                )?;
+                writeln!(f, "    {:04}: <{}> {}", i, value.type_of(), value.display())?;
             }
         } else {
             writeln!(f, "    <empty>")?;

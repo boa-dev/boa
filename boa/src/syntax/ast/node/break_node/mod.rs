@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -52,12 +52,12 @@ impl Break {
 }
 
 impl Executable for Break {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         context
             .executor()
             .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 

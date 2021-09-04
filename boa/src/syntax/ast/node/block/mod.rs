@@ -6,7 +6,7 @@ use crate::{
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -54,7 +54,7 @@ impl Block {
 }
 
 impl Executable for Block {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
             let env = context.get_current_environment();
@@ -63,7 +63,7 @@ impl Executable for Block {
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = Value::default();
+        let mut obj = JsValue::default();
         for statement in self.items() {
             obj = statement.run(context).map_err(|e| {
                 // No matter how control leaves the Block the LexicalEnvironment is always

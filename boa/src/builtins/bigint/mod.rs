@@ -13,11 +13,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData},
-    property::Attribute,
-    symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsBigInt, Result, Value,
+    builtins::BuiltIn, object::ConstructorBuilder, property::Attribute, symbol::WellKnownSymbols,
+    value::IntegerOrInfinity, BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 #[cfg(test)]
 mod tests;
@@ -33,7 +30,7 @@ impl BuiltIn for BigInt {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
@@ -45,7 +42,7 @@ impl BuiltIn for BigInt {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .method(Self::to_string, "toString", 1)
+        .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
         .static_method(Self::as_int_n, "asIntN", 2)
         .static_method(Self::as_uint_n, "asUintN", 2)
@@ -76,12 +73,12 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let data = match args.get(0) {
             Some(value) => value.to_bigint(context)?,
             None => JsBigInt::zero(),
         };
-        Ok(Value::from(data))
+        Ok(JsValue::new(data))
     }
 
     /// The abstract operation thisBigIntValue takes argument value.
@@ -95,16 +92,16 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &Value, context: &mut Context) -> Result<JsBigInt> {
+    fn this_bigint_value(value: &JsValue, context: &mut Context) -> JsResult<JsBigInt> {
         match value {
             // 1. If Type(value) is BigInt, return value.
-            Value::BigInt(ref bigint) => return Ok(bigint.clone()),
+            JsValue::BigInt(ref bigint) => return Ok(bigint.clone()),
 
             // 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
             //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
             //    b. Return value.[[BigIntData]].
-            Value::Object(ref object) => {
-                if let ObjectData::BigInt(ref bigint) = object.borrow().data {
+            JsValue::Object(ref object) => {
+                if let Some(bigint) = object.borrow().as_bigint() {
                     return Ok(bigint.clone());
                 }
             }
@@ -126,19 +123,46 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let radix = if !args.is_empty() {
-            args[0].to_integer(context)? as i32
+    pub(crate) fn to_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let x be ? thisBigIntValue(this value).
+        let x = Self::this_bigint_value(this, context)?;
+
+        let radix = args.get(0).cloned().unwrap_or_default();
+
+        // 2. If radix is undefined, let radixMV be 10.
+        let radix_mv = if radix.is_undefined() {
+            // 5. If radixMV = 10, return ! ToString(x).
+            // Note: early return optimization.
+            return Ok(x.to_string().into());
+        // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
         } else {
-            10
+            radix.to_integer_or_infinity(context)?
         };
-        if !(2..=36).contains(&radix) {
-            return context
-                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
+
+        // 4. If radixMV < 2 or radixMV > 36, throw a RangeError exception.
+        let radix_mv = match radix_mv {
+            IntegerOrInfinity::Integer(i) if (2..=36).contains(&i) => i,
+            _ => {
+                return context.throw_range_error(
+                    "radix must be an integer at least 2 and no greater than 36",
+                )
+            }
+        };
+
+        // 5. If radixMV = 10, return ! ToString(x).
+        if radix_mv == 10 {
+            return Ok(x.to_string().into());
         }
-        Ok(Value::from(
-            Self::this_bigint_value(this, context)?.to_string_radix(radix as u32),
-        ))
+
+        // 1. Let x be ? thisBigIntValue(this value).
+        // 6. Return the String representation of this Number value using the radix specified by radixMV.
+        //    Letters a-z are used for digits with values 10 through 35.
+        //    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.
+        Ok(JsValue::new(x.to_string_radix(radix_mv as u32)))
     }
 
     /// `BigInt.prototype.valueOf()`
@@ -151,8 +175,12 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
-    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(Value::from(Self::this_bigint_value(this, context)?))
+    pub(crate) fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_bigint_value(this, context)?))
     }
 
     /// `BigInt.asIntN()`
@@ -162,18 +190,22 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_int_n(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn as_int_n(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
             && modulo >= JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64 - 1), context)?
         {
-            Ok(Value::from(JsBigInt::sub(
+            Ok(JsValue::new(JsBigInt::sub(
                 &modulo,
                 &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64), context)?,
             )))
         } else {
-            Ok(Value::from(modulo))
+            Ok(JsValue::new(modulo))
         }
     }
 
@@ -184,10 +216,14 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_uint_n(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn as_uint_n(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let (modulo, _) = Self::calculate_as_uint_n(args, context)?;
 
-        Ok(Value::from(modulo))
+        Ok(JsValue::new(modulo))
     }
 
     /// Helper function to wrap the value of a `BigInt` to an unsigned integer.
@@ -195,10 +231,10 @@ impl BigInt {
     /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
-    fn calculate_as_uint_n(args: &[Value], context: &mut Context) -> Result<(JsBigInt, u32)> {
+    fn calculate_as_uint_n(args: &[JsValue], context: &mut Context) -> JsResult<(JsBigInt, u32)> {
         use std::convert::TryFrom;
 
-        let undefined_value = Value::undefined();
+        let undefined_value = JsValue::undefined();
 
         let bits_arg = args.get(0).unwrap_or(&undefined_value);
         let bigint_arg = args.get(1).unwrap_or(&undefined_value);

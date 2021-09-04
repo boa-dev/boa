@@ -107,8 +107,8 @@ fn construct_and_call() {
     let hello = forward_val(&mut context, "hello").unwrap();
     let world = forward_val(&mut context, "world").unwrap();
 
-    assert_eq!(hello.is_object(), true);
-    assert_eq!(world.is_string(), true);
+    assert!(hello.is_object());
+    assert!(world.is_string());
 }
 
 #[test]
@@ -1132,7 +1132,7 @@ fn string_get_property() {
     assert_eq!(forward(&mut context, "'abc'[2]"), "\"c\"");
     assert_eq!(forward(&mut context, "'abc'[3]"), "undefined");
     assert_eq!(forward(&mut context, "'abc'['foo']"), "undefined");
-    assert_eq!(forward(&mut context, "'😀'[0]"), "\"\\ud83d\"");
+    assert_eq!(forward(&mut context, "'😀'[0]"), "\"�\"");
 }
 
 #[test]

@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, Context, Value};
+use crate::{forward, forward_val, Context, JsValue};
 
 #[test]
 fn json_sanity() {
@@ -336,8 +336,9 @@ fn json_parse_array_with_reviver() {
             if (typeof v == 'number') {
                 return v * 2;
             } else {
-                v
-        }})"#,
+                return v;
+            }
+        })"#,
     )
     .unwrap();
     assert_eq!(
@@ -418,21 +419,21 @@ fn json_parse_sets_prototypes() {
         .as_object()
         .unwrap()
         .prototype_instance();
-    let global_object_prototype: Value = context
+    let global_object_prototype: JsValue = context
         .standard_objects()
         .object_object()
         .prototype()
         .into();
-    let global_array_prototype: Value =
+    let global_array_prototype: JsValue =
         context.standard_objects().array_object().prototype().into();
-    assert_eq!(
-        Value::same_value(&object_prototype, &global_object_prototype),
-        true
-    );
-    assert_eq!(
-        Value::same_value(&array_prototype, &global_array_prototype),
-        true
-    );
+    assert!(JsValue::same_value(
+        &object_prototype,
+        &global_object_prototype
+    ));
+    assert!(JsValue::same_value(
+        &array_prototype,
+        &global_array_prototype
+    ));
 }
 
 #[test]

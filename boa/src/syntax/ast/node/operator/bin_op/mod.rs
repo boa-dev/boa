@@ -6,7 +6,7 @@ use crate::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -58,7 +58,7 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &mut Context) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: JsValue, y: &Node, context: &mut Context) -> JsResult<JsValue> {
         match op {
             AssignOp::Add => x.add(&y.run(context)?, context),
             AssignOp::Sub => x.sub(&y.run(context)?, context),
@@ -98,7 +98,7 @@ impl BinOp {
 }
 
 impl Executable for BinOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(context)?;
@@ -127,7 +127,7 @@ impl Executable for BinOp {
             op::BinOp::Comp(op) => {
                 let x = self.lhs().run(context)?;
                 let y = self.rhs().run(context)?;
-                Ok(Value::from(match op {
+                Ok(JsValue::new(match op {
                     CompOp::Equal => x.equals(&y, context)?,
                     CompOp::NotEqual => !x.equals(&y, context)?,
                     CompOp::StrictEqual => x.strict_equals(&y),
@@ -140,11 +140,11 @@ impl Executable for BinOp {
                         if !y.is_object() {
                             return context.throw_type_error(format!(
                                 "right-hand side of 'in' should be an object, got {}",
-                                y.get_type().as_str()
+                                y.type_of()
                             ));
                         }
                         let key = x.to_property_key(context)?;
-                        context.has_property(&y, &key)
+                        context.has_property(&y, &key)?
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
@@ -166,7 +166,7 @@ impl Executable for BinOp {
                         } else {
                             return context.throw_type_error(format!(
                                 "right-hand side of 'instanceof' should be an object, got {}",
-                                y.get_type().as_str()
+                                y.type_of()
                             ));
                         }
                     }
@@ -213,7 +213,7 @@ impl Executable for BinOp {
                     v_r_a.set_field(get_const_field.field(), value.clone(), false, context)?;
                     Ok(value)
                 }
-                _ => Ok(Value::undefined()),
+                _ => Ok(JsValue::undefined()),
             },
             op::BinOp::Comma => {
                 self.lhs().run(context)?;

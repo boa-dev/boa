@@ -1,7 +1,7 @@
 //! Template literal node.
 
 use super::Node;
-use crate::{builtins::Array, exec::Executable, value::Type, BoaProfiler, Context, Result, Value};
+use crate::{builtins::Array, exec::Executable, BoaProfiler, Context, JsResult, JsValue};
 use gc::{Finalize, Trace};
 
 #[cfg(feature = "deser")]
@@ -32,7 +32,7 @@ impl TemplateLit {
 }
 
 impl Executable for TemplateLit {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "exec");
         let mut result = String::new();
 
@@ -90,21 +90,21 @@ impl TaggedTemplate {
 }
 
 impl Executable for TaggedTemplate {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("TaggedTemplate", "exec");
 
         let template_object = Array::new_array(context);
         let raw_array = Array::new_array(context);
 
         for (i, raw) in self.raws.iter().enumerate() {
-            raw_array.set_field(i, Value::from(raw), false, context)?;
+            raw_array.set_field(i, JsValue::new(raw.as_ref()), false, context)?;
         }
 
         for (i, cooked) in self.cookeds.iter().enumerate() {
             if let Some(cooked) = cooked {
-                template_object.set_field(i, Value::from(cooked), false, context)?;
+                template_object.set_field(i, JsValue::new(cooked.as_ref()), false, context)?;
             } else {
-                template_object.set_field(i, Value::undefined(), false, context)?;
+                template_object.set_field(i, JsValue::undefined(), false, context)?;
             }
         }
         template_object.set_field("raw", raw_array, false, context)?;
@@ -112,8 +112,8 @@ impl Executable for TaggedTemplate {
         let (this, func) = match *self.tag {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
-                if obj.get_type() != Type::Object {
-                    obj = Value::Object(obj.to_object(context)?);
+                if !obj.is_object() {
+                    obj = JsValue::Object(obj.to_object(context)?);
                 }
                 (
                     obj.clone(),

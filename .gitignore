@@ -24,6 +24,7 @@ tests/js/test.js
 *.string_index
 *.events
 chrome_profiler.json
+*.mm_profdata
 
 # Logs
 *.log

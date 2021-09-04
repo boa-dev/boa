@@ -1,7 +1,7 @@
 //! Await expression node.
 
 use super::Node;
-use crate::{exec::Executable, BoaProfiler, Context, Result, Value};
+use crate::{exec::Executable, BoaProfiler, Context, JsResult, JsValue};
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -27,10 +27,10 @@ pub struct AwaitExpr {
 }
 
 impl Executable for AwaitExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("AwaitExpression", "exec");
         // TODO: Implement AwaitExpr
-        Ok(Value::Undefined)
+        Ok(JsValue::undefined())
     }
 }
 

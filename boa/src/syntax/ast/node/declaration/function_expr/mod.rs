@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -98,16 +98,13 @@ impl FunctionExpr {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let val = context.create_function(
+            self.name().unwrap_or(""),
             self.parameters().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            FunctionFlags::CONSTRUCTABLE,
         )?;
-
-        if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name), false, context)?;
-        }
 
         Ok(val)
     }

@@ -3,8 +3,8 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    syntax::ast::node::{Declaration, Node},
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
@@ -57,10 +57,21 @@ impl StatementList {
         for stmt in self.items() {
             if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
-                    if !set.insert(decl.name()) {
-                        // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
-                        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-                        unreachable!("Redeclaration of {}", decl.name());
+                    // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
+                    // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
+                    match decl {
+                        Declaration::Identifier { ident, .. } => {
+                            if !set.insert(ident.as_ref()) {
+                                unreachable!("Redeclaration of {}", ident.as_ref());
+                            }
+                        }
+                        Declaration::Pattern(p) => {
+                            for ident in p.idents() {
+                                if !set.insert(ident) {
+                                    unreachable!("Redeclaration of {}", ident);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -83,7 +94,16 @@ impl StatementList {
         for stmt in self.items() {
             if let Node::VarDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
-                    set.insert(decl.name());
+                    match decl {
+                        Declaration::Identifier { ident, .. } => {
+                            set.insert(ident.as_ref());
+                        }
+                        Declaration::Pattern(p) => {
+                            for ident in p.idents() {
+                                set.insert(ident.as_ref());
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -92,12 +112,12 @@ impl StatementList {
 }
 
 impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = Value::default();
+        let mut obj = JsValue::default();
         context
             .executor()
             .set_current_state(InterpreterState::Executing);

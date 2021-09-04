@@ -3,7 +3,7 @@
 use crate::{
     builtins::Number,
     gc::{empty_trace, Finalize, Trace},
-    Context, Value,
+    Context, JsValue,
 };
 
 use std::{
@@ -162,18 +162,27 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn pow(x: &Self, y: &Self, context: &mut Context) -> Result<Self, Value> {
+    pub fn pow(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
         let y = if let Some(y) = y.inner.to_biguint() {
             y
         } else {
             return Err(context.construct_range_error("BigInt negative exponent"));
         };
 
+        let num_bits = (x.inner.bits() as f64
+            * y.to_f64().expect("Unable to convert from BigUInt to f64"))
+        .floor()
+            + 1f64;
+
+        if num_bits > 1_000_000_000f64 {
+            return Err(context.construct_range_error("Maximum BigInt size exceeded"));
+        }
+
         Ok(Self::new(x.inner.as_ref().clone().pow(y)))
     }
 
     #[inline]
-    pub fn shift_right(x: &Self, y: &Self, context: &mut Context) -> Result<Self, Value> {
+    pub fn shift_right(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
         if let Some(n) = y.inner.to_i32() {
             let inner = if n > 0 {
                 x.inner.as_ref().clone().shr(n as usize)
@@ -188,7 +197,7 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn shift_left(x: &Self, y: &Self, context: &mut Context) -> Result<Self, Value> {
+    pub fn shift_left(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
         if let Some(n) = y.inner.to_i32() {
             let inner = if n > 0 {
                 x.inner.as_ref().clone().shl(n as usize)

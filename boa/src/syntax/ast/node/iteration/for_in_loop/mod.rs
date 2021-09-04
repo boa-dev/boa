@@ -6,8 +6,8 @@ use crate::{
     },
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    syntax::ast::node::{Declaration, Node},
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -80,19 +80,21 @@ impl From<ForInLoop> for Node {
 }
 
 impl Executable for ForInLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForIn", "exec");
         let object = self.expr().run(context)?;
-        let mut result = Value::undefined();
+        let mut result = JsValue::undefined();
 
         if object.is_null_or_undefined() {
             return Ok(result);
         }
         let object = object.to_object(context)?;
-        let for_in_iterator = ForInIterator::create_for_in_iterator(context, Value::from(object));
+        let for_in_iterator = ForInIterator::create_for_in_iterator(context, JsValue::new(object));
         let next_function = for_in_iterator
             .get_property("next")
-            .map(|p| p.as_data_descriptor().unwrap().value())
+            .as_ref()
+            .map(|p| p.expect_value())
+            .cloned()
             .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
         let iterator = IteratorRecord::new(for_in_iterator, next_function);
 
@@ -128,15 +130,37 @@ impl Executable for ForInLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        if context.has_binding(var.name()) {
-                            context.set_mutable_binding(var.name(), next_result, true)?;
-                        } else {
-                            context.create_mutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Function,
-                            )?;
-                            context.initialize_binding(var.name(), next_result)?;
+                        match &var {
+                            Declaration::Identifier { ident, .. } => {
+                                if context.has_binding(ident.as_ref()) {
+                                    context.set_mutable_binding(
+                                        ident.as_ref(),
+                                        next_result,
+                                        true,
+                                    )?;
+                                } else {
+                                    context.create_mutable_binding(
+                                        ident.to_string(),
+                                        false,
+                                        VariableScope::Function,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), next_result)?;
+                                }
+                            }
+                            Declaration::Pattern(p) => {
+                                for (ident, value) in p.run(Some(next_result), context)? {
+                                    if context.has_binding(ident.as_ref()) {
+                                        context.set_mutable_binding(ident.as_ref(), value, true)?;
+                                    } else {
+                                        context.create_mutable_binding(
+                                            ident.to_string(),
+                                            false,
+                                            VariableScope::Function,
+                                        )?;
+                                        context.initialize_binding(ident.as_ref(), value)?;
+                                    }
+                                }
+                            }
                         }
                     }
                     _ => {
@@ -151,12 +175,26 @@ impl Executable for ForInLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        context.create_mutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        )?;
-                        context.initialize_binding(var.name(), next_result)?;
+                        match &var {
+                            Declaration::Identifier { ident, .. } => {
+                                context.create_mutable_binding(
+                                    ident.to_string(),
+                                    false,
+                                    VariableScope::Block,
+                                )?;
+                                context.initialize_binding(ident.as_ref(), next_result)?;
+                            }
+                            Declaration::Pattern(p) => {
+                                for (ident, value) in p.run(Some(next_result), context)? {
+                                    context.create_mutable_binding(
+                                        ident.to_string(),
+                                        false,
+                                        VariableScope::Block,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), value)?;
+                                }
+                            }
+                        }
                     }
                     _ => {
                         return context.throw_syntax_error(
@@ -170,12 +208,26 @@ impl Executable for ForInLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        context.create_immutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        )?;
-                        context.initialize_binding(var.name(), next_result)?;
+                        match &var {
+                            Declaration::Identifier { ident, .. } => {
+                                context.create_immutable_binding(
+                                    ident.to_string(),
+                                    false,
+                                    VariableScope::Block,
+                                )?;
+                                context.initialize_binding(ident.as_ref(), next_result)?;
+                            }
+                            Declaration::Pattern(p) => {
+                                for (ident, value) in p.run(Some(next_result), context)? {
+                                    context.create_immutable_binding(
+                                        ident.to_string(),
+                                        false,
+                                        VariableScope::Block,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), value)?;
+                                }
+                            }
+                        }
                     }
                     _ => {
                         return context.throw_syntax_error(
