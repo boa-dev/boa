@@ -1512,12 +1512,12 @@ impl Array {
         new_array.set_field("length", Value::from(new_array_len), true, context)?;
         Ok(new_array)
     }
+
     /// `Array.prototype.splice ( start, [deleteCount[, ...items]] )`
     ///
     /// Splices an array by following
     /// The deleteCount elements of the array starting at integer index start are replaced by the elements of items.
     /// An Array object containing the deleted elements (if any) is returned.
-
     pub(crate) fn splice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
@@ -1549,7 +1549,11 @@ impl Array {
         // 9. Else,
         } else {
             // b. Let dc be ? ToIntegerOrInfinity(deleteCount).
-            let dc = args.get(1).ok_or(0)?.to_integer_or_infinity(context)?;
+            let dc = args
+                .get(1)
+                .cloned()
+                .unwrap_or_default()
+                .to_integer_or_infinity(context)?;
             // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
             let max = len - actual_start;
             match dc {
