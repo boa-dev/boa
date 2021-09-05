@@ -565,7 +565,7 @@ impl Context {
         &mut self,
         name: N,
         params: P,
-        body: StatementList,
+        mut body: StatementList,
         flags: FunctionFlags,
     ) -> JsResult<JsValue>
     where
@@ -578,6 +578,11 @@ impl Context {
 
         // Every new function has a prototype property pre-made
         let prototype = self.construct_object();
+
+        // If a function is defined within a strict context, it is strict.
+        if self.strict() {
+            body.set_strict(true);
+        }
 
         let params = params.into();
         let params_len = params.len();
