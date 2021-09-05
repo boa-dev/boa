@@ -24,7 +24,7 @@ use std::fmt::Debug;
 pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Determine if an Environment Record has a binding for the String value N.
     /// Return true if it does and false if it does not.
-    fn has_binding(&self, name: &str) -> bool;
+    fn has_binding(&self, name: &str, context: &mut Context) -> JsResult<bool>;
 
     /// Create a new but uninitialized mutable binding in an Environment Record. The String value N is the text of the bound name.
     /// If the Boolean argument deletion is true the binding may be subsequently deleted.
@@ -35,7 +35,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// paraments with the same name.
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: &str,
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
@@ -47,7 +47,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// regardless of the strict mode setting of operations that reference that binding.
     fn create_immutable_binding(
         &self,
-        name: String,
+        name: &str,
         strict: bool,
         context: &mut Context,
     ) -> JsResult<()>;
@@ -85,7 +85,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// The String value name is the text of the bound name.
     /// If a binding for name exists, remove the binding and return true.
     /// If the binding exists but cannot be removed return false. If the binding does not exist return true.
-    fn delete_binding(&self, name: &str) -> bool;
+    fn delete_binding(&self, name: &str, context: &mut Context) -> JsResult<bool>;
 
     /// Determine if an Environment Record establishes a this binding.
     /// Return true if it does and false if it does not.
@@ -129,7 +129,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Create mutable binding while handling outer environments
     fn recursive_create_mutable_binding(
         &self,
-        name: String,
+        name: &str,
         deletion: bool,
         scope: VariableScope,
         context: &mut Context,
@@ -146,7 +146,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Create immutable binding while handling outer environments
     fn recursive_create_immutable_binding(
         &self,
-        name: String,
+        name: &str,
         deletion: bool,
         scope: VariableScope,
         context: &mut Context,
@@ -168,7 +168,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         strict: bool,
         context: &mut Context,
     ) -> JsResult<()> {
-        if self.has_binding(name) {
+        if self.has_binding(name, context)? {
             self.set_mutable_binding(name, value, strict, context)
         } else {
             self.get_outer_environment_ref()
@@ -184,7 +184,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         value: JsValue,
         context: &mut Context,
     ) -> JsResult<()> {
-        if self.has_binding(name) {
+        if self.has_binding(name, context)? {
             self.initialize_binding(name, value, context)
         } else {
             self.get_outer_environment_ref()
@@ -194,17 +194,17 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     }
 
     /// Check if a binding exists in current or any outer environment
-    fn recursive_has_binding(&self, name: &str) -> bool {
-        self.has_binding(name)
+    fn recursive_has_binding(&self, name: &str, context: &mut Context) -> JsResult<bool> {
+        Ok(self.has_binding(name, context)?
             || match self.get_outer_environment_ref() {
-                Some(outer) => outer.recursive_has_binding(name),
+                Some(outer) => outer.recursive_has_binding(name, context)?,
                 None => false,
-            }
+            })
     }
 
     /// Retrieve binding from current or any outer environment
     fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> JsResult<JsValue> {
-        if self.has_binding(name) {
+        if self.has_binding(name, context)? {
             self.get_binding_value(name, false, context)
         } else {
             match self.get_outer_environment_ref() {

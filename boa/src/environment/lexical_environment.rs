@@ -95,7 +95,7 @@ impl Context {
 
     pub(crate) fn create_mutable_binding(
         &mut self,
-        name: String,
+        name: &str,
         deletion: bool,
         scope: VariableScope,
     ) -> JsResult<()> {
@@ -105,7 +105,7 @@ impl Context {
 
     pub(crate) fn create_immutable_binding(
         &mut self,
-        name: String,
+        name: &str,
         deletion: bool,
         scope: VariableScope,
     ) -> JsResult<()> {
@@ -139,8 +139,9 @@ impl Context {
             .clone()
     }
 
-    pub(crate) fn has_binding(&mut self, name: &str) -> bool {
-        self.get_current_environment().recursive_has_binding(name)
+    pub(crate) fn has_binding(&mut self, name: &str) -> JsResult<bool> {
+        self.get_current_environment()
+            .recursive_has_binding(name, self)
     }
 
     pub(crate) fn get_binding_value(&mut self, name: &str) -> JsResult<JsValue> {

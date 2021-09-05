@@ -95,14 +95,10 @@ impl Executable for FunctionDecl {
             FunctionFlags::CONSTRUCTABLE,
         )?;
 
-        if context.has_binding(self.name()) {
-            context.set_mutable_binding(self.name(), val, true)?;
+        if context.has_binding(self.name())? {
+            context.set_mutable_binding(self.name(), val, context.strict())?;
         } else {
-            context.create_mutable_binding(
-                self.name().to_owned(),
-                false,
-                VariableScope::Function,
-            )?;
+            context.create_mutable_binding(self.name(), false, VariableScope::Function)?;
 
             context.initialize_binding(self.name(), val)?;
         }

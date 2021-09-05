@@ -259,28 +259,22 @@ impl<'a> Vm<'a> {
                 let index = self.read::<u32>();
                 let name = &self.code.names[index as usize];
 
-                self.context.create_mutable_binding(
-                    name.to_string(),
-                    false,
-                    VariableScope::Function,
-                )?;
+                self.context
+                    .create_mutable_binding(name, false, VariableScope::Function)?;
             }
             Opcode::DefLet => {
                 let index = self.read::<u32>();
                 let name = &self.code.names[index as usize];
 
-                self.context.create_mutable_binding(
-                    name.to_string(),
-                    false,
-                    VariableScope::Block,
-                )?;
+                self.context
+                    .create_mutable_binding(name, false, VariableScope::Block)?;
             }
             Opcode::DefConst => {
                 let index = self.read::<u32>();
                 let name = &self.code.names[index as usize];
 
                 self.context.create_immutable_binding(
-                    name.to_string(),
+                    name.as_ref(),
                     false,
                     VariableScope::Block,
                 )?;
@@ -304,15 +298,13 @@ impl<'a> Vm<'a> {
                 let value = self.pop();
                 let name = &self.code.names[index as usize];
 
-                if self.context.has_binding(name) {
+                if self.context.has_binding(name)? {
                     // Binding already exists
-                    self.context.set_mutable_binding(name, value, true)?;
+                    self.context
+                        .set_mutable_binding(name, value, self.context.strict())?;
                 } else {
-                    self.context.create_mutable_binding(
-                        name.to_string(),
-                        true,
-                        VariableScope::Function,
-                    )?;
+                    self.context
+                        .create_mutable_binding(name, true, VariableScope::Function)?;
                     self.context.initialize_binding(name, value)?;
                 }
             }

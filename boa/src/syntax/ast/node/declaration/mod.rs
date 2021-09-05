@@ -104,26 +104,26 @@ impl Executable for DeclarationList {
 
             match &decl {
                 Declaration::Identifier { ident, init } => {
-                    if self.is_var() && context.has_binding(ident.as_ref()) {
+                    if self.is_var() && context.has_binding(ident.as_ref())? {
                         if init.is_some() {
-                            context.set_mutable_binding(ident.as_ref(), val, true)?;
+                            context.set_mutable_binding(ident.as_ref(), val, context.strict())?;
                         }
                         continue;
                     }
 
                     match &self {
                         Const(_) => context.create_immutable_binding(
-                            ident.to_string(),
+                            ident.as_ref(),
                             false,
                             VariableScope::Block,
                         )?,
                         Let(_) => context.create_mutable_binding(
-                            ident.to_string(),
+                            ident.as_ref(),
                             false,
                             VariableScope::Block,
                         )?,
                         Var(_) => context.create_mutable_binding(
-                            ident.to_string(),
+                            ident.as_ref(),
                             false,
                             VariableScope::Function,
                         )?,
@@ -133,26 +133,30 @@ impl Executable for DeclarationList {
                 }
                 Declaration::Pattern(p) => {
                     for (ident, value) in p.run(None, context)? {
-                        if self.is_var() && context.has_binding(ident.as_ref()) {
+                        if self.is_var() && context.has_binding(ident.as_ref())? {
                             if !value.is_undefined() {
-                                context.set_mutable_binding(ident.as_ref(), value, true)?;
+                                context.set_mutable_binding(
+                                    ident.as_ref(),
+                                    value,
+                                    context.strict(),
+                                )?;
                             }
                             continue;
                         }
 
                         match &self {
                             Const(_) => context.create_immutable_binding(
-                                ident.to_string(),
+                                ident.as_ref(),
                                 false,
                                 VariableScope::Block,
                             )?,
                             Let(_) => context.create_mutable_binding(
-                                ident.to_string(),
+                                ident.as_ref(),
                                 false,
                                 VariableScope::Block,
                             )?,
                             Var(_) => context.create_mutable_binding(
-                                ident.to_string(),
+                                ident.as_ref(),
                                 false,
                                 VariableScope::Function,
                             )?,

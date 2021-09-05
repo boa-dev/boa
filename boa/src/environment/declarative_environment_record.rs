@@ -49,27 +49,44 @@ impl DeclarativeEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
-        self.env_rec.borrow().contains_key(name)
+    /// `9.1.1.1.1 HasBinding ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-hasbinding-n
+    fn has_binding(&self, name: &str, _context: &mut Context) -> JsResult<bool> {
+        // 1. If envRec has a binding for the name that is the value of N, return true.
+        // 2. Return false.
+        Ok(self.env_rec.borrow().contains_key(name))
     }
 
+    /// `9.1.1.1.2 CreateMutableBinding ( N, D )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-createmutablebinding-n-d
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: &str,
         deletion: bool,
         allow_name_reuse: bool,
         _context: &mut Context,
     ) -> JsResult<()> {
+        // 1. Assert: envRec does not already have a binding for N.
         if !allow_name_reuse {
             assert!(
-                !self.env_rec.borrow().contains_key(name.as_str()),
+                !self.env_rec.borrow().contains_key(name),
                 "Identifier {} has already been declared",
                 name
             );
         }
 
+        // 2. Create a mutable binding in envRec for N and record that it is uninitialized.
+        //    If D is true, record that the newly created binding may be deleted by a subsequent DeleteBinding call.
         self.env_rec.borrow_mut().insert(
-            name.into_boxed_str(),
+            name.into(),
             DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: deletion,
@@ -77,23 +94,34 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                 strict: false,
             },
         );
+
+        // 3. Return NormalCompletion(empty).
         Ok(())
     }
 
+    /// `9.1.1.1.3 CreateImmutableBinding ( N, S )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-createimmutablebinding-n-s
     fn create_immutable_binding(
         &self,
-        name: String,
+        name: &str,
         strict: bool,
         _context: &mut Context,
     ) -> JsResult<()> {
+        // 1. Assert: envRec does not already have a binding for N.
         assert!(
-            !self.env_rec.borrow().contains_key(name.as_str()),
+            !self.env_rec.borrow().contains_key(name),
             "Identifier {} has already been declared",
             name
         );
 
+        // 2. Create an immutable binding in envRec for N and record that it is uninitialized.
+        //    If S is true, record that the newly created binding is a strict binding.
         self.env_rec.borrow_mut().insert(
-            name.into_boxed_str(),
+            name.into(),
             DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: true,
@@ -101,9 +129,17 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                 strict,
             },
         );
+
+        // 3. Return NormalCompletion(empty).
         Ok(())
     }
 
+    /// `9.1.1.1.4 InitializeBinding ( N, V )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-initializebinding-n-v
     fn initialize_binding(
         &self,
         name: &str,
@@ -112,13 +148,25 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     ) -> JsResult<()> {
         if let Some(ref mut record) = self.env_rec.borrow_mut().get_mut(name) {
             if record.value.is_none() {
+                // 2. Set the bound value for N in envRec to V.
+                // 3. Record that the binding for N in envRec has been initialized.
                 record.value = Some(value);
+
+                // 4. Return NormalCompletion(empty).
                 return Ok(());
             }
         }
+
+        // 1. Assert: envRec must have an uninitialized binding for N.
         panic!("record must have binding for {}", name);
     }
 
+    /// `9.1.1.1.5 SetMutableBinding ( N, V, S )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-setmutablebinding-n-v-s
     #[allow(clippy::else_if_without_else)]
     fn set_mutable_binding(
         &self,
@@ -127,49 +175,70 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         mut strict: bool,
         context: &mut Context,
     ) -> JsResult<()> {
+        // 1. If envRec does not have a binding for N, then
         if self.env_rec.borrow().get(name).is_none() {
+            // a. If S is true, throw a ReferenceError exception.
             if strict {
                 return Err(context.construct_reference_error(format!("{} not found", name)));
             }
 
-            self.create_mutable_binding(name.to_owned(), true, false, context)?;
+            // b. Perform envRec.CreateMutableBinding(N, true).
+            self.create_mutable_binding(name, true, false, context)?;
+            // c. Perform envRec.InitializeBinding(N, V).
             self.initialize_binding(name, value, context)?;
+
+            // d. Return NormalCompletion(empty).
             return Ok(());
         }
 
-        let (record_strict, record_has_no_value, record_mutable) = {
+        let (binding_strict, binding_value_is_none, binding_mutable) = {
             let env_rec = self.env_rec.borrow();
-            let record = env_rec.get(name).unwrap();
-            (record.strict, record.value.is_none(), record.mutable)
+            let binding = env_rec.get(name).unwrap();
+            (binding.strict, binding.value.is_none(), binding.mutable)
         };
-        if record_strict {
-            strict = true
+
+        // 2. If the binding for N in envRec is a strict binding, set S to true.
+        if binding_strict {
+            strict = true;
         }
-        if record_has_no_value {
+
+        // 3. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.
+        if binding_value_is_none {
             return Err(
                 context.construct_reference_error(format!("{} has not been initialized", name))
             );
-        }
-        if record_mutable {
+        // 4. Else if the binding for N in envRec is a mutable binding, change its bound value to V.
+        } else if binding_mutable {
             let mut env_rec = self.env_rec.borrow_mut();
-            let record = env_rec.get_mut(name).unwrap();
-            record.value = Some(value);
+            let binding = env_rec.get_mut(name).unwrap();
+            binding.value = Some(value);
+        // 5. Else,
+        // a. Assert: This is an attempt to change the value of an immutable binding.
+        // b. If S is true, throw a TypeError exception.
         } else if strict {
-            return Err(context.construct_reference_error(format!(
-                "Cannot mutate an immutable binding {}",
-                name
-            )));
+            return Err(context
+                .construct_type_error(format!("Cannot mutate an immutable binding {}", name)));
         }
 
+        // 6. Return NormalCompletion(empty).
         Ok(())
     }
 
+    /// `9.1.1.1.6 GetBindingValue ( N, S )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-getbindingvalue-n-s
     fn get_binding_value(
         &self,
         name: &str,
         _strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Assert: envRec has a binding for N.
+        // 2. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
+        // 3. Return the value currently bound to N in envRec.
         if let Some(binding) = self.env_rec.borrow().get(name) {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
@@ -181,21 +250,38 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&self, name: &str) -> bool {
+    /// `9.1.1.1.7 DeleteBinding ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-deletebinding-n
+    fn delete_binding(&self, name: &str, _context: &mut Context) -> JsResult<bool> {
+        // 1. Assert: envRec has a binding for the name that is the value of N.
+        // 2. If the binding for N in envRec cannot be deleted, return false.
+        // 3. Remove the binding for N from envRec.
+        // 4. Return true.
         match self.env_rec.borrow().get(name) {
             Some(binding) => {
                 if binding.can_delete {
                     self.env_rec.borrow_mut().remove(name);
-                    true
+                    Ok(true)
                 } else {
-                    false
+                    Ok(false)
                 }
             }
             None => panic!("env_rec has no binding for {}", name),
         }
     }
 
+    /// `9.1.1.1.8 HasThisBinding ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-hasthisbinding
     fn has_this_binding(&self) -> bool {
+        // 1. Return false.
         false
     }
 
@@ -203,10 +289,23 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(JsValue::undefined())
     }
 
+    /// `9.1.1.1.9 HasSuperBinding ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-hassuperbinding
     fn has_super_binding(&self) -> bool {
+        // 1. Return false.
         false
     }
 
+    /// `9.1.1.1.10 WithBaseObject ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-withbaseobject
     fn with_base_object(&self) -> Option<JsObject> {
         None
     }

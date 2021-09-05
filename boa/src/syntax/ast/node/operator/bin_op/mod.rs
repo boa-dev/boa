@@ -203,7 +203,7 @@ impl Executable for BinOp {
                     let v_a = context.get_binding_value(name.as_ref())?;
 
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
-                    context.set_mutable_binding(name.as_ref(), value.clone(), true)?;
+                    context.set_mutable_binding(name.as_ref(), value.clone(), context.strict())?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {
