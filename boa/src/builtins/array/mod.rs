@@ -1898,9 +1898,9 @@ impl Array {
                 }
                 // c. Set k to len.
                 // d. Repeat, while k > (len - actualDeleteCount + itemCount),
-                for k in ((len - actual_delete_count + item_count + 1)..=len).rev() {
+                for k in ((len - actual_delete_count + item_count)..len).rev() {
                     // i. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(k - 1))).
-                    o.delete_property_or_throw(k - 1, context)?;
+                    o.delete_property_or_throw(k, context)?;
                     // ii. Set k to k - 1.
                 }
             }
@@ -1908,11 +1908,11 @@ impl Array {
             Ordering::Greater => {
                 // a. Set k to (len - actualDeleteCount).
                 // b. Repeat, while k > actualStart,
-                for k in (actual_start + 1..=len - actual_delete_count).rev() {
+                for k in (actual_start..len - actual_delete_count).rev() {
                     // i. Let from be ! ToString(𝔽(k + actualDeleteCount - 1)).
-                    let from = k + actual_delete_count - 1;
+                    let from = k + actual_delete_count;
                     // ii. Let to be ! ToString(𝔽(k + itemCount - 1)).
-                    let to = k + item_count - 1;
+                    let to = k + item_count;
                     // iii. Let fromPresent be ? HasProperty(O, from).
                     let from_present = o.has_property(from, context)?;
                     // iv. If fromPresent is true, then
