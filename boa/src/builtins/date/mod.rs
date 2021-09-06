@@ -13,6 +13,8 @@ use crate::{
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
 
+use super::JsArgs;
+
 /// The number of nanoseconds in a millisecond.
 const NANOS_PER_MS: i64 = 1_000_000;
 /// The number of milliseconds in an hour.
@@ -523,7 +525,7 @@ impl Date {
             return context.throw_type_error("Date.prototype[@@toPrimitive] called on non object");
         };
 
-        let hint = args.get(0).cloned().unwrap_or_default();
+        let hint = args.get_or_undefined(0);
 
         let try_first = match hint.as_string().map(|s| s.as_str()) {
             // 3. If hint is "string" or "default", then

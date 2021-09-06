@@ -26,6 +26,8 @@ use dyn_clone::DynClone;
 use sealed::Sealed;
 use std::fmt::{self, Debug};
 
+use super::JsArgs;
+
 #[cfg(test)]
 mod tests;
 
@@ -340,10 +342,10 @@ impl BuiltInFunctionObject {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
-        let this_arg: JsValue = args.get(0).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(0);
         // TODO?: 3. Perform PrepareForTailCall
         let start = if !args.is_empty() { 1 } else { 0 };
-        context.call(this, &this_arg, &args[start..])
+        context.call(this, this_arg, &args[start..])
     }
 
     /// `Function.prototype.apply`
@@ -361,15 +363,15 @@ impl BuiltInFunctionObject {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
-        let this_arg = args.get(0).cloned().unwrap_or_default();
-        let arg_array = args.get(1).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(0);
+        let arg_array = args.get_or_undefined(1);
         if arg_array.is_null_or_undefined() {
             // TODO?: 3.a. PrepareForTailCall
-            return context.call(this, &this_arg, &[]);
+            return context.call(this, this_arg, &[]);
         }
         let arg_list = arg_array.create_list_from_array_like(&[], context)?;
         // TODO?: 5. PrepareForTailCall
-        context.call(this, &this_arg, &arg_list)
+        context.call(this, this_arg, &arg_list)
     }
 }
 

@@ -112,3 +112,25 @@ pub fn init(context: &mut Context) {
         global_object.borrow_mut().insert(name, property);
     }
 }
+
+pub trait JsArgs {
+    /// Utility function to `get` a parameter from
+    /// a `[JsValue]` or default to `JsValue::Undefined`
+    /// if `get` returns `None`.
+    ///
+    /// Call this if you are thinking of calling something similar to
+    /// `args.get(n).cloned().unwrap_or_default()` or
+    /// `args.get(n).unwrap_or(&undefined)`.
+    ///
+    /// This returns a reference for efficiency, in case
+    /// you only need to call methods of `JsValue`, so
+    /// try to minimize calling `clone`.
+    fn get_or_undefined(&self, index: usize) -> &JsValue;
+}
+
+impl JsArgs for [JsValue] {
+    fn get_or_undefined(&self, index: usize) -> &JsValue {
+        const UNDEFINED: &JsValue = &JsValue::Undefined;
+        self.get(index).unwrap_or(UNDEFINED)
+    }
+}

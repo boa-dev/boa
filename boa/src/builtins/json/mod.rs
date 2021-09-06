@@ -26,6 +26,8 @@ use crate::{
 };
 use serde_json::{self, Value as JSONValue};
 
+use super::JsArgs;
+
 #[cfg(test)]
 mod tests;
 
@@ -156,7 +158,7 @@ impl Json {
         let mut property_list = None;
         let mut replacer_function = None;
 
-        let replacer = args.get(1).cloned().unwrap_or_default();
+        let replacer = args.get_or_undefined(1);
 
         // 4. If Type(replacer) is Object, then
         if let Some(replacer_obj) = replacer.as_object() {
@@ -212,7 +214,7 @@ impl Json {
             }
         }
 
-        let mut space = args.get(2).cloned().unwrap_or_default();
+        let mut space = args.get_or_undefined(2).clone();
 
         // 5. If Type(space) is Object, then
         if let Some(space_obj) = space.as_object() {
@@ -264,7 +266,7 @@ impl Json {
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
-            .create_data_property_or_throw("", args.get(0).cloned().unwrap_or_default(), context)
+            .create_data_property_or_throw("", args.get_or_undefined(0).clone(), context)
             .expect("CreateDataPropertyOrThrow should never fail here");
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.

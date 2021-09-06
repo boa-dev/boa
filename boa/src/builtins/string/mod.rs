@@ -29,6 +29,8 @@ use std::{
 };
 use unicode_normalization::UnicodeNormalization;
 
+use super::JsArgs;
+
 pub(crate) fn code_point_at(string: JsString, position: i32) -> Option<(u32, u8, bool)> {
     let size = string.encode_utf16().count() as i32;
     if position < 0 || position >= size {
@@ -562,9 +564,9 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
 
-        let arg = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
+        let arg = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(arg) {
             context.throw_type_error(
                 "First argument to String.prototype.startsWith must not be a regular expression",
             )?;
@@ -576,12 +578,10 @@ impl String {
         let search_length = search_string.chars().count() as i32;
 
         // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
+        let position = if let Some(integer) = args.get(1) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(1)
-                .expect("failed to get arg")
-                .to_integer(context)? as i32
+            0
         };
 
         let start = min(max(position, 0), length);
@@ -617,9 +617,9 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
 
-        let arg = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
+        let arg = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(arg) {
             context.throw_type_error(
                 "First argument to String.prototype.endsWith must not be a regular expression",
             )?;
@@ -632,12 +632,10 @@ impl String {
 
         // If less than 2 args specified, end_position is 'undefined', defaults to
         // length of this
-        let end_position = if args.len() < 2 {
-            length
+        let end_position = if let Some(integer) = args.get(1) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
+            length
         };
 
         let end = min(max(end_position, 0), length);
@@ -671,9 +669,9 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
 
-        let arg = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
+        let arg = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(arg) {
             context.throw_type_error(
                 "First argument to String.prototype.includes must not be a regular expression",
             )?;
@@ -684,12 +682,11 @@ impl String {
         let length = primitive_val.chars().count() as i32;
 
         // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
+
+        let position = if let Some(integer) = args.get(1) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
+            0
         };
 
         let start = min(max(position, 0), length);
@@ -730,9 +727,9 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         this.require_object_coercible(context)?;
 
-        let search_value = args.get(0).cloned().unwrap_or_default();
+        let search_value = args.get_or_undefined(0);
 
-        let replace_value = args.get(1).cloned().unwrap_or_default();
+        let replace_value = args.get_or_undefined(1);
 
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
@@ -747,8 +744,8 @@ impl String {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
                 return context.call(
                     &replacer.into(),
-                    &search_value,
-                    &[this.clone(), replace_value],
+                    search_value,
+                    &[this.clone(), replace_value.clone()],
                 );
             }
         }
@@ -787,7 +784,7 @@ impl String {
             // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
             context
                 .call(
-                    &replace_value,
+                    replace_value,
                     &JsValue::undefined(),
                     &[search_str.into(), position.into(), this_str.clone().into()],
                 )?
@@ -846,8 +843,8 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible(context)?;
 
-        let search_value = args.get(0).cloned().unwrap_or_default();
-        let replace_value = args.get(1).cloned().unwrap_or_default();
+        let search_value = args.get_or_undefined(0);
+        let replace_value = args.get_or_undefined(1);
 
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
@@ -879,7 +876,7 @@ impl String {
             // d. If replacer is not undefined, then
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(&search_value, &[o.into(), replace_value], context);
+                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
             }
         }
 
@@ -945,7 +942,7 @@ impl String {
                 // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                 context
                     .call(
-                        &replace_value,
+                        replace_value,
                         &JsValue::undefined(),
                         &[
                             search_string.clone().into(),
@@ -1109,14 +1106,14 @@ impl String {
         let o = this.require_object_coercible(context)?;
 
         // 2. If regexp is neither undefined nor null, then
-        let regexp = args.get(0).cloned().unwrap_or_default();
+        let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             // b. If matcher is not undefined, then
             if let Some(obj) = regexp.as_object() {
                 if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
                     // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(&regexp, &[o.clone()], context);
+                    return matcher.call(regexp, &[o.clone()], context);
                 }
             }
         }
@@ -1125,7 +1122,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, JsValue::undefined(), context)?;
+        let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         let obj = rx.as_object().expect("RegExpCreate must return Object");
@@ -1370,21 +1367,17 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
         // If no args are specified, start is 'undefined', defaults to 0
-        let start = if args.is_empty() {
-            0
+        let start = if let Some(integer) = args.get(0) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(0)
-                .expect("failed to get argument for String method")
-                .to_integer(context)? as i32
+            0
         };
         let length = primitive_val.encode_utf16().count() as i32;
         // If less than 2 args specified, end is the length of the this object converted to a String
-        let end = if args.len() < 2 {
-            length
+        let end = if let Some(integer) = args.get(1) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
+            length
         };
         // Both start and end args replaced by 0 if they were negative
         // or by the length of the String if they were greater
@@ -1425,24 +1418,20 @@ impl String {
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
         // If no args are specified, start is 'undefined', defaults to 0
-        let mut start = if args.is_empty() {
-            0
+        let mut start = if let Some(integer) = args.get(0) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(0)
-                .expect("failed to get argument for String method")
-                .to_integer(context)? as i32
+            0
         };
         let length = primitive_val.chars().count() as i32;
         // If less than 2 args specified, end is +infinity, the maximum number value.
         // Using i32::max_value() should be safe because the final length used is at most
         // the number of code units from start to the end of the string,
         // which should always be smaller or equals to both +infinity and i32::max_value
-        let end = if args.len() < 2 {
-            i32::MAX
+        let end = if let Some(integer) = args.get(1) {
+            integer.to_integer(context)? as i32
         } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
+            i32::MAX
         };
         // If start is negative it become the number of code units from the end of the string
         if start < 0 {
@@ -1485,8 +1474,8 @@ impl String {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
 
-        let separator = args.get(0).cloned().unwrap_or_default();
-        let limit = args.get(1).cloned().unwrap_or_default();
+        let separator = args.get_or_undefined(0);
+        let limit = args.get_or_undefined(1);
 
         // 2. If separator is neither undefined nor null, then
         if !separator.is_null_or_undefined() {
@@ -1498,7 +1487,7 @@ impl String {
                 .get_method(context, WellKnownSymbols::split())?
             {
                 // i. Return ? Call(splitter, separator, « O, limit »).
-                return splitter.call(&separator, &[this.clone(), limit], context);
+                return splitter.call(separator, &[this.clone(), limit.clone()], context);
             }
         }
 
@@ -1661,7 +1650,7 @@ impl String {
         let o = this.require_object_coercible(context)?;
 
         // 2. If regexp is neither undefined nor null, then
-        let regexp = args.get(0).cloned().unwrap_or_default();
+        let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
@@ -1685,7 +1674,7 @@ impl String {
             if let Some(obj) = regexp.as_object() {
                 if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
                     // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(&regexp, &[o.clone()], context);
+                    return matcher.call(regexp, &[o.clone()], context);
                 }
             }
         }
@@ -1694,7 +1683,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp, JsValue::new("g"), context)?;
+        let rx = RegExp::create(regexp.clone(), JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         let obj = rx.as_object().expect("RegExpCreate must return Object");
@@ -1722,7 +1711,7 @@ impl String {
     ) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let s = this.to_string(context)?;
-        let form = args.get(0).cloned().unwrap_or_default();
+        let form = args.get_or_undefined(0);
 
         let f_str;
 
@@ -1762,14 +1751,14 @@ impl String {
         let o = this.require_object_coercible(context)?;
 
         // 2. If regexp is neither undefined nor null, then
-        let regexp = args.get(0).cloned().unwrap_or_default();
+        let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
             // b. If searcher is not undefined, then
             if let Some(obj) = regexp.as_object() {
                 if let Some(searcher) = obj.get_method(context, WellKnownSymbols::search())? {
                     // i. Return ? Call(searcher, regexp, « O »).
-                    return searcher.call(&regexp, &[o.clone()], context);
+                    return searcher.call(regexp, &[o.clone()], context);
                 }
             }
         }
@@ -1778,7 +1767,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, JsValue::undefined(), context)?;
+        let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         let obj = rx.as_object().expect("RegExpCreate must return Object");

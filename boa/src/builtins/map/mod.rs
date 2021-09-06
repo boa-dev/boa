@@ -26,6 +26,8 @@ use map_iterator::MapIterator;
 
 use self::ordered_map::MapLock;
 
+use super::JsArgs;
+
 pub mod ordered_map;
 #[cfg(test)]
 mod tests;
@@ -245,15 +247,12 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let (key, value) = match args.len() {
-            0 => (JsValue::undefined(), JsValue::undefined()),
-            1 => (args[0].clone(), JsValue::undefined()),
-            _ => (args[0].clone(), args[1].clone()),
-        };
+        let key = args.get_or_undefined(0);
+        let value = args.get_or_undefined(1);
 
         let size = if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                map.insert(key, value);
+                map.insert(key.clone(), value.clone());
                 map.len()
             } else {
                 return Err(context.construct_type_error("'this' is not a Map"));
@@ -281,11 +280,11 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let key = args.get(0).cloned().unwrap_or_default();
+        let key = args.get_or_undefined(0);
 
         let (deleted, size) = if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                let deleted = map.remove(&key).is_some();
+                let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
                 return Err(context.construct_type_error("'this' is not a Map"));
@@ -312,12 +311,12 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let key = args.get(0).cloned().unwrap_or_default();
+        let key = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(if let Some(result) = map.get(&key) {
+                return Ok(if let Some(result) = map.get(key) {
                     result.clone()
                 } else {
                     JsValue::undefined()
@@ -361,12 +360,12 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let key = args.get(0).cloned().unwrap_or_default();
+        let key = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(map.contains_key(&key).into());
+                return Ok(map.contains_key(key).into());
             }
         }
 
@@ -393,7 +392,7 @@ impl Map {
         }
 
         let callback_arg = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let this_arg = args.get_or_undefined(1);
 
         let mut index = 0;
 
@@ -416,7 +415,7 @@ impl Map {
             };
 
             if let Some(arguments) = arguments {
-                context.call(callback_arg, &this_arg, &arguments)?;
+                context.call(callback_arg, this_arg, &arguments)?;
             }
 
             index += 1;

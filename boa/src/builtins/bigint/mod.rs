@@ -13,8 +13,12 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    builtins::BuiltIn, object::ConstructorBuilder, property::Attribute, symbol::WellKnownSymbols,
-    value::IntegerOrInfinity, BoaProfiler, Context, JsBigInt, JsResult, JsValue,
+    builtins::{BuiltIn, JsArgs},
+    object::ConstructorBuilder,
+    property::Attribute,
+    symbol::WellKnownSymbols,
+    value::IntegerOrInfinity,
+    BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 #[cfg(test)]
 mod tests;
@@ -131,7 +135,7 @@ impl BigInt {
         // 1. Let x be ? thisBigIntValue(this value).
         let x = Self::this_bigint_value(this, context)?;
 
-        let radix = args.get(0).cloned().unwrap_or_default();
+        let radix = args.get_or_undefined(0);
 
         // 2. If radix is undefined, let radixMV be 10.
         let radix_mv = if radix.is_undefined() {
@@ -234,10 +238,8 @@ impl BigInt {
     fn calculate_as_uint_n(args: &[JsValue], context: &mut Context) -> JsResult<(JsBigInt, u32)> {
         use std::convert::TryFrom;
 
-        let undefined_value = JsValue::undefined();
-
-        let bits_arg = args.get(0).unwrap_or(&undefined_value);
-        let bigint_arg = args.get(1).unwrap_or(&undefined_value);
+        let bits_arg = args.get_or_undefined(0);
+        let bigint_arg = args.get_or_undefined(1);
 
         let bits = bits_arg.to_index(context)?;
         let bits = u32::try_from(bits).unwrap_or(u32::MAX);

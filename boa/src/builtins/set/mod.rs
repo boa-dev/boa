@@ -22,6 +22,8 @@ use ordered_set::OrderedSet;
 pub mod set_iterator;
 use set_iterator::SetIterator;
 
+use super::JsArgs;
+
 pub mod ordered_set;
 #[cfg(test)]
 mod tests;
@@ -139,7 +141,7 @@ impl Set {
         // 3
         set.set_data(ObjectData::set(OrderedSet::default()));
 
-        let iterable = args.get(0).cloned().unwrap_or_default();
+        let iterable = args.get_or_undefined(0);
         // 4
         if iterable.is_null_or_undefined() {
             return Ok(set);
@@ -154,7 +156,7 @@ impl Set {
         }
 
         // 7
-        let iterator_record = get_iterator(context, iterable)?;
+        let iterator_record = get_iterator(context, iterable.clone())?;
 
         // 8.a
         let mut next = iterator_record.next(context)?;
@@ -206,14 +208,15 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                if value.as_number().map(|n| n == -0f64).unwrap_or(false) {
-                    value = JsValue::Integer(0);
-                }
-                set.add(value);
+                set.add(if value.as_number().map(|n| n == -0f64).unwrap_or(false) {
+                    JsValue::Integer(0)
+                } else {
+                    value.clone()
+                });
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
@@ -263,11 +266,11 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         let res = if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                set.delete(&value)
+                set.delete(value)
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
@@ -332,12 +335,12 @@ impl Set {
         }
 
         let callback_arg = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let this_arg = args.get_or_undefined(1);
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
             JsValue::Object(context.global_object())
         } else {
-            this_arg
+            this_arg.clone()
         };
 
         let mut index = 0;
@@ -380,12 +383,12 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
             if let Some(set) = object.as_set_ref() {
-                return Ok(set.contains(&value).into());
+                return Ok(set.contains(value).into());
             }
         }
 
