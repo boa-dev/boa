@@ -404,6 +404,8 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -432,6 +434,8 @@
 <span class="kw">use</span> <span class="ident">dyn_clone::DynClone</span>;
 <span class="kw">use</span> <span class="ident">sealed::Sealed</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -747,10 +751,10 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_function</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">this</span>.<span class="ident">display</span>()));
         }
-        <span class="kw">let</span> <span class="ident">this_arg</span>: <span class="ident">JsValue</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="comment">// TODO?: 3. Perform PrepareForTailCall</span>
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-        <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="ident">start</span>..])
+        <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="ident">start</span>..])
     }
 
     <span class="doccomment">/// `Function.prototype.apply`</span>
@@ -768,15 +772,15 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_function</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">this</span>.<span class="ident">display</span>()));
         }
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">arg_array</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">arg_array</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="kw">if</span> <span class="ident">arg_array</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// TODO?: 3.a. PrepareForTailCall</span>
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[]);
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[]);
         }
         <span class="kw">let</span> <span class="ident">arg_list</span> <span class="op">=</span> <span class="ident">arg_array</span>.<span class="ident">create_list_from_array_like</span>(<span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// TODO?: 5. PrepareForTailCall</span>
-        <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arg_list</span>)
+        <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arg_list</span>)
     }
 }
 

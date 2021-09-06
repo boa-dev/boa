@@ -2629,6 +2629,8 @@
 <span id="2629">2629</span>
 <span id="2630">2630</span>
 <span id="2631">2631</span>
+<span id="2632">2632</span>
+<span id="2633">2633</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2656,6 +2658,8 @@
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
 <span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>, <span class="ident">Ordering</span>};
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
 <span class="doccomment">/// JavaScript `Array` built-in implementation.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -3321,8 +3325,8 @@
                 <span class="comment">// i. Let kValue be ? Get(O, Pk).</span>
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">pk</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).</span>
-                <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
-                <span class="ident">callback</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+                <span class="ident">callback</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
             <span class="comment">// d. Set k to k + 1.</span>
         }
@@ -3656,7 +3660,7 @@
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Array.prototype.every: callback is not callable&quot;</span>);
         };
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 4. Let k be 0.</span>
         <span class="comment">// 5. Repeat, while k &lt; len,</span>
@@ -3670,7 +3674,7 @@
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).</span>
                 <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">callback</span>
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
                     .<span class="ident">to_boolean</span>();
                 <span class="comment">// iii. If testResult is false, return false.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">test_result</span> {
@@ -3704,7 +3708,7 @@
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">callback</span>.<span class="ident">is_function</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Array.prototype.map: Callbackfn is not callable&quot;</span>);
         }
@@ -3712,7 +3716,7 @@
         <span class="comment">// 4. Let A be ? ArraySpeciesCreate(O, len).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::array_species_create</span>(<span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 5. Let k be 0.</span>
         <span class="comment">// 6. Repeat, while k &lt; len,</span>
@@ -3726,7 +3730,7 @@
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).</span>
                 <span class="kw">let</span> <span class="ident">mapped_value</span> <span class="op">=</span>
-                    <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">into</span>()])<span class="question-mark">?</span>;
+                    <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">into</span>()])<span class="question-mark">?</span>;
                 <span class="comment">// iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).</span>
                 <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">k</span>, <span class="ident">mapped_value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
@@ -3790,7 +3794,7 @@
             }
         };
 
-        <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 10. Repeat, while k &lt; len,</span>
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">len</span> {
@@ -3866,7 +3870,7 @@
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">n</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 8. Repeat, while k ≥ 0,</span>
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
@@ -3878,7 +3882,7 @@
                 <span class="kw">let</span> <span class="ident">element_k</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Let same be IsStrictlyEqual(searchElement, elementK).</span>
                 <span class="comment">// iii. If same is true, return 𝔽(k).</span>
-                <span class="kw">if</span> <span class="ident">JsValue::strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
+                <span class="kw">if</span> <span class="ident">JsValue::strict_equals</span>(<span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">k</span>));
                 }
             }
@@ -3920,7 +3924,7 @@
             }
         };
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 4. Let k be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
@@ -3933,7 +3937,7 @@
             <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).</span>
             <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">predicate</span>
                 .<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">this_arg</span>,
+                    <span class="ident">this_arg</span>,
                     <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>.<span class="ident">clone</span>(), <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()],
                     <span class="ident">context</span>,
                 )<span class="question-mark">?</span>
@@ -3981,7 +3985,7 @@
             }
         };
 
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 4. Let k be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
@@ -3993,7 +3997,7 @@
             <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">pk</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).</span>
             <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">predicate</span>
-                .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
                 .<span class="ident">to_boolean</span>();
             <span class="comment">// d. If testResult is true, return 𝔽(k).</span>
             <span class="kw">if</span> <span class="ident">test_result</span> {
@@ -4085,7 +4089,7 @@
         <span class="kw">let</span> <span class="ident">source_len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">mapper_function</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">mapper_function</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">mapper_function</span>.<span class="ident">is_function</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;flatMap mapper function is not callable&quot;</span>);
         }
@@ -4101,7 +4105,7 @@
             <span class="number">0</span>,
             <span class="number">1</span>,
             <span class="prelude-val">Some</span>(<span class="ident">mapper_function</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>()),
-            <span class="kw-2">&amp;</span><span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>(),
+            <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>),
             <span class="ident">context</span>,
         )<span class="question-mark">?</span>;
 
@@ -4256,7 +4260,7 @@
         <span class="comment">// 10. Else, let final be min(relativeEnd, len).</span>
         <span class="kw">let</span> <span class="ident">final_</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_relative_end</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="ident">len</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 11. Repeat, while k &lt; final,</span>
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">final_</span> {
@@ -4327,14 +4331,14 @@
             }
         }
 
-        <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">search_element</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 10. Repeat, while k &lt; len,</span>
         <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">len</span> {
             <span class="comment">// a. Let elementK be ? Get(O, ! ToString(𝔽(k))).</span>
             <span class="kw">let</span> <span class="ident">element_k</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If SameValueZero(searchElement, elementK) is true, return true.</span>
-            <span class="kw">if</span> <span class="ident">JsValue::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
+            <span class="kw">if</span> <span class="ident">JsValue::same_value_zero</span>(<span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">true</span>));
             }
             <span class="comment">// c. Set k to k + 1.</span>
@@ -4624,7 +4628,7 @@
                     <span class="string">&quot;missing argument 0 when calling function Array.prototype.filter&quot;</span>,
                 )
             })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this_val</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">callback</span>.<span class="ident">is_callable</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the callback must be callable&quot;</span>);
@@ -4648,7 +4652,7 @@
                 <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::new</span>(<span class="ident">idx</span>), <span class="ident">JsValue::new</span>(<span class="ident">o</span>.<span class="ident">clone</span>())];
 
                 <span class="comment">// ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).</span>
-                <span class="kw">let</span> <span class="ident">selected</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
+                <span class="kw">let</span> <span class="ident">selected</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
 
                 <span class="comment">// iii. If selected is true, then</span>
                 <span class="kw">if</span> <span class="ident">selected</span> {
@@ -4710,9 +4714,9 @@
                 <span class="comment">// i. Let kValue be ? Get(O, Pk).</span>
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).</span>
-                <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+                <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">callback</span>
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
                     .<span class="ident">to_boolean</span>();
                 <span class="comment">// iii. If testResult is true, return true.</span>
                 <span class="kw">if</span> <span class="ident">test_result</span> {

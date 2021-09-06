@@ -1994,17 +1994,6 @@
 <span id="1994">1994</span>
 <span id="1995">1995</span>
 <span id="1996">1996</span>
-<span id="1997">1997</span>
-<span id="1998">1998</span>
-<span id="1999">1999</span>
-<span id="2000">2000</span>
-<span id="2001">2001</span>
-<span id="2002">2002</span>
-<span id="2003">2003</span>
-<span id="2004">2004</span>
-<span id="2005">2005</span>
-<span id="2006">2006</span>
-<span id="2007">2007</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -2036,6 +2025,8 @@
     <span class="ident">string::String</span> <span class="kw">as</span> <span class="ident">StdString</span>,
 };
 <span class="kw">use</span> <span class="ident">unicode_normalization::UnicodeNormalization</span>;
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">code_point_at</span>(<span class="ident">string</span>: <span class="ident">JsString</span>, <span class="ident">position</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u8</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
@@ -2570,9 +2561,9 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
-        <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+        <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="ident">arg</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;First argument to String.prototype.startsWith must not be a regular expression&quot;</span>,
             )<span class="question-mark">?</span>;
@@ -2584,12 +2575,10 @@
         <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="comment">// If less than 2 args specified, position is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="number">0</span>
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get arg&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="number">0</span>
         };
 
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
@@ -2625,9 +2614,9 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
-        <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+        <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="ident">arg</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
             )<span class="question-mark">?</span>;
@@ -2640,12 +2629,10 @@
 
         <span class="comment">// If less than 2 args specified, end_position is &#39;undefined&#39;, defaults to</span>
         <span class="comment">// length of this</span>
-        <span class="kw">let</span> <span class="ident">end_position</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="ident">length</span>
+        <span class="kw">let</span> <span class="ident">end_position</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="ident">length</span>
         };
 
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">end_position</span>, <span class="number">0</span>), <span class="ident">length</span>);
@@ -2679,9 +2666,9 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
-        <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
+        <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="ident">arg</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
             )<span class="question-mark">?</span>;
@@ -2692,12 +2679,11 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="comment">// If less than 2 args specified, position is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="number">0</span>
+
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="number">0</span>
         };
 
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
@@ -2738,9 +2724,9 @@
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">search_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">search_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 2. If searchValue is neither undefined nor null, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">search_value</span>.<span class="ident">is_null_or_undefined</span>() {
@@ -2755,8 +2741,8 @@
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).</span>
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(
                     <span class="kw-2">&amp;</span><span class="ident">replacer</span>.<span class="ident">into</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">search_value</span>,
-                    <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">replace_value</span>],
+                    <span class="ident">search_value</span>,
+                    <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()],
                 );
             }
         }
@@ -2795,7 +2781,7 @@
             <span class="comment">// a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).</span>
             <span class="ident">context</span>
                 .<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">replace_value</span>,
+                    <span class="ident">replace_value</span>,
                     <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                     <span class="kw-2">&amp;</span>[<span class="ident">search_str</span>.<span class="ident">into</span>(), <span class="ident">position</span>.<span class="ident">into</span>(), <span class="ident">this_str</span>.<span class="ident">clone</span>().<span class="ident">into</span>()],
                 )<span class="question-mark">?</span>
@@ -2854,8 +2840,8 @@
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">search_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">search_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 2. If searchValue is neither undefined nor null, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">search_value</span>.<span class="ident">is_null_or_undefined</span>() {
@@ -2887,7 +2873,7 @@
             <span class="comment">// d. If replacer is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="op">=</span> <span class="ident">replacer</span> {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).</span>
-                <span class="kw">return</span> <span class="ident">replacer</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">search_value</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">into</span>(), <span class="ident">replace_value</span>], <span class="ident">context</span>);
+                <span class="kw">return</span> <span class="ident">replacer</span>.<span class="ident">call</span>(<span class="ident">search_value</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">into</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 
@@ -2953,7 +2939,7 @@
                 <span class="comment">// i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).</span>
                 <span class="ident">context</span>
                     .<span class="ident">call</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">replace_value</span>,
+                        <span class="ident">replace_value</span>,
                         <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                         <span class="kw-2">&amp;</span>[
                             <span class="ident">search_string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
@@ -3117,14 +3103,14 @@
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
-        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let matcher be ? GetMethod(regexp, @@match).</span>
             <span class="comment">// b. If matcher is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_</span>())<span class="question-mark">?</span> {
                     <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
-                    <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
+                    <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
                 }
             }
         }
@@ -3133,7 +3119,7 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, undefined).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@match, « S »).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
@@ -3378,21 +3364,17 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// If no args are specified, start is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="number">0</span>
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="number">0</span>
         };
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="comment">// If less than 2 args specified, end is the length of the this object converted to a String</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="ident">length</span>
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="ident">length</span>
         };
         <span class="comment">// Both start and end args replaced by 0 if they were negative</span>
         <span class="comment">// or by the length of the String if they were greater</span>
@@ -3433,24 +3415,20 @@
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// If no args are specified, start is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="number">0</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="number">0</span>
         };
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="comment">// If less than 2 args specified, end is +infinity, the maximum number value.</span>
         <span class="comment">// Using i32::max_value() should be safe because the final length used is at most</span>
         <span class="comment">// the number of code units from start to the end of the string,</span>
         <span class="comment">// which should always be smaller or equals to both +infinity and i32::max_value</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="ident">i32::MAX</span>
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
-            <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>)
-                .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
+            <span class="ident">i32::MAX</span>
         };
         <span class="comment">// If start is negative it become the number of code units from the end of the string</span>
         <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -3493,8 +3471,8 @@
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 2. If separator is neither undefined nor null, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">separator</span>.<span class="ident">is_null_or_undefined</span>() {
@@ -3506,7 +3484,7 @@
                 .<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::split</span>())<span class="question-mark">?</span>
             {
                 <span class="comment">// i. Return ? Call(splitter, separator, « O, limit »).</span>
-                <span class="kw">return</span> <span class="ident">splitter</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">limit</span>], <span class="ident">context</span>);
+                <span class="kw">return</span> <span class="ident">splitter</span>.<span class="ident">call</span>(<span class="ident">separator</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">limit</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 
@@ -3669,7 +3647,7 @@
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
-        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let isRegExp be ? IsRegExp(regexp).</span>
             <span class="comment">// b. If isRegExp is true, then</span>
@@ -3693,7 +3671,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_all</span>())<span class="question-mark">?</span> {
                     <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
-                    <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
+                    <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
                 }
             }
         }
@@ -3702,7 +3680,7 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, &quot;g&quot;).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">JsValue::new</span>(<span class="string">&quot;g&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::new</span>(<span class="string">&quot;g&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@matchAll, « S »).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
@@ -3730,7 +3708,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">let</span> <span class="ident">f_str</span>;
 
@@ -3770,14 +3748,14 @@
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
-        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let searcher be ? GetMethod(regexp, @@search).</span>
             <span class="comment">// b. If searcher is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">searcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::search</span>())<span class="question-mark">?</span> {
                     <span class="comment">// i. Return ? Call(searcher, regexp, « O »).</span>
-                    <span class="kw">return</span> <span class="ident">searcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
+                    <span class="kw">return</span> <span class="ident">searcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
                 }
             }
         }
@@ -3786,7 +3764,7 @@
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, undefined).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@search, « string »).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);

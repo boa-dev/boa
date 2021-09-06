@@ -292,6 +292,7 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Traits and structs for implementing native classes.</span>
 <span class="doccomment">//!</span>
@@ -302,6 +303,7 @@
 <span class="doccomment">//!#    class::{Class, ClassBuilder},</span>
 <span class="doccomment">//!#    gc::{Finalize, Trace},</span>
 <span class="doccomment">//!#    Context, JsResult, JsValue,</span>
+<span class="doccomment">//!#    builtins::JsArgs,</span>
 <span class="doccomment">//!# };</span>
 <span class="doccomment">//!#</span>
 <span class="doccomment">//! // This does not have to be an enum it can also be a struct.</span>
@@ -322,7 +324,7 @@
 <span class="doccomment">//!     // This is what is called when we do `new Animal()`</span>
 <span class="doccomment">//!     fn constructor(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context) -&gt; JsResult&lt;Self&gt; {</span>
 <span class="doccomment">//!         // This is equivalent to `String(arg)`.</span>
-<span class="doccomment">//!         let kind = args.get(0).cloned().unwrap_or_default().to_string(context)?;</span>
+<span class="doccomment">//!         let kind = args.get_or_undefined(0).to_string(context)?;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!         let animal = match kind.as_str() {</span>
 <span class="doccomment">//!             &quot;cat&quot; =&gt; Self::Cat,</span>

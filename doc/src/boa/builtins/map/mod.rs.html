@@ -494,7 +494,6 @@
 <span id="494">494</span>
 <span id="495">495</span>
 <span id="496">496</span>
-<span id="497">497</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Map` objest.</span>
 <span class="doccomment">//!</span>
@@ -523,6 +522,8 @@
 <span class="kw">use</span> <span class="ident">map_iterator::MapIterator</span>;
 
 <span class="kw">use</span> <span class="self">self</span><span class="ident">::ordered_map::MapLock</span>;
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ordered_map</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -743,15 +744,12 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">len</span>() {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">JsValue::undefined</span>(), <span class="ident">JsValue::undefined</span>()),
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="ident">JsValue::undefined</span>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="ident">args</span>[<span class="number">1</span>].<span class="ident">clone</span>()),
-        };
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">as_map_mut</span>() {
-                <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">value</span>);
+                <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
                 <span class="ident">map</span>.<span class="ident">len</span>()
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>));
@@ -779,11 +777,11 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">let</span> (<span class="ident">deleted</span>, <span class="ident">size</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">as_map_mut</span>() {
-                <span class="kw">let</span> <span class="ident">deleted</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">is_some</span>();
+                <span class="kw">let</span> <span class="ident">deleted</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">remove</span>(<span class="ident">key</span>).<span class="ident">is_some</span>();
                 (<span class="ident">deleted</span>, <span class="ident">map</span>.<span class="ident">len</span>())
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>));
@@ -810,12 +808,12 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_map_ref</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>) {
                     <span class="ident">result</span>.<span class="ident">clone</span>()
                 } <span class="kw">else</span> {
                     <span class="ident">JsValue::undefined</span>()
@@ -859,12 +857,12 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_map_ref</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">contains_key</span>(<span class="ident">key</span>).<span class="ident">into</span>());
             }
         }
 
@@ -891,7 +889,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">callback_arg</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>];
-        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
 
@@ -914,7 +912,7 @@
             };
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arguments</span>) <span class="op">=</span> <span class="ident">arguments</span> {
-                <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback_arg</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
+                <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback_arg</span>, <span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
             }
 
             <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;

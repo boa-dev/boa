@@ -253,6 +253,8 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -269,8 +271,12 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>, <span class="ident">object::ConstructorBuilder</span>, <span class="ident">property::Attribute</span>, <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::IntegerOrInfinity</span>, <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
+    <span class="ident">object::ConstructorBuilder</span>,
+    <span class="ident">property::Attribute</span>,
+    <span class="ident">symbol::WellKnownSymbols</span>,
+    <span class="ident">value::IntegerOrInfinity</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -387,7 +393,7 @@
         <span class="comment">// 1. Let x be ? thisBigIntValue(this value).</span>
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_bigint_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 2. If radix is undefined, let radixMV be 10.</span>
         <span class="kw">let</span> <span class="ident">radix_mv</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">radix</span>.<span class="ident">is_undefined</span>() {
@@ -490,10 +496,8 @@
     <span class="kw">fn</span> <span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>(<span class="ident">JsBigInt</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
 
-        <span class="kw">let</span> <span class="ident">undefined_value</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
-
-        <span class="kw">let</span> <span class="ident">bits_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undefined_value</span>);
-        <span class="kw">let</span> <span class="ident">bigint_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undefined_value</span>);
+        <span class="kw">let</span> <span class="ident">bits_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">bigint_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">bits_arg</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">bits</span>).<span class="ident">unwrap_or</span>(<span class="ident">u32::MAX</span>);

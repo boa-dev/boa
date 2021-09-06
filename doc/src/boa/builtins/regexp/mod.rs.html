@@ -1790,6 +1790,8 @@
 <span id="1790">1790</span>
 <span id="1791">1791</span>
 <span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -1815,6 +1817,8 @@
 };
 <span class="kw">use</span> <span class="ident">regexp_string_iterator::RegExpStringIterator</span>;
 <span class="kw">use</span> <span class="ident">regress::Regex</span>;
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -1980,8 +1984,8 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 1. Let patternIsRegExp be ? IsRegExp(pattern).</span>
         <span class="kw">let</span> <span class="ident">pattern_is_regexp</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">pattern</span> {
@@ -2026,12 +2030,12 @@
                     <span class="ident">JsValue::new</span>(<span class="ident">regexp</span>.<span class="ident">original_flags</span>.<span class="ident">clone</span>()),
                 )
             } <span class="kw">else</span> {
-                (<span class="ident">JsValue::new</span>(<span class="ident">regexp</span>.<span class="ident">original_source</span>.<span class="ident">clone</span>()), <span class="ident">flags</span>)
+                (<span class="ident">JsValue::new</span>(<span class="ident">regexp</span>.<span class="ident">original_source</span>.<span class="ident">clone</span>()), <span class="ident">flags</span>.<span class="ident">clone</span>())
             }
         } <span class="kw">else</span> {
             <span class="comment">// a. Let P be pattern.</span>
             <span class="comment">// b. Let F be flags.</span>
-            (<span class="ident">pattern</span>, <span class="ident">flags</span>)
+            (<span class="ident">pattern</span>.<span class="ident">clone</span>(), <span class="ident">flags</span>.<span class="ident">clone</span>())
         };
 
         <span class="comment">// 7. Let O be ? RegExpAlloc(newTarget).</span>
@@ -2068,8 +2072,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize</span>
     <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 1. If pattern is undefined, let P be the empty String.</span>
         <span class="comment">// 2. Else, let P be ? ToString(pattern).</span>
@@ -3075,7 +3079,7 @@
         <span class="kw">let</span> <span class="ident">length_arg_str</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">functional_replace</span> <span class="op">=</span> <span class="ident">replace_value</span>.<span class="ident">is_function</span>();
 
         <span class="comment">// 6. If functionalReplace is false, then</span>
@@ -3412,7 +3416,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length_a</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="comment">// 13. If limit is undefined, let lim be 2^32 - 1; else let lim be ℝ(? ToUint32(limit)).</span>
-        <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">lim</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">limit</span>.<span class="ident">is_undefined</span>() {
             <span class="ident">u32::MAX</span>
         } <span class="kw">else</span> {

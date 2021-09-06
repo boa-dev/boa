@@ -673,6 +673,8 @@
 <span id="673">673</span>
 <span id="674">674</span>
 <span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -701,6 +703,8 @@
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="self">self</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -832,7 +836,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_list</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
-        <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
         <span class="comment">// 4. If Type(replacer) is Object, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>) <span class="op">=</span> <span class="ident">replacer</span>.<span class="ident">as_object</span>() {
@@ -888,7 +892,7 @@
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">space</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">space</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>).<span class="ident">clone</span>();
 
         <span class="comment">// 5. If Type(space) is Object, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">space_obj</span>) <span class="op">=</span> <span class="ident">space</span>.<span class="ident">as_object</span>() {
@@ -940,7 +944,7 @@
 
         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).</span>
         <span class="ident">wrapper</span>
-            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;&quot;</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>(), <span class="ident">context</span>)
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;&quot;</span>, <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>(), <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow should never fail here&quot;</span>);
 
         <span class="comment">// 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.</span>
