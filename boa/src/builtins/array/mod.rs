@@ -103,6 +103,7 @@ impl BuiltIn for Array {
         .method(Self::slice, "slice", 2)
         .method(Self::some, "some", 2)
         .method(Self::sort, "sort", 1)
+        .method(Self::splice, "splice", 3)
         .method(Self::reduce, "reduce", 2)
         .method(Self::reduce_right, "reduceRight", 2)
         .method(Self::keys, "keys", 0)
@@ -1780,6 +1781,183 @@ impl Array {
 
         // 16. Return A.
         Ok(a.into())
+    }
+
+    /// `Array.prototype.splice ( start, [deleteCount[, ...items]] )`
+    ///
+    /// Splices an array by following
+    /// The deleteCount elements of the array starting at integer index start are replaced by the elements of items.
+    /// An Array object containing the deleted elements (if any) is returned.
+    pub(crate) fn splice(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        let start = args.get(0);
+        let delete_count = args.get(1);
+        let items = args.get(2..).unwrap_or(&[]);
+        // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 4. If relativeStart is -∞, let actualStart be 0.
+        // 5. Else if relativeStart < 0, let actualStart be max(len + relativeStart, 0).
+        // 6. Else, let actualStart be min(relativeStart, len).
+        let actual_start = Self::get_relative_start(context, start, len)?;
+        // 7. If start is not present, then
+        let insert_count = if start.is_none() || delete_count.is_none() {
+            // 7a. Let insertCount be 0.
+            // 8. Else if deleteCount is not present, then
+            // a. Let insertCount be 0.
+            0
+        // 9. Else,
+        } else {
+            // 9a. Let insertCount be the number of elements in items.
+            items.len()
+        };
+        let actual_delete_count = if start.is_none() {
+            // 7b. Let actualDeleteCount be 0.
+            0
+            // 8. Else if deleteCount is not present, then
+        } else if delete_count.is_none() {
+            // 8b. Let actualDeleteCount be len - actualStart.
+            len - actual_start
+        // 9. Else,
+        } else {
+            // b. Let dc be ? ToIntegerOrInfinity(deleteCount).
+            let dc = delete_count
+                .cloned()
+                .unwrap_or_default()
+                .to_integer_or_infinity(context)?;
+            // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
+            let max = len - actual_start;
+            match dc {
+                IntegerOrInfinity::Integer(i) => (i as usize).clamp(0, max),
+                IntegerOrInfinity::PositiveInfinity => max,
+                IntegerOrInfinity::NegativeInfinity => 0,
+            }
+        };
+
+        // 10. If len + insertCount - actualDeleteCount > 2^53 - 1, throw a TypeError exception.
+        if len + insert_count - actual_delete_count > Number::MAX_SAFE_INTEGER as usize {
+            return context.throw_type_error("Target splice exceeded max safe integer value");
+        }
+
+        // 11. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
+        let arr = Self::array_species_create(&o, actual_delete_count, context)?;
+        // 12. Let k be 0.
+        // 13. Repeat, while k < actualDeleteCount,
+        for k in 0..actual_delete_count {
+            // a. Let from be ! ToString(𝔽(actualStart + k)).
+            // b. Let fromPresent be ? HasProperty(O, from).
+            let from_present = o.has_property(actual_start + k, context)?;
+            // c. If fromPresent is true, then
+            if from_present {
+                // i. Let fromValue be ? Get(O, from).
+                let from_value = o.get(actual_start + k, context)?;
+                // ii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(k)), fromValue).
+                arr.create_data_property_or_throw(k, from_value, context)?;
+            }
+            // d. Set k to k + 1.
+        }
+
+        // 14. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
+        arr.set("length", actual_delete_count, true, context)?;
+
+        // 15. Let itemCount be the number of elements in items.
+        let item_count = items.len();
+
+        match item_count.cmp(&actual_delete_count) {
+            // 16. If itemCount < actualDeleteCount, then
+            Ordering::Less => {
+                //     a. Set k to actualStart.
+                //     b. Repeat, while k < (len - actualDeleteCount),
+                for k in actual_start..(len - actual_delete_count) {
+                    // i. Let from be ! ToString(𝔽(k + actualDeleteCount)).
+                    let from = k + actual_delete_count;
+                    // ii. Let to be ! ToString(𝔽(k + itemCount)).
+                    let to = k + item_count;
+                    // iii. Let fromPresent be ? HasProperty(O, from).
+                    let from_present = o.has_property(from, context)?;
+                    // iv. If fromPresent is true, then
+                    if from_present {
+                        // 1. Let fromValue be ? Get(O, from).
+                        let from_value = o.get(from, context)?;
+                        // 2. Perform ? Set(O, to, fromValue, true).
+                        o.set(to, from_value, true, context)?;
+                    // v. Else,
+                    } else {
+                        // 1. Assert: fromPresent is false.
+                        debug_assert!(!from_present);
+                        // 2. Perform ? DeletePropertyOrThrow(O, to).
+                        o.delete_property_or_throw(to, context)?;
+                    }
+                    // vi. Set k to k + 1.
+                }
+                // c. Set k to len.
+                // d. Repeat, while k > (len - actualDeleteCount + itemCount),
+                for k in ((len - actual_delete_count + item_count)..len).rev() {
+                    // i. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(k - 1))).
+                    o.delete_property_or_throw(k, context)?;
+                    // ii. Set k to k - 1.
+                }
+            }
+            // 17. Else if itemCount > actualDeleteCount, then
+            Ordering::Greater => {
+                // a. Set k to (len - actualDeleteCount).
+                // b. Repeat, while k > actualStart,
+                for k in (actual_start..len - actual_delete_count).rev() {
+                    // i. Let from be ! ToString(𝔽(k + actualDeleteCount - 1)).
+                    let from = k + actual_delete_count;
+                    // ii. Let to be ! ToString(𝔽(k + itemCount - 1)).
+                    let to = k + item_count;
+                    // iii. Let fromPresent be ? HasProperty(O, from).
+                    let from_present = o.has_property(from, context)?;
+                    // iv. If fromPresent is true, then
+                    if from_present {
+                        // 1. Let fromValue be ? Get(O, from).
+                        let from_value = o.get(from, context)?;
+                        // 2. Perform ? Set(O, to, fromValue, true).
+                        o.set(to, from_value, true, context)?;
+                    // v. Else,
+                    } else {
+                        // 1. Assert: fromPresent is false.
+                        debug_assert!(!from_present);
+                        // 2. Perform ? DeletePropertyOrThrow(O, to).
+                        o.delete_property_or_throw(to, context)?;
+                    }
+                    // vi. Set k to k - 1.
+                }
+            }
+            Ordering::Equal => {}
+        };
+
+        // 18. Set k to actualStart.
+        // 19. For each element E of items, do
+        if item_count > 0 {
+            for (k, item) in items
+                .iter()
+                .enumerate()
+                .map(|(i, val)| (i + actual_start, val))
+            {
+                // a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).
+                o.set(k, item, true, context)?;
+                // b. Set k to k + 1.
+            }
+        }
+
+        // 20. Perform ? Set(O, "length", 𝔽(len - actualDeleteCount + itemCount), true).
+        o.set(
+            "length",
+            len - actual_delete_count + item_count,
+            true,
+            context,
+        )?;
+
+        // 21. Return A.
+        Ok(JsValue::from(arr))
     }
 
     /// `Array.prototype.filter( callback, [ thisArg ] )`
