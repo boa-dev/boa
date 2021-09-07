@@ -11,7 +11,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-function-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
-use crate::object::PROTOTYPE;
+use crate::context::StandardObjects;
+use crate::object::internal_methods::get_prototype_from_constructor;
+
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
@@ -302,15 +304,8 @@ impl BuiltInFunctionObject {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::object_object, context)?;
         let this = JsValue::new_object(context);
 
         this.as_object()

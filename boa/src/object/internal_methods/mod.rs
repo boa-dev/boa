@@ -6,11 +6,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
+    context::{StandardConstructor, StandardObjects},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
     BoaProfiler, Context, JsResult,
 };
+
+use super::PROTOTYPE;
 
 pub(super) mod array;
 pub(super) mod string;
@@ -858,4 +861,37 @@ pub(crate) fn validate_and_apply_property_descriptor(
 
     // 10. Return true.
     true
+}
+
+/// Abstract operation `GetPrototypeFromConstructor`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getprototypefromconstructor
+#[inline]
+#[track_caller]
+pub(crate) fn get_prototype_from_constructor<F>(
+    constructor: &JsValue,
+    default: F,
+    context: &mut Context,
+) -> JsResult<JsObject>
+where
+    F: FnOnce(&StandardObjects) -> &StandardConstructor,
+{
+    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic
+    // object.
+    // The corresponding object must be an intrinsic that is intended to be used
+    // as the [[Prototype]] value of an object.
+    // 2. Let proto be ? Get(constructor, "prototype").
+    if let Some(object) = constructor.as_object() {
+        if let Some(proto) = object.get(PROTOTYPE, context)?.as_object() {
+            return Ok(proto);
+        }
+    }
+    // 3. If Type(proto) is not Object, then
+    // TODO: handle realms
+    // a. Let realm be ? GetFunctionRealm(constructor).
+    // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+    Ok(default(context.standard_objects()).prototype())
 }

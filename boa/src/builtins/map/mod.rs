@@ -14,7 +14,11 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
+    context::StandardObjects,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        ObjectData,
+    },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
@@ -114,16 +118,8 @@ impl Map {
             return context
                 .throw_type_error("calling a builtin Map constructor without new is forbidden");
         }
-        let map_prototype = context.standard_objects().map_object().prototype();
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or(map_prototype);
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::map_object, context)?;
 
         let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());

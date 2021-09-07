@@ -17,7 +17,8 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    context::StandardObjects,
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -64,15 +65,8 @@ impl TypeError {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().error_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
         let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
         let this = JsValue::new(obj);

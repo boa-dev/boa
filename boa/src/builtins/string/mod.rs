@@ -14,7 +14,9 @@ pub mod string_iterator;
 mod tests;
 
 use crate::builtins::Symbol;
-use crate::object::{JsObject, PROTOTYPE};
+use crate::context::StandardObjects;
+use crate::object::internal_methods::get_prototype_from_constructor;
+use crate::object::JsObject;
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, ObjectData},
@@ -179,16 +181,8 @@ impl String {
             return Ok(string.into());
         }
 
-        // todo: extract `GetPrototypeFromConstructor` function
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::object_object, context)?;
         Ok(Self::string_create(string, prototype, context).into())
     }
 

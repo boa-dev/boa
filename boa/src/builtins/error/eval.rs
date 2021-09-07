@@ -11,7 +11,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError
 
-use crate::object::PROTOTYPE;
+use crate::context::StandardObjects;
+use crate::object::internal_methods::get_prototype_from_constructor;
+
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData},
@@ -62,15 +64,8 @@ impl EvalError {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().error_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
         let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
         let this = JsValue::new(obj);
