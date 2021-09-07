@@ -1579,7 +1579,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.seal</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seal</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_object</span>() {
             <span class="comment">// 2. Let status be ? SetIntegrityLevel(O, sealed).</span>
@@ -1591,7 +1591,7 @@
         }
         <span class="comment">// 1. If Type(O) is not Object, return O.</span>
         <span class="comment">// 4. Return O.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">o</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// `Object.isSealed( target )`</span>
@@ -1603,7 +1603,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.issealed</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isSealed</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_sealed</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 1. If Type(O) is not Object, return true.</span>
         <span class="comment">// 2. Return ? TestIntegrityLevel(O, sealed).</span>
@@ -1624,7 +1624,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.freeze</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">freeze</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_object</span>() {
             <span class="comment">// 2. Let status be ? SetIntegrityLevel(O, frozen).</span>
@@ -1636,7 +1636,7 @@
         }
         <span class="comment">// 1. If Type(O) is not Object, return O.</span>
         <span class="comment">// 4. Return O.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">o</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// `Object.isFrozen( target )`</span>
@@ -1648,7 +1648,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.isfrozen</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isFrozen</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_frozen</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 1. If Type(O) is not Object, return true.</span>
         <span class="comment">// 2. Return ? TestIntegrityLevel(O, frozen).</span>
@@ -1673,7 +1673,7 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_object</span>() {
             <span class="comment">// 2. Let status be ? O.[[PreventExtensions]]().</span>
@@ -1685,7 +1685,7 @@
         }
         <span class="comment">// 1. If Type(O) is not Object, return O.</span>
         <span class="comment">// 4. Return O.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">o</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// `Object.isExtensible( target )`</span>
@@ -1701,7 +1701,7 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="comment">// 1. If Type(O) is not Object, return false.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_object</span>() {
             <span class="comment">// 2. Return ? IsExtensible(O).</span>
