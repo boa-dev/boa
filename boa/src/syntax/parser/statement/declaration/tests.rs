@@ -11,10 +11,14 @@ use crate::syntax::{
 fn var_declaration() {
     check_parser(
         "var a = 5;",
-        vec![
-            DeclarationList::Var(vec![Declaration::new("a", Some(Const::from(5).into()))].into())
-                .into(),
-        ],
+        vec![DeclarationList::Var(
+            vec![Declaration::new_with_identifier(
+                "a",
+                Some(Const::from(5).into()),
+            )]
+            .into(),
+        )
+        .into()],
     );
 }
 
@@ -24,7 +28,11 @@ fn var_declaration_keywords() {
     check_parser(
         "var yield = 5;",
         vec![DeclarationList::Var(
-            vec![Declaration::new("yield", Some(Const::from(5).into()))].into(),
+            vec![Declaration::new_with_identifier(
+                "yield",
+                Some(Const::from(5).into()),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -32,7 +40,11 @@ fn var_declaration_keywords() {
     check_parser(
         "var await = 5;",
         vec![DeclarationList::Var(
-            vec![Declaration::new("await", Some(Const::from(5).into()))].into(),
+            vec![Declaration::new_with_identifier(
+                "await",
+                Some(Const::from(5).into()),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -43,10 +55,14 @@ fn var_declaration_keywords() {
 fn var_declaration_no_spaces() {
     check_parser(
         "var a=5;",
-        vec![
-            DeclarationList::Var(vec![Declaration::new("a", Some(Const::from(5).into()))].into())
-                .into(),
-        ],
+        vec![DeclarationList::Var(
+            vec![Declaration::new_with_identifier(
+                "a",
+                Some(Const::from(5).into()),
+            )]
+            .into(),
+        )
+        .into()],
     );
 }
 
@@ -55,7 +71,7 @@ fn var_declaration_no_spaces() {
 fn empty_var_declaration() {
     check_parser(
         "var a;",
-        vec![DeclarationList::Var(vec![Declaration::new("a", None)].into()).into()],
+        vec![DeclarationList::Var(vec![Declaration::new_with_identifier("a", None)].into()).into()],
     );
 }
 
@@ -66,9 +82,9 @@ fn multiple_var_declaration() {
         "var a = 5, b, c = 6;",
         vec![DeclarationList::Var(
             vec![
-                Declaration::new("a", Some(Const::from(5).into())),
-                Declaration::new("b", None),
-                Declaration::new("c", Some(Const::from(6).into())),
+                Declaration::new_with_identifier("a", Some(Const::from(5).into())),
+                Declaration::new_with_identifier("b", None),
+                Declaration::new_with_identifier("c", Some(Const::from(6).into())),
             ]
             .into(),
         )
@@ -81,10 +97,14 @@ fn multiple_var_declaration() {
 fn let_declaration() {
     check_parser(
         "let a = 5;",
-        vec![
-            DeclarationList::Let(vec![Declaration::new("a", Node::from(Const::from(5)))].into())
-                .into(),
-        ],
+        vec![DeclarationList::Let(
+            vec![Declaration::new_with_identifier(
+                "a",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
+        )
+        .into()],
     );
 }
 
@@ -94,7 +114,11 @@ fn let_declaration_keywords() {
     check_parser(
         "let yield = 5;",
         vec![DeclarationList::Let(
-            vec![Declaration::new("yield", Node::from(Const::from(5)))].into(),
+            vec![Declaration::new_with_identifier(
+                "yield",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -102,7 +126,11 @@ fn let_declaration_keywords() {
     check_parser(
         "let await = 5;",
         vec![DeclarationList::Let(
-            vec![Declaration::new("await", Node::from(Const::from(5)))].into(),
+            vec![Declaration::new_with_identifier(
+                "await",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -113,10 +141,14 @@ fn let_declaration_keywords() {
 fn let_declaration_no_spaces() {
     check_parser(
         "let a=5;",
-        vec![
-            DeclarationList::Let(vec![Declaration::new("a", Node::from(Const::from(5)))].into())
-                .into(),
-        ],
+        vec![DeclarationList::Let(
+            vec![Declaration::new_with_identifier(
+                "a",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
+        )
+        .into()],
     );
 }
 
@@ -125,7 +157,7 @@ fn let_declaration_no_spaces() {
 fn empty_let_declaration() {
     check_parser(
         "let a;",
-        vec![DeclarationList::Let(vec![Declaration::new("a", None)].into()).into()],
+        vec![DeclarationList::Let(vec![Declaration::new_with_identifier("a", None)].into()).into()],
     );
 }
 
@@ -136,9 +168,9 @@ fn multiple_let_declaration() {
         "let a = 5, b, c = 6;",
         vec![DeclarationList::Let(
             vec![
-                Declaration::new("a", Node::from(Const::from(5))),
-                Declaration::new("b", None),
-                Declaration::new("c", Node::from(Const::from(6))),
+                Declaration::new_with_identifier("a", Node::from(Const::from(5))),
+                Declaration::new_with_identifier("b", None),
+                Declaration::new_with_identifier("c", Node::from(Const::from(6))),
             ]
             .into(),
         )
@@ -152,7 +184,11 @@ fn const_declaration() {
     check_parser(
         "const a = 5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new("a", Node::from(Const::from(5)))].into(),
+            vec![Declaration::new_with_identifier(
+                "a",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -164,7 +200,11 @@ fn const_declaration_keywords() {
     check_parser(
         "const yield = 5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new("yield", Node::from(Const::from(5)))].into(),
+            vec![Declaration::new_with_identifier(
+                "yield",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -172,7 +212,11 @@ fn const_declaration_keywords() {
     check_parser(
         "const await = 5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new("await", Node::from(Const::from(5)))].into(),
+            vec![Declaration::new_with_identifier(
+                "await",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -184,7 +228,11 @@ fn const_declaration_no_spaces() {
     check_parser(
         "const a=5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new("a", Node::from(Const::from(5)))].into(),
+            vec![Declaration::new_with_identifier(
+                "a",
+                Node::from(Const::from(5)),
+            )]
+            .into(),
         )
         .into()],
     );
@@ -203,8 +251,8 @@ fn multiple_const_declaration() {
         "const a = 5, c = 6;",
         vec![DeclarationList::Const(
             vec![
-                Declaration::new("a", Node::from(Const::from(5))),
-                Declaration::new("c", Node::from(Const::from(6))),
+                Declaration::new_with_identifier("a", Node::from(Const::from(5))),
+                Declaration::new_with_identifier("c", Node::from(Const::from(6))),
             ]
             .into(),
         )

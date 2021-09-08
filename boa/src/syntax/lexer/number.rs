@@ -2,12 +2,12 @@
 
 use super::{Cursor, Error, TokenKind, Tokenizer};
 use crate::{
-    builtins::BigInt,
     profiler::BoaProfiler,
     syntax::{
         ast::{Position, Span},
         lexer::{token::Numeric, Token},
     },
+    JsBigInt,
 };
 use std::io::Read;
 use std::str;
@@ -377,7 +377,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         let num = match kind {
             NumericKind::BigInt(base) => {
                 Numeric::BigInt(
-                    BigInt::from_string_radix(num_str, base).expect("Could not convert to BigInt")
+                    JsBigInt::from_string_radix(num_str, base).expect("Could not convert to BigInt")
                     )
             }
             NumericKind::Rational /* base: 10 */ => {

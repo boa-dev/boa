@@ -6,6 +6,7 @@ on:
 
 jobs:
   benchmark:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     name: Upload docs and run benchmarks
     runs-on: ubuntu-latest
     steps:

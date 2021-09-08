@@ -4,7 +4,8 @@ use super::Parser;
 use crate::syntax::ast::{
     node::{
         field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
-        FormalParameter, FunctionDecl, Identifier, If, New, Node, Return, StatementList, UnaryOp,
+        FormalParameter, FunctionDecl, Identifier, If, New, Node, Object, PropertyDefinition,
+        Return, StatementList, UnaryOp,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -74,7 +75,7 @@ fn hoisting() {
             )
             .into(),
             DeclarationList::Var(
-                vec![Declaration::new(
+                vec![Declaration::new_with_identifier(
                     "a",
                     Node::from(Call::new(Identifier::from("hello"), vec![])),
                 )]
@@ -94,7 +95,7 @@ fn hoisting() {
         vec![
             Assign::new(Identifier::from("a"), Const::from(10)).into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
-            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
+            DeclarationList::Var(vec![Declaration::new_with_identifier("a", None)].into()).into(),
         ],
     );
 }
@@ -144,7 +145,7 @@ fn comment_semi_colon_insertion() {
         s,
         vec![
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "a",
                     Some(Const::Int(10).into()),
                 )]
@@ -152,7 +153,7 @@ fn comment_semi_colon_insertion() {
             )
             .into(),
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "b",
                     Some(Const::Int(20).into()),
                 )]
@@ -176,7 +177,7 @@ fn multiline_comment_semi_colon_insertion() {
         s,
         vec![
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "a",
                     Some(Const::Int(10).into()),
                 )]
@@ -184,7 +185,7 @@ fn multiline_comment_semi_colon_insertion() {
             )
             .into(),
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "b",
                     Some(Const::Int(20).into()),
                 )]
@@ -205,7 +206,7 @@ fn multiline_comment_no_lineterminator() {
         s,
         vec![
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "a",
                     Some(Const::Int(10).into()),
                 )]
@@ -213,7 +214,7 @@ fn multiline_comment_no_lineterminator() {
             )
             .into(),
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "b",
                     Some(Const::Int(20).into()),
                 )]
@@ -237,7 +238,7 @@ fn assignment_line_terminator() {
         s,
         vec![
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "a",
                     Some(Const::Int(3).into()),
                 )]
@@ -265,7 +266,7 @@ fn assignment_multiline_terminator() {
         s,
         vec![
             DeclarationList::Let(
-                vec![Declaration::new::<&str, Option<Node>>(
+                vec![Declaration::new_with_identifier::<&str, Option<Node>>(
                     "a",
                     Some(Const::Int(3).into()),
                 )]
@@ -300,6 +301,33 @@ fn increment_in_comma_op() {
 }
 
 #[test]
+fn spread_in_object() {
+    let s = r#"
+    let x = {
+      a: 1,
+      ...b,
+    }
+    "#;
+
+    let object_properties = vec![
+        PropertyDefinition::property("a", Const::from(1)),
+        PropertyDefinition::spread_object(Identifier::from("b")),
+    ];
+
+    check_parser(
+        s,
+        vec![DeclarationList::Let(
+            vec![Declaration::new_with_identifier::<&str, Option<Node>>(
+                "x",
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
+        )
+        .into()],
+    );
+}
+
+#[test]
 fn spread_in_arrow_function() {
     let s = r#"
     (...b) => {
@@ -328,8 +356,14 @@ fn empty_statement() {
         ",
         vec![
             Node::Empty,
-            DeclarationList::Var(vec![Declaration::new("a", Node::from(Const::from(10)))].into())
+            DeclarationList::Var(
+                vec![Declaration::new_with_identifier(
+                    "a",
+                    Node::from(Const::from(10)),
+                )]
                 .into(),
+            )
+            .into(),
             Node::If(If::new::<_, _, Node, _>(
                 Identifier::from("a"),
                 Node::Empty,

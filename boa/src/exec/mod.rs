@@ -3,19 +3,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{Context, Result, Value};
+use crate::{Context, JsResult, JsValue};
 
 pub trait Executable {
     /// Runs this executable in the given context.
-    fn run(&self, context: &mut Context) -> Result<Value>;
+    fn run(&self, context: &mut Context) -> JsResult<JsValue>;
 }
 
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) enum InterpreterState {
     Executing,
     Return,
-    #[cfg(feature = "vm")]
-    Error,
     Break(Option<Box<str>>),
     Continue(Option<Box<str>>),
 }

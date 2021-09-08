@@ -8,8 +8,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
 use crate::{
-    builtins::bigint::BigInt,
     gc::{Finalize, Trace},
+    JsBigInt,
 };
 use std::fmt::{Display, Formatter, Result};
 
@@ -76,7 +76,7 @@ pub enum Const {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-bigint-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
-    BigInt(BigInt),
+    BigInt(JsBigInt),
 
     /// The Boolean type has two literal values: `true` and `false`.
     ///
@@ -151,8 +151,8 @@ impl From<i32> for Const {
     }
 }
 
-impl From<BigInt> for Const {
-    fn from(i: BigInt) -> Self {
+impl From<JsBigInt> for Const {
+    fn from(i: JsBigInt) -> Self {
         Self::BigInt(i)
     }
 }

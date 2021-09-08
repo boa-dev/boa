@@ -1,5 +1,8 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
+// builtins module has a lot of built-in functions that need unnecessary_wraps
+#![allow(clippy::unnecessary_wraps)]
+
 pub mod array;
 pub mod bigint;
 pub mod boolean;
@@ -50,8 +53,8 @@ pub(crate) use self::{
     undefined::Undefined,
 };
 use crate::{
-    property::{Attribute, DataDescriptor},
-    Context, Value,
+    property::{Attribute, PropertyDescriptor},
+    Context, JsValue,
 };
 
 pub(crate) trait BuiltIn {
@@ -59,7 +62,7 @@ pub(crate) trait BuiltIn {
     const NAME: &'static str;
 
     fn attribute() -> Attribute;
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute);
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute);
 }
 
 /// Initializes builtin objects and functions
@@ -101,7 +104,33 @@ pub fn init(context: &mut Context) {
 
     for init in &globals {
         let (name, value, attribute) = init(context);
-        let property = DataDescriptor::new(value, attribute);
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .writable(attribute.writable())
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
         global_object.borrow_mut().insert(name, property);
+    }
+}
+
+pub trait JsArgs {
+    /// Utility function to `get` a parameter from
+    /// a `[JsValue]` or default to `JsValue::Undefined`
+    /// if `get` returns `None`.
+    ///
+    /// Call this if you are thinking of calling something similar to
+    /// `args.get(n).cloned().unwrap_or_default()` or
+    /// `args.get(n).unwrap_or(&undefined)`.
+    ///
+    /// This returns a reference for efficiency, in case
+    /// you only need to call methods of `JsValue`, so
+    /// try to minimize calling `clone`.
+    fn get_or_undefined(&self, index: usize) -> &JsValue;
+}
+
+impl JsArgs for [JsValue] {
+    fn get_or_undefined(&self, index: usize) -> &JsValue {
+        const UNDEFINED: &JsValue = &JsValue::Undefined;
+        self.get(index).unwrap_or(UNDEFINED)
     }
 }

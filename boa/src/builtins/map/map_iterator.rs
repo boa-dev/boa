@@ -1,19 +1,13 @@
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
-    object::{GcObject, ObjectData},
-    property::{Attribute, DataDescriptor},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    object::{JsObject, ObjectData},
+    property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 use gc::{Finalize, Trace};
 
-#[derive(Debug, Clone, Finalize, Trace)]
-pub enum MapIterationKind {
-    Key,
-    Value,
-    KeyAndValue,
-}
-
+use super::{ordered_map::MapLock, Map};
 /// The Map Iterator object represents an iteration over a map. It implements the iterator protocol.
 ///
 /// More information:
@@ -22,21 +16,24 @@ pub enum MapIterationKind {
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct MapIterator {
-    iterated_map: Value,
+    iterated_map: JsValue,
     map_next_index: usize,
-    map_iteration_kind: MapIterationKind,
+    map_iteration_kind: PropertyNameKind,
+    lock: MapLock,
 }
 
 impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
     /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: Value, kind: MapIterationKind) -> Self {
-        MapIterator {
+    fn new(map: JsValue, kind: PropertyNameKind, context: &mut Context) -> JsResult<Self> {
+        let lock = Map::lock(&map, context)?;
+        Ok(MapIterator {
             iterated_map: map,
             map_next_index: 0,
             map_iteration_kind: kind,
-        }
+            lock,
+        })
     }
 
     /// Abstract operation CreateMapIterator( map, kind )
@@ -48,17 +45,17 @@ impl MapIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        context: &Context,
-        map: Value,
-        kind: MapIterationKind,
-    ) -> Value {
-        let map_iterator = Value::new_object(context);
-        map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
+        context: &mut Context,
+        map: JsValue,
+        kind: PropertyNameKind,
+    ) -> JsResult<JsValue> {
+        let map_iterator = JsValue::new_object(context);
+        map_iterator.set_data(ObjectData::map_iterator(Self::new(map, kind, context)?));
         map_iterator
             .as_object()
             .expect("map iterator object")
             .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-        map_iterator
+        Ok(map_iterator)
     }
 
     /// %MapIteratorPrototype%.next( )
@@ -69,8 +66,8 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref object) = this {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(map_iterator) = object.as_map_iterator_mut() {
                 let m = &map_iterator.iterated_map;
@@ -78,40 +75,45 @@ impl MapIterator {
                 let item_kind = &map_iterator.map_iteration_kind;
 
                 if map_iterator.iterated_map.is_undefined() {
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
 
-                if let Value::Object(ref object) = m {
+                if let JsValue::Object(ref object) = m {
                     if let Some(entries) = object.borrow().as_map_ref() {
-                        let num_entries = entries.len();
+                        let num_entries = entries.full_len();
                         while index < num_entries {
                             let e = entries.get_index(index);
                             index += 1;
                             map_iterator.map_next_index = index;
                             if let Some((key, value)) = e {
                                 match item_kind {
-                                    MapIterationKind::Key => {
+                                    PropertyNameKind::Key => {
                                         return Ok(create_iter_result_object(
                                             context,
                                             key.clone(),
                                             false,
                                         ));
                                     }
-                                    MapIterationKind::Value => {
+                                    PropertyNameKind::Value => {
                                         return Ok(create_iter_result_object(
                                             context,
                                             value.clone(),
                                             false,
                                         ));
                                     }
-                                    MapIterationKind::KeyAndValue => {
-                                        let result = Array::construct_array(
-                                            &Array::new_array(context),
-                                            &[key.clone(), value.clone()],
+                                    PropertyNameKind::KeyAndValue => {
+                                        let result = Array::create_array_from_list(
+                                            [key.clone(), value.clone()],
                                             context,
-                                        )?;
+                                        );
                                         return Ok(create_iter_result_object(
-                                            context, result, false,
+                                            context,
+                                            result.into(),
+                                            false,
                                         ));
                                     }
                                 }
@@ -124,8 +126,12 @@ impl MapIterator {
                     return Err(context.construct_type_error("'this' is not a Map"));
                 }
 
-                map_iterator.iterated_map = Value::undefined();
-                Ok(create_iter_result_object(context, Value::undefined(), true))
+                map_iterator.iterated_map = JsValue::undefined();
+                Ok(create_iter_result_object(
+                    context,
+                    JsValue::undefined(),
+                    true,
+                ))
             } else {
                 context.throw_type_error("`this` is not an MapIterator")
             }
@@ -140,19 +146,20 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let mut map_iterator = context.construct_object();
+        let map_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
         map_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-        let to_string_tag_property = DataDescriptor::new(
-            "Map Iterator",
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let to_string_tag_property = PropertyDescriptor::builder()
+            .value("Map Iterator")
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         map_iterator.insert(to_string_tag, to_string_tag_property);
         map_iterator
     }

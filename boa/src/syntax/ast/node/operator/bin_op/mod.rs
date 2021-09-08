@@ -6,18 +6,12 @@ use crate::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "vm")]
-use crate::{
-    profiler::BoaProfiler,
-    vm::{compilation::CodeGen, Compiler, Instruction},
-};
 
 /// Binary operators requires two operands, one before the operator and one after the operator.
 ///
@@ -64,7 +58,7 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &mut Context) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: JsValue, y: &Node, context: &mut Context) -> JsResult<JsValue> {
         match op {
             AssignOp::Add => x.add(&y.run(context)?, context),
             AssignOp::Sub => x.sub(&y.run(context)?, context),
@@ -104,7 +98,7 @@ impl BinOp {
 }
 
 impl Executable for BinOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(context)?;
@@ -133,7 +127,7 @@ impl Executable for BinOp {
             op::BinOp::Comp(op) => {
                 let x = self.lhs().run(context)?;
                 let y = self.rhs().run(context)?;
-                Ok(Value::from(match op {
+                Ok(JsValue::new(match op {
                     CompOp::Equal => x.equals(&y, context)?,
                     CompOp::NotEqual => !x.equals(&y, context)?,
                     CompOp::StrictEqual => x.strict_equals(&y),
@@ -146,11 +140,11 @@ impl Executable for BinOp {
                         if !y.is_object() {
                             return context.throw_type_error(format!(
                                 "right-hand side of 'in' should be an object, got {}",
-                                y.get_type().as_str()
+                                y.type_of()
                             ));
                         }
                         let key = x.to_property_key(context)?;
-                        context.has_property(&y, &key)
+                        context.has_property(&y, &key)?
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
@@ -172,7 +166,7 @@ impl Executable for BinOp {
                         } else {
                             return context.throw_type_error(format!(
                                 "right-hand side of 'instanceof' should be an object, got {}",
-                                y.get_type().as_str()
+                                y.type_of()
                             ));
                         }
                     }
@@ -216,65 +210,15 @@ impl Executable for BinOp {
                     let v_r_a = get_const_field.obj().run(context)?;
                     let v_a = v_r_a.get_field(get_const_field.field(), context)?;
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
-                    v_r_a.set_field(get_const_field.field(), value.clone(), context)?;
+                    v_r_a.set_field(get_const_field.field(), value.clone(), false, context)?;
                     Ok(value)
                 }
-                _ => Ok(Value::undefined()),
+                _ => Ok(JsValue::undefined()),
             },
             op::BinOp::Comma => {
                 self.lhs().run(context)?;
                 Ok(self.rhs().run(context)?)
             }
-        }
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for BinOp {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("binOp", "codeGen");
-        match self.op() {
-            op::BinOp::Num(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
-                match op {
-                    NumOp::Add => compiler.add_instruction(Instruction::Add),
-                    NumOp::Sub => compiler.add_instruction(Instruction::Sub),
-                    NumOp::Mul => compiler.add_instruction(Instruction::Mul),
-                    NumOp::Div => compiler.add_instruction(Instruction::Div),
-                    NumOp::Exp => compiler.add_instruction(Instruction::Pow),
-                    NumOp::Mod => compiler.add_instruction(Instruction::Mod),
-                }
-            }
-            op::BinOp::Bit(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
-                match op {
-                    BitOp::And => compiler.add_instruction(Instruction::BitAnd),
-                    BitOp::Or => compiler.add_instruction(Instruction::BitOr),
-                    BitOp::Xor => compiler.add_instruction(Instruction::BitXor),
-                    BitOp::Shl => compiler.add_instruction(Instruction::Shl),
-                    BitOp::Shr => compiler.add_instruction(Instruction::Shr),
-                    BitOp::UShr => compiler.add_instruction(Instruction::UShr),
-                }
-            }
-            op::BinOp::Comp(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
-                match op {
-                    CompOp::Equal => compiler.add_instruction(Instruction::Eq),
-                    CompOp::NotEqual => compiler.add_instruction(Instruction::NotEq),
-                    CompOp::StrictEqual => compiler.add_instruction(Instruction::StrictEq),
-                    CompOp::StrictNotEqual => compiler.add_instruction(Instruction::StrictNotEq),
-                    CompOp::GreaterThan => compiler.add_instruction(Instruction::Gt),
-                    CompOp::GreaterThanOrEqual => compiler.add_instruction(Instruction::Ge),
-                    CompOp::LessThan => compiler.add_instruction(Instruction::Lt),
-                    CompOp::LessThanOrEqual => compiler.add_instruction(Instruction::Le),
-                    CompOp::In => compiler.add_instruction(Instruction::In),
-                    CompOp::InstanceOf => compiler.add_instruction(Instruction::InstanceOf),
-                }
-            }
-            _ => unimplemented!(),
         }
     }
 }

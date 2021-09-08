@@ -16,7 +16,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 /// Boolean implementation.
@@ -31,7 +31,7 @@ impl BuiltIn for Boolean {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let boolean_object = ConstructorBuilder::with_standard_object(
@@ -57,31 +57,31 @@ impl Boolean {
     ///
     /// `[[Call]]` Creates a new boolean primitive
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         // Get the argument, if any
         let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
         if new_target.is_undefined() {
-            return Ok(Value::from(data));
+            return Ok(JsValue::new(data));
         }
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().object_object().prototype());
-        let boolean = Value::new_object(context);
+        let boolean = JsValue::new_object(context);
 
         boolean
             .as_object()
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
-        boolean.set_data(ObjectData::Boolean(data));
+        boolean.set_data(ObjectData::boolean(data));
 
         Ok(boolean)
     }
@@ -92,10 +92,10 @@ impl Boolean {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
-    fn this_boolean_value(value: &Value, context: &mut Context) -> Result<bool> {
+    fn this_boolean_value(value: &JsValue, context: &mut Context) -> JsResult<bool> {
         match value {
-            Value::Boolean(boolean) => return Ok(*boolean),
-            Value::Object(ref object) => {
+            JsValue::Boolean(boolean) => return Ok(*boolean),
+            JsValue::Object(ref object) => {
                 let object = object.borrow();
                 if let Some(boolean) = object.as_boolean() {
                     return Ok(boolean);
@@ -116,9 +116,13 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this, context)?;
-        Ok(Value::from(boolean.to_string()))
+        Ok(JsValue::new(boolean.to_string()))
     }
 
     /// The valueOf() method returns the primitive value of a `Boolean` object.
@@ -130,7 +134,11 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
     #[inline]
-    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(Value::from(Self::this_boolean_value(this, context)?))
+    pub(crate) fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_boolean_value(this, context)?))
     }
 }

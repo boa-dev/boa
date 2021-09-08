@@ -15,7 +15,7 @@ fn check_async_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "add",
                 Some(
                     AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(
@@ -43,14 +43,14 @@ fn check_nested_async_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "a",
                 Some(
                     AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(
                         None,
                         [],
                         vec![DeclarationList::Const(
-                            vec![Declaration::new(
+                            vec![Declaration::new_with_identifier(
                                 "b",
                                 Some(
                                     AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(

@@ -4,7 +4,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -105,26 +105,27 @@ impl Switch {
     pub(in crate::syntax::ast::node) fn display(
         &self,
         f: &mut fmt::Formatter<'_>,
-        indent: usize,
+        indentation: usize,
     ) -> fmt::Result {
+        let indent = "    ".repeat(indentation);
         writeln!(f, "switch ({}) {{", self.val())?;
         for e in self.cases().iter() {
-            writeln!(f, "{}case {}:", indent, e.condition())?;
-            e.body().display(f, indent)?;
+            writeln!(f, "{}    case {}:", indent, e.condition())?;
+            e.body().display(f, indentation + 2)?;
         }
 
         if let Some(ref default) = self.default {
-            writeln!(f, "{}default:", indent)?;
-            default.display(f, indent + 1)?;
+            writeln!(f, "{}    default:", indent)?;
+            default.display(f, indentation + 2)?;
         }
-        writeln!(f, "{}}}", indent)
+        write!(f, "{}}}", indent)
     }
 }
 
 impl Executable for Switch {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let val = self.val().run(context)?;
-        let mut result = Value::null();
+        let mut result = JsValue::null();
         let mut matched = false;
         context
             .executor()
@@ -161,8 +162,6 @@ impl Executable for Switch {
                         // Continuing execution / falling through to next case statement(s).
                         fall_through = true;
                     }
-                    #[cfg(feature = "vm")]
-                    InterpreterState::Error => {}
                 }
             }
         }

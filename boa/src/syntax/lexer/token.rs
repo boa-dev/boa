@@ -8,9 +8,9 @@
 use super::regex::RegExpFlags;
 
 use crate::{
-    builtins::BigInt,
     syntax::ast::{Keyword, Punctuator, Span},
     syntax::lexer::template::TemplateString,
+    JsBigInt,
 };
 use std::fmt::{self, Debug, Display, Formatter};
 
@@ -69,7 +69,7 @@ pub enum Numeric {
     Integer(i32),
 
     // A BigInt
-    BigInt(BigInt),
+    BigInt(JsBigInt),
 }
 
 impl From<f64> for Numeric {
@@ -86,9 +86,9 @@ impl From<i32> for Numeric {
     }
 }
 
-impl From<BigInt> for Numeric {
+impl From<JsBigInt> for Numeric {
     #[inline]
-    fn from(n: BigInt) -> Self {
+    fn from(n: JsBigInt) -> Self {
         Self::BigInt(n)
     }
 }

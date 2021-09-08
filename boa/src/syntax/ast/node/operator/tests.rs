@@ -113,3 +113,28 @@ fn logical_assignment() {
 
     assert_eq!(&exec(scenario), "20");
 }
+
+#[test]
+fn fmt() {
+    super::super::test_formatting(
+        r#"
+        let a = 20;
+        a += 10;
+        a -= 10;
+        a *= 10;
+        a **= 10;
+        a /= 10;
+        a %= 10;
+        a &= 10;
+        a |= 10;
+        a ^= 10;
+        a <<= 10;
+        a >>= 10;
+        a >>>= 10;
+        a &&= 10;
+        a ||= 10;
+        a ??= 10;
+        a;
+        "#,
+    );
+}

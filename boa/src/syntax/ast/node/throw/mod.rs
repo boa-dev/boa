@@ -2,12 +2,15 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `throw` statement throws a user-defined exception.
 ///
@@ -47,7 +50,7 @@ impl Throw {
 
 impl Executable for Throw {
     #[inline]
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         Err(self.expr().run(context)?)
     }
 }

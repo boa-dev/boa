@@ -1,6 +1,6 @@
 use super::Array;
 use crate::builtins::Number;
-use crate::{forward, Context, Value};
+use crate::{forward, Context, JsValue};
 
 #[test]
 fn is_array() {
@@ -13,58 +13,58 @@ fn is_array() {
     context.eval(init).unwrap();
     assert_eq!(
         context.eval("Array.isArray(empty)").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray(new_arr)").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray(many)").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray([1, 2, 3])").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray([])").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray({})").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     // assert_eq!(context.eval("Array.isArray(new Array)"), "true");
     assert_eq!(
         context.eval("Array.isArray()").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context
             .eval("Array.isArray({ constructor: Array })")
             .unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context
             .eval("Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })")
             .unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context.eval("Array.isArray(17)").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context
             .eval("Array.isArray({ __proto__: Array.prototype })")
             .unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context.eval("Array.isArray({ length: 0 })").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
 }
 
@@ -109,51 +109,68 @@ fn of() {
         .unwrap();
     assert_eq!(
         context.eval("a instanceof Date").unwrap(),
-        Value::from(true)
+        JsValue::new(true)
     );
-    assert_eq!(context.eval("a[0]").unwrap(), Value::from("a"));
-    assert_eq!(context.eval("a[1]").unwrap(), Value::undefined());
-    assert_eq!(context.eval("a[2]").unwrap(), Value::from(3));
-    assert_eq!(context.eval("a.length").unwrap(), Value::from(3));
+    assert_eq!(context.eval("a[0]").unwrap(), JsValue::new("a"));
+    assert_eq!(context.eval("a[1]").unwrap(), JsValue::undefined());
+    assert_eq!(context.eval("a[2]").unwrap(), JsValue::new(3));
+    assert_eq!(context.eval("a.length").unwrap(), JsValue::new(3));
 }
 
 #[ignore]
+#[test]
 fn concat() {
-    //TODO: array display formatter
     let mut context = Context::new();
     let init = r#"
-    var empty = new Array();
-    var one = new Array(1);
+    var empty = [];
+    var one = [1];
     "#;
     context.eval(init).unwrap();
     // Empty ++ Empty
     let ee = context
         .eval("empty.concat(empty)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
+        .display()
+        .to_string();
     assert_eq!(ee, "[]");
     // Empty ++ NonEmpty
     let en = context
         .eval("empty.concat(one)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
-    assert_eq!(en, "[a]");
+        .display()
+        .to_string();
+    assert_eq!(en, "[ 1 ]");
     // NonEmpty ++ Empty
     let ne = context
         .eval("one.concat(empty)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
-    assert_eq!(ne, "a.b.c");
+        .display()
+        .to_string();
+    assert_eq!(ne, "[ 1 ]");
     // NonEmpty ++ NonEmpty
     let nn = context
         .eval("one.concat(one)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
-    assert_eq!(nn, "a.b.c");
+        .display()
+        .to_string();
+    assert_eq!(nn, "[ 1, 1 ]");
+}
+
+#[test]
+fn copy_within() {
+    let mut context = Context::new();
+
+    let target = forward(&mut context, "[1,2,3,4,5].copyWithin(-2).join('.')");
+    assert_eq!(target, String::from("\"1.2.3.1.2\""));
+
+    let start = forward(&mut context, "[1,2,3,4,5].copyWithin(0, 3).join('.')");
+    assert_eq!(start, String::from("\"4.5.3.4.5\""));
+
+    let end = forward(&mut context, "[1,2,3,4,5].copyWithin(0, 3, 4).join('.')");
+    assert_eq!(end, String::from("\"4.2.3.4.5\""));
+
+    let negatives = forward(&mut context, "[1,2,3,4,5].copyWithin(-2, -3, -1).join('.')");
+    assert_eq!(negatives, String::from("\"1.2.3.3.4\""));
 }
 
 #[test]
@@ -694,7 +711,7 @@ fn fill() {
 
     assert_eq!(
         forward(&mut context, "a.fill().join()"),
-        String::from("\"undefined,undefined,undefined\"")
+        String::from("\",,\"")
     );
 
     // test object reference
@@ -750,12 +767,11 @@ fn map() {
         var one = ["x"];
         var many = ["x", "y", "z"];
 
-        // TODO: uncomment when `this` has been implemented
-        // var _this = { answer: 42 };
+        var _this = { answer: 42 };
 
-        // function callbackThatUsesThis() {
-        //      return 'The answer to life is: ' + this.answer;
-        // }
+        function callbackThatUsesThis() {
+             return 'The answer to life is: ' + this.answer;
+        }
 
         var empty_mapped = empty.map(v => v + '_');
         var one_mapped = one.map(v => '_' + v);
@@ -801,10 +817,9 @@ fn map() {
         String::from("\"_x__y__z_\"")
     );
 
-    // TODO: uncomment when `this` has been implemented
     // One but it uses `this` inside the callback
-    // let one_with_this = forward(&mut context, "one.map(callbackThatUsesThis, _this)[0];");
-    // assert_eq!(one_with_this, String::from("The answer to life is: 42"))
+    let one_with_this = forward(&mut context, "one.map(callbackThatUsesThis, _this)[0];");
+    assert_eq!(one_with_this, String::from("\"The answer to life is: 42\""))
 }
 
 #[test]
@@ -1062,7 +1077,7 @@ fn reduce() {
     );
     assert_eq!(
         result,
-        "\"Reduce was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduce: called on an empty array and with no initial value\""
     );
 
     // Array with no defined elements
@@ -1081,7 +1096,7 @@ fn reduce() {
     );
     assert_eq!(
         result,
-        "\"Reduce was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduce: called on an empty array and with no initial value\""
     );
 
     // No callback
@@ -1095,7 +1110,10 @@ fn reduce() {
         }
     "#,
     );
-    assert_eq!(result, "\"Reduce was called without a callback\"");
+    assert_eq!(
+        result,
+        "\"Array.prototype.reduce: callback function is not callable\""
+    );
 }
 
 #[test]
@@ -1184,7 +1202,7 @@ fn reduce_right() {
     );
     assert_eq!(
         result,
-        "\"reduceRight was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduceRight: called on an empty array and with no initial value\""
     );
 
     // Array with no defined elements
@@ -1203,7 +1221,7 @@ fn reduce_right() {
     );
     assert_eq!(
         result,
-        "\"reduceRight was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduceRight: called on an empty array and with no initial value\""
     );
 
     // No callback
@@ -1217,7 +1235,10 @@ fn reduce_right() {
         }
     "#,
     );
-    assert_eq!(result, "\"reduceRight was called without a callback\"");
+    assert_eq!(
+        result,
+        "\"Array.prototype.reduceRight: callback function is not callable\""
+    );
 }
 
 #[test]
@@ -1403,47 +1424,47 @@ fn get_relative_start() {
 
     assert_eq!(Array::get_relative_start(&mut context, None, 10), Ok(0));
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::undefined()), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::undefined()), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::NEG_INFINITY)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::INFINITY)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::INFINITY)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(-1)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(-1)), 10),
         Ok(9)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(1)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(1)), 10),
         Ok(1)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(-11)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(-11)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(11)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(11)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::MIN)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MIN)), 10),
         Ok(0)
     );
     assert_eq!(
         Array::get_relative_start(
             &mut context,
-            Some(&Value::from(Number::MIN_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MIN_SAFE_INTEGER)),
             10
         ),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::MAX)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MAX)), 10),
         Ok(10)
     );
 
@@ -1451,7 +1472,7 @@ fn get_relative_start() {
     assert_eq!(
         Array::get_relative_start(
             &mut context,
-            Some(&Value::from(Number::MAX_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MAX_SAFE_INTEGER)),
             10
         ),
         Ok(10)
@@ -1464,47 +1485,47 @@ fn get_relative_end() {
 
     assert_eq!(Array::get_relative_end(&mut context, None, 10), Ok(10));
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::undefined()), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::undefined()), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::NEG_INFINITY)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::INFINITY)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::INFINITY)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(-1)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(-1)), 10),
         Ok(9)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(1)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(1)), 10),
         Ok(1)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(-11)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(-11)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(11)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(11)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::MIN)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MIN)), 10),
         Ok(0)
     );
     assert_eq!(
         Array::get_relative_end(
             &mut context,
-            Some(&Value::from(Number::MIN_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MIN_SAFE_INTEGER)),
             10
         ),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::MAX)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MAX)), 10),
         Ok(10)
     );
 
@@ -1512,7 +1533,7 @@ fn get_relative_end() {
     assert_eq!(
         Array::get_relative_end(
             &mut context,
-            Some(&Value::from(Number::MAX_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MAX_SAFE_INTEGER)),
             10
         ),
         Ok(10)
@@ -1521,9 +1542,30 @@ fn get_relative_end() {
 
 #[test]
 fn array_length_is_not_enumerable() {
-    let context = Context::new();
+    let mut context = Context::new();
 
-    let array = Array::new_array(&context);
+    let array = Array::new_array(&mut context);
     let desc = array.get_property("length").unwrap();
-    assert!(!desc.enumerable());
+    assert!(!desc.expect_enumerable());
+}
+
+#[test]
+fn array_sort() {
+    let mut context = Context::new();
+    let init = r#"
+        let arr = ['80', '9', '700', 40, 1, 5, 200];
+
+        function compareNumbers(a, b) {
+            return a - b;
+        }
+    "#;
+    forward(&mut context, init);
+    assert_eq!(
+        forward(&mut context, "arr.sort().join()"),
+        "\"1,200,40,5,700,80,9\""
+    );
+    assert_eq!(
+        forward(&mut context, "arr.sort(compareNumbers).join()"),
+        "\"1,5,9,40,80,200,700\""
+    );
 }

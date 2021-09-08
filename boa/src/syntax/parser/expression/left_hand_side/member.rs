@@ -69,7 +69,12 @@ where
         {
             let _ = cursor.next().expect("new keyword disappeared");
             let lhs = self.parse(cursor)?;
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let args = match cursor.peek(0)? {
+                Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
+                    Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?
+                }
+                _ => Box::new([]),
+            };
             let call_node = Call::new(lhs, args);
 
             Node::from(New::from(call_node))

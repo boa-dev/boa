@@ -6,8 +6,9 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa::{parse, Context, Value};
+use boa::{parse, Context, JsValue};
 use colored::Colorize;
+use rayon::prelude::*;
 use std::panic;
 
 impl TestSuite {
@@ -17,17 +18,15 @@ impl TestSuite {
             println!("Suite {}:", self.name);
         }
 
-        // TODO: in parallel
         let suites: Vec<_> = self
             .suites
-            .iter()
+            .par_iter()
             .map(|suite| suite.run(harness, verbose))
             .collect();
 
-        // TODO: in parallel
         let tests: Vec<_> = self
             .tests
-            .iter()
+            .par_iter()
             .map(|test| test.run(harness, verbose))
             .flatten()
             .collect();
@@ -138,7 +137,7 @@ impl Test {
                 Outcome::Positive => {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
 
-                    match self.set_up_env(&harness, strict) {
+                    match self.set_up_env(harness, strict) {
                         Ok(mut context) => {
                             let res = context.eval(&self.content.as_ref());
 
@@ -184,7 +183,7 @@ impl Test {
                     if let Err(e) = parse(&self.content.as_ref(), strict) {
                         (false, format!("Uncaught {}", e))
                     } else {
-                        match self.set_up_env(&harness, strict) {
+                        match self.set_up_env(harness, strict) {
                             Ok(mut context) => match context.eval(&self.content.as_ref()) {
                                 Ok(res) => (false, format!("{}", res.display())),
                                 Err(e) => {
@@ -313,6 +312,6 @@ impl Test {
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &Value, _: &[Value], _context: &mut Context) -> boa::Result<Value> {
+fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> boa::JsResult<JsValue> {
     todo!("print() function");
 }

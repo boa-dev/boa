@@ -3,7 +3,7 @@
 use crate::{
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use gc::{Finalize, Trace};
 use std::fmt;
@@ -64,24 +64,26 @@ impl AsyncFunctionExpr {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        f.write_str("function")?;
+        f.write_str("async function")?;
         if let Some(ref name) = self.name {
             write!(f, " {}", name)?;
         }
         f.write_str("(")?;
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
-
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+        if self.body().is_empty() {
+            f.write_str(") {}")
+        } else {
+            f.write_str(") {\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
 impl Executable for AsyncFunctionExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
         // TODO: Implement AsyncFunctionExpr
-        Ok(Value::Undefined)
+        Ok(JsValue::undefined())
     }
 }
 

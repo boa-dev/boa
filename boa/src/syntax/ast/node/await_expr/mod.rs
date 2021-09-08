@@ -1,12 +1,15 @@
 //! Await expression node.
 
 use super::Node;
-use crate::{exec::Executable, BoaProfiler, Context, Result, Value};
+use crate::{exec::Executable, BoaProfiler, Context, JsResult, JsValue};
 use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// An await expression is used within an async function to pause execution and wait for a
 /// promise to resolve.
@@ -24,18 +27,10 @@ pub struct AwaitExpr {
 }
 
 impl Executable for AwaitExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("AwaitExpression", "exec");
         // TODO: Implement AwaitExpr
-        Ok(Value::Undefined)
-    }
-}
-
-impl AwaitExpr {
-    /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        writeln!(f, "await ")?;
-        self.expr.display(f, indentation)
+        Ok(JsValue::undefined())
     }
 }
 
@@ -50,7 +45,8 @@ where
 
 impl fmt::Display for AwaitExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+        write!(f, "await ")?;
+        self.expr.display(f, 0)
     }
 }
 

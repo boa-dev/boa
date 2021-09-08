@@ -2,8 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    value::{Type, Value},
-    Context, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -62,10 +61,10 @@ impl GetField {
 }
 
 impl Executable for GetField {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let mut obj = self.obj().run(context)?;
-        if obj.get_type() != Type::Object {
-            obj = Value::Object(obj.to_object(context)?);
+        if !obj.is_object() {
+            obj = JsValue::Object(obj.to_object(context)?);
         }
         let field = self.field().run(context)?;
 

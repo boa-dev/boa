@@ -6,8 +6,8 @@ use crate::{
     },
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    syntax::ast::node::{Declaration, Node},
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -59,9 +59,11 @@ impl ForOfLoop {
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        write!(f, "for ({} of {}) {{", self.variable, self.iterable)?;
-        self.body().display(f, indentation + 1)?;
-        f.write_str("}")
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
+        write!(f, "for ({} of {}) ", self.variable, self.iterable)?;
+        self.body().display(f, indentation)
     }
 }
 
@@ -78,11 +80,11 @@ impl From<ForOfLoop> for Node {
 }
 
 impl Executable for ForOfLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(context)?;
         let iterator = get_iterator(context, iterable)?;
-        let mut result = Value::undefined();
+        let mut result = JsValue::undefined();
 
         loop {
             {
@@ -116,15 +118,37 @@ impl Executable for ForOfLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        if context.has_binding(var.name()) {
-                            context.set_mutable_binding(var.name(), next_result, true)?;
-                        } else {
-                            context.create_mutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Function,
-                            )?;
-                            context.initialize_binding(var.name(), next_result)?;
+                        match &var {
+                            Declaration::Identifier { ident, .. } => {
+                                if context.has_binding(ident.as_ref()) {
+                                    context.set_mutable_binding(
+                                        ident.as_ref(),
+                                        next_result,
+                                        true,
+                                    )?;
+                                } else {
+                                    context.create_mutable_binding(
+                                        ident.to_string(),
+                                        false,
+                                        VariableScope::Function,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), next_result)?;
+                                }
+                            }
+                            Declaration::Pattern(p) => {
+                                for (ident, value) in p.run(Some(next_result), context)? {
+                                    if context.has_binding(ident.as_ref()) {
+                                        context.set_mutable_binding(ident.as_ref(), value, true)?;
+                                    } else {
+                                        context.create_mutable_binding(
+                                            ident.to_string(),
+                                            false,
+                                            VariableScope::Function,
+                                        )?;
+                                        context.initialize_binding(ident.as_ref(), value)?;
+                                    }
+                                }
+                            }
                         }
                     }
                     _ => {
@@ -139,13 +163,26 @@ impl Executable for ForOfLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        context.create_mutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        )?;
-
-                        context.initialize_binding(var.name(), next_result)?;
+                        match &var {
+                            Declaration::Identifier { ident, .. } => {
+                                context.create_mutable_binding(
+                                    ident.to_string(),
+                                    false,
+                                    VariableScope::Block,
+                                )?;
+                                context.initialize_binding(ident.as_ref(), next_result)?;
+                            }
+                            Declaration::Pattern(p) => {
+                                for (ident, value) in p.run(Some(next_result), context)? {
+                                    context.create_mutable_binding(
+                                        ident.to_string(),
+                                        false,
+                                        VariableScope::Block,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), value)?;
+                                }
+                            }
+                        }
                     }
                     _ => {
                         return context.throw_syntax_error(
@@ -159,12 +196,26 @@ impl Executable for ForOfLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        context.create_immutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        )?;
-                        context.initialize_binding(var.name(), next_result)?;
+                        match &var {
+                            Declaration::Identifier { ident, .. } => {
+                                context.create_immutable_binding(
+                                    ident.to_string(),
+                                    false,
+                                    VariableScope::Block,
+                                )?;
+                                context.initialize_binding(ident.as_ref(), next_result)?;
+                            }
+                            Declaration::Pattern(p) => {
+                                for (ident, value) in p.run(Some(next_result), context)? {
+                                    context.create_immutable_binding(
+                                        ident.to_string(),
+                                        false,
+                                        VariableScope::Block,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), value)?;
+                                }
+                            }
+                        }
                     }
                     _ => {
                         return context.throw_syntax_error(
@@ -196,8 +247,6 @@ impl Executable for ForOfLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
-                #[cfg(feature = "vm")]
-                InterpreterState::Error => {}
             }
             let _ = context.pop_environment();
         }

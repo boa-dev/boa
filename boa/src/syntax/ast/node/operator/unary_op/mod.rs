@@ -2,18 +2,14 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
-    Context, Result, Value,
+    Context, JsBigInt, JsResult, JsValue,
 };
 use std::fmt;
 
+use crate::builtins::Number;
+use crate::value::Numeric;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "vm")]
-use crate::{
-    profiler::BoaProfiler,
-    vm::{compilation::CodeGen, Compiler, Instruction},
-};
 
 /// A unary operation is an operation with only one operand.
 ///
@@ -54,10 +50,10 @@ impl UnaryOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         Ok(match self.op() {
             op::UnaryOp::Minus => self.target().run(context)?.neg(context)?,
-            op::UnaryOp::Plus => Value::from(self.target().run(context)?.to_number(context)?),
+            op::UnaryOp::Plus => JsValue::new(self.target().run(context)?.to_number(context)?),
             op::UnaryOp::IncrementPost => {
                 let x = self.target().run(context)?;
                 let ret = x.clone();
@@ -82,35 +78,34 @@ impl Executable for UnaryOp {
             }
             op::UnaryOp::Not => self.target().run(context)?.not(context)?.into(),
             op::UnaryOp::Tilde => {
-                let num_v_a = self.target().run(context)?.to_number(context)?;
-                Value::from(if num_v_a.is_nan() {
-                    -1
-                } else {
-                    // TODO: this is not spec compliant.
-                    !(num_v_a as i32)
-                })
+                let expr = self.target().run(context)?;
+                let old_v = expr.to_numeric(context)?;
+                match old_v {
+                    Numeric::Number(x) => JsValue::new(Number::not(x)),
+                    Numeric::BigInt(x) => JsValue::new(JsBigInt::not(&x)),
+                }
             }
             op::UnaryOp::Void => {
                 self.target().run(context)?;
-                Value::undefined()
+                JsValue::undefined()
             }
             op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => Value::boolean(
+                Node::GetConstField(ref get_const_field) => JsValue::new(
                     get_const_field
                         .obj()
                         .run(context)?
                         .to_object(context)?
-                        .delete(&get_const_field.field().into()),
+                        .__delete__(&get_const_field.field().into(), context)?,
                 ),
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
                     let res = obj
                         .to_object(context)?
-                        .delete(&field.to_property_key(context)?);
-                    return Ok(Value::boolean(res));
+                        .__delete__(&field.to_property_key(context)?, context)?;
+                    return Ok(JsValue::new(res));
                 }
-                Node::Identifier(_) => Value::boolean(false),
+                Node::Identifier(_) => JsValue::new(false),
                 Node::ArrayDecl(_)
                 | Node::Block(_)
                 | Node::Const(_)
@@ -118,10 +113,10 @@ impl Executable for UnaryOp {
                 | Node::FunctionExpr(_)
                 | Node::New(_)
                 | Node::Object(_)
-                | Node::UnaryOp(_) => Value::boolean(true),
+                | Node::UnaryOp(_) => JsValue::new(true),
                 _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
             },
-            op::UnaryOp::TypeOf => Value::from(self.target().run(context)?.get_type().as_str()),
+            op::UnaryOp::TypeOf => JsValue::new(self.target().run(context)?.type_of()),
         })
     }
 }
@@ -135,26 +130,5 @@ impl fmt::Display for UnaryOp {
 impl From<UnaryOp> for Node {
     fn from(op: UnaryOp) -> Self {
         Self::UnaryOp(op)
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for UnaryOp {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("UnaryOp", "codeGen");
-        self.target().compile(compiler);
-        match self.op {
-            op::UnaryOp::Void => compiler.add_instruction(Instruction::Void),
-            op::UnaryOp::Plus => compiler.add_instruction(Instruction::Pos),
-            op::UnaryOp::Minus => compiler.add_instruction(Instruction::Neg),
-            op::UnaryOp::TypeOf => compiler.add_instruction(Instruction::TypeOf),
-            op::UnaryOp::Not => compiler.add_instruction(Instruction::Not),
-            op::UnaryOp::Tilde => compiler.add_instruction(Instruction::BitNot),
-            op::UnaryOp::IncrementPost => {}
-            op::UnaryOp::IncrementPre => {}
-            op::UnaryOp::DecrementPost => {}
-            op::UnaryOp::DecrementPre => {}
-            op::UnaryOp::Delete => {}
-        }
     }
 }

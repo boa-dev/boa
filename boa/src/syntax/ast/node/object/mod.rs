@@ -3,17 +3,17 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
-    syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
-    BoaProfiler, Context, Result, Value,
+    property::PropertyDescriptor,
+    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition},
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "vm")]
-use crate::vm::{compilation::CodeGen, Compiler, Instruction};
+#[cfg(test)]
+mod tests;
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -53,45 +53,48 @@ impl Object {
         indent: usize,
     ) -> fmt::Result {
         f.write_str("{\n")?;
+        let indentation = "    ".repeat(indent + 1);
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::IdentifierReference(key) => {
-                    write!(f, "{}    {},", indent, key)?;
+                    writeln!(f, "{}{},", indentation, key)?;
                 }
                 PropertyDefinition::Property(key, value) => {
-                    write!(f, "{}    {}: {},", indent, key, value)?;
+                    write!(f, "{}{}: ", indentation, key,)?;
+                    value.display_no_indent(f, indent + 1)?;
+                    writeln!(f, ",")?;
+                }
+                PropertyDefinition::ComputedPropertyName(key, value) => {
+                    writeln!(f, "{}{},", indentation, key)?;
+                    value.display_no_indent(f, indent + 1)?;
+                    writeln!(f, ",")?;
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    write!(f, "{}    ...{},", indent, key)?;
+                    writeln!(f, "{}...{},", indentation, key)?;
                 }
-                PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
-                    // TODO: Implement display for PropertyDefinition::MethodDefinition.
-                    unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                PropertyDefinition::MethodDefinition(kind, key, node) => {
+                    write!(f, "{}", indentation)?;
+                    match &kind {
+                        MethodDefinitionKind::Get => write!(f, "get ")?,
+                        MethodDefinitionKind::Set => write!(f, "set ")?,
+                        MethodDefinitionKind::Ordinary => (),
+                    }
+                    write!(f, "{}(", key)?;
+                    join_nodes(f, node.parameters())?;
+                    write!(f, ") ")?;
+                    node.display_block(f, indent + 1)?;
+                    writeln!(f, ",")?;
                 }
             }
         }
-        f.write_str("}")
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for Object {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("object", "codeGen");
-        // Is it a new empty object?
-        if self.properties.len() == 0 {
-            compiler.add_instruction(Instruction::NewObject);
-            return;
-        }
-
-        unimplemented!()
+        write!(f, "{}}}", "    ".repeat(indent))
     }
 }
 
 impl Executable for Object {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("object", "exec");
-        let obj = Value::new_object(context);
+        let obj = JsValue::new_object(context);
 
         // TODO: Implement the rest of the property types.
         for property in self.properties().iter() {
@@ -99,58 +102,80 @@ impl Executable for Object {
                 PropertyDefinition::Property(key, value) => {
                     obj.set_property(
                         key.clone(),
-                        PropertyDescriptor::Data(DataDescriptor::new(
-                            value.run(context)?,
-                            Attribute::all(),
-                        )),
+                        PropertyDescriptor::builder()
+                            .value(value.run(context)?)
+                            .writable(true)
+                            .enumerable(true)
+                            .configurable(true),
+                    );
+                }
+                PropertyDefinition::ComputedPropertyName(key, value) => {
+                    obj.set_property(
+                        key.run(context)?.to_property_key(context)?,
+                        PropertyDescriptor::builder()
+                            .value(value.run(context)?)
+                            .writable(true)
+                            .enumerable(true)
+                            .configurable(true),
                     );
                 }
                 PropertyDefinition::MethodDefinition(kind, name, func) => match kind {
                     MethodDefinitionKind::Ordinary => {
                         obj.set_property(
                             name.clone(),
-                            PropertyDescriptor::Data(DataDescriptor::new(
-                                func.run(context)?,
-                                Attribute::all(),
-                            )),
+                            PropertyDescriptor::builder()
+                                .value(func.run(context)?)
+                                .writable(true)
+                                .enumerable(true)
+                                .configurable(true),
                         );
                     }
                     MethodDefinitionKind::Get => {
                         let set = obj
                             .get_property(name.clone())
                             .as_ref()
-                            .and_then(|p| p.as_accessor_descriptor())
-                            .and_then(|a| a.setter().cloned());
+                            .and_then(|a| a.set())
+                            .cloned();
                         obj.set_property(
                             name.clone(),
-                            PropertyDescriptor::Accessor(AccessorDescriptor {
-                                get: func.run(context)?.as_object(),
-                                set,
-                                attributes: Attribute::WRITABLE
-                                    | Attribute::ENUMERABLE
-                                    | Attribute::CONFIGURABLE,
-                            }),
+                            PropertyDescriptor::builder()
+                                .maybe_get(func.run(context)?.as_object())
+                                .maybe_set(set)
+                                .enumerable(true)
+                                .configurable(true),
                         )
                     }
                     MethodDefinitionKind::Set => {
                         let get = obj
                             .get_property(name.clone())
                             .as_ref()
-                            .and_then(|p| p.as_accessor_descriptor())
-                            .and_then(|a| a.getter().cloned());
+                            .and_then(|a| a.get())
+                            .cloned();
                         obj.set_property(
                             name.clone(),
-                            PropertyDescriptor::Accessor(AccessorDescriptor {
-                                get,
-                                set: func.run(context)?.as_object(),
-                                attributes: Attribute::WRITABLE
-                                    | Attribute::ENUMERABLE
-                                    | Attribute::CONFIGURABLE,
-                            }),
+                            PropertyDescriptor::builder()
+                                .maybe_get(get)
+                                .maybe_set(func.run(context)?.as_object())
+                                .enumerable(true)
+                                .configurable(true),
                         )
                     }
                 },
-                _ => {} //unimplemented!("{:?} type of property", i),
+                // [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation
+                PropertyDefinition::SpreadObject(node) => {
+                    let val = node.run(context)?;
+
+                    if val.is_null_or_undefined() {
+                        continue;
+                    }
+
+                    obj.as_object().unwrap().copy_data_properties::<String>(
+                        &val,
+                        vec![],
+                        context,
+                    )?;
+                }
+                _ => {} // unimplemented!("{:?} type of property", i),
             }
         }
 

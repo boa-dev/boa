@@ -16,7 +16,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     profiler::BoaProfiler,
     property::Attribute,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 
 /// JavaScript `SyntaxError` impleentation.
@@ -30,7 +30,7 @@ impl BuiltIn for SyntaxError {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let error_prototype = context.standard_objects().error_object().prototype();
@@ -57,31 +57,31 @@ impl SyntaxError {
 
     /// Create a new error object.
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().error_object().prototype());
-        let mut obj = context.construct_object();
+        let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
-        let this = Value::from(obj);
+        let this = JsValue::new(obj);
         if let Some(message) = args.get(0) {
             if !message.is_undefined() {
-                this.set_field("message", message.to_string(context)?, context)?;
+                this.set_field("message", message.to_string(context)?, false, context)?;
             }
         }
 
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_data(ObjectData::Error);
+        this.set_data(ObjectData::error());
         Ok(this)
     }
 }

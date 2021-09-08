@@ -3,16 +3,13 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    syntax::ast::node::{Declaration, Node},
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "vm")]
-use crate::vm::{compilation::CodeGen, Compiler};
 
 /// List of statements.
 ///
@@ -41,11 +38,10 @@ impl StatementList {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        let indent = "    ".repeat(indentation);
         // Print statements
         for node in self.items.iter() {
-            f.write_str(&indent)?;
-            node.display(f, indentation + 1)?;
+            // We rely on the node to add the correct indent.
+            node.display(f, indentation)?;
 
             match node {
                 Node::Block(_) | Node::If(_) | Node::Switch(_) | Node::WhileLoop(_) => {}
@@ -61,10 +57,21 @@ impl StatementList {
         for stmt in self.items() {
             if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
-                    if !set.insert(decl.name()) {
-                        // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
-                        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-                        unreachable!("Redeclaration of {}", decl.name());
+                    // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
+                    // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
+                    match decl {
+                        Declaration::Identifier { ident, .. } => {
+                            if !set.insert(ident.as_ref()) {
+                                unreachable!("Redeclaration of {}", ident.as_ref());
+                            }
+                        }
+                        Declaration::Pattern(p) => {
+                            for ident in p.idents() {
+                                if !set.insert(ident) {
+                                    unreachable!("Redeclaration of {}", ident);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -87,7 +94,16 @@ impl StatementList {
         for stmt in self.items() {
             if let Node::VarDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
-                    set.insert(decl.name());
+                    match decl {
+                        Declaration::Identifier { ident, .. } => {
+                            set.insert(ident.as_ref());
+                        }
+                        Declaration::Pattern(p) => {
+                            for ident in p.idents() {
+                                set.insert(ident.as_ref());
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -96,12 +112,12 @@ impl StatementList {
 }
 
 impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = Value::default();
+        let mut obj = JsValue::default();
         context
             .executor()
             .set_current_state(InterpreterState::Executing);
@@ -123,8 +139,6 @@ impl Executable for StatementList {
                 InterpreterState::Executing => {
                     // Continue execution
                 }
-                #[cfg(feature = "vm")]
-                InterpreterState::Error => {}
             }
             if i + 1 == self.items().len() {
                 obj = val;
@@ -132,17 +146,6 @@ impl Executable for StatementList {
         }
 
         Ok(obj)
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for StatementList {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("StatementList - Code Gen", "codeGen");
-
-        for item in self.items().iter() {
-            item.compile(compiler);
-        }
     }
 }
 

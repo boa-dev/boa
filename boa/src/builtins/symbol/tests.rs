@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, Context};
+use crate::{check_output, forward, forward_val, Context, TestAction};
 
 #[test]
 fn call_symbol_and_check_return_type() {
@@ -8,7 +8,7 @@ fn call_symbol_and_check_return_type() {
         "#;
     eprintln!("{}", forward(&mut context, init));
     let sym = forward_val(&mut context, "sym").unwrap();
-    assert_eq!(sym.is_symbol(), true);
+    assert!(sym.is_symbol());
 }
 
 #[test]
@@ -24,7 +24,6 @@ fn print_symbol_expect_description() {
 
 #[test]
 fn symbol_access() {
-    let mut context = Context::new();
     let init = r#"
         var x = {};
         var sym1 = Symbol("Hello");
@@ -32,8 +31,10 @@ fn symbol_access() {
         x[sym1] = 10;
         x[sym2] = 20;
         "#;
-    forward_val(&mut context, init).unwrap();
-    assert_eq!(forward(&mut context, "x[sym1]"), "10");
-    assert_eq!(forward(&mut context, "x[sym2]"), "20");
-    assert_eq!(forward(&mut context, "x['Symbol(Hello)']"), "undefined");
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq("x[sym1]", "10"),
+        TestAction::TestEq("x[sym2]", "20"),
+        TestAction::TestEq("x['Symbol(Hello)']", "undefined"),
+    ]);
 }

@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -50,7 +50,7 @@ impl ArrowFunctionDecl {
 
     /// Gets the body of the arrow function.
     pub(crate) fn body(&self) -> &[Node] {
-        &self.body.items()
+        self.body.items()
     }
 
     /// Implements the display formatting with indentation.
@@ -61,19 +61,23 @@ impl ArrowFunctionDecl {
     ) -> fmt::Result {
         write!(f, "(")?;
         join_nodes(f, &self.params)?;
-        f.write_str(") => ")?;
-        self.body.display(f, indentation)
+        if self.body().is_empty() {
+            f.write_str(") => {}")
+        } else {
+            f.write_str(") => {\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
 impl Executable for ArrowFunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         context.create_function(
+            "",
             self.params().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE
-                | FunctionFlags::CONSTRUCTABLE
-                | FunctionFlags::LEXICAL_THIS_MODE,
+            FunctionFlags::LEXICAL_THIS_MODE,
         )
     }
 }

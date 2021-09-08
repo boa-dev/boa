@@ -2,7 +2,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -46,26 +46,22 @@ impl Continue {
 }
 
 impl Executable for Continue {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         context
             .executor()
             .set_current_state(InterpreterState::Continue(self.label().map(Box::from)));
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 
 impl fmt::Display for Continue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "continue{}",
-            if let Some(label) = self.label() {
-                format!(" {}", label)
-            } else {
-                String::new()
-            }
-        )
+        write!(f, "continue")?;
+        if let Some(label) = self.label() {
+            write!(f, " {}", label)?;
+        }
+        Ok(())
     }
 }
 

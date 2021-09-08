@@ -3,7 +3,7 @@
 use crate::{
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use gc::{Finalize, Trace};
 use std::fmt;
@@ -64,27 +64,25 @@ impl AsyncFunctionDecl {
         indentation: usize,
     ) -> fmt::Result {
         match &self.name {
-            Some(name) => {
-                write!(f, "async function {}(", name)?;
-            }
-            None => {
-                write!(f, "async function (")?;
-            }
+            Some(name) => write!(f, "async function {}(", name)?,
+            None => write!(f, "async function (")?,
         }
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
-
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+        if self.body().is_empty() {
+            f.write_str(") {}")
+        } else {
+            f.write_str(") {\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
 impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
         // TODO: Implement AsyncFunctionDecl
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 

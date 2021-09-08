@@ -3,13 +3,16 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
-    value::Value,
-    BoaProfiler, Context, Result,
+    value::JsValue,
+    BoaProfiler, Context, JsResult,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `new` operator lets developers create an instance of a user-defined object type or of
 /// one of the built-in object types that has a constructor function.
@@ -35,17 +38,17 @@ pub struct New {
 impl New {
     /// Gets the name of the function call.
     pub fn expr(&self) -> &Node {
-        &self.call.expr()
+        self.call.expr()
     }
 
     /// Retrieves the arguments passed to the function.
     pub fn args(&self) -> &[Node] {
-        &self.call.args()
+        self.call.args()
     }
 }
 
 impl Executable for New {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
 
         let func_object = self.expr().run(context)?;
@@ -69,7 +72,9 @@ impl Executable for New {
         }
 
         match func_object {
-            Value::Object(ref object) => object.construct(&v_args, &object.clone().into(), context),
+            JsValue::Object(ref object) => {
+                object.construct(&v_args, &object.clone().into(), context)
+            }
             _ => context
                 .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
         }

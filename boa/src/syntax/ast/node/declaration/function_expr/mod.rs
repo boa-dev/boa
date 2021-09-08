@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -76,25 +76,35 @@ impl FunctionExpr {
         }
         f.write_str("(")?;
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
+        f.write_str(") ")?;
+        self.display_block(f, indentation)
+    }
 
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+    /// Displays the function's body. This includes the curly braces at the start and end.
+    /// This will not indent the first brace, but will indent the last brace.
+    pub(in crate::syntax::ast::node) fn display_block(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        indentation: usize,
+    ) -> fmt::Result {
+        if self.body().is_empty() {
+            f.write_str("{}")
+        } else {
+            f.write_str("{\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let val = context.create_function(
+            self.name().unwrap_or(""),
             self.parameters().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            FunctionFlags::CONSTRUCTABLE,
         )?;
-
-        if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name), context)?;
-        }
 
         Ok(val)
     }

@@ -5,12 +5,15 @@ use crate::{
     builtins::{iterable, Array},
     exec::Executable,
     gc::{Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
 /// language).
@@ -36,7 +39,7 @@ pub struct ArrayDecl {
 }
 
 impl Executable for ArrayDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
         let array = Array::new_array(context);
         let mut elements = Vec::new();

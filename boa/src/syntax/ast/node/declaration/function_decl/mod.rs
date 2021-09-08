@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -75,25 +75,25 @@ impl FunctionDecl {
     ) -> fmt::Result {
         write!(f, "function {}(", self.name)?;
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
-
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+        if self.body().is_empty() {
+            f.write_str(") {}")
+        } else {
+            f.write_str(") {\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
 impl Executable for FunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = context.create_function(
+            self.name(),
             self.parameters().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            FunctionFlags::CONSTRUCTABLE,
         )?;
-
-        // Set the name and assign it in the current environment
-        val.set_field("name", self.name(), context)?;
 
         if context.has_binding(self.name()) {
             context.set_mutable_binding(self.name(), val, true)?;
@@ -106,7 +106,7 @@ impl Executable for FunctionDecl {
 
             context.initialize_binding(self.name(), val)?;
         }
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 

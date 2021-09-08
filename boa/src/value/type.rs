@@ -1,7 +1,6 @@
-use super::Value;
+use super::JsValue;
 
 /// Possible types of values as defined at <https://tc39.es/ecma262/#sec-typeof-operator>.
-/// Note that an object which implements call is referred to here as 'Function'.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Type {
     Undefined,
@@ -12,31 +11,15 @@ pub enum Type {
     Symbol,
     BigInt,
     Object,
-    Function,
 }
 
-impl Type {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Number => "number",
-            Self::String => "string",
-            Self::Boolean => "boolean",
-            Self::Symbol => "symbol",
-            Self::Null => "object",
-            Self::Undefined => "undefined",
-            Self::Function => "function",
-            Self::Object => "object",
-            Self::BigInt => "bigint",
-        }
-    }
-}
-
-impl Value {
-    /// Get the type of the value.
+impl JsValue {
+    /// Get the type of a value
     ///
-    /// This is similar to typeof as described at <https://tc39.es/ecma262/#sec-typeof-operator> but instead of
-    /// returning a string it returns a Type enum which implements fmt::Display to allow getting the string if
-    /// required using to_string().
+    /// This is the abstract operation Type(v), as described in
+    /// <https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types>.
+    ///
+    /// Check [JsValue::type_of] if you need to call the `typeof` operator.
     pub fn get_type(&self) -> Type {
         match *self {
             Self::Rational(_) | Self::Integer(_) => Type::Number,
@@ -46,13 +29,7 @@ impl Value {
             Self::Null => Type::Null,
             Self::Undefined => Type::Undefined,
             Self::BigInt(_) => Type::BigInt,
-            Self::Object(ref object) => {
-                if object.is_function() {
-                    Type::Function
-                } else {
-                    Type::Object
-                }
-            }
+            Self::Object(_) => Type::Object,
         }
     }
 }

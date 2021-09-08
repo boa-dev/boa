@@ -17,11 +17,11 @@
 mod tests;
 
 use crate::{
-    builtins::BuiltIn,
+    builtins::{BuiltIn, JsArgs},
     object::ObjectInitializer,
     property::Attribute,
-    value::{display::display_obj, RcString, Value},
-    BoaProfiler, Context, Result,
+    value::{display::display_obj, JsValue},
+    BoaProfiler, Context, JsResult, JsString,
 };
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
@@ -33,14 +33,6 @@ pub enum LogMessage {
     Info(String),
     Warn(String),
     Error(String),
-}
-
-/// Helper function that returns the argument at a specified index.
-fn get_arg_at_index<'a, T>(args: &'a [Value], index: usize) -> Option<T>
-where
-    T: From<&'a Value> + Default,
-{
-    args.get(index).map(|s| T::from(s))
 }
 
 /// Helper function for logging messages.
@@ -58,7 +50,7 @@ pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
+pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     let target = data
         .get(0)
         .cloned()
@@ -98,7 +90,7 @@ pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
                         }
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
-                            let arg = data.get(arg_index).cloned().unwrap_or_default();
+                            let arg = data.get_or_undefined(arg_index);
                             formatted.push_str(&format!("{}", arg.display()));
                             arg_index += 1
                         }
@@ -137,8 +129,8 @@ pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub(crate) struct Console {
-    count_map: FxHashMap<RcString, u32>,
-    timer_map: FxHashMap<RcString, u128>,
+    count_map: FxHashMap<JsString, u32>,
+    timer_map: FxHashMap<JsString, u128>,
     groups: Vec<String>,
 }
 
@@ -149,7 +141,7 @@ impl BuiltIn for Console {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let console = ObjectInitializer::new(context)
             .function(Self::assert, "assert", 0)
@@ -192,19 +184,23 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#assert
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
-    pub(crate) fn assert(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
+    pub(crate) fn assert(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let assertion = args.get(0).map(JsValue::to_boolean).unwrap_or(false);
 
         if !assertion {
-            let mut args: Vec<Value> = args.iter().skip(1).cloned().collect();
+            let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();
             let message = "Assertion failed".to_string();
             if args.is_empty() {
-                args.push(Value::from(message));
+                args.push(JsValue::new(message));
             } else if !args[0].is_string() {
-                args.insert(0, Value::from(message));
+                args.insert(0, JsValue::new(message));
             } else {
                 let concat = format!("{}: {}", message, args[0].display());
-                args[0] = Value::from(concat);
+                args[0] = JsValue::new(concat);
             }
 
             logger(
@@ -213,7 +209,7 @@ impl Console {
             );
         }
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.clear()`
@@ -226,9 +222,9 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
-    pub(crate) fn clear(_: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn clear(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         context.console_mut().groups.clear();
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.debug(...data)`
@@ -241,12 +237,12 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#debug
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
-    pub(crate) fn debug(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn debug(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Log(formatter(args, context)?),
             context.console(),
         );
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.error(...data)`
@@ -259,12 +255,12 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#error
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
-    pub(crate) fn error(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn error(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Error(formatter(args, context)?),
             context.console(),
         );
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.info(...data)`
@@ -277,12 +273,12 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#info
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
-    pub(crate) fn info(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn info(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(formatter(args, context)?),
             context.console(),
         );
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.log(...data)`
@@ -295,12 +291,12 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
-    pub(crate) fn log(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn log(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Log(formatter(args, context)?),
             context.console(),
         );
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.trace(...data)`
@@ -313,7 +309,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#trace
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
-    pub(crate) fn trace(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(
                 LogMessage::Log(formatter(args, context)?),
@@ -327,7 +323,7 @@ impl Console {
             )
         }
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.warn(...data)`
@@ -340,12 +336,12 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#warn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
-    pub(crate) fn warn(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn warn(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Warn(formatter(args, context)?),
             context.console(),
         );
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.count(label)`
@@ -358,7 +354,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#count
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
-    pub(crate) fn count(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn count(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -372,7 +368,7 @@ impl Console {
             LogMessage::Info(format!("{} {}", msg, c)),
             context.console(),
         );
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.countReset(label)`
@@ -385,7 +381,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#countreset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
-    pub(crate) fn count_reset(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn count_reset(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -398,7 +398,7 @@ impl Console {
             context.console(),
         );
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// Returns current system time in ms.
@@ -419,7 +419,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#time
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
-    pub(crate) fn time(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn time(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -435,7 +435,7 @@ impl Console {
             context.console_mut().timer_map.insert(label, time);
         }
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.timeLog(label, ...data)`
@@ -448,7 +448,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#timelog
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
-    pub(crate) fn time_log(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn time_log(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -468,7 +472,7 @@ impl Console {
             );
         }
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.timeEnd(label)`
@@ -481,7 +485,11 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#timeend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
-    pub(crate) fn time_end(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn time_end(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
@@ -500,7 +508,7 @@ impl Console {
             );
         }
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.group(...data)`
@@ -513,7 +521,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#group
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
-    pub(crate) fn group(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn group(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
         logger(
@@ -522,7 +530,7 @@ impl Console {
         );
         context.console_mut().groups.push(group_label);
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.groupEnd(label)`
@@ -535,10 +543,14 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#groupend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
-    pub(crate) fn group_end(_: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn group_end(
+        _: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         context.console_mut().groups.pop();
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `console.dir(item, options)`
@@ -551,13 +563,12 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
-    pub(crate) fn dir(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let undefined = Value::undefined();
+    pub(crate) fn dir(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
-            LogMessage::Info(display_obj(args.get(0).unwrap_or(&undefined), true)),
+            LogMessage::Info(display_obj(args.get_or_undefined(0), true)),
             context.console(),
         );
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }

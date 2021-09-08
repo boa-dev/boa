@@ -2,12 +2,15 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `return` statement ends function execution and specifies a value to be returned to the
 /// function caller.
@@ -58,10 +61,10 @@ impl Return {
 }
 
 impl Executable for Return {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let result = match self.expr() {
-            Some(ref v) => v.run(context),
-            None => Ok(Value::undefined()),
+            Some(v) => v.run(context),
+            None => Ok(JsValue::undefined()),
         };
         // Set flag for return
         context

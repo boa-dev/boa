@@ -50,7 +50,7 @@ use super::Const;
 use crate::{
     exec::Executable,
     gc::{empty_trace, Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::{
     cmp::Ordering,
@@ -60,6 +60,7 @@ use std::{
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+// TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {
@@ -239,14 +240,28 @@ impl Node {
         Self::This
     }
 
-    /// Implements the display formatting with indentation.
+    /// Displays the value of the node with the given indentation. For example, an indent
+    /// level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
     fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         let indent = "    ".repeat(indentation);
         match *self {
             Self::Block(_) => {}
             _ => write!(f, "{}", indent)?,
         }
+        self.display_no_indent(f, indentation)
+    }
 
+    /// Implements the display formatting with indentation. This will not prefix the value with
+    /// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).
+    fn display_no_indent(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         match *self {
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::Const(ref c) => write!(f, "{}", c),
@@ -285,30 +300,30 @@ impl Node {
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::AwaitExpr(ref expr) => expr.display(f, indentation),
+            Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
             Self::Empty => write!(f, ";"),
         }
     }
 }
 
 impl Executable for Node {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
             Node::AwaitExpr(ref expr) => expr.run(context),
             Node::Call(ref call) => call.run(context),
-            Node::Const(Const::Null) => Ok(Value::null()),
-            Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
-            Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
-            Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
-            Node::Const(Const::Undefined) => Ok(Value::Undefined),
+            Node::Const(Const::Null) => Ok(JsValue::null()),
+            Node::Const(Const::Num(num)) => Ok(JsValue::new(num)),
+            Node::Const(Const::Int(num)) => Ok(JsValue::new(num)),
+            Node::Const(Const::BigInt(ref num)) => Ok(JsValue::new(num.clone())),
+            Node::Const(Const::Undefined) => Ok(JsValue::undefined()),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
-            Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
+            Node::Const(Const::String(ref value)) => Ok(JsValue::new(value.to_string())),
+            Node::Const(Const::Bool(value)) => Ok(JsValue::new(value)),
             Node::Block(ref block) => block.run(context),
             Node::Identifier(ref identifier) => identifier.run(context),
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
@@ -347,7 +362,7 @@ impl Executable for Node {
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
-            Node::Empty => Ok(Value::Undefined),
+            Node::Empty => Ok(JsValue::undefined()),
         }
     }
 }
@@ -469,6 +484,16 @@ pub enum PropertyDefinition {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
     Property(Box<str>, Node),
 
+    /// Binds a computed property name to a JavaScript value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
+    ComputedPropertyName(Node, Node),
+
     /// A property of an object can also refer to a function or a getter or setter method.
     ///
     /// More information:
@@ -587,4 +612,39 @@ pub enum MethodDefinitionKind {
 
 unsafe impl Trace for MethodDefinitionKind {
     empty_trace!();
+}
+
+/// This parses the given source code, and then makes sure that
+/// the resulting StatementList is formatted in the same manner
+/// as the source code. This is expected to have a preceding
+/// newline.
+///
+/// This is a utility function for tests. It was made in case people
+/// are using different indents in their source files. This fixes
+/// any strings which may have been changed in a different indent
+/// level.
+#[cfg(test)]
+fn test_formatting(source: &'static str) {
+    // Remove preceding newline.
+    let source = &source[1..];
+
+    // Find out how much the code is indented
+    let first_line = &source[..source.find('\n').unwrap()];
+    let trimmed_first_line = first_line.trim();
+    let characters_to_remove = first_line.len() - trimmed_first_line.len();
+
+    let scenario = source
+        .lines()
+        .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+        .collect::<Vec<&'static str>>()
+        .join("\n");
+    let result = format!("{}", crate::parse(&scenario, false).unwrap());
+    if scenario != result {
+        eprint!("========= Expected:\n{}", scenario);
+        eprint!("========= Got:\n{}", result);
+        // Might be helpful to find differing whitespace
+        eprintln!("========= Expected: {:?}", scenario);
+        eprintln!("========= Got:      {:?}", result);
+        panic!("parsing test did not give the correct result (see above)");
+    }
 }
