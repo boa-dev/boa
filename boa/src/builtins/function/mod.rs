@@ -305,7 +305,7 @@ impl BuiltInFunctionObject {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::object_object, context)?;
+            get_prototype_from_constructor(new_target, StandardObjects::function_object, context)?;
         let this = JsValue::new_object(context);
 
         this.as_object()

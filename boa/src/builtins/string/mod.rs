@@ -182,7 +182,7 @@ impl String {
         }
 
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::object_object, context)?;
+            get_prototype_from_constructor(new_target, StandardObjects::string_object, context)?;
         Ok(Self::string_create(string, prototype, context).into())
     }
 

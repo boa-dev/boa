@@ -168,7 +168,7 @@ impl Number {
             return Ok(JsValue::new(data));
         }
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::object_object, context)?;
+            get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
         let this = JsValue::new_object(context);
         this.as_object()
             .expect("this should be an object")

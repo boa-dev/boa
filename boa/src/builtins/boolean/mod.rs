@@ -68,7 +68,7 @@ impl Boolean {
             return Ok(JsValue::new(data));
         }
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::object_object, context)?;
+            get_prototype_from_constructor(new_target, StandardObjects::boolean_object, context)?;
         let boolean = JsValue::new_object(context);
 
         boolean
