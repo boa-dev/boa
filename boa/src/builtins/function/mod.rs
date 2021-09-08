@@ -114,7 +114,7 @@ unsafe impl Trace for FunctionFlags {
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Trace, Finalize)]
+#[derive(Clone, Trace, Finalize)]
 pub enum Function {
     Native {
         function: BuiltInFunction,
@@ -373,6 +373,83 @@ impl BuiltInFunctionObject {
         // TODO?: 5. PrepareForTailCall
         context.call(this, this_arg, &arg_list)
     }
+
+    #[allow(clippy::wrong_self_convention)]
+    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let name = {
+            // Is there a case here where if there is no name field on a value
+            // name should default to None? Do all functions have names set?
+            let value = this.get_field("name", &mut *context)?;
+            if value.is_null_or_undefined() {
+                None
+            } else {
+                Some(value.to_string(context)?)
+            }
+        };
+
+        let function = {
+            let object = this
+                .as_object()
+                .map(|object| object.borrow().as_function().cloned());
+
+            if let Some(Some(function)) = object {
+                function
+            } else {
+                return context.throw_type_error("Not a function");
+            }
+        };
+
+        match (&function, name) {
+            (
+                Function::Native {
+                    function: _,
+                    constructable: _,
+                },
+                Some(name),
+            ) => Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into()),
+            (Function::Ordinary { body, params, .. }, Some(name)) => {
+                let arguments: String = params
+                    .iter()
+                    .map(|param| param.name())
+                    .collect::<Vec<&str>>()
+                    .join(", ");
+
+                let statement_list = &*body;
+                // This is a kluge. The implementaion in browser seems to suggest that
+                // the value here is printed exactly as defined in source. I'm not sure if
+                // that's possible here, but for now here's a dumb heuristic that prints functions
+                let is_multiline = {
+                    let value = statement_list.to_string();
+                    value.lines().count() > 1
+                };
+                if is_multiline {
+                    Ok(
+                        // ?? For some reason statement_list string implementation
+                        // sticks a \n at the end no matter what
+                        format!(
+                            "{}({}) {{\n{}}}",
+                            &name,
+                            arguments,
+                            statement_list.to_string()
+                        )
+                        .into(),
+                    )
+                } else {
+                    Ok(format!(
+                        "{}({}) {{{}}}",
+                        &name,
+                        arguments,
+                        // The trim here is to remove a \n stuck at the end
+                        // of the statement_list to_string method
+                        statement_list.to_string().trim()
+                    )
+                    .into())
+                }
+            }
+
+            _ => Ok("TODO".into()),
+        }
+    }
 }
 
 impl BuiltIn for BuiltInFunctionObject {
@@ -401,6 +478,7 @@ impl BuiltIn for BuiltInFunctionObject {
         .length(Self::LENGTH)
         .method(Self::call, "call", 1)
         .method(Self::apply, "apply", 1)
+        .method(Self::to_string, "toString", 0)
         .build();
 
         (Self::NAME, function_object.into(), Self::attribute())
