@@ -859,6 +859,42 @@
 <span id="859">859</span>
 <span id="860">860</span>
 <span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
@@ -868,11 +904,14 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">context</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardObjects</span>},
     <span class="ident">object::JsObject</span>,
     <span class="ident">property</span>::{<span class="ident">DescriptorKind</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">value::JsValue</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
+
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::PROTOTYPE</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">string</span>;
@@ -1720,6 +1759,39 @@
 
     <span class="comment">// 10. Return true.</span>
     <span class="bool-val">true</span>
+}
+
+<span class="doccomment">/// Abstract operation `GetPrototypeFromConstructor`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getprototypefromconstructor</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="attribute">#[<span class="ident">track_caller</span>]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_prototype_from_constructor</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
+    <span class="ident">constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+    <span class="ident">default</span>: <span class="ident">F</span>,
+    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">StandardObjects</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span>,
+{
+    <span class="comment">// 1. Assert: intrinsicDefaultProto is this specification&#39;s name of an intrinsic</span>
+    <span class="comment">// object.</span>
+    <span class="comment">// The corresponding object must be an intrinsic that is intended to be used</span>
+    <span class="comment">// as the [[Prototype]] value of an object.</span>
+    <span class="comment">// 2. Let proto be ? Get(constructor, &quot;prototype&quot;).</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">as_object</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">proto</span>);
+        }
+    }
+    <span class="comment">// 3. If Type(proto) is not Object, then</span>
+    <span class="comment">// TODO: handle realms</span>
+    <span class="comment">// a. Let realm be ? GetFunctionRealm(constructor).</span>
+    <span class="comment">// b. Set proto to realm&#39;s intrinsic object named intrinsicDefaultProto.</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">default</span>(<span class="ident">context</span>.<span class="ident">standard_objects</span>()).<span class="ident">prototype</span>())
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>

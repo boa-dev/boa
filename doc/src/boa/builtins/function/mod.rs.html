@@ -479,11 +479,6 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -498,7 +493,9 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-function-objects</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function</span>
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::object::PROTOTYPE</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::StandardObjects</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::object::internal_methods::get_prototype_from_constructor</span>;
+
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">Array</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">environment::lexical_environment::Environment</span>,
@@ -789,15 +786,8 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">new_target</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
-                <span class="ident">obj</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(), <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">as_object</span>())
-                    .<span class="ident">transpose</span>()
-            })
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>());
+        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
+            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::function_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
 
         <span class="ident">this</span>.<span class="ident">as_object</span>()
