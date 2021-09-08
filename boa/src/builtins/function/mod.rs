@@ -334,7 +334,7 @@ impl BuiltInFunctionObject {
     fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let name = {
             // Is there a case here where if there is no name field on a value
-            // We it should default to None? Do all functions have names set?
+            // name should default to None? Do all functions have names set?
             let value = this.get_field("name", &mut *context)?;
             if value.is_null_or_undefined() {
                 None
