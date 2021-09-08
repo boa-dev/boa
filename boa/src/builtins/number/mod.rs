@@ -15,9 +15,10 @@
 
 use super::string::is_trimmable_whitespace;
 use super::{function::make_builtin_fn, JsArgs};
+use crate::context::StandardObjects;
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
@@ -166,15 +167,8 @@ impl Number {
         if new_target.is_undefined() {
             return Ok(JsValue::new(data));
         }
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
         let this = JsValue::new_object(context);
         this.as_object()
             .expect("this should be an object")

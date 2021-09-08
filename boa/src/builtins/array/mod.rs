@@ -17,7 +17,11 @@ use crate::{
     builtins::array::array_iterator::ArrayIterator,
     builtins::BuiltIn,
     builtins::Number,
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData, PROTOTYPE},
+    context::StandardObjects,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
+    },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
@@ -130,15 +134,8 @@ impl Array {
     ) -> JsResult<JsValue> {
         // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().array_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::array_object, context)?;
 
         // 3. Let numberOfArgs be the number of elements in values.
         let number_of_args = args.len();

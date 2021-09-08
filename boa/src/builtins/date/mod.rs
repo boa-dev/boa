@@ -3,8 +3,9 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
+    context::StandardObjects,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
@@ -340,15 +341,11 @@ impl Date {
         if new_target.is_undefined() {
             Ok(Self::make_date_string())
         } else {
-            let prototype = new_target
-                .as_object()
-                .and_then(|obj| {
-                    obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                        .map(|o| o.as_object())
-                        .transpose()
-                })
-                .transpose()?
-                .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+            let prototype = get_prototype_from_constructor(
+                new_target,
+                StandardObjects::object_object,
+                context,
+            )?;
             let obj = context.construct_object();
             obj.set_prototype_instance(prototype.into());
             let this = obj.into();

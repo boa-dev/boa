@@ -15,9 +15,10 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    context::StandardObjects,
     object::{
-        ConstructorBuilder, IntegrityLevel, JsObject, Object as BuiltinObject, ObjectData,
-        ObjectInitializer, ObjectKind, PROTOTYPE,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, IntegrityLevel,
+        JsObject, Object as BuiltinObject, ObjectData, ObjectInitializer, ObjectKind,
     },
     property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -99,15 +100,11 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if !new_target.is_undefined() {
-            let prototype = new_target
-                .as_object()
-                .and_then(|obj| {
-                    obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                        .map(|o| o.as_object())
-                        .transpose()
-                })
-                .transpose()?
-                .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+            let prototype = get_prototype_from_constructor(
+                new_target,
+                StandardObjects::object_object,
+                context,
+            )?;
             let object = JsValue::new_object(context);
 
             object

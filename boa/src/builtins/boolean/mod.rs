@@ -14,7 +14,8 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    context::StandardObjects,
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -66,15 +67,8 @@ impl Boolean {
         if new_target.is_undefined() {
             return Ok(JsValue::new(data));
         }
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::boolean_object, context)?;
         let boolean = JsValue::new_object(context);
 
         boolean

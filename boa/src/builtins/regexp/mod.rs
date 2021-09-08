@@ -13,8 +13,12 @@ pub mod regexp_string_iterator;
 
 use crate::{
     builtins::{array::Array, string, BuiltIn},
+    context::StandardObjects,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData, PROTOTYPE},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, Object, ObjectData,
+    },
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
@@ -257,17 +261,9 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
     fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let proto = if let Some(obj) = this.as_object() {
-            obj.get(PROTOTYPE, context)?
-        } else {
-            context
-                .standard_objects()
-                .regexp_object()
-                .prototype()
-                .into()
-        };
+        let proto = get_prototype_from_constructor(this, StandardObjects::regexp_object, context)?;
 
-        Ok(JsObject::new(Object::create(proto)).into())
+        Ok(JsObject::new(Object::create(proto.into())).into())
     }
 
     /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`

@@ -12,7 +12,11 @@
 
 use crate::{
     builtins::{iterable::get_iterator, BuiltIn},
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
+    context::StandardObjects,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        ObjectData,
+    },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
@@ -123,16 +127,8 @@ impl Set {
         }
 
         // 2
-        let set_prototype = context.standard_objects().set_object().prototype();
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or(set_prototype);
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::set_object, context)?;
 
         let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
