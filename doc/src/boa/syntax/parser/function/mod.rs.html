@@ -293,6 +293,12 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
@@ -563,6 +569,8 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FunctionStatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">global_strict_mode</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">false</span>;
+
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tk</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
             <span class="kw">match</span> <span class="ident">tk</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -570,12 +578,13 @@
                 }
                 <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">string</span>) <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;use strict&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
+                    <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
 
-        <span class="kw">let</span> <span class="ident">stmlist</span> <span class="op">=</span> <span class="ident">StatementList::new</span>(
+        <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">StatementList::new</span>(
             <span class="self">self</span>.<span class="ident">allow_yield</span>,
             <span class="self">self</span>.<span class="ident">allow_await</span>,
             <span class="bool-val">true</span>,
@@ -586,7 +595,10 @@
 
         <span class="comment">// Reset strict mode back to the global scope.</span>
         <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">global_strict_mode</span>);
-        <span class="ident">stmlist</span>
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">statement_list</span><span class="question-mark">?</span>;
+        <span class="ident">statement_list</span>.<span class="ident">set_strict</span>(<span class="ident">strict</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>)
     }
 }
 </pre></div>

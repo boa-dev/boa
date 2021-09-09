@@ -858,6 +858,57 @@
 <span id="858">858</span>
 <span id="859">859</span>
 <span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Javascript context.</span>
 
@@ -1073,6 +1124,14 @@
     }
 }
 
+<span class="doccomment">/// Internal representation of the strict mode types.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">StrictType</span> {
+    <span class="ident">Off</span>,
+    <span class="ident">Global</span>,
+    <span class="ident">Function</span>,
+}
+
 <span class="doccomment">/// Javascript context. It is the primary way to interact with the runtime.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Context`s constructed in a thread share the same runtime, therefore it</span>
@@ -1134,6 +1193,9 @@
 
     <span class="doccomment">/// Whether or not to show trace of instructions being ran</span>
     <span class="kw">pub</span> <span class="ident">trace</span>: <span class="ident">bool</span>,
+
+    <span class="doccomment">/// Whether or not strict mode is active.</span>
+    <span class="ident">strict</span>: <span class="ident">StrictType</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Context</span> {
@@ -1148,6 +1210,7 @@
             <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes::default</span>(),
             <span class="ident">standard_objects</span>: <span class="ident">Default::default</span>(),
             <span class="ident">trace</span>: <span class="bool-val">false</span>,
+            <span class="ident">strict</span>: <span class="ident">StrictType::Off</span>,
         };
 
         <span class="comment">// Add new builtIns to Context Realm</span>
@@ -1182,6 +1245,36 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">console_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Console</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">console</span>
+    }
+
+    <span class="doccomment">/// Returns if strict mode is currently active.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">strict</span>, <span class="ident">StrictType::Global</span> <span class="op">|</span> <span class="ident">StrictType::Function</span>)
+    }
+
+    <span class="doccomment">/// Returns the strict mode type.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">strict_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StrictType</span> {
+        <span class="self">self</span>.<span class="ident">strict</span>
+    }
+
+    <span class="doccomment">/// Set strict type.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_strict</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">strict</span>: <span class="ident">StrictType</span>) {
+        <span class="self">self</span>.<span class="ident">strict</span> <span class="op">=</span> <span class="ident">strict</span>;
+    }
+
+    <span class="doccomment">/// Disable the strict mode.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_strict_mode_off</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">strict</span> <span class="op">=</span> <span class="ident">StrictType::Off</span>;
+    }
+
+    <span class="doccomment">/// Enable the global strict mode.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_strict_mode_global</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">strict</span> <span class="op">=</span> <span class="ident">StrictType::Global</span>;
     }
 
     <span class="doccomment">/// Sets up the default global objects within Global</span>
@@ -1380,17 +1473,16 @@
     }
 
     <span class="doccomment">/// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">P</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">params</span>: <span class="ident">P</span>,
-        <span class="ident">body</span>: <span class="ident">B</span>,
+        <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="ident">StatementList</span>,
         <span class="ident">flags</span>: <span class="ident">FunctionFlags</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">StatementList</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">function_prototype</span>: <span class="ident">JsValue</span> <span class="op">=</span>
@@ -1399,11 +1491,16 @@
         <span class="comment">// Every new function has a prototype property pre-made</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_object</span>();
 
+        <span class="comment">// If a function is defined within a strict context, it is strict.</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">strict</span>() {
+            <span class="ident">body</span>.<span class="ident">set_strict</span>(<span class="bool-val">true</span>);
+        }
+
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">params_len</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">Function::Ordinary</span> {
             <span class="ident">flags</span>,
-            <span class="ident">body</span>: <span class="ident">RcStatementList::from</span>(<span class="ident">body</span>.<span class="ident">into</span>()),
+            <span class="ident">body</span>: <span class="ident">RcStatementList::from</span>(<span class="ident">body</span>),
             <span class="ident">params</span>,
             <span class="ident">environment</span>: <span class="self">self</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
         };
@@ -1651,7 +1748,12 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_string</span>());
 
         <span class="kw">let</span> <span class="ident">execution_result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">parsing_result</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">statement_list</span>.<span class="ident">run</span>(<span class="self">self</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">statement_list</span>.<span class="ident">strict</span>() {
+                    <span class="self">self</span>.<span class="ident">set_strict_mode_global</span>();
+                }
+                <span class="ident">statement_list</span>.<span class="ident">run</span>(<span class="self">self</span>)
+            }
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>),
         };
 

@@ -315,6 +315,14 @@
 <span id="315">315</span>
 <span id="316">316</span>
 <span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Execution module for the test runner.</span>
 
@@ -457,6 +465,9 @@
 
                     <span class="kw">match</span> <span class="self">self</span>.<span class="ident">set_up_env</span>(<span class="ident">harness</span>, <span class="ident">strict</span>) {
                         <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">strict</span> {
+                                <span class="ident">context</span>.<span class="ident">set_strict_mode_global</span>();
+                            }
                             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_ref</span>());
 
                             <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">is_ok</span>();
@@ -502,15 +513,20 @@
                         (<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>))
                     } <span class="kw">else</span> {
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">set_up_env</span>(<span class="ident">harness</span>, <span class="ident">strict</span>) {
-                            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_ref</span>()) {
-                                <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">res</span>.<span class="ident">display</span>())),
-                                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                    <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span>
-                                        <span class="ident">e</span>.<span class="ident">display</span>().<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="ident">error_type</span>.<span class="ident">as_ref</span>());
-
-                                    (<span class="ident">passed</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()))
+                            <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="kw">if</span> <span class="ident">strict</span> {
+                                    <span class="ident">context</span>.<span class="ident">set_strict_mode_global</span>();
                                 }
-                            },
+                                <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_ref</span>()) {
+                                    <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">res</span>.<span class="ident">display</span>())),
+                                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                        <span class="kw">let</span> <span class="ident">passed</span> <span class="op">=</span>
+                                            <span class="ident">e</span>.<span class="ident">display</span>().<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="ident">error_type</span>.<span class="ident">as_ref</span>());
+
+                                        (<span class="ident">passed</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>()))
+                                    }
+                                }
+                            }
                             <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="bool-val">false</span>, <span class="ident">e</span>),
                         }
                     }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.22+1.1.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.23+1.2.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../libgit2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -4065,6 +4065,35 @@
 <span id="4063">4063</span>
 <span id="4064">4064</span>
 <span id="4065">4065</span>
+<span id="4066">4066</span>
+<span id="4067">4067</span>
+<span id="4068">4068</span>
+<span id="4069">4069</span>
+<span id="4070">4070</span>
+<span id="4071">4071</span>
+<span id="4072">4072</span>
+<span id="4073">4073</span>
+<span id="4074">4074</span>
+<span id="4075">4075</span>
+<span id="4076">4076</span>
+<span id="4077">4077</span>
+<span id="4078">4078</span>
+<span id="4079">4079</span>
+<span id="4080">4080</span>
+<span id="4081">4081</span>
+<span id="4082">4082</span>
+<span id="4083">4083</span>
+<span id="4084">4084</span>
+<span id="4085">4085</span>
+<span id="4086">4086</span>
+<span id="4087">4087</span>
+<span id="4088">4088</span>
+<span id="4089">4089</span>
+<span id="4090">4090</span>
+<span id="4091">4091</span>
+<span id="4092">4092</span>
+<span id="4093">4093</span>
+<span id="4094">4094</span>
 </pre><pre class="rust">
 <span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/libgit2-sys/0.12&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>, <span class="ident">unused_extern_crates</span>)]</span>
@@ -4421,6 +4450,8 @@
 )]</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_transfer_progress</span> <span class="op">=</span> <span class="ident">git_indexer_progress</span>;
 
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_remote_ready_cb</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_remote</span>, <span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>;
+
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">git_remote_callbacks</span> {
     <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">c_uint</span>,
@@ -4436,6 +4467,7 @@
     <span class="kw">pub</span> <span class="ident">push_update_reference</span>: <span class="ident">git_push_update_reference_cb</span>,
     <span class="kw">pub</span> <span class="ident">push_negotiation</span>: <span class="ident">git_push_negotiation</span>,
     <span class="kw">pub</span> <span class="ident">transport</span>: <span class="ident">git_transport_cb</span>,
+    <span class="kw">pub</span> <span class="ident">remote_ready</span>: <span class="ident">git_remote_ready_cb</span>,
     <span class="kw">pub</span> <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="kw">pub</span> <span class="ident">resolve_url</span>: <span class="ident">git_url_resolve_cb</span>,
 }
@@ -5554,6 +5586,8 @@
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>,
     <span class="op">&gt;</span>,
 
+    <span class="kw">pub</span> <span class="ident">writemidx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_odb_backend</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
+
     <span class="kw">pub</span> <span class="ident">freshen</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_odb_backend</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
 
     <span class="kw">pub</span> <span class="ident">free</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_odb_backend</span>)<span class="op">&gt;</span>,
@@ -5813,6 +5847,20 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>,
 <span class="op">&gt;</span>;
 
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_commit_create_cb</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>
+    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
+        <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_oid</span>,
+        <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>,
+        <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>,
+        <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_tree</span>,
+        <span class="ident">usize</span>,
+        <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_commit</span>,
+        <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>,
+<span class="op">&gt;</span>;
+
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GIT_REBASE_NO_OPERATION</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">usize::max_value</span>();
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
@@ -5823,6 +5871,7 @@
     <span class="kw">pub</span> <span class="ident">rewrite_notes_ref</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
     <span class="kw">pub</span> <span class="ident">merge_options</span>: <span class="ident">git_merge_options</span>,
     <span class="kw">pub</span> <span class="ident">checkout_options</span>: <span class="ident">git_checkout_options</span>,
+    <span class="kw">pub</span> <span class="ident">commit_create_cb</span>: <span class="ident">git_commit_create_cb</span>,
     <span class="kw">pub</span> <span class="ident">signing_cb</span>: <span class="ident">git_commit_signing_cb</span>,
     <span class="kw">pub</span> <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
 }
@@ -5960,6 +6009,10 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_repository_mergehead_foreach_cb</span> <span class="op">=</span>
     <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">oid</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>, <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>;
 
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_repository_fetchhead_foreach_cb</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>
+    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>, <span class="ident">c_uint</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>,
+<span class="op">&gt;</span>;
+
 <span class="macro">git_enum!</span> {
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_trace_level_t</span> {
         <span class="comment">/* No tracing will be performed. */</span>
@@ -6082,6 +6135,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_repository_mergehead_foreach</span>(
         <span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>,
         <span class="ident">callback</span>: <span class="ident">git_repository_mergehead_foreach_cb</span>,
+        <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_repository_fetchhead_foreach</span>(
+        <span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>,
+        <span class="ident">callback</span>: <span class="ident">git_repository_fetchhead_foreach_cb</span>,
         <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_ignore_add_rule</span>(<span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>, <span class="ident">rules</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
