@@ -139,6 +139,9 @@ impl Test {
 
                     match self.set_up_env(harness, strict) {
                         Ok(mut context) => {
+                            if strict {
+                                context.set_strict_mode_global();
+                            }
                             let res = context.eval(&self.content.as_ref());
 
                             let passed = res.is_ok();
@@ -184,15 +187,20 @@ impl Test {
                         (false, format!("Uncaught {}", e))
                     } else {
                         match self.set_up_env(harness, strict) {
-                            Ok(mut context) => match context.eval(&self.content.as_ref()) {
-                                Ok(res) => (false, format!("{}", res.display())),
-                                Err(e) => {
-                                    let passed =
-                                        e.display().to_string().contains(error_type.as_ref());
-
-                                    (passed, format!("Uncaught {}", e.display()))
+                            Ok(mut context) => {
+                                if strict {
+                                    context.set_strict_mode_global();
                                 }
-                            },
+                                match context.eval(&self.content.as_ref()) {
+                                    Ok(res) => (false, format!("{}", res.display())),
+                                    Err(e) => {
+                                        let passed =
+                                            e.display().to_string().contains(error_type.as_ref());
+
+                                        (passed, format!("Uncaught {}", e.display()))
+                                    }
+                                }
+                            }
                             Err(e) => (false, e),
                         }
                     }

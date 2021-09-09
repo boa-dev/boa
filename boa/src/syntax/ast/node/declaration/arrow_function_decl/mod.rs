@@ -49,8 +49,8 @@ impl ArrowFunctionDecl {
     }
 
     /// Gets the body of the arrow function.
-    pub(crate) fn body(&self) -> &[Node] {
-        self.body.items()
+    pub(crate) fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
@@ -61,7 +61,7 @@ impl ArrowFunctionDecl {
     ) -> fmt::Result {
         write!(f, "(")?;
         join_nodes(f, &self.params)?;
-        if self.body().is_empty() {
+        if self.body().items().is_empty() {
             f.write_str(") => {}")
         } else {
             f.write_str(") => {\n")?;
@@ -76,7 +76,7 @@ impl Executable for ArrowFunctionDecl {
         context.create_function(
             "",
             self.params().to_vec(),
-            self.body().to_vec(),
+            self.body().clone(),
             FunctionFlags::LEXICAL_THIS_MODE,
         )
     }

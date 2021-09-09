@@ -90,13 +90,19 @@ impl Executable for UnaryOp {
                 JsValue::undefined()
             }
             op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => JsValue::new(
-                    get_const_field
+                Node::GetConstField(ref get_const_field) => {
+                    let delete_status = get_const_field
                         .obj()
                         .run(context)?
                         .to_object(context)?
-                        .__delete__(&get_const_field.field().into(), context)?,
-                ),
+                        .__delete__(&get_const_field.field().into(), context)?;
+
+                    if !delete_status && context.strict() {
+                        return context.throw_type_error("Cannot delete property");
+                    } else {
+                        JsValue::new(delete_status)
+                    }
+                }
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;

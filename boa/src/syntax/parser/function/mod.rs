@@ -267,6 +267,8 @@ where
         let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
 
         let global_strict_mode = cursor.strict_mode();
+        let mut strict = false;
+
         if let Some(tk) = cursor.peek(0)? {
             match tk.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
@@ -274,12 +276,13 @@ where
                 }
                 TokenKind::StringLiteral(string) if string.as_ref() == "use strict" => {
                     cursor.set_strict_mode(true);
+                    strict = true;
                 }
                 _ => {}
             }
         }
 
-        let stmlist = StatementList::new(
+        let statement_list = StatementList::new(
             self.allow_yield,
             self.allow_await,
             true,
@@ -290,6 +293,9 @@ where
 
         // Reset strict mode back to the global scope.
         cursor.set_strict_mode(global_strict_mode);
-        stmlist
+
+        let mut statement_list = statement_list?;
+        statement_list.set_strict(strict);
+        Ok(statement_list)
     }
 }

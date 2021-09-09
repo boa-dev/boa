@@ -212,6 +212,14 @@ impl StandardObjects {
     }
 }
 
+/// Internal representation of the strict mode types.
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum StrictType {
+    Off,
+    Global,
+    Function,
+}
+
 /// Javascript context. It is the primary way to interact with the runtime.
 ///
 /// `Context`s constructed in a thread share the same runtime, therefore it
@@ -273,6 +281,9 @@ pub struct Context {
 
     /// Whether or not to show trace of instructions being ran
     pub trace: bool,
+
+    /// Whether or not strict mode is active.
+    strict: StrictType,
 }
 
 impl Default for Context {
@@ -287,6 +298,7 @@ impl Default for Context {
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
+            strict: StrictType::Off,
         };
 
         // Add new builtIns to Context Realm
@@ -321,6 +333,36 @@ impl Context {
     #[inline]
     pub(crate) fn console_mut(&mut self) -> &mut Console {
         &mut self.console
+    }
+
+    /// Returns if strict mode is currently active.
+    #[inline]
+    pub fn strict(&self) -> bool {
+        matches!(self.strict, StrictType::Global | StrictType::Function)
+    }
+
+    /// Returns the strict mode type.
+    #[inline]
+    pub(crate) fn strict_type(&self) -> StrictType {
+        self.strict
+    }
+
+    /// Set strict type.
+    #[inline]
+    pub(crate) fn set_strict(&mut self, strict: StrictType) {
+        self.strict = strict;
+    }
+
+    /// Disable the strict mode.
+    #[inline]
+    pub fn set_strict_mode_off(&mut self) {
+        self.strict = StrictType::Off;
+    }
+
+    /// Enable the global strict mode.
+    #[inline]
+    pub fn set_strict_mode_global(&mut self) {
+        self.strict = StrictType::Global;
     }
 
     /// Sets up the default global objects within Global
@@ -519,17 +561,16 @@ impl Context {
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<N, P, B>(
+    pub(crate) fn create_function<N, P>(
         &mut self,
         name: N,
         params: P,
-        body: B,
+        mut body: StatementList,
         flags: FunctionFlags,
     ) -> JsResult<JsValue>
     where
         N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
-        B: Into<StatementList>,
     {
         let name = name.into();
         let function_prototype: JsValue =
@@ -538,11 +579,16 @@ impl Context {
         // Every new function has a prototype property pre-made
         let prototype = self.construct_object();
 
+        // If a function is defined within a strict context, it is strict.
+        if self.strict() {
+            body.set_strict(true);
+        }
+
         let params = params.into();
         let params_len = params.len();
         let func = Function::Ordinary {
             flags,
-            body: RcStatementList::from(body.into()),
+            body: RcStatementList::from(body),
             params,
             environment: self.get_current_environment().clone(),
         };
@@ -790,7 +836,12 @@ impl Context {
             .map_err(|e| e.to_string());
 
         let execution_result = match parsing_result {
-            Ok(statement_list) => statement_list.run(self),
+            Ok(statement_list) => {
+                if statement_list.strict() {
+                    self.set_strict_mode_global();
+                }
+                statement_list.run(self)
+            }
             Err(e) => self.throw_syntax_error(e),
         };
 

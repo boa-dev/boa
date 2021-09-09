@@ -1,6 +1,7 @@
 //! Statement list node.
 
 use crate::{
+    context::StrictType,
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::{Declaration, Node},
@@ -10,6 +11,9 @@ use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// List of statements.
 ///
@@ -24,12 +28,26 @@ use serde::{Deserialize, Serialize};
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
     items: Box<[Node]>,
+    strict: bool,
 }
 
 impl StatementList {
     /// Gets the list of items.
+    #[inline]
     pub fn items(&self) -> &[Node] {
         &self.items
+    }
+
+    /// Get the strict mode.
+    #[inline]
+    pub fn strict(&self) -> bool {
+        self.strict
+    }
+
+    /// Set the strict mode.
+    #[inline]
+    pub fn set_strict(&mut self, strict: bool) {
+        self.strict = strict;
     }
 
     /// Implements the display formatting with indentation.
@@ -121,8 +139,23 @@ impl Executable for StatementList {
         context
             .executor()
             .set_current_state(InterpreterState::Executing);
+
+        let strict_before = context.strict_type();
+
+        match context.strict_type() {
+            StrictType::Off if self.strict => context.set_strict(StrictType::Function),
+            StrictType::Function if !self.strict => context.set_strict_mode_off(),
+            _ => {}
+        }
+
         for (i, item) in self.items().iter().enumerate() {
-            let val = item.run(context)?;
+            let val = match item.run(context) {
+                Ok(val) => val,
+                Err(e) => {
+                    context.set_strict(strict_before);
+                    return Err(e);
+                }
+            };
             match context.executor().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
@@ -145,6 +178,8 @@ impl Executable for StatementList {
             }
         }
 
+        context.set_strict(strict_before);
+
         Ok(obj)
     }
 }
@@ -154,7 +189,10 @@ where
     T: Into<Box<[Node]>>,
 {
     fn from(stm: T) -> Self {
-        Self { items: stm.into() }
+        Self {
+            items: stm.into(),
+            strict: false,
+        }
     }
 }
 

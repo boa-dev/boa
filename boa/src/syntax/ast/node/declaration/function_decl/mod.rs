@@ -63,8 +63,8 @@ impl FunctionDecl {
     }
 
     /// Gets the body of the function declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
@@ -75,7 +75,7 @@ impl FunctionDecl {
     ) -> fmt::Result {
         write!(f, "function {}(", self.name)?;
         join_nodes(f, &self.parameters)?;
-        if self.body().is_empty() {
+        if self.body().items().is_empty() {
             f.write_str(") {}")
         } else {
             f.write_str(") {\n")?;
@@ -91,7 +91,7 @@ impl Executable for FunctionDecl {
         let val = context.create_function(
             self.name(),
             self.parameters().to_vec(),
-            self.body().to_vec(),
+            self.body().clone(),
             FunctionFlags::CONSTRUCTABLE,
         )?;
 
