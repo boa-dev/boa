@@ -15,7 +15,7 @@ use crate::{
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        ObjectData,
+        JsObject, ObjectData,
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -130,21 +130,17 @@ impl Set {
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::set_object, context)?;
 
-        let obj = context.construct_object();
-        obj.set_prototype_instance(prototype.into());
-
-        let set = JsValue::new(obj);
-        // 3
-        set.set_data(ObjectData::set(OrderedSet::default()));
+        let obj =
+            JsObject::from_proto_and_data(Some(prototype), ObjectData::set(OrderedSet::default()));
 
         let iterable = args.get_or_undefined(0);
         // 4
         if iterable.is_null_or_undefined() {
-            return Ok(set);
+            return Ok(obj.into());
         }
 
         // 5
-        let adder = set.get_field("add", context)?;
+        let adder = obj.get("add", context)?;
 
         // 6
         if !adder.is_function() {
@@ -163,7 +159,7 @@ impl Set {
             let next_value = next.value;
 
             // d, e
-            if let Err(status) = context.call(&adder, &set, &[next_value]) {
+            if let Err(status) = context.call(&adder, &obj.clone().into(), &[next_value]) {
                 return iterator_record.close(Err(status), context);
             }
 
@@ -171,7 +167,7 @@ impl Set {
         }
 
         // 8.b
-        Ok(set)
+        Ok(obj.into())
     }
 
     /// `get Set [ @@species ]`

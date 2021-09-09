@@ -15,7 +15,9 @@ mod tests;
 use crate::{
     builtins::BuiltIn,
     context::StandardObjects,
-    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    },
     property::Attribute,
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -69,15 +71,9 @@ impl Boolean {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::boolean_object, context)?;
-        let boolean = JsValue::new_object(context);
+        let boolean = JsObject::from_proto_and_data(Some(prototype), ObjectData::boolean(data));
 
-        boolean
-            .as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        boolean.set_data(ObjectData::boolean(data));
-
-        Ok(boolean)
+        Ok(boolean.into())
     }
 
     /// An Utility function used to get the internal `[[BooleanData]]`.

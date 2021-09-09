@@ -62,10 +62,8 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    object::{
-        function::NativeFunctionSignature, ConstructorBuilder, JsObject, NativeObject, ObjectData,
-        PROTOTYPE,
-    },
+    builtins::function::NativeFunctionSignature,
+    object::{ConstructorBuilder, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -142,9 +140,10 @@ impl<T: Class> ClassConstructor for T {
             .unwrap_or(class_prototype);
 
         let native_instance = Self::constructor(this, args, context)?;
-        let object_instance = context.construct_object();
-        object_instance.set_prototype_instance(prototype.into());
-        object_instance.borrow_mut().data = ObjectData::native_object(Box::new(native_instance));
+        let object_instance = JsObject::from_proto_and_data(
+            Some(prototype),
+            ObjectData::native_object(Box::new(native_instance)),
+        );
         Ok(object_instance.into())
     }
 }

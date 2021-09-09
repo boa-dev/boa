@@ -155,22 +155,21 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::PushNaN => self.vm.push(JsValue::nan()),
-            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_inifnity()),
-            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_inifnity()),
+            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_infinity()),
+            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_infinity()),
             Opcode::PushLiteral => {
                 let index = self.vm.read::<u32>() as usize;
                 let value = self.vm.frame().code.literals[index].clone();
                 self.vm.push(value)
             }
-            Opcode::PushEmptyObject => self.vm.push(JsValue::new_object(self)),
+            Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
             Opcode::PushNewArray => {
                 let count = self.vm.read::<u32>();
                 let mut elements = Vec::with_capacity(count as usize);
                 for _ in 0..count {
                     elements.push(self.vm.pop());
                 }
-                let array = Array::new_array(self);
-                Array::add_to_array_object(&array, &elements, self)?;
+                let array = Array::create_array_from_list(elements, self);
                 self.vm.push(array);
             }
             Opcode::Add => bin_op!(add),

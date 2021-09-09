@@ -1,7 +1,7 @@
 use crate::{
-    builtins::iterable::create_iter_result_object,
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     gc::{Finalize, Trace},
-    object::{function::make_builtin_fn, JsObject, ObjectData},
+    object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     property::PropertyKey,
     symbol::WellKnownSymbols,
@@ -46,13 +46,11 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsValue {
-        let for_in_iterator = JsValue::new_object(context);
-        for_in_iterator.set_data(ObjectData::for_in_iterator(Self::new(object)));
-        for_in_iterator
-            .as_object()
-            .expect("for in iterator object")
-            .set_prototype_instance(context.iterator_prototypes().for_in_iterator().into());
-        for_in_iterator
+        let for_in_iterator = JsObject::from_proto_and_data(
+            Some(context.iterator_prototypes().for_in_iterator()),
+            ObjectData::for_in_iterator(Self::new(object)),
+        );
+        for_in_iterator.into()
     }
 
     /// %ForInIteratorPrototype%.next( )
@@ -129,13 +127,16 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
-    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
+    pub(crate) fn create_prototype(
+        iterator_prototype: JsObject,
+        context: &mut Context,
+    ) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let for_in_iterator = context.construct_object();
+        let for_in_iterator =
+            JsObject::from_proto_and_data(Some(iterator_prototype), ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
-        for_in_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let to_string_tag_property = PropertyDescriptor::builder()

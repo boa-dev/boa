@@ -223,12 +223,7 @@ impl Array {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
         };
-        let array = context.construct_object();
-
-        array.set_prototype_instance(prototype.into());
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
-        array.borrow_mut().data = ObjectData::array();
+        let array = JsObject::from_proto_and_data(Some(prototype), ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(
@@ -275,22 +270,9 @@ impl Array {
 
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(context: &mut Context) -> JsValue {
-        let array = JsValue::new_object(context);
-        array.set_data(ObjectData::array());
-        array
-            .as_object()
-            .expect("'array' should be an object")
-            .set_prototype_instance(context.standard_objects().array_object().prototype().into());
-        array.set_property(
-            "length",
-            PropertyDescriptor::builder()
-                .value(0)
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
-        array
+        Self::array_create(0, None, context)
+            .expect("creating an empty array with the default prototype must not fail")
+            .into()
     }
 
     /// Utility function for concatenating array objects.

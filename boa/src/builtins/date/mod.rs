@@ -5,7 +5,9 @@ use crate::{
     builtins::BuiltIn,
     context::StandardObjects,
     gc::{empty_trace, Finalize, Trace},
-    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    },
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
@@ -346,16 +348,14 @@ impl Date {
                 StandardObjects::object_object,
                 context,
             )?;
-            let obj = context.construct_object();
-            obj.set_prototype_instance(prototype.into());
-            let this = obj.into();
-            if args.is_empty() {
-                Ok(Self::make_date_now(&this))
+            Ok(if args.is_empty() {
+                Self::make_date_now(prototype)
             } else if args.len() == 1 {
-                Self::make_date_single(&this, args, context)
+                Self::make_date_single(prototype, args, context)?
             } else {
-                Self::make_date_multiple(&this, args, context)
+                Self::make_date_multiple(prototype, args, context)?
             }
+            .into())
         }
     }
 
@@ -383,10 +383,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_now(this: &JsValue) -> JsValue {
-        let date = Date::default();
-        this.set_data(ObjectData::date(date));
-        this.clone()
+    pub(crate) fn make_date_now(prototype: JsObject) -> JsObject {
+        JsObject::from_proto_and_data(Some(prototype), ObjectData::date(Date::default()))
     }
 
     /// `Date(value)`
@@ -400,10 +398,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_single(
-        this: &JsValue,
+        prototype: JsObject,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         let value = &args[0];
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
@@ -426,9 +424,10 @@ impl Date {
         };
 
         let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
-        let date = Date(tv);
-        this.set_data(ObjectData::date(date));
-        Ok(this.clone())
+        Ok(JsObject::from_proto_and_data(
+            Some(prototype),
+            ObjectData::date(Date(tv)),
+        ))
     }
 
     /// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ] ] ] ])`
@@ -442,10 +441,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_multiple(
-        this: &JsValue,
+        prototype: JsObject,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         let mut year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
         let day = args
@@ -466,9 +465,10 @@ impl Date {
 
         // If any of the args are infinity or NaN, return an invalid date.
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
-            let date = Date(None);
-            this.set_data(ObjectData::date(date));
-            return Ok(this.clone());
+            return Ok(JsObject::from_proto_and_data(
+                Some(prototype),
+                ObjectData::date(Date(None)),
+            ));
         }
 
         if (0.0..=99.0).contains(&year) {
@@ -493,9 +493,10 @@ impl Date {
             Some(milli),
         );
 
-        this.set_data(ObjectData::date(date));
-
-        Ok(this.clone())
+        Ok(JsObject::from_proto_and_data(
+            Some(prototype),
+            ObjectData::date(date),
+        ))
     }
 
     /// `Date.prototype[@@toPrimitive]`

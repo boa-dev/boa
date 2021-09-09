@@ -24,24 +24,15 @@ impl IteratorPrototypes {
     pub(crate) fn init(context: &mut Context) -> Self {
         let iterator_prototype = create_iterator_prototype(context);
         Self {
-            array_iterator: ArrayIterator::create_prototype(
-                iterator_prototype.clone().into(),
-                context,
-            ),
-            set_iterator: SetIterator::create_prototype(iterator_prototype.clone().into(), context),
-            string_iterator: StringIterator::create_prototype(
-                iterator_prototype.clone().into(),
-                context,
-            ),
+            array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
+            set_iterator: SetIterator::create_prototype(iterator_prototype.clone(), context),
+            string_iterator: StringIterator::create_prototype(iterator_prototype.clone(), context),
             regexp_string_iterator: RegExpStringIterator::create_prototype(
-                iterator_prototype.clone().into(),
+                iterator_prototype.clone(),
                 context,
             ),
-            map_iterator: MapIterator::create_prototype(iterator_prototype.clone().into(), context),
-            for_in_iterator: ForInIterator::create_prototype(
-                iterator_prototype.clone().into(),
-                context,
-            ),
+            map_iterator: MapIterator::create_prototype(iterator_prototype.clone(), context),
+            for_in_iterator: ForInIterator::create_prototype(iterator_prototype.clone(), context),
             iterator_prototype,
         }
     }
