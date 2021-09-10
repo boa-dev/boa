@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`clap` is a simple-to-use, efficient, and full-featured library for parsing command line arguments and subcommands when writing console/terminal applications."><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate clap</h2><div class="block version"><p>Version 2.33.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">clap</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-639" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>clap</code> is a simple-to-use, efficient, and full-featured library for parsing command line
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`clap` is a simple-to-use, efficient, and full-featured library for parsing command line arguments and subcommands when writing console&#x2F;terminal applications."><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate clap</h2><div class="block version"><div class="narrow-helper"></div><p>Version 2.33.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">clap</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-639" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>clap</code> is a simple-to-use, efficient, and full-featured library for parsing command line
 arguments and subcommands when writing console/terminal applications.</p>
 <h2 id="about" class="section-header"><a href="#about">About</a></h2>
 <p><code>clap</code> is used to parse <em>and validate</em> the string of command line arguments provided by the user
@@ -128,7 +126,7 @@ tidy or support multiple localized translations by having different YAML files f
 localization.</p>
 <p>First, create the <code>cli.yml</code> file to hold your CLI options, but it could be called anything we
 like:</p>
-<pre><code class="language-yaml">name: myapp
+<div class="example-wrap"><pre class="language-yaml">name: myapp
 version: &quot;1.0&quot;
 author: Kevin K. &lt;kbknapp@gmail.com&gt;
 about: Does awesome things
@@ -155,8 +153,7 @@ subcommands:
         args:
             - debug:
                 short: d
-                help: print debug information
-</code></pre>
+                help: print debug information</pre></div>
 <p>Since this feature requires additional dependencies that not everyone may want, it is <em>not</em>
 compiled in by default and we need to enable a feature flag in Cargo.toml:</p>
 <p>Simply change your <code>clap = &quot;~2.27.0&quot;</code> to <code>clap = {version = &quot;~2.27.0&quot;, features = [&quot;yaml&quot;]}</code>.</p>
@@ -205,7 +202,7 @@ builder pattern (the first example), but without all the verbosity.</p>
 }</pre></div>
 <p>If you were to compile any of the above programs and run them with the flag <code>--help</code> or <code>-h</code> (or
 <code>help</code> subcommand, since we defined <code>test</code> as a subcommand) the following would be output</p>
-<pre><code class="language-text">$ myprog --help
+<div class="example-wrap"><pre class="language-text">$ myprog --help
 My Super Program 1.0
 Kevin K. &lt;kbknapp@gmail.com&gt;
 Does awesome things
@@ -226,8 +223,7 @@ ARGS:
 
 SUBCOMMANDS:
     help    Prints this message
-    test    Controls testing features
-</code></pre>
+    test    Controls testing features</pre></div>
 <p><strong>NOTE:</strong> You could also run <code>myapp test --help</code> to see similar output and options for the
 <code>test</code> subcommand.</p>
 <h2 id="try-it" class="section-header"><a href="#try-it">Try it!</a></h2><h3 id="pre-built-test" class="section-header"><a href="#pre-built-test">Pre-Built Test</a></h3>
@@ -244,9 +240,8 @@ SUBCOMMANDS:
 <li>Create a new cargo project <code>$ cargo new fake --bin &amp;&amp; cd fake</code></li>
 <li>Add <code>clap</code> to your <code>Cargo.toml</code></li>
 </ul>
-<pre><code class="language-toml">[dependencies]
-clap = &quot;2&quot;
-</code></pre>
+<div class="example-wrap"><pre class="language-toml">[dependencies]
+clap = &quot;2&quot;</pre></div>
 <ul>
 <li>Add the following to your <code>src/main.rs</code></li>
 </ul>
@@ -266,13 +261,11 @@ clap = &quot;2&quot;
 <p>For full usage, add <code>clap</code> as a dependency in your <code>Cargo.toml</code> (it is <strong>highly</strong> recommended to
 use the <code>~major.minor.patch</code> style versions in your <code>Cargo.toml</code>, for more information see
 <a href="#compatibility-policy">Compatibility Policy</a>) to use from crates.io:</p>
-<pre><code class="language-toml">[dependencies]
-clap = &quot;~2.27.0&quot;
-</code></pre>
+<div class="example-wrap"><pre class="language-toml">[dependencies]
+clap = &quot;~2.27.0&quot;</pre></div>
 <p>Or get the latest changes from the master branch at github:</p>
-<pre><code class="language-toml">[dependencies.clap]
-git = &quot;https://github.com/clap-rs/clap.git&quot;
-</code></pre>
+<div class="example-wrap"><pre class="language-toml">[dependencies.clap]
+git = &quot;https://github.com/clap-rs/clap.git&quot;</pre></div>
 <p>Add <code>extern crate clap;</code> to your crate root.</p>
 <p>Define a list of valid arguments for your program (see the
 <a href="https://docs.rs/clap/">documentation</a> or <a href="https://github.com/clap-rs/clap/tree/v2.33.1/examples">examples/</a> directory of this repo)</p>
@@ -286,19 +279,15 @@ available, instead of 120 characters. (builds dependency <code>textwrap</code>
 with feature <code>term_size</code>)</li>
 </ul>
 <p>To disable these, add this to your <code>Cargo.toml</code>:</p>
-<pre><code class="language-toml">[dependencies.clap]
+<div class="example-wrap"><pre class="language-toml">[dependencies.clap]
 version = &quot;~2.27.0&quot;
-default-features = false
-</code></pre>
+default-features = false</pre></div>
 <p>You can also selectively enable only the features you’d like to include, by adding:</p>
-<pre><code class="language-toml">[dependencies.clap]
+<div class="example-wrap"><pre class="language-toml">[dependencies.clap]
 version = &quot;~2.27.0&quot;
 default-features = false
 
-# Cherry-pick the features you'd like to use
-features = [ &quot;suggestions&quot;, &quot;color&quot; ]
-</code></pre>
-<h4 id="opt-in-features" class="section-header"><a href="#opt-in-features">Opt-in features</a></h4>
+features = [ &quot;suggestions&quot;, &quot;color&quot; ]</pre></div><h4 id="opt-in-features" class="section-header"><a href="#opt-in-features">Opt-in features</a></h4>
 <ul>
 <li><strong>“yaml”</strong>: Enables building CLIs from YAML documents. (builds dependency <code>yaml-rust</code>)</li>
 <li><strong>“unstable”</strong>: Enables unstable <code>clap</code> features that may change from release to release</li>
@@ -329,48 +318,36 @@ me. I’m all about giving credit where credit is due :)</p>
 <p>Please read <a href="https://github.com/clap-rs/clap/blob/v2.33.1/.github/CONTRIBUTING.md">CONTRIBUTING.md</a> before you start contributing.</p>
 <h3 id="testing-code" class="section-header"><a href="#testing-code">Testing Code</a></h3>
 <p>To test with all features both enabled and disabled, you can run theese commands:</p>
-<pre><code class="language-text">$ cargo test --no-default-features
-$ cargo test --features &quot;yaml unstable&quot;
-</code></pre>
+<div class="example-wrap"><pre class="language-text">$ cargo test --no-default-features
+$ cargo test --features &quot;yaml unstable&quot;</pre></div>
 <p>Alternatively, if you have <a href="https://github.com/casey/just"><code>just</code></a> installed you can run the
 prebuilt recipes. <em>Not</em> using <code>just</code> is perfectly fine as well, it simply bundles commands
 automatically.</p>
 <p>For example, to test the code, as above simply run:</p>
-<pre><code class="language-text">$ just run-tests
-</code></pre>
+<div class="example-wrap"><pre class="language-text">$ just run-tests</pre></div>
 <p>From here on, I will list the appropriate <code>cargo</code> command as well as the <code>just</code> command.</p>
 <p>Sometimes it’s helpful to only run a subset of the tests, which can be done via:</p>
-<pre><code class="language-text">$ cargo test --test &lt;test_name&gt;
+<div class="example-wrap"><pre class="language-text">$ cargo test --test &lt;test_name&gt;
 
-# Or
 
-$ just run-test &lt;test_name&gt;
-</code></pre>
-<h3 id="linting-code" class="section-header"><a href="#linting-code">Linting Code</a></h3>
+$ just run-test &lt;test_name&gt;</pre></div><h3 id="linting-code" class="section-header"><a href="#linting-code">Linting Code</a></h3>
 <p>During the CI process <code>clap</code> runs against many different lints using
 <a href="https://github.com/Manishearth/rust-clippy"><code>clippy</code></a>. In order to check if these lints pass on
 your own computer prior to submitting a PR you’ll need a nightly compiler.</p>
 <p>In order to check the code for lints run either:</p>
-<pre><code class="language-text">$ rustup override add nightly
+<div class="example-wrap"><pre class="language-text">$ rustup override add nightly
 $ cargo build --features lints
 $ rustup override remove
 
-# Or
 
-$ just lint
-</code></pre>
-<h3 id="debugging-code" class="section-header"><a href="#debugging-code">Debugging Code</a></h3>
+$ just lint</pre></div><h3 id="debugging-code" class="section-header"><a href="#debugging-code">Debugging Code</a></h3>
 <p>Another helpful technique is to see the <code>clap</code> debug output while developing features. In order
 to see the debug output while running the full test suite or individual tests, run:</p>
-<pre><code class="language-text">$ cargo test --features debug
+<div class="example-wrap"><pre class="language-text">$ cargo test --features debug
 
-# Or for individual tests
 $ cargo test --test &lt;test_name&gt; --features debug
 
-# The corresponding just command for individual debugging tests is:
-$ just debug &lt;test_name&gt;
-</code></pre>
-<h3 id="goals" class="section-header"><a href="#goals">Goals</a></h3>
+$ just debug &lt;test_name&gt;</pre></div><h3 id="goals" class="section-header"><a href="#goals">Goals</a></h3>
 <p>There are a few goals of <code>clap</code> that I’d like to maintain throughout contributions. If your
 proposed changes break, or go against any of these goals we’ll discuss the changes further
 before merging (but will <em>not</em> be ignored, all contributes are welcome!). These are by no means
@@ -406,8 +383,7 @@ version of Rust is considered a minor breaking change, meaning <em>at a minimum<
 of <code>clap</code> will be bumped.</p>
 <p>In order to keep from being surprised by breaking changes, it is <strong>highly</strong> recommended to use
 the <code>~major.minor.patch</code> style in your <code>Cargo.toml</code>:</p>
-<pre><code class="language-toml">[dependencies] clap = &quot;~2.27.0&quot;
-</code></pre>
+<div class="example-wrap"><pre class="language-toml">[dependencies] clap = &quot;~2.27.0&quot;</pre></div>
 <p>This will cause <em>only</em> the patch version to be updated upon a <code>cargo update</code> call, and therefore
 cannot break due to new features, or bumped minimum versions of Rust.</p>
 <h4 id="minimum-version-of-rust" class="section-header"><a href="#minimum-version-of-rust">Minimum Version of Rust</a></h4>
@@ -421,62 +397,64 @@ clearly annotated in the <code>CHANGELOG.md</code></p>
 <p><code>clap</code> is licensed under the MIT license. Please read the <a href="https://github.com/clap-rs/clap/blob/v2.33.1/LICENSE-MIT">LICENSE-MIT</a> file in
 this repository for more information.</p>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
-<table><tr class="module-item"><td><a class="macro" href="macro._clap_count_exprs.html" title="clap::_clap_count_exprs macro">_clap_count_exprs</a></td><td class="docblock-short"><p>Counts the number of comma-delimited expressions passed to it.  The result is a compile-time
+<div class="item-table"><div class="item-left module-item"><a class="macro" href="macro._clap_count_exprs.html" title="clap::_clap_count_exprs macro">_clap_count_exprs</a></div><div class="item-right docblock-short"><p>Counts the number of comma-delimited expressions passed to it.  The result is a compile-time
 evaluable expression, suitable for use as a static array size, or the value of a <code>const</code>.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.app_from_crate.html" title="clap::app_from_crate macro">app_from_crate</a></td><td class="docblock-short"><p>Allows you to build the <code>App</code> instance from your Cargo.toml at compile time.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.arg_enum.html" title="clap::arg_enum macro">arg_enum</a></td><td class="docblock-short"><p>Convenience macro to generate more complete enums with variants to be used as a type when
+</div><div class="item-left module-item"><a class="macro" href="macro.app_from_crate.html" title="clap::app_from_crate macro">app_from_crate</a></div><div class="item-right docblock-short"><p>Allows you to build the <code>App</code> instance from your Cargo.toml at compile time.</p>
+</div><div class="item-left module-item"><a class="macro" href="macro.arg_enum.html" title="clap::arg_enum macro">arg_enum</a></div><div class="item-right docblock-short"><p>Convenience macro to generate more complete enums with variants to be used as a type when
 parsing arguments. This enum also provides a <code>variants()</code> function which can be used to
 retrieve a <code>Vec&lt;&amp;'static str&gt;</code> of the variant names, as well as implementing <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>FromStr</code></a> and
 <a href="https://doc.rust-lang.org/std/fmt/trait.Display.html"><code>Display</code></a> automatically.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.clap_app.html" title="clap::clap_app macro">clap_app</a></td><td class="docblock-short"><p>Build <code>App</code>, <code>Arg</code>s, <code>SubCommand</code>s and <code>Group</code>s with Usage-string like input
+</div><div class="item-left module-item"><a class="macro" href="macro.clap_app.html" title="clap::clap_app macro">clap_app</a></div><div class="item-right docblock-short"><p>Build <code>App</code>, <code>Arg</code>s, <code>SubCommand</code>s and <code>Group</code>s with Usage-string like input
 but without the associated parsing runtime cost.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.crate_authors.html" title="clap::crate_authors macro">crate_authors</a></td><td class="docblock-short"><p>Allows you to pull the authors for the app from your Cargo.toml at
+</div><div class="item-left module-item"><a class="macro" href="macro.crate_authors.html" title="clap::crate_authors macro">crate_authors</a></div><div class="item-right docblock-short"><p>Allows you to pull the authors for the app from your Cargo.toml at
 compile time in the form:
 <code>&quot;author1 lastname &lt;author1@example.com&gt;:author2 lastname &lt;author2@example.com&gt;&quot;</code></p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.crate_description.html" title="clap::crate_description macro">crate_description</a></td><td class="docblock-short"><p>Allows you to pull the description from your Cargo.toml at compile time.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.crate_name.html" title="clap::crate_name macro">crate_name</a></td><td class="docblock-short"><p>Allows you to pull the name from your Cargo.toml at compile time.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.crate_version.html" title="clap::crate_version macro">crate_version</a></td><td class="docblock-short"><p>Allows you to pull the version from your Cargo.toml at compile time as
+</div><div class="item-left module-item"><a class="macro" href="macro.crate_description.html" title="clap::crate_description macro">crate_description</a></div><div class="item-right docblock-short"><p>Allows you to pull the description from your Cargo.toml at compile time.</p>
+</div><div class="item-left module-item"><a class="macro" href="macro.crate_name.html" title="clap::crate_name macro">crate_name</a></div><div class="item-right docblock-short"><p>Allows you to pull the name from your Cargo.toml at compile time.</p>
+</div><div class="item-left module-item"><a class="macro" href="macro.crate_version.html" title="clap::crate_version macro">crate_version</a></div><div class="item-right docblock-short"><p>Allows you to pull the version from your Cargo.toml at compile time as
 <code>MAJOR.MINOR.PATCH_PKGVERSION_PRE</code></p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.value_t.html" title="clap::value_t macro">value_t</a></td><td class="docblock-short"><p>Convenience macro getting a typed value <code>T</code> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a> from an
+</div><div class="item-left module-item"><a class="macro" href="macro.value_t.html" title="clap::value_t macro">value_t</a></div><div class="item-right docblock-short"><p>Convenience macro getting a typed value <code>T</code> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a> from an
 argument value. This macro returns a <code>Result&lt;T,String&gt;</code> which allows you as the developer to
 decide what you’d like to do on a failed parse. There are two types of errors, parse failures
 and those where the argument wasn’t present (such as a non-required argument). You can use
 it to get a single value, or a iterator as with the <a href="./struct.ArgMatches.html#method.values_of"><code>ArgMatches::values_of</code></a></p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.value_t_or_exit.html" title="clap::value_t_or_exit macro">value_t_or_exit</a></td><td class="docblock-short"><p>Convenience macro getting a typed value <code>T</code> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a> or
+</div><div class="item-left module-item"><a class="macro" href="macro.value_t_or_exit.html" title="clap::value_t_or_exit macro">value_t_or_exit</a></div><div class="item-right docblock-short"><p>Convenience macro getting a typed value <code>T</code> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a> or
 exiting upon error, instead of returning a <a href="https://doc.rust-lang.org/std/result/enum.Result.html"><code>Result</code></a> type.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.values_t.html" title="clap::values_t macro">values_t</a></td><td class="docblock-short"><p>Convenience macro getting a typed value <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html"><code>Vec&lt;T&gt;</code></a> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a>
+</div><div class="item-left module-item"><a class="macro" href="macro.values_t.html" title="clap::values_t macro">values_t</a></div><div class="item-right docblock-short"><p>Convenience macro getting a typed value <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html"><code>Vec&lt;T&gt;</code></a> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a>
 This macro returns a <a href="./type.Result.html"><code>clap::Result&lt;Vec&lt;T&gt;&gt;</code></a> which allows you as the developer to decide
 what you’d like to do on a failed parse.</p>
-</td></tr><tr class="module-item"><td><a class="macro" href="macro.values_t_or_exit.html" title="clap::values_t_or_exit macro">values_t_or_exit</a></td><td class="docblock-short"><p>Convenience macro getting a typed value <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html"><code>Vec&lt;T&gt;</code></a> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a>
+</div><div class="item-left module-item"><a class="macro" href="macro.values_t_or_exit.html" title="clap::values_t_or_exit macro">values_t_or_exit</a></div><div class="item-right docblock-short"><p>Convenience macro getting a typed value <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html"><code>Vec&lt;T&gt;</code></a> where <code>T</code> implements <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html"><code>std::str::FromStr</code></a>
 or exiting upon error.</p>
-</td></tr></table><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
-<table><tr class="module-item"><td><a class="struct" href="struct.App.html" title="clap::App struct">App</a></td><td class="docblock-short"><p>Used to create a representation of a command line program and all possible command line
+</div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="struct" href="struct.App.html" title="clap::App struct">App</a></div><div class="item-right docblock-short"><p>Used to create a representation of a command line program and all possible command line
 arguments. Application settings are set using the “builder pattern” with the
 <a href="./struct.App.html#method.get_matches"><code>App::get_matches</code></a> family of methods being the terminal methods that starts the
 runtime-parsing process. These methods then return information about the user supplied
 arguments (or lack there of).</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.Arg.html" title="clap::Arg struct">Arg</a></td><td class="docblock-short"><p>The abstract representation of a command line argument. Used to set all the options and
+</div><div class="item-left module-item"><a class="struct" href="struct.Arg.html" title="clap::Arg struct">Arg</a></div><div class="item-right docblock-short"><p>The abstract representation of a command line argument. Used to set all the options and
 relationships that define a valid argument for the program.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.ArgGroup.html" title="clap::ArgGroup struct">ArgGroup</a></td><td class="docblock-short"><p><code>ArgGroup</code>s are a family of related <a href="./struct.Arg.html">arguments</a> and way for you to express, “Any of these
+</div><div class="item-left module-item"><a class="struct" href="struct.ArgGroup.html" title="clap::ArgGroup struct">ArgGroup</a></div><div class="item-right docblock-short"><p><code>ArgGroup</code>s are a family of related <a href="./struct.Arg.html">arguments</a> and way for you to express, “Any of these
 arguments”. By placing arguments in a logical group, you can create easier requirement and
 exclusion rules instead of having to list each argument individually, or when you want a rule
 to apply “any but not all” arguments.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.ArgMatches.html" title="clap::ArgMatches struct">ArgMatches</a></td><td class="docblock-short"><p>Used to get information about the arguments that were supplied to the program at runtime by
+</div><div class="item-left module-item"><a class="struct" href="struct.ArgMatches.html" title="clap::ArgMatches struct">ArgMatches</a></div><div class="item-right docblock-short"><p>Used to get information about the arguments that were supplied to the program at runtime by
 the user. New instances of this struct are obtained by using the <a href="./struct.App.html#method.get_matches"><code>App::get_matches</code></a> family of
 methods.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.Error.html" title="clap::Error struct">Error</a></td><td class="docblock-short"><p>Command Line Argument Parser Error</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.OsValues.html" title="clap::OsValues struct">OsValues</a></td><td class="docblock-short"><p>An iterator for getting multiple values out of an argument via the [<code>ArgMatches::values_of_os</code>]
+</div><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="clap::Error struct">Error</a></div><div class="item-right docblock-short"><p>Command Line Argument Parser Error</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.OsValues.html" title="clap::OsValues struct">OsValues</a></div><div class="item-right docblock-short"><p>An iterator for getting multiple values out of an argument via the [<code>ArgMatches::values_of_os</code>]
 method. Usage of this iterator allows values which contain invalid UTF-8 code points unlike
 [<code>Values</code>].</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.SubCommand.html" title="clap::SubCommand struct">SubCommand</a></td><td class="docblock-short"><p>The abstract representation of a command line subcommand.</p>
-</td></tr><tr class="module-item"><td><a class="struct" href="struct.Values.html" title="clap::Values struct">Values</a></td><td class="docblock-short"><p>An iterator for getting multiple values out of an argument via the <a href="./struct.ArgMatches.html#method.values_of"><code>ArgMatches::values_of</code></a>
+</div><div class="item-left module-item"><a class="struct" href="struct.SubCommand.html" title="clap::SubCommand struct">SubCommand</a></div><div class="item-right docblock-short"><p>The abstract representation of a command line subcommand.</p>
+</div><div class="item-left module-item"><a class="struct" href="struct.Values.html" title="clap::Values struct">Values</a></div><div class="item-right docblock-short"><p>An iterator for getting multiple values out of an argument via the <a href="./struct.ArgMatches.html#method.values_of"><code>ArgMatches::values_of</code></a>
 method.</p>
-</td></tr></table><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
-<table><tr class="module-item"><td><a class="enum" href="enum.AppSettings.html" title="clap::AppSettings enum">AppSettings</a></td><td class="docblock-short"><p>Application level settings, which affect how <a href="./struct.App.html"><code>App</code></a> operates</p>
-</td></tr><tr class="module-item"><td><a class="enum" href="enum.ArgSettings.html" title="clap::ArgSettings enum">ArgSettings</a></td><td class="docblock-short"><p>Various settings that apply to arguments and may be set, unset, and checked via getter/setter
+</div></div><h2 id="enums" class="section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="enum" href="enum.AppSettings.html" title="clap::AppSettings enum">AppSettings</a></div><div class="item-right docblock-short"><p>Application level settings, which affect how <a href="./struct.App.html"><code>App</code></a> operates</p>
+</div><div class="item-left module-item"><a class="enum" href="enum.ArgSettings.html" title="clap::ArgSettings enum">ArgSettings</a></div><div class="item-right docblock-short"><p>Various settings that apply to arguments and may be set, unset, and checked via getter/setter
 methods <a href="./struct.Arg.html#method.set"><code>Arg::set</code></a>, <a href="./struct.Arg.html#method.unset"><code>Arg::unset</code></a>, and <a href="./struct.Arg.html#method.is_set"><code>Arg::is_set</code></a></p>
-</td></tr><tr class="module-item"><td><a class="enum" href="enum.ErrorKind.html" title="clap::ErrorKind enum">ErrorKind</a></td><td class="docblock-short"><p>Command line argument parser kind of error</p>
-</td></tr><tr class="module-item"><td><a class="enum" href="enum.Shell.html" title="clap::Shell enum">Shell</a></td><td class="docblock-short"><p>Describes which shell to produce a completions file for</p>
-</td></tr></table><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
-<table><tr class="module-item"><td><a class="type" href="type.Result.html" title="clap::Result type">Result</a></td><td class="docblock-short"><p>Short hand for <a href="https://doc.rust-lang.org/std/result/enum.Result.html"><code>Result</code></a> type</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div><script src="../main.js"></script></body></html>
+</div><div class="item-left module-item"><a class="enum" href="enum.ErrorKind.html" title="clap::ErrorKind enum">ErrorKind</a></div><div class="item-right docblock-short"><p>Command line argument parser kind of error</p>
+</div><div class="item-left module-item"><a class="enum" href="enum.Shell.html" title="clap::Shell enum">Shell</a></div><div class="item-right docblock-short"><p>Describes which shell to produce a completions file for</p>
+</div></div><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="type" href="type.Result.html" title="clap::Result type">Result</a></div><div class="item-right docblock-short"><p>Short hand for <a href="https://doc.rust-lang.org/std/result/enum.Result.html"><code>Result</code></a> type</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>

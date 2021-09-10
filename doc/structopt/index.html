@@ -1,22 +1,17 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate defines the `StructOpt` trait and its custom derive."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
-<link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate structopt</h2><div class="block version"><p>Version 0.3.23</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="structopt" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">structopt</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1216" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate defines the `StructOpt` trait and its custom derive."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate structopt</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.3.23</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="structopt" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">structopt</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1216" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
 <h2 id="features" class="section-header"><a href="#features">Features</a></h2>
 <p>If you want to disable all the <code>clap</code> features (colors,
 suggestions, ..) add <code>default-features = false</code> to the <code>structopt</code>
 dependency:</p>
-<pre><code class="language-toml">[dependencies]
-structopt = { version = &quot;0.3&quot;, default-features = false }
-</code></pre>
+<div class="example-wrap"><pre class="language-toml">[dependencies]
+structopt = { version = &quot;0.3&quot;, default-features = false }</pre></div>
 <p>Support for <a href="https://github.com/rust-cli/paw"><code>paw</code></a> (the
 <code>Command line argument paw-rser abstraction for main</code>) is disabled
 by default, but can be enabled in the <code>structopt</code> dependency
 with the feature <code>paw</code>:</p>
-<pre><code class="language-toml">[dependencies]
+<div class="example-wrap"><pre class="language-toml">[dependencies]
 structopt = { version = &quot;0.3&quot;, features = [ &quot;paw&quot; ] }
-paw = &quot;1.0&quot;
-</code></pre>
-<h1 id="table-of-contents" class="section-header"><a href="#table-of-contents">Table of Contents</a></h1>
+paw = &quot;1.0&quot;</pre></div><h1 id="table-of-contents" class="section-header"><a href="#table-of-contents">Table of Contents</a></h1>
 <ul>
 <li><a href="#how-to-derivestructopt">How to <code>derive(StructOpt)</code></a></li>
 <li><a href="#attributes">Attributes</a>
@@ -571,11 +566,10 @@ given through the command-line:</p>
 }</pre></div>
 <p>By default, values from the environment are shown in the help output (i.e. when invoking
 <code>--help</code>):</p>
-<pre><code class="language-shell">$ cargo run -- --help
+<div class="example-wrap"><pre class="language-shell">$ cargo run -- --help
 ...
 OPTIONS:
-  -p, --parameter-value &lt;parameter-value&gt;     [env: PARAMETER_VALUE=env_value]
-</code></pre>
+  -p, --parameter-value &lt;parameter-value&gt;     [env: PARAMETER_VALUE=env_value]</pre></div>
 <p>In some cases this may be undesirable, for example when being used for passing
 credentials or secret tokens. In those cases you can use <code>hide_env_values</code> to avoid
 having structopt emit the actual secret values:</p>
@@ -814,10 +808,8 @@ All the subcommands will be on the same level.</p>
         <span class="ident">arg2</span>: <span class="ident">i32</span>,
     }
 }</pre></div>
-<pre><code class="language-shell">cli ghost10 42
-cli dex 42
-</code></pre>
-<h2 id="flattening" class="section-header"><a href="#flattening">Flattening</a></h2>
+<div class="example-wrap"><pre class="language-shell">cli ghost10 42
+cli dex 42</pre></div><h2 id="flattening" class="section-header"><a href="#flattening">Flattening</a></h2>
 <p>It can sometimes be useful to group related arguments in a substruct,
 while keeping the command-line interface flat. In these cases you can mark
 a field as <code>flatten</code> and give it another type that derives <code>StructOpt</code>:</p>
@@ -921,6 +913,8 @@ of <code>FromStr</code> below for an example of this.</p>
     <span class="ident">custom_args</span>: <span class="ident">T</span>
 }</pre></div>
 </div></details><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
-<table><tr class="import-item"><td><code>pub use <a class="mod" href="../clap/index.html" title="mod clap">clap</a>;</code></td><td class="docblock-short"></td></tr></table><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<table><tr class="module-item"><td><a class="trait" href="trait.StructOpt.html" title="structopt::StructOpt trait">StructOpt</a></td><td class="docblock-short"><p>A struct that is converted from command line arguments.</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="structopt" data-search-index-js="../search-index.js" data-search-js="../search.js"></div><script src="../main.js"></script></body></html>
+<div class="item-table"><div class="item-left import-item"><code>pub use <a class="mod" href="../clap/index.html" title="mod clap">clap</a>;</code></div><div class="item-right docblock-short"></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.StructOpt.html" title="structopt::StructOpt trait">StructOpt</a></div><div class="item-right docblock-short"><p>A struct that is converted from command line arguments.</p>
+</div></div></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="structopt" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
+    <script src="../main.js"></script>
+</body></html>
