@@ -364,16 +364,17 @@ impl Map {
         // 4. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. Set p.[[Key]] to empty.
         // b. Set p.[[Value]] to empty.
+        Self::set_size(this, 0);
         if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
                 map.clear();
-                Ok(JsValue::undefined())
             } else {
-                context.throw_type_error("'this' is not a Map")
+                return context.throw_type_error("'this' is not a Map");
             }
         } else {
-            context.throw_type_error("'this' is not a Map")
+            return context.throw_type_error("'this' is not a Map");
         }
+        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.has( key )`
