@@ -2651,7 +2651,7 @@ webpack-cli@^4.8.0:
     v8-compile-cache "^2.2.0"
     webpack-merge "^5.7.3"
 
-webpack-dev-middleware@^5.0.0:
+webpack-dev-middleware@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/webpack-dev-middleware/-/webpack-dev-middleware-5.1.0.tgz#90a645b077e85f661c5bb967dc32adc3eceb5cfd"
   integrity sha512-oT660AR1gOnU/NTdUQi3EiGR0iXG7CFxmKsj3ylWCBA2khJ8LFHK+sKv3BZEsC11gl1eChsltRhzUq7nWj7XIQ==
@@ -2662,10 +2662,10 @@ webpack-dev-middleware@^5.0.0:
     range-parser "^1.2.1"
     schema-utils "^3.1.0"
 
-webpack-dev-server@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/webpack-dev-server/-/webpack-dev-server-4.1.1.tgz#e8eb8f0ce1a0e1fa65e234641763c97735398bed"
-  integrity sha512-Kl1mnCEw8Cy1Kw173gCxLIB242LfPKEOj9WoKhKz/MbryZTNrILzOJTk8kiczw/YUEPzn3gcltCQv6hDsLudRg==
+webpack-dev-server@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/webpack-dev-server/-/webpack-dev-server-4.2.0.tgz#f669117e97f0acbee447a5b2eb70060b03f39dcb"
+  integrity sha512-iBaDkHBLfW3cEITeJWNkjZBrm+b5A3YLg8XVdNOdjUNABdXJwcsJv4dzKSnVf1q4Ch489+6epWVW6OcOyVfG7w==
   dependencies:
     ansi-html-community "^0.0.8"
     bonjour "^3.5.0"
@@ -2690,7 +2690,7 @@ webpack-dev-server@^4.1.1:
     spdy "^4.0.2"
     strip-ansi "^7.0.0"
     url "^0.11.0"
-    webpack-dev-middleware "^5.0.0"
+    webpack-dev-middleware "^5.1.0"
     ws "^8.1.0"
 
 webpack-merge@^5.7.3:
