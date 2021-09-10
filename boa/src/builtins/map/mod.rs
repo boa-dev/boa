@@ -1,4 +1,4 @@
-//! This module implements the global `Map` objest.
+//! This module implements the global `Map` object.
 //!
 //! The JavaScript `Map` class is a global object that is used in the construction of maps; which
 //! are high-level, key-value stores.
@@ -21,7 +21,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsBigInt, JsResult, JsValue,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use ordered_map::OrderedMap;
 
@@ -257,20 +257,6 @@ impl Map {
                             key.into()
                         }
                     }
-                    JsValue::Integer(i) => {
-                        if i.is_zero() {
-                            JsValue::Integer(0)
-                        } else {
-                            key.into()
-                        }
-                    }
-                    JsValue::BigInt(b) => {
-                        if b.is_zero() {
-                            JsValue::BigInt(JsBigInt::from(0))
-                        } else {
-                            key.into()
-                        }
-                    }
                     _ => key.into(),
                 };
                 map.insert(key, value.into());
@@ -349,22 +335,6 @@ impl Map {
             JsValue::Rational(r) => {
                 if r.is_zero() {
                     temp_v = JsValue::Rational(0f64);
-                    &temp_v
-                } else {
-                    key
-                }
-            }
-            JsValue::Integer(i) => {
-                if i.is_zero() {
-                    temp_v = JsValue::Integer(0);
-                    &temp_v
-                } else {
-                    key
-                }
-            }
-            JsValue::BigInt(b) => {
-                if b.is_zero() {
-                    temp_v = JsValue::BigInt(JsBigInt::from(0));
                     &temp_v
                 } else {
                     key
