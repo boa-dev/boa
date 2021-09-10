@@ -132,12 +132,19 @@ impl JsValue {
                 if *y == 0 {
                     Self::nan()
                 } else {
-                    Self::new(x % *y)
+                    match x % *y {
+                        rem if rem == 0 && *x < 0 => Self::new(-0.0),
+                        rem => Self::new(rem),
+                    }
                 }
             }
-            (Self::Rational(x), Self::Rational(y)) => Self::new(x % y),
-            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) % y),
-            (Self::Rational(x), Self::Integer(y)) => Self::new(x % f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new((x % y).copysign(*x)),
+            (Self::Integer(x), Self::Rational(y)) => {
+                let x = f64::from(*x);
+                Self::new((x % y).copysign(x))
+            }
+
+            (Self::Rational(x), Self::Integer(y)) => Self::new((x % f64::from(*y)).copysign(*x)),
 
             (Self::BigInt(ref x), Self::BigInt(ref y)) => {
                 if y.is_zero() {
@@ -394,7 +401,8 @@ impl JsValue {
                 Err(_) => f64::NAN,
             }),
             Self::Rational(num) => Self::new(-num),
-            Self::Integer(num) => Self::new(-f64::from(num)),
+            Self::Integer(num) if num == 0 => Self::new(-f64::from(0)),
+            Self::Integer(num) => Self::new(-num),
             Self::Boolean(true) => Self::new(1),
             Self::Boolean(false) | Self::Null => Self::new(0),
             Self::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
