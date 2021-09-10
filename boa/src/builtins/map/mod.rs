@@ -254,10 +254,10 @@ impl Map {
                         if r.is_zero() {
                             JsValue::Rational(0f64)
                         } else {
-                            key.into()
+                            key.clone()
                         }
                     }
-                    _ => key.into(),
+                    _ => key.clone(),
                 };
                 map.insert(key, value.into());
                 map.len()
@@ -287,15 +287,6 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. Let M be the this value.
-        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        {
-            let obj = this.as_object().unwrap_or_default();
-            let obj = obj.borrow();
-            obj.as_map_ref().ok_or_else(|| {
-                context.construct_type_error("Map.prototype.clear called with invalid value")
-            })?;
-        }
         let key = args.get_or_undefined(0);
 
         let (deleted, size) = if let Some(object) = this.as_object() {
@@ -329,13 +320,12 @@ impl Map {
     ) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
-        let temp_v;
+        const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
         let key = match key {
             JsValue::Rational(r) => {
                 if r.is_zero() {
-                    temp_v = JsValue::Rational(0f64);
-                    &temp_v
+                    JS_ZERO
                 } else {
                     key
                 }
@@ -370,22 +360,20 @@ impl Map {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        {
-            let obj = this.as_object().unwrap_or_default();
-            let obj = obj.borrow();
-            obj.as_map_ref().ok_or_else(|| {
-                context.construct_type_error("Map.prototype.clear called with invalid value")
-            })?;
-        }
         // 3. Let entries be the List that is M.[[MapData]].
         // 4. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. Set p.[[Key]] to empty.
         // b. Set p.[[Value]] to empty.
-        this.set_data(ObjectData::map(OrderedMap::new()));
-
-        Self::set_size(this, 0);
-
-        Ok(JsValue::undefined())
+        if let Some(object) = this.as_object() {
+            if let Some(map) = object.borrow_mut().as_map_mut() {
+                map.clear();
+                Ok(JsValue::undefined())
+            } else {
+                context.throw_type_error("'this' is not a Map")
+            }
+        } else {
+            context.throw_type_error("'this' is not a Map")
+        }
     }
 
     /// `Map.prototype.has( key )`

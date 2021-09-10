@@ -142,6 +142,10 @@ impl<V> OrderedMap<V> {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.map = IndexMap::new();
+    }
+
     /// Return a reference to the value stored for `key`, if it is present,
     /// else `None`.
     ///
