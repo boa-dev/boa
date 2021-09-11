@@ -57,7 +57,7 @@ impl Executable for ArrayDecl {
                     }
                     let next_value = next.value;
                     //next_index += 1;
-                    elements.push(next_value.clone());
+                    elements.push(next_value);
                 }
             } else {
                 elements.push(elem.run(context)?);

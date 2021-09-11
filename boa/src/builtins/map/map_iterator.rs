@@ -25,17 +25,6 @@ pub struct MapIterator {
 impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
-    /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: JsObject, kind: PropertyNameKind) -> Self {
-        let lock = map.borrow_mut().expect_map_mut().lock(map.clone());
-        MapIterator {
-            iterated_map: Some(map),
-            map_next_index: 0,
-            map_iteration_kind: kind,
-            lock,
-        }
-    }
-
     /// Abstract operation CreateMapIterator( map, kind )
     ///
     /// Creates a new iterator over the given map.
@@ -49,18 +38,25 @@ impl MapIterator {
         kind: PropertyNameKind,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        match map {
-            JsValue::Object(obj) if obj.is_map() => {
+        if let Some(map_obj) = map.as_object() {
+            if let Some(map) = map_obj.borrow_mut().as_map_mut() {
+                let lock = map.lock(map_obj.clone());
+                let iter = MapIterator {
+                    iterated_map: Some(map_obj.clone()),
+                    map_next_index: 0,
+                    map_iteration_kind: kind,
+                    lock,
+                };
                 let map_iterator = JsValue::new_object(context);
-                map_iterator.set_data(ObjectData::map_iterator(Self::new(obj.clone(), kind)));
+                map_iterator.set_data(ObjectData::map_iterator(iter));
                 map_iterator
                     .as_object()
                     .expect("map iterator object")
                     .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-                Ok(map_iterator)
+                return Ok(map_iterator);
             }
-            _ => context.throw_type_error("`this` is not a Map"),
         }
+        context.throw_type_error("`this` is not a Map")
     }
 
     /// %MapIteratorPrototype%.next( )
@@ -79,14 +75,16 @@ impl MapIterator {
 
         let mut iterator_object = iterator_object.borrow_mut();
 
-        let map_iterator = iterator_object.expect_map_iterator_mut();
+        let map_iterator = iterator_object
+            .as_map_iterator_mut()
+            .expect("checked that obj was a map iterator");
 
         let mut index = map_iterator.map_next_index;
         let item_kind = map_iterator.map_iteration_kind;
 
         if let Some(obj) = map_iterator.iterated_map.take() {
             let map = obj.borrow();
-            let entries = map.expect_map_ref();
+            let entries = map.as_map_ref().expect("iterator should only iterate maps");
             let num_entries = entries.full_len();
             while index < num_entries {
                 let e = entries.get_index(index);

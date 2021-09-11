@@ -101,7 +101,7 @@ impl Executable for Call {
                         break;
                     }
                     let next_value = next.value;
-                    v_args.push(next_value.clone());
+                    v_args.push(next_value);
                 }
                 break; // after spread we don't accept any new arguments
             } else {

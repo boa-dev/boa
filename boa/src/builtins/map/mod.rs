@@ -459,8 +459,6 @@ impl Map {
 
         let this_arg = args.get_or_undefined(1);
 
-        let mut index = 0;
-
         // NOTE:
         //
         // forEach does not directly mutate the object on which it is called but
@@ -470,17 +468,27 @@ impl Map {
         // after it has been visited and then re-added before the forEach call completes.
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
-        let _lock = map.borrow_mut().expect_map_mut().lock(map.clone());
+        let _lock = map
+            .borrow_mut()
+            .as_map_mut()
+            .expect("checked that `this` was a map")
+            .lock(map.clone());
 
         // 4. Let entries be the List that is M.[[MapData]].
         // 5. For each Record { [[Key]], [[Value]] } e of entries, do
-        while index < map.borrow().expect_map_ref().full_len() {
-            let arguments =
-                if let Some((key, value)) = map.borrow().expect_map_ref().get_index(index) {
-                    Some([value.clone(), key.clone(), this.clone()])
+        let mut index = 0;
+        loop {
+            let arguments = {
+                let map = map.borrow();
+                let map = map.as_map_ref().expect("checked that `this` was a map");
+                if index < map.full_len() {
+                    map.get_index(index)
+                        .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
                 } else {
-                    None
-                };
+                    // 6. Return undefined.
+                    return Ok(JsValue::undefined());
+                }
+            };
 
             // a. If e.[[Key]] is not empty, then
             if let Some(arguments) = arguments {
@@ -490,9 +498,6 @@ impl Map {
 
             index += 1;
         }
-
-        // 6. Return undefined.
-        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.values()`
