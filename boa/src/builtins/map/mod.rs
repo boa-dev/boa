@@ -259,7 +259,7 @@ impl Map {
                     }
                     _ => key.clone(),
                 };
-                map.insert(key, value.into());
+                map.insert(key, value.clone());
                 map.len()
             } else {
                 return Err(context.construct_type_error("'this' is not a Map"));

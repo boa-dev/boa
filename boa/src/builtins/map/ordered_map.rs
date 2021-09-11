@@ -143,7 +143,8 @@ impl<V> OrderedMap<V> {
     }
 
     pub fn clear(&mut self) {
-        self.map.truncate(0);
+        self.map.clear();
+        self.map.shrink_to_fit();
     }
 
     /// Return a reference to the value stored for `key`, if it is present,
