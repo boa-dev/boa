@@ -44,9 +44,9 @@ impl SetIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createsetiterator
     pub(crate) fn create_set_iterator(
-        context: &Context,
         set: JsValue,
         kind: PropertyNameKind,
+        context: &Context,
     ) -> JsValue {
         let set_iterator = JsValue::new_object(context);
         set_iterator.set_data(ObjectData::set_iterator(Self::new(set, kind)));
@@ -75,9 +75,9 @@ impl SetIterator {
 
                 if set_iterator.iterated_set.is_undefined() {
                     return Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ));
                 }
 
@@ -92,9 +92,9 @@ impl SetIterator {
                                 match item_kind {
                                     PropertyNameKind::Value => {
                                         return Ok(create_iter_result_object(
-                                            context,
                                             value.clone(),
                                             false,
+                                            context,
                                         ));
                                     }
                                     PropertyNameKind::KeyAndValue => {
@@ -103,9 +103,9 @@ impl SetIterator {
                                             context,
                                         );
                                         return Ok(create_iter_result_object(
-                                            context,
                                             result.into(),
                                             false,
+                                            context,
                                         ));
                                     }
                                     PropertyNameKind::Key => {
@@ -123,9 +123,9 @@ impl SetIterator {
 
                 set_iterator.iterated_set = JsValue::undefined();
                 Ok(create_iter_result_object(
-                    context,
                     JsValue::undefined(),
                     true,
+                    context,
                 ))
             } else {
                 context.throw_type_error("`this` is not an SetIterator")
@@ -141,7 +141,7 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
+    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

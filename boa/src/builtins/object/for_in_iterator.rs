@@ -45,7 +45,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(context: &Context, object: JsValue) -> JsValue {
+    pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsValue {
         let for_in_iterator = JsValue::new_object(context);
         for_in_iterator.set_data(ObjectData::for_in_iterator(Self::new(object)));
         for_in_iterator
@@ -92,9 +92,9 @@ impl ForInIterator {
                                 iterator.visited_keys.insert(r.clone());
                                 if desc.expect_enumerable() {
                                     return Ok(create_iter_result_object(
-                                        context,
                                         JsValue::new(r.to_string()),
                                         false,
+                                        context,
                                     ));
                                 }
                             }
@@ -106,9 +106,9 @@ impl ForInIterator {
                         }
                         _ => {
                             return Ok(create_iter_result_object(
-                                context,
                                 JsValue::undefined(),
                                 true,
+                                context,
                             ))
                         }
                     }
@@ -129,7 +129,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
+    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

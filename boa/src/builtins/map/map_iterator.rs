@@ -7,7 +7,7 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 
-use super::{ordered_map::MapLock, Map};
+use super::ordered_map::MapLock;
 /// The Map Iterator object represents an iteration over a map. It implements the iterator protocol.
 ///
 /// More information:
@@ -16,7 +16,7 @@ use super::{ordered_map::MapLock, Map};
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct MapIterator {
-    iterated_map: JsValue,
+    iterated_map: Option<JsObject>,
     map_next_index: usize,
     map_iteration_kind: PropertyNameKind,
     lock: MapLock,
@@ -26,14 +26,14 @@ impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
     /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: JsValue, kind: PropertyNameKind, context: &mut Context) -> JsResult<Self> {
-        let lock = Map::lock(&map, context)?;
-        Ok(MapIterator {
-            iterated_map: map,
+    fn new(map: JsObject, kind: PropertyNameKind) -> Self {
+        let lock = map.borrow_mut().expect_map_mut().lock(map.clone());
+        MapIterator {
+            iterated_map: Some(map),
             map_next_index: 0,
             map_iteration_kind: kind,
             lock,
-        })
+        }
     }
 
     /// Abstract operation CreateMapIterator( map, kind )
@@ -45,17 +45,22 @@ impl MapIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        context: &mut Context,
-        map: JsValue,
+        map: &JsValue,
         kind: PropertyNameKind,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        let map_iterator = JsValue::new_object(context);
-        map_iterator.set_data(ObjectData::map_iterator(Self::new(map, kind, context)?));
-        map_iterator
-            .as_object()
-            .expect("map iterator object")
-            .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-        Ok(map_iterator)
+        match map {
+            JsValue::Object(obj) if obj.is_map() => {
+                let map_iterator = JsValue::new_object(context);
+                map_iterator.set_data(ObjectData::map_iterator(Self::new(obj.clone(), kind)));
+                map_iterator
+                    .as_object()
+                    .expect("map iterator object")
+                    .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
+                Ok(map_iterator)
+            }
+            _ => context.throw_type_error("`this` is not a Map"),
+        }
     }
 
     /// %MapIteratorPrototype%.next( )
@@ -67,77 +72,54 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let JsValue::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(map_iterator) = object.as_map_iterator_mut() {
-                let m = &map_iterator.iterated_map;
-                let mut index = map_iterator.map_next_index;
-                let item_kind = &map_iterator.map_iteration_kind;
+        let iterator_object = match this {
+            JsValue::Object(obj) if obj.borrow().is_map_iterator() => obj,
+            _ => return context.throw_type_error("`this` is not a MapIterator"),
+        };
 
-                if map_iterator.iterated_map.is_undefined() {
-                    return Ok(create_iter_result_object(
-                        context,
-                        JsValue::undefined(),
-                        true,
-                    ));
-                }
+        let mut iterator_object = iterator_object.borrow_mut();
 
-                if let JsValue::Object(ref object) = m {
-                    if let Some(entries) = object.borrow().as_map_ref() {
-                        let num_entries = entries.full_len();
-                        while index < num_entries {
-                            let e = entries.get_index(index);
-                            index += 1;
-                            map_iterator.map_next_index = index;
-                            if let Some((key, value)) = e {
-                                match item_kind {
-                                    PropertyNameKind::Key => {
-                                        return Ok(create_iter_result_object(
-                                            context,
-                                            key.clone(),
-                                            false,
-                                        ));
-                                    }
-                                    PropertyNameKind::Value => {
-                                        return Ok(create_iter_result_object(
-                                            context,
-                                            value.clone(),
-                                            false,
-                                        ));
-                                    }
-                                    PropertyNameKind::KeyAndValue => {
-                                        let result = Array::create_array_from_list(
-                                            [key.clone(), value.clone()],
-                                            context,
-                                        );
-                                        return Ok(create_iter_result_object(
-                                            context,
-                                            result.into(),
-                                            false,
-                                        ));
-                                    }
-                                }
-                            }
+        let map_iterator = iterator_object.expect_map_iterator_mut();
+
+        let mut index = map_iterator.map_next_index;
+        let item_kind = map_iterator.map_iteration_kind;
+
+        if let Some(obj) = map_iterator.iterated_map.take() {
+            let map = obj.borrow();
+            let entries = map.expect_map_ref();
+            let num_entries = entries.full_len();
+            while index < num_entries {
+                let e = entries.get_index(index);
+                index += 1;
+                map_iterator.map_next_index = index;
+                if let Some((key, value)) = e {
+                    let item = match item_kind {
+                        PropertyNameKind::Key => {
+                            Ok(create_iter_result_object(key.clone(), false, context))
                         }
-                    } else {
-                        return Err(context.construct_type_error("'this' is not a Map"));
-                    }
-                } else {
-                    return Err(context.construct_type_error("'this' is not a Map"));
+                        PropertyNameKind::Value => {
+                            Ok(create_iter_result_object(value.clone(), false, context))
+                        }
+                        PropertyNameKind::KeyAndValue => {
+                            let result = Array::create_array_from_list(
+                                [key.clone(), value.clone()],
+                                context,
+                            );
+                            Ok(create_iter_result_object(result.into(), false, context))
+                        }
+                    };
+                    drop(map);
+                    map_iterator.iterated_map = Some(obj);
+                    return item;
                 }
-
-                map_iterator.iterated_map = JsValue::undefined();
-                Ok(create_iter_result_object(
-                    context,
-                    JsValue::undefined(),
-                    true,
-                ))
-            } else {
-                context.throw_type_error("`this` is not an MapIterator")
             }
-        } else {
-            context.throw_type_error("`this` is not an MapIterator")
         }
+
+        Ok(create_iter_result_object(
+            JsValue::undefined(),
+            true,
+            context,
+        ))
     }
 
     /// Create the %MapIteratorPrototype% object
@@ -146,7 +128,7 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
+    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

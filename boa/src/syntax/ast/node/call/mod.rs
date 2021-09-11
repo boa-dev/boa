@@ -94,13 +94,13 @@ impl Executable for Call {
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
                 let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(context, val)?;
+                let iterator_record = iterable::get_iterator(&val, context)?;
                 loop {
                     let next = iterator_record.next(context)?;
-                    if next.is_done() {
+                    if next.done {
                         break;
                     }
-                    let next_value = next.value();
+                    let next_value = next.value;
                     v_args.push(next_value.clone());
                 }
                 break; // after spread we don't accept any new arguments

@@ -2528,9 +2528,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
-            context,
             this.clone(),
             PropertyNameKind::Value,
+            context,
         ))
     }
 
@@ -2546,9 +2546,9 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
-            context,
             this.clone(),
             PropertyNameKind::Key,
+            context,
         ))
     }
 
@@ -2568,9 +2568,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
-            context,
             this.clone(),
             PropertyNameKind::KeyAndValue,
+            context,
         ))
     }
 

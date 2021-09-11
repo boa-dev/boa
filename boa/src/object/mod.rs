@@ -593,6 +593,11 @@ impl Object {
     }
 
     #[inline]
+    pub fn expect_map_ref(&self) -> &OrderedMap<JsValue> {
+        self.as_map_ref().expect("object was not a map")
+    }
+
+    #[inline]
     pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<JsValue>> {
         match &mut self.data {
             ObjectData {
@@ -604,6 +609,33 @@ impl Object {
     }
 
     #[inline]
+    pub fn expect_map_mut(&mut self) -> &mut OrderedMap<JsValue> {
+        self.as_map_mut().expect("object was not a map")
+    }
+
+    #[inline]
+    pub fn is_map_iterator(&self) -> bool {
+        self.as_map_iterator_ref().is_some()
+    }
+
+    #[inline]
+    pub fn as_map_iterator_ref(&self) -> Option<&MapIterator> {
+        match &self.data {
+            ObjectData {
+                kind: ObjectKind::MapIterator(iter),
+                ..
+            } => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn expect_map_iterator_ref(&self) -> &MapIterator {
+        self.as_map_iterator_ref()
+            .expect("object was not a map iterator")
+    }
+
+    #[inline]
     pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
         match &mut self.data {
             ObjectData {
@@ -612,6 +644,12 @@ impl Object {
             } => Some(iter),
             _ => None,
         }
+    }
+
+    #[inline]
+    pub fn expect_map_iterator_mut(&mut self) -> &mut MapIterator {
+        self.as_map_iterator_mut()
+            .expect("object was not a map iterator")
     }
 
     #[inline]

@@ -46,16 +46,16 @@ impl Executable for ArrayDecl {
         for elem in self.as_ref() {
             if let Node::Spread(ref x) = elem {
                 let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(context, val)?;
+                let iterator_record = iterable::get_iterator(&val, context)?;
                 // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
                 // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
                 // let mut next_index = 0;
                 loop {
                     let next = iterator_record.next(context)?;
-                    if next.is_done() {
+                    if next.done {
                         break;
                     }
-                    let next_value = next.value();
+                    let next_value = next.value;
                     //next_index += 1;
                     elements.push(next_value.clone());
                 }

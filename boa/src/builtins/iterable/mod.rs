@@ -25,22 +25,22 @@ impl IteratorPrototypes {
         let iterator_prototype = create_iterator_prototype(context);
         Self {
             array_iterator: ArrayIterator::create_prototype(
-                context,
                 iterator_prototype.clone().into(),
+                context,
             ),
-            set_iterator: SetIterator::create_prototype(context, iterator_prototype.clone().into()),
+            set_iterator: SetIterator::create_prototype(iterator_prototype.clone().into(), context),
             string_iterator: StringIterator::create_prototype(
-                context,
                 iterator_prototype.clone().into(),
+                context,
             ),
             regexp_string_iterator: RegExpStringIterator::create_prototype(
-                context,
                 iterator_prototype.clone().into(),
+                context,
             ),
-            map_iterator: MapIterator::create_prototype(context, iterator_prototype.clone().into()),
+            map_iterator: MapIterator::create_prototype(iterator_prototype.clone().into(), context),
             for_in_iterator: ForInIterator::create_prototype(
-                context,
                 iterator_prototype.clone().into(),
+                context,
             ),
             iterator_prototype,
         }
@@ -85,7 +85,7 @@ impl IteratorPrototypes {
 /// CreateIterResultObject( value, done )
 ///
 /// Generates an object supporting the IteratorResult interface.
-pub fn create_iter_result_object(context: &mut Context, value: JsValue, done: bool) -> JsValue {
+pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
     let obj = context.construct_object();
@@ -101,12 +101,12 @@ pub fn create_iter_result_object(context: &mut Context, value: JsValue, done: bo
 }
 
 /// Get an iterator record
-pub fn get_iterator(context: &mut Context, iterable: JsValue) -> JsResult<IteratorRecord> {
+pub fn get_iterator(iterable: &JsValue, context: &mut Context) -> JsResult<IteratorRecord> {
     let iterator_function = iterable.get_field(WellKnownSymbols::iterator(), context)?;
     if iterator_function.is_null_or_undefined() {
         return Err(context.construct_type_error("Not an iterable"));
     }
-    let iterator_object = context.call(&iterator_function, &iterable, &[])?;
+    let iterator_object = context.call(&iterator_function, iterable, &[])?;
     let next_function = iterator_object.get_field("next", context)?;
     if next_function.is_null_or_undefined() {
         return Err(context.construct_type_error("Could not find property `next`"));
@@ -158,8 +158,8 @@ impl IteratorRecord {
         let next = context.call(&self.next_function, &self.iterator_object, &[])?;
         let done = next.get_field("done", context)?.to_boolean();
 
-        let next_result = next.get_field("value", context)?;
-        Ok(IteratorResult::new(next_result, done))
+        let value = next.get_field("value", context)?;
+        Ok(IteratorResult { value, done })
     }
 
     /// Cleanup the iterator
@@ -203,20 +203,6 @@ impl IteratorRecord {
 
 #[derive(Debug)]
 pub struct IteratorResult {
-    value: JsValue,
-    done: bool,
-}
-
-impl IteratorResult {
-    fn new(value: JsValue, done: bool) -> Self {
-        Self { value, done }
-    }
-
-    pub fn is_done(&self) -> bool {
-        self.done
-    }
-
-    pub fn value(self) -> JsValue {
-        self.value
-    }
+    pub value: JsValue,
+    pub done: bool,
 }

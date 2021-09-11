@@ -1074,17 +1074,7 @@ impl Number {
         if a.is_nan() && b.is_nan() {
             return true;
         }
-
-        if a == 0.0 && b == 0.0 {
-            if (a.is_sign_negative() && b.is_sign_positive())
-                || (a.is_sign_positive() && b.is_sign_negative())
-            {
-                return false;
-            };
-            true
-        } else {
-            a == b
-        }
+        a == b && a.signum() == b.signum()
     }
 
     /// The abstract operation Number::sameValueZero takes arguments

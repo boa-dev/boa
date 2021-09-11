@@ -142,9 +142,12 @@ impl<V> OrderedMap<V> {
         }
     }
 
+    /// Removes all elements from the map and resets the counter of
+    /// empty entries.
     pub fn clear(&mut self) {
         self.map.clear();
         self.map.shrink_to_fit();
+        self.empty_count = 0
     }
 
     /// Return a reference to the value stored for `key`, if it is present,
@@ -155,8 +158,10 @@ impl<V> OrderedMap<V> {
         self.map.get(key).map(Option::as_ref).flatten()
     }
 
-    /// Get a key-value pair by index
-    /// Valid indices are 0 <= index < self.full_len()
+    /// Get a key-value pair by index.
+    ///
+    /// Valid indices are 0 <= index < self.full_len().
+    ///
     /// Computes in O(1) time.
     pub fn get_index(&self, index: usize) -> Option<(&JsValue, &V)> {
         if let (MapKey::Key(key), Some(value)) = self.map.get_index(index)? {

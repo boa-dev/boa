@@ -83,7 +83,7 @@ impl Executable for ForOfLoop {
     fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(context)?;
-        let iterator = get_iterator(context, iterable)?;
+        let iterator = get_iterator(&iterable, context)?;
         let mut result = JsValue::undefined();
 
         loop {
@@ -92,11 +92,11 @@ impl Executable for ForOfLoop {
                 context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
             }
             let iterator_result = iterator.next(context)?;
-            if iterator_result.is_done() {
+            if iterator_result.done {
                 context.pop_environment();
                 break;
             }
-            let next_result = iterator_result.value();
+            let next_result = iterator_result.value;
 
             match self.variable() {
                 Node::Identifier(ref name) => {

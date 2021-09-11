@@ -89,7 +89,7 @@ impl Executable for ForInLoop {
             return Ok(result);
         }
         let object = object.to_object(context)?;
-        let for_in_iterator = ForInIterator::create_for_in_iterator(context, JsValue::new(object));
+        let for_in_iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
         let next_function = for_in_iterator
             .get_property("next")
             .as_ref()
@@ -104,11 +104,11 @@ impl Executable for ForInLoop {
                 context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
             }
             let iterator_result = iterator.next(context)?;
-            if iterator_result.is_done() {
+            if iterator_result.done {
                 context.pop_environment();
                 break;
             }
-            let next_result = iterator_result.value();
+            let next_result = iterator_result.value;
 
             match self.variable() {
                 Node::Identifier(ref name) => {
