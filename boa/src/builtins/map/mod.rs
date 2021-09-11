@@ -450,7 +450,7 @@ impl Map {
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = match args.get_or_undefined(0) {
-            JsValue::Object(obj) if obj.is_function() => obj,
+            JsValue::Object(obj) if obj.is_callable() => obj,
             val => {
                 let name = val.to_string(context)?;
                 return context.throw_type_error(format!("{} is not a function", name));
@@ -470,7 +470,7 @@ impl Map {
         // after it has been visited and then re-added before the forEach call completes.
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
-        let lock = map.borrow_mut().expect_map_mut().lock(map.clone());
+        let _lock = map.borrow_mut().expect_map_mut().lock(map.clone());
 
         // 4. Let entries be the List that is M.[[MapData]].
         // 5. For each Record { [[Key]], [[Value]] } e of entries, do
@@ -490,8 +490,6 @@ impl Map {
 
             index += 1;
         }
-
-        drop(lock);
 
         // 6. Return undefined.
         Ok(JsValue::undefined())
@@ -534,7 +532,7 @@ pub(crate) fn add_entries_from_iterable(
 ) -> JsResult<JsValue> {
     // 1. If IsCallable(adder) is false, throw a TypeError exception.
     let adder = match adder {
-        JsValue::Object(obj) if obj.is_function() => obj,
+        JsValue::Object(obj) if obj.is_callable() => obj,
         _ => return context.throw_type_error("property `set` of `NewTarget` is not callable"),
     };
 

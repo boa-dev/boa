@@ -867,7 +867,7 @@ impl JsValue {
             Self::Undefined => "undefined",
             Self::BigInt(_) => "bigint",
             Self::Object(ref object) => {
-                if object.is_function() {
+                if object.is_callable() {
                     "function"
                 } else {
                     "object"
