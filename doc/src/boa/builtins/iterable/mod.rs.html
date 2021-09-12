@@ -206,20 +206,6 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
@@ -248,22 +234,22 @@
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
             <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(
-                <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">context</span>,
             ),
-            <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
+            <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>),
             <span class="ident">string_iterator</span>: <span class="ident">StringIterator::create_prototype</span>(
-                <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">context</span>,
             ),
             <span class="ident">regexp_string_iterator</span>: <span class="ident">RegExpStringIterator::create_prototype</span>(
-                <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">context</span>,
             ),
-            <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
+            <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>),
             <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(
-                <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">context</span>,
             ),
             <span class="ident">iterator_prototype</span>,
         }
@@ -308,7 +294,7 @@
 <span class="doccomment">/// CreateIterResultObject( value, done )</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Generates an object supporting the IteratorResult interface.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
     <span class="comment">// 1. Assert: Type(done) is Boolean.</span>
     <span class="comment">// 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).</span>
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
@@ -324,12 +310,12 @@
 }
 
 <span class="doccomment">/// Get an iterator record</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">iterable</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">iterator_function</span>.<span class="ident">is_null_or_undefined</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Not an iterable&quot;</span>));
     }
-    <span class="kw">let</span> <span class="ident">iterator_object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator_function</span>, <span class="kw-2">&amp;</span><span class="ident">iterable</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">iterator_object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator_function</span>, <span class="ident">iterable</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">next_function</span> <span class="op">=</span> <span class="ident">iterator_object</span>.<span class="ident">get_field</span>(<span class="string">&quot;next&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">next_function</span>.<span class="ident">is_null_or_undefined</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `next`&quot;</span>));
@@ -381,8 +367,8 @@
         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next_function</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_object</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_field</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
 
-        <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">IteratorResult::new</span>(<span class="ident">next_result</span>, <span class="ident">done</span>))
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">IteratorResult</span> { <span class="ident">value</span>, <span class="ident">done</span> })
     }
 
     <span class="doccomment">/// Cleanup the iterator</span>
@@ -426,22 +412,8 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorResult</span> {
-    <span class="ident">value</span>: <span class="ident">JsValue</span>,
-    <span class="ident">done</span>: <span class="ident">bool</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">IteratorResult</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">value</span>, <span class="ident">done</span> }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_done</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">done</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
-        <span class="self">self</span>.<span class="ident">value</span>
-    }
+    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">JsValue</span>,
+    <span class="kw">pub</span> <span class="ident">done</span>: <span class="ident">bool</span>,
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>

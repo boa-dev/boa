@@ -195,7 +195,7 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createforiniterator</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_for_in_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>, <span class="ident">object</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_for_in_iterator</span>(<span class="ident">object</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">let</span> <span class="ident">for_in_iterator</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
         <span class="ident">for_in_iterator</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::for_in_iterator</span>(<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">object</span>)));
         <span class="ident">for_in_iterator</span>
@@ -242,9 +242,9 @@
                                 <span class="ident">iterator</span>.<span class="ident">visited_keys</span>.<span class="ident">insert</span>(<span class="ident">r</span>.<span class="ident">clone</span>());
                                 <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">expect_enumerable</span>() {
                                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                                        <span class="ident">context</span>,
                                         <span class="ident">JsValue::new</span>(<span class="ident">r</span>.<span class="ident">to_string</span>()),
                                         <span class="bool-val">false</span>,
+                                        <span class="ident">context</span>,
                                     ));
                                 }
                             }
@@ -256,9 +256,9 @@
                         }
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                                <span class="ident">context</span>,
                                 <span class="ident">JsValue::undefined</span>(),
                                 <span class="bool-val">true</span>,
+                                <span class="ident">context</span>,
                             ))
                         }
                     }
@@ -279,7 +279,7 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="comment">// Create prototype</span>

@@ -357,7 +357,7 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>);
         }
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">for_in_iterator</span> <span class="op">=</span> <span class="ident">ForInIterator::create_for_in_iterator</span>(<span class="ident">context</span>, <span class="ident">JsValue::new</span>(<span class="ident">object</span>));
+        <span class="kw">let</span> <span class="ident">for_in_iterator</span> <span class="op">=</span> <span class="ident">ForInIterator::create_for_in_iterator</span>(<span class="ident">JsValue::new</span>(<span class="ident">object</span>), <span class="ident">context</span>);
         <span class="kw">let</span> <span class="ident">next_function</span> <span class="op">=</span> <span class="ident">for_in_iterator</span>
             .<span class="ident">get_property</span>(<span class="string">&quot;next&quot;</span>)
             .<span class="ident">as_ref</span>()
@@ -372,24 +372,24 @@
                 <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">DeclarativeEnvironmentRecord::new</span>(<span class="prelude-val">Some</span>(<span class="ident">env</span>)));
             }
             <span class="kw">let</span> <span class="ident">iterator_result</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">next</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">iterator_result</span>.<span class="ident">is_done</span>() {
+            <span class="kw">if</span> <span class="ident">iterator_result</span>.<span class="ident">done</span> {
                 <span class="ident">context</span>.<span class="ident">pop_environment</span>();
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">iterator_result</span>.<span class="ident">value</span>();
+            <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">iterator_result</span>.<span class="ident">value</span>;
 
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">variable</span>() {
                 <span class="ident">Node::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>()) {
                         <span class="comment">// Binding already exists</span>
-                        <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                     } <span class="kw">else</span> {
                         <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
                             <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>(),
                             <span class="bool-val">true</span>,
                             <span class="ident">VariableScope::Function</span>,
                         )<span class="question-mark">?</span>;
-                        <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+                        <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">next_result</span>)<span class="question-mark">?</span>;
                     }
                 }
                 <span class="ident">Node::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {

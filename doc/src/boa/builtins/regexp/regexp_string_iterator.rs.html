@@ -274,9 +274,9 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">iterator</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_regexp_string_iterator_mut</span>() {
                 <span class="kw">if</span> <span class="ident">iterator</span>.<span class="ident">completed</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                        <span class="ident">context</span>,
                         <span class="ident">JsValue::undefined</span>(),
                         <span class="bool-val">true</span>,
+                        <span class="ident">context</span>,
                     ));
                 }
 
@@ -291,7 +291,7 @@
                         <span class="comment">// 1. Perform ? Yield(match).</span>
                         <span class="comment">// 2. Return undefined.</span>
                         <span class="ident">iterator</span>.<span class="ident">completed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">context</span>, <span class="ident">m</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">m</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>, <span class="ident">context</span>));
                     }
 
                     <span class="comment">// iv. Let matchStr be ? ToString(? Get(match, &quot;0&quot;)).</span>
@@ -319,14 +319,14 @@
                     }
 
                     <span class="comment">// vi. Perform ? Yield(match).</span>
-                    <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">context</span>, <span class="ident">m</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>))
+                    <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">m</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>, <span class="ident">context</span>))
                 } <span class="kw">else</span> {
                     <span class="comment">// ii. If match is null, return undefined.</span>
                     <span class="ident">iterator</span>.<span class="ident">completed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                        <span class="ident">context</span>,
                         <span class="ident">JsValue::undefined</span>(),
                         <span class="bool-val">true</span>,
+                        <span class="ident">context</span>,
                     ))
                 }
             } <span class="kw">else</span> {
@@ -343,7 +343,7 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;RegExp String Iterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="comment">// Create prototype</span>
