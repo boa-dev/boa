@@ -92,9 +92,9 @@ impl RegExpStringIterator {
             if let Some(iterator) = object.as_regexp_string_iterator_mut() {
                 if iterator.completed {
                     return Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ));
                 }
 
@@ -109,7 +109,7 @@ impl RegExpStringIterator {
                         // 1. Perform ? Yield(match).
                         // 2. Return undefined.
                         iterator.completed = true;
-                        return Ok(create_iter_result_object(context, m.into(), false));
+                        return Ok(create_iter_result_object(m.into(), false, context));
                     }
 
                     // iv. Let matchStr be ? ToString(? Get(match, "0")).
@@ -137,14 +137,14 @@ impl RegExpStringIterator {
                     }
 
                     // vi. Perform ? Yield(match).
-                    Ok(create_iter_result_object(context, m.into(), false))
+                    Ok(create_iter_result_object(m.into(), false, context))
                 } else {
                     // ii. If match is null, return undefined.
                     iterator.completed = true;
                     Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ))
                 }
             } else {
@@ -161,7 +161,7 @@ impl RegExpStringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
+    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype

@@ -604,6 +604,28 @@ impl Object {
     }
 
     #[inline]
+    pub fn is_map_iterator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::MapIterator(_),
+                ..
+            }
+        )
+    }
+
+    #[inline]
+    pub fn as_map_iterator_ref(&self) -> Option<&MapIterator> {
+        match &self.data {
+            ObjectData {
+                kind: ObjectKind::MapIterator(iter),
+                ..
+            } => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
         match &mut self.data {
             ObjectData {

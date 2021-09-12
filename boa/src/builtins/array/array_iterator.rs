@@ -40,9 +40,9 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator
     pub(crate) fn create_array_iterator(
-        context: &Context,
         array: JsValue,
         kind: PropertyNameKind,
+        context: &Context,
     ) -> JsValue {
         let array_iterator = JsValue::new_object(context);
         array_iterator.set_data(ObjectData::array_iterator(Self::new(array, kind)));
@@ -68,9 +68,9 @@ impl ArrayIterator {
                 let index = array_iterator.next_index;
                 if array_iterator.array.is_undefined() {
                     return Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ));
                 }
                 let len = array_iterator
@@ -82,33 +82,30 @@ impl ArrayIterator {
                 if array_iterator.next_index >= len {
                     array_iterator.array = JsValue::undefined();
                     return Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ));
                 }
                 array_iterator.next_index = index + 1;
-                match array_iterator.kind {
+                return match array_iterator.kind {
                     PropertyNameKind::Key => {
-                        Ok(create_iter_result_object(context, index.into(), false))
+                        Ok(create_iter_result_object(index.into(), false, context))
                     }
                     PropertyNameKind::Value => {
                         let element_value = array_iterator.array.get_field(index, context)?;
-                        Ok(create_iter_result_object(context, element_value, false))
+                        Ok(create_iter_result_object(element_value, false, context))
                     }
                     PropertyNameKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index, context)?;
                         let result =
                             Array::create_array_from_list([index.into(), element_value], context);
-                        Ok(create_iter_result_object(context, result.into(), false))
+                        Ok(create_iter_result_object(result.into(), false, context))
                     }
-                }
-            } else {
-                context.throw_type_error("`this` is not an ArrayIterator")
+                };
             }
-        } else {
-            context.throw_type_error("`this` is not an ArrayIterator")
         }
+        context.throw_type_error("`this` is not an ArrayIterator")
     }
 
     /// Create the %ArrayIteratorPrototype% object
@@ -117,7 +114,7 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
+    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

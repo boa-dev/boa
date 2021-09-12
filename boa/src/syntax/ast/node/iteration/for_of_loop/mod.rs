@@ -83,7 +83,7 @@ impl Executable for ForOfLoop {
     fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(context)?;
-        let iterator = get_iterator(context, iterable)?;
+        let iterator = get_iterator(&iterable, context)?;
         let mut result = JsValue::undefined();
 
         loop {
@@ -92,24 +92,24 @@ impl Executable for ForOfLoop {
                 context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
             }
             let iterator_result = iterator.next(context)?;
-            if iterator_result.is_done() {
+            if iterator_result.done {
                 context.pop_environment();
                 break;
             }
-            let next_result = iterator_result.value();
+            let next_result = iterator_result.value;
 
             match self.variable() {
                 Node::Identifier(ref name) => {
                     if context.has_binding(name.as_ref()) {
                         // Binding already exists
-                        context.set_mutable_binding(name.as_ref(), next_result.clone(), true)?;
+                        context.set_mutable_binding(name.as_ref(), next_result, true)?;
                     } else {
                         context.create_mutable_binding(
                             name.as_ref().to_owned(),
                             true,
                             VariableScope::Function,
                         )?;
-                        context.initialize_binding(name.as_ref(), next_result.clone())?;
+                        context.initialize_binding(name.as_ref(), next_result)?;
                     }
                 }
                 Node::VarDeclList(ref list) => match list.as_ref() {

@@ -1777,7 +1777,7 @@ impl String {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        StringIterator::create_string_iterator(context, this.clone())
+        StringIterator::create_string_iterator(this.clone(), context)
     }
 }
 

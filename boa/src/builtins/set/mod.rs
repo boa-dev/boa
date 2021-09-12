@@ -152,15 +152,15 @@ impl Set {
         }
 
         // 7
-        let iterator_record = get_iterator(context, iterable.clone())?;
+        let iterator_record = get_iterator(iterable, context)?;
 
         // 8.a
         let mut next = iterator_record.next(context)?;
 
         // 8
-        while !next.is_done() {
+        while !next.done {
             // c
-            let next_value = next.value();
+            let next_value = next.value;
 
             // d, e
             if let Err(status) = context.call(&adder, &set, &[next_value]) {
@@ -305,9 +305,9 @@ impl Set {
         }
 
         Ok(SetIterator::create_set_iterator(
-            context,
             this.clone(),
             PropertyNameKind::KeyAndValue,
+            context,
         ))
     }
 
@@ -419,9 +419,9 @@ impl Set {
         }
 
         Ok(SetIterator::create_set_iterator(
-            context,
             this.clone(),
             PropertyNameKind::Value,
+            context,
         ))
     }
 

@@ -669,7 +669,7 @@ impl DeclarationPatternArray {
         }
 
         // 1. Let iteratorRecord be ? GetIterator(value).
-        let iterator = get_iterator(context, value)?;
+        let iterator = get_iterator(&value, context)?;
         let mut result = Vec::new();
 
         // 2. Let result be IteratorBindingInitialization of ArrayBindingPattern with arguments iteratorRecord and environment.
@@ -705,7 +705,7 @@ impl DeclarationPatternArray {
 
                     // 3. If iteratorRecord.[[Done]] is false, then
                     // 4. If iteratorRecord.[[Done]] is true, let v be undefined.
-                    let mut v = if !next.is_done() {
+                    let mut v = if !next.done {
                         // a. Let next be IteratorStep(iteratorRecord).
                         // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
                         // c. ReturnIfAbrupt(next).
@@ -714,7 +714,7 @@ impl DeclarationPatternArray {
                         // i. Let v be IteratorValue(next).
                         // ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
                         // iii. ReturnIfAbrupt(v).
-                        next.value()
+                        next.value
                     } else {
                         JsValue::undefined()
                     };
@@ -743,7 +743,7 @@ impl DeclarationPatternArray {
 
                     // 1. If iteratorRecord.[[Done]] is false, then
                     // 2. If iteratorRecord.[[Done]] is true, let v be undefined.
-                    let v = if !next.is_done() {
+                    let v = if !next.done {
                         // a. Let next be IteratorStep(iteratorRecord).
                         // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
                         // c. ReturnIfAbrupt(next).
@@ -752,7 +752,7 @@ impl DeclarationPatternArray {
                         // i. Let v be IteratorValue(next).
                         // ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
                         // iii. ReturnIfAbrupt(v).
-                        Some(next.value())
+                        Some(next.value)
                     } else {
                         None
                     };
@@ -782,7 +782,7 @@ impl DeclarationPatternArray {
                         // iv. If next is false, set iteratorRecord.[[Done]] to true.
 
                         // b. If iteratorRecord.[[Done]] is true, then
-                        if next.is_done() {
+                        if next.done {
                             // i. If environment is undefined, return ? PutValue(lhs, A).
                             // ii. Return InitializeReferencedBinding(lhs, A).
                             break result.push((ident.clone(), a.clone().into()));
@@ -794,7 +794,7 @@ impl DeclarationPatternArray {
 
                         // f. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), nextValue).
                         // g. Set n to n + 1.
-                        Array::add_to_array_object(&a.clone().into(), &[next.value()], context)?;
+                        Array::add_to_array_object(&a.clone().into(), &[next.value], context)?;
                     }
                 }
                 // BindingRestElement : ... BindingPattern
@@ -814,7 +814,7 @@ impl DeclarationPatternArray {
                         let next = iterator.next(context)?;
 
                         // b. If iteratorRecord.[[Done]] is true, then
-                        if next.is_done() {
+                        if next.done {
                             // i. Return the result of performing BindingInitialization of BindingPattern with A and environment as the arguments.
                             break result
                                 .append(&mut pattern.run(Some(a.clone().into()), context)?);
@@ -825,7 +825,7 @@ impl DeclarationPatternArray {
                         // e. ReturnIfAbrupt(nextValue).
                         // f. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), nextValue).
                         // g. Set n to n + 1.
-                        Array::add_to_array_object(&a.clone().into(), &[next.value()], context)?;
+                        Array::add_to_array_object(&a.clone().into(), &[next.value], context)?;
                     }
                 }
             }

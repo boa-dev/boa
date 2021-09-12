@@ -13,13 +13,16 @@
 #![allow(clippy::mutable_key_type)]
 
 use crate::{
-    builtins::BuiltIn,
+    builtins::{
+        iterable::{get_iterator, IteratorResult},
+        BuiltIn,
+    },
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        ObjectData,
+        JsObject, ObjectData,
     },
-    property::{Attribute, PropertyDescriptor, PropertyNameKind},
+    property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -27,8 +30,6 @@ use ordered_map::OrderedMap;
 
 pub mod map_iterator;
 use map_iterator::MapIterator;
-
-use self::ordered_map::MapLock;
 
 use super::JsArgs;
 use num_traits::Zero;
@@ -50,11 +51,14 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = WellKnownSymbols::to_string_tag();
-        let iterator_symbol = WellKnownSymbols::iterator();
-
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
+            .constructable(false)
+            .build();
+
+        let get_size = FunctionBuilder::native(context, Self::get_size)
+            .name("get size")
+            .length(0)
             .constructable(false)
             .build();
 
@@ -83,23 +87,24 @@ impl BuiltIn for Map {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            to_string_tag,
-            Self::NAME,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        )
-        .property(
-            iterator_symbol,
+            WellKnownSymbols::iterator(),
             entries_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .property(
+            WellKnownSymbols::to_string_tag(),
+            Self::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .method(Self::clear, "clear", 0)
+        .method(Self::delete, "delete", 1)
+        .method(Self::for_each, "forEach", 1)
+        .method(Self::get, "get", 1)
+        .method(Self::has, "has", 1)
         .method(Self::keys, "keys", 0)
         .method(Self::set, "set", 2)
-        .method(Self::delete, "delete", 1)
-        .method(Self::get, "get", 1)
-        .method(Self::clear, "clear", 0)
-        .method(Self::has, "has", 1)
-        .method(Self::for_each, "forEach", 1)
         .method(Self::values, "values", 0)
+        .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
         .build();
 
         (Self::NAME, map_object.into(), Self::attribute())
@@ -109,66 +114,47 @@ impl BuiltIn for Map {
 impl Map {
     pub(crate) const LENGTH: usize = 0;
 
-    /// Create a new map
+    /// `Map ( [ iterable ] )`
+    ///
+    /// Constructor for `Map` objects.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-map-iterable
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map
     pub(crate) fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return context
                 .throw_type_error("calling a builtin Map constructor without new is forbidden");
         }
+
+        // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%Map.prototype%", « [[MapData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::map_object, context)?;
+        let map = context.construct_object();
+        map.set_prototype_instance(prototype.into());
 
-        let obj = context.construct_object();
-        obj.set_prototype_instance(prototype.into());
-        let this = JsValue::new(obj);
+        // 3. Set map.[[MapData]] to a new empty List.
+        map.borrow_mut().data = ObjectData::map(OrderedMap::new());
 
-        // add our arguments in
-        let data = match args.len() {
-            0 => OrderedMap::new(),
-            _ => match &args[0] {
-                JsValue::Object(object) => {
-                    let object = object.borrow();
-                    if let Some(map) = object.as_map_ref().cloned() {
-                        map
-                    } else if object.is_array() {
-                        let mut map = OrderedMap::new();
-                        let len = args[0].get_field("length", context)?.to_integer(context)? as i32;
-                        for i in 0..len {
-                            let val = &args[0].get_field(i, context)?;
-                            let (key, value) =
-                                Self::get_key_value(val, context)?.ok_or_else(|| {
-                                    context.construct_type_error(
-                                        "iterable for Map should have array-like objects",
-                                    )
-                                })?;
-                            map.insert(key, value);
-                        }
-                        map
-                    } else {
-                        return Err(context.construct_type_error(
-                            "iterable for Map should have array-like objects",
-                        ));
-                    }
-                }
-                _ => {
-                    return Err(context
-                        .construct_type_error("iterable for Map should have array-like objects"))
-                }
-            },
+        // 4. If iterable is either undefined or null, return map.
+        let iterable = match args.get_or_undefined(0) {
+            val if !val.is_null_or_undefined() => val,
+            _ => return Ok(map.into()),
         };
 
-        // finally create size property
-        Self::set_size(&this, data.len());
+        // 5. Let adder be ? Get(map, "set").
+        let adder = map.get("set", context)?;
 
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
-        this.set_data(ObjectData::map(data));
-
-        Ok(this)
+        // 6. Return ? AddEntriesFromIterable(map, iterable, adder).
+        add_entries_from_iterable(&map, iterable, &adder, context)
     }
 
     /// `get Map [ @@species ]`
@@ -201,7 +187,9 @@ impl Map {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(context, this.clone(), PropertyNameKind::KeyAndValue)
+        // 1. Let M be the this value.
+        // 2. Return ? CreateMapIterator(M, key+value).
+        MapIterator::create_map_iterator(this, PropertyNameKind::KeyAndValue, context)
     }
 
     /// `Map.prototype.keys()`
@@ -215,23 +203,14 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(context, this.clone(), PropertyNameKind::Key)
-    }
-
-    /// Helper function to set the size property.
-    fn set_size(this: &JsValue, size: usize) {
-        let size = PropertyDescriptor::builder()
-            .value(size)
-            .writable(false)
-            .enumerable(false)
-            .configurable(false);
-
-        this.set_property("size", size);
+        // 1. Let M be the this value.
+        // 2. Return ? CreateMapIterator(M, key).
+        MapIterator::create_map_iterator(this, PropertyNameKind::Key, context)
     }
 
     /// `Map.prototype.set( key, value )`
     ///
-    /// This method associates the value with the key. Returns the map object.
+    /// Inserts a new entry in the Map object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -247,10 +226,14 @@ impl Map {
         let key = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
 
-        let size = if let Some(object) = this.as_object() {
+        // 1. Let M be the this value.
+        if let Some(object) = this.as_object() {
+            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.borrow_mut().as_map_mut() {
                 let key = match key {
                     JsValue::Rational(r) => {
+                        // 5. If key is -0𝔽, set key to +0𝔽.
                         if r.is_zero() {
                             JsValue::Rational(0f64)
                         } else {
@@ -259,22 +242,55 @@ impl Map {
                     }
                     _ => key.clone(),
                 };
+                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+                // i. Set p.[[Value]] to value.
+                // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+                // 7. Append p as the last element of entries.
                 map.insert(key, value.clone());
-                map.len()
-            } else {
-                return Err(context.construct_type_error("'this' is not a Map"));
+                // ii. Return M.
+                // 8. Return M.
+                return Ok(this.clone());
             }
-        } else {
-            return Err(context.construct_type_error("'this' is not a Map"));
-        };
+        }
+        context.throw_type_error("'this' is not a Map")
+    }
 
-        Self::set_size(this, size);
-        Ok(this.clone())
+    /// `get Map.prototype.size`
+    ///
+    /// Obtains the size of the map, filtering empty keys to ensure it updates
+    /// while iterating.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-map.prototype.size
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
+    pub(crate) fn get_size(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        if let Some(object) = this.as_object() {
+            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            if let Some(map) = object.borrow_mut().as_map_mut() {
+                // 4. Let count be 0.
+                // 5. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty, set count to count + 1.
+                // 6. Return 𝔽(count).
+                return Ok(map.len().into());
+            }
+        }
+        context.throw_type_error("'this' is not a Map")
     }
 
     /// `Map.prototype.delete( key )`
     ///
-    /// This method removes the element associated with the key, if it exists. Returns true if there was an element, false otherwise.
+    /// Removes the element associated with the key, if it exists.
+    /// Returns true if there was an element, and false otherwise.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -289,23 +305,25 @@ impl Map {
     ) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
-        let (deleted, size) = if let Some(object) = this.as_object() {
+        // 1. Let M be the this value.
+        if let Some(object) = this.as_object() {
+            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                let deleted = map.remove(key).is_some();
-                (deleted, map.len())
-            } else {
-                return Err(context.construct_type_error("'this' is not a Map"));
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+                // i. Set p.[[Key]] to empty.
+                // ii. Set p.[[Value]] to empty.
+                // iii. Return true.
+                // 5. Return false.
+                return Ok(map.remove(key).is_some().into());
             }
-        } else {
-            return Err(context.construct_type_error("'this' is not a Map"));
-        };
-        Self::set_size(this, size);
-        Ok(deleted.into())
+        }
+        context.throw_type_error("'this' is not a Map")
     }
 
     /// `Map.prototype.get( key )`
     ///
-    /// This method returns the value associated with the key, or undefined if there is none.
+    /// Returns the value associated with the key, or undefined if there is none.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -333,23 +351,24 @@ impl Map {
             _ => key,
         };
 
+        // 1. Let M be the this value.
         if let JsValue::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(map) = object.as_map_ref() {
-                return Ok(if let Some(result) = map.get(key) {
-                    result.clone()
-                } else {
-                    JsValue::undefined()
-                });
+            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            if let Some(map) = object.borrow().as_map_ref() {
+                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
+                // 5. Return undefined.
+                return Ok(map.get(key).cloned().unwrap_or_default());
             }
         }
 
-        Err(context.construct_type_error("'this' is not a Map"))
+        context.throw_type_error("'this' is not a Map")
     }
 
     /// `Map.prototype.clear( )`
     ///
-    /// This method removes all entries from the map.
+    /// Removes all entries from the map.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -360,26 +379,24 @@ impl Map {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        // 3. Let entries be the List that is M.[[MapData]].
-        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-        // a. Set p.[[Key]] to empty.
-        // b. Set p.[[Value]] to empty.
-        Self::set_size(this, 0);
         if let Some(object) = this.as_object() {
+            // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.borrow_mut().as_map_mut() {
+                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. Set p.[[Key]] to empty.
+                // b. Set p.[[Value]] to empty.
                 map.clear();
-            } else {
-                return context.throw_type_error("'this' is not a Map");
+
+                // 5. Return undefined.
+                return Ok(JsValue::undefined());
             }
-        } else {
-            return context.throw_type_error("'this' is not a Map");
         }
-        Ok(JsValue::undefined())
+        context.throw_type_error("'this' is not a Map")
     }
 
     /// `Map.prototype.has( key )`
     ///
-    /// This method checks if the map contains an entry with the given key.
+    /// Checks if the map contains an entry with the given key.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -394,19 +411,24 @@ impl Map {
     ) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
+        // 1. Let M be the this value.
         if let JsValue::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(map) = object.as_map_ref() {
+            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+            // 3. Let entries be the List that is M.[[MapData]].
+            if let Some(map) = object.borrow().as_map_ref() {
+                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
+                // 5. Return false.
                 return Ok(map.contains_key(key).into());
             }
         }
 
-        Err(context.construct_type_error("'this' is not a Map"))
+        context.throw_type_error("'this' is not a Map")
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
     ///
-    /// This method executes the provided callback function for each key-value pair in the map.
+    /// Executes the provided callback function for each key-value pair in the map.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -419,76 +441,62 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if args.is_empty() {
-            return Err(JsValue::new("Missing argument for Map.prototype.forEach"));
-        }
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        let map = match this {
+            JsValue::Object(obj) if obj.is_map() => obj,
+            _ => return context.throw_type_error("`this` is not a Map"),
+        };
 
-        let callback_arg = &args[0];
-
-        if !callback_arg.is_function() {
-            let name = callback_arg.to_string(context)?;
-            return context.throw_type_error(format!("{} is not a function", name));
-        }
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = match args.get_or_undefined(0) {
+            JsValue::Object(obj) if obj.is_callable() => obj,
+            val => {
+                let name = val.to_string(context)?;
+                return context.throw_type_error(format!("{} is not a function", name));
+            }
+        };
 
         let this_arg = args.get_or_undefined(1);
 
+        // NOTE:
+        //
+        // forEach does not directly mutate the object on which it is called but
+        // the object may be mutated by the calls to callbackfn. Each entry of a
+        // map's [[MapData]] is only visited once. New keys added after the call
+        // to forEach begins are visited. A key will be revisited if it is deleted
+        // after it has been visited and then re-added before the forEach call completes.
+        // Keys that are deleted after the call to forEach begins and before being visited
+        // are not visited unless the key is added again before the forEach call completes.
+        let _lock = map
+            .borrow_mut()
+            .as_map_mut()
+            .expect("checked that `this` was a map")
+            .lock(map.clone());
+
+        // 4. Let entries be the List that is M.[[MapData]].
+        // 5. For each Record { [[Key]], [[Value]] } e of entries, do
         let mut index = 0;
-
-        let lock = Map::lock(this, context)?;
-
-        while index < Map::get_full_len(this, context)? {
-            let arguments = if let JsValue::Object(ref object) = this {
-                let object = object.borrow();
-                if let Some(map) = object.as_map_ref() {
-                    if let Some((key, value)) = map.get_index(index) {
-                        Some([value.clone(), key.clone(), this.clone()])
-                    } else {
-                        None
-                    }
+        loop {
+            let arguments = {
+                let map = map.borrow();
+                let map = map.as_map_ref().expect("checked that `this` was a map");
+                if index < map.full_len() {
+                    map.get_index(index)
+                        .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
                 } else {
-                    return context.throw_type_error("'this' is not a Map");
+                    // 6. Return undefined.
+                    return Ok(JsValue::undefined());
                 }
-            } else {
-                return context.throw_type_error("'this' is not a Map");
             };
 
+            // a. If e.[[Key]] is not empty, then
             if let Some(arguments) = arguments {
-                context.call(callback_arg, this_arg, &arguments)?;
+                // i. Perform ? Call(callbackfn, thisArg, « e.[[Value]], e.[[Key]], M »).
+                callback.call(this_arg, &arguments, context)?;
             }
 
             index += 1;
-        }
-
-        drop(lock);
-
-        Ok(JsValue::undefined())
-    }
-
-    /// Helper function to get the full size of the map.
-    fn get_full_len(map: &JsValue, context: &mut Context) -> JsResult<usize> {
-        if let JsValue::Object(ref object) = map {
-            let object = object.borrow();
-            if let Some(map) = object.as_map_ref() {
-                Ok(map.full_len())
-            } else {
-                Err(context.construct_type_error("'this' is not a Map"))
-            }
-        } else {
-            Err(context.construct_type_error("'this' is not a Map"))
-        }
-    }
-
-    /// Helper function to lock the map.
-    fn lock(map: &JsValue, context: &mut Context) -> JsResult<MapLock> {
-        if let JsValue::Object(ref object) = map {
-            let mut map = object.borrow_mut();
-            if let Some(map) = map.as_map_mut() {
-                Ok(map.lock(object.clone()))
-            } else {
-                Err(context.construct_type_error("'this' is not a Map"))
-            }
-        } else {
-            Err(context.construct_type_error("'this' is not a Map"))
         }
     }
 
@@ -507,28 +515,79 @@ impl Map {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(context, this.clone(), PropertyNameKind::Value)
+        // 1. Let M be the this value.
+        // 2. Return ? CreateMapIterator(M, value).
+        MapIterator::create_map_iterator(this, PropertyNameKind::Value, context)
     }
+}
 
-    /// Helper function to get a key-value pair from an array.
-    fn get_key_value(
-        value: &JsValue,
-        context: &mut Context,
-    ) -> JsResult<Option<(JsValue, JsValue)>> {
-        if let JsValue::Object(object) = value {
-            if object.is_array() {
-                let (key, value) =
-                    match value.get_field("length", context)?.as_number().unwrap() as i32 {
-                        0 => (JsValue::undefined(), JsValue::undefined()),
-                        1 => (value.get_field("0", context)?, JsValue::undefined()),
-                        _ => (
-                            value.get_field("0", context)?,
-                            value.get_field("1", context)?,
-                        ),
-                    };
-                return Ok(Some((key, value)));
-            }
+/// `AddEntriesFromIterable`
+///
+/// Allows adding entries to a map from any object that has a `@@Iterator` field.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-add-entries-from-iterable
+pub(crate) fn add_entries_from_iterable(
+    target: &JsObject,
+    iterable: &JsValue,
+    adder: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // 1. If IsCallable(adder) is false, throw a TypeError exception.
+    let adder = match adder {
+        JsValue::Object(obj) if obj.is_callable() => obj,
+        _ => return context.throw_type_error("property `set` of `NewTarget` is not callable"),
+    };
+
+    // 2. Let iteratorRecord be ? GetIterator(iterable).
+    let iterator_record = get_iterator(iterable, context)?;
+
+    // 3. Repeat,
+    loop {
+        // a. Let next be ? IteratorStep(iteratorRecord).
+        // c. Let nextItem be ? IteratorValue(next).
+        let IteratorResult { value, done } = iterator_record.next(context)?;
+
+        // b. If next is false, return target.
+        if done {
+            return Ok(target.clone().into());
         }
-        Ok(None)
+
+        let next_item = if let Some(obj) = value.as_object() {
+            obj
+        }
+        // d. If Type(nextItem) is not Object, then
+        else {
+            // i. Let error be ThrowCompletion(a newly created TypeError object).
+            let err = context
+                .throw_type_error("cannot get key and value from primitive item of `iterable`");
+
+            // ii. Return ? IteratorClose(iteratorRecord, error).
+            return iterator_record.close(err, context);
+        };
+
+        // e. Let k be Get(nextItem, "0").
+        // f. IfAbruptCloseIterator(k, iteratorRecord).
+        let key = match next_item.get(0, context) {
+            Ok(val) => val,
+            err => return iterator_record.close(err, context),
+        };
+
+        // g. Let v be Get(nextItem, "1").
+        // h. IfAbruptCloseIterator(v, iteratorRecord).
+        let value = match next_item.get(1, context) {
+            Ok(val) => val,
+            err => return iterator_record.close(err, context),
+        };
+
+        // i. Let status be Call(adder, target, « k, v »).
+        let status = adder.call(&target.clone().into(), &[key, value], context);
+
+        // j. IfAbruptCloseIterator(status, iteratorRecord).
+        if status.is_err() {
+            return iterator_record.close(status, context);
+        }
     }
 }

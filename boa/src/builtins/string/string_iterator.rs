@@ -23,7 +23,7 @@ impl StringIterator {
         }
     }
 
-    pub fn create_string_iterator(context: &mut Context, string: JsValue) -> JsResult<JsValue> {
+    pub fn create_string_iterator(string: JsValue, context: &mut Context) -> JsResult<JsValue> {
         let string_iterator = JsValue::new_object(context);
         string_iterator.set_data(ObjectData::string_iterator(Self::new(string)));
         string_iterator
@@ -39,9 +39,9 @@ impl StringIterator {
             if let Some(string_iterator) = object.as_string_iterator_mut() {
                 if string_iterator.string.is_undefined() {
                     return Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ));
                 }
                 let native_string = string_iterator.string.to_string(context)?;
@@ -50,9 +50,9 @@ impl StringIterator {
                 if position >= len {
                     string_iterator.string = JsValue::undefined();
                     return Ok(create_iter_result_object(
-                        context,
                         JsValue::undefined(),
                         true,
+                        context,
                     ));
                 }
                 let (_, code_unit_count, _) =
@@ -63,7 +63,7 @@ impl StringIterator {
                     &[position.into(), string_iterator.next_index.into()],
                     context,
                 )?;
-                Ok(create_iter_result_object(context, result_string, false))
+                Ok(create_iter_result_object(result_string, false, context))
             } else {
                 context.throw_type_error("`this` is not an ArrayIterator")
             }
@@ -78,7 +78,7 @@ impl StringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
+    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event("String Iterator", "init");
 
         // Create prototype
