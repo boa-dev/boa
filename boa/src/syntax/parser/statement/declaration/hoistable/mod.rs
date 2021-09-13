@@ -10,13 +10,15 @@ mod tests;
 
 mod async_function_decl;
 mod function_decl;
+mod generator_decl;
 
 use async_function_decl::AsyncFunctionDeclaration;
-use function_decl::FunctionDeclaration;
+pub(in crate::syntax::parser) use function_decl::FunctionDeclaration;
+use generator_decl::GeneratorDeclaration;
 
 use crate::{
     syntax::{
-        ast::{Keyword, Node},
+        ast::{Keyword, Node, Punctuator},
         lexer::TokenKind,
         parser::{
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
@@ -67,9 +69,16 @@ where
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
-                FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-                    .parse(cursor)
-                    .map(Node::from)
+                let next_token = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
+                    GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
+                        .parse(cursor)
+                        .map(Node::from)
+                } else {
+                    FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
+                        .parse(cursor)
+                        .map(Node::from)
+                }
             }
             TokenKind::Keyword(Keyword::Async) => {
                 AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)

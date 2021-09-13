@@ -520,24 +520,38 @@ where
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
-            TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
+            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
+                Err(ParseError::general(
+                    "Unexpected identifier",
+                    next_token.span().start(),
+                ))
+            }
+            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
                 if cursor.strict_mode() {
-                    Err(ParseError::lex(LexError::Syntax(
-                        "yield keyword in binding identifier not allowed in strict mode".into(),
+                    Err(ParseError::general(
+                        "yield keyword in binding identifier not allowed in strict mode",
                         next_token.span().start(),
-                    )))
+                    ))
                 } else {
-                    Ok(k.as_str().into())
+                    Ok("yield".into())
                 }
             }
-            TokenKind::Keyword(k @ Keyword::Await) if !self.allow_await.0 => {
+            TokenKind::Keyword(Keyword::Await) if self.allow_yield.0 => {
+                // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
+                Err(ParseError::general(
+                    "Unexpected identifier",
+                    next_token.span().start(),
+                ))
+            }
+            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
                 if cursor.strict_mode() {
-                    Err(ParseError::lex(LexError::Syntax(
-                        "await keyword in binding identifier not allowed in strict mode".into(),
+                    Err(ParseError::general(
+                        "await keyword in binding identifier not allowed in strict mode",
                         next_token.span().start(),
-                    )))
+                    ))
                 } else {
-                    Ok(k.as_str().into())
+                    Ok("await".into())
                 }
             }
             _ => Err(ParseError::expected(

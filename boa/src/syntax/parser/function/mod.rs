@@ -13,7 +13,7 @@ mod tests;
 use crate::{
     syntax::{
         ast::{node, Punctuator},
-        lexer::{InputElement, TokenKind},
+        lexer::{Error as LexError, InputElement, TokenKind},
         parser::{
             expression::Initializer,
             statement::{BindingIdentifier, StatementList},
@@ -23,6 +23,13 @@ use crate::{
     BoaProfiler,
 };
 use std::{collections::HashSet, io::Read};
+
+/// Intermediate type for a list of FormalParameters with some meta information.
+pub(in crate::syntax::parser) struct FormalParameterList {
+    pub(in crate::syntax::parser) parameters: Box<[node::FormalParameter]>,
+    pub(in crate::syntax::parser) is_simple: bool,
+    pub(in crate::syntax::parser) has_duplicates: bool,
+}
 
 /// Formal parameters parsing.
 ///
@@ -56,25 +63,31 @@ impl<R> TokenParser<R> for FormalParameters
 where
     R: Read,
 {
-    type Output = Box<[node::FormalParameter]>;
+    type Output = FormalParameterList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
         let mut params = Vec::new();
-        let mut param_names = HashSet::new();
+        let mut is_simple = true;
+        let mut has_duplicates = false;
 
-        if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
-            == &TokenKind::Punctuator(Punctuator::CloseParen)
-        {
-            return Ok(params.into_boxed_slice());
+        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
+            return Ok(FormalParameterList {
+                parameters: params.into_boxed_slice(),
+                is_simple,
+                has_duplicates,
+            });
         }
+        let start_position = next_token.span().start();
+
+        let mut parameter_names = HashSet::new();
 
         loop {
             let mut rest_param = false;
 
-            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let next_param = match cursor.peek(0)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
@@ -82,11 +95,15 @@ where
                 }
                 _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
-            if param_names.contains(next_param.name()) {
-                return Err(ParseError::general("duplicate parameter name", position));
-            }
 
-            param_names.insert(Box::from(next_param.name()));
+            if next_param.is_rest_param() || next_param.init().is_some() {
+                is_simple = false;
+            }
+            if parameter_names.contains(next_param.name()) {
+                has_duplicates = true;
+            }
+            parameter_names.insert(Box::from(next_param.name()));
+
             params.push(next_param);
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
@@ -105,7 +122,20 @@ where
             cursor.expect(Punctuator::Comma, "parameter list")?;
         }
 
-        Ok(params.into_boxed_slice())
+        // Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false
+        // and BoundNames of FormalParameterList contains any duplicate elements.
+        if !is_simple && has_duplicates {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Duplicate parameter name not allowed in this context".into(),
+                start_position,
+            )));
+        }
+
+        Ok(FormalParameterList {
+            parameters: params.into_boxed_slice(),
+            is_simple,
+            has_duplicates,
+        })
     }
 }
 
@@ -173,14 +203,14 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 #[derive(Debug, Clone, Copy)]
-struct FormalParameter {
+pub(in crate::syntax::parser) struct FormalParameter {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl FormalParameter {
     /// Creates a new `FormalParameter` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

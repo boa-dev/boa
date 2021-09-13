@@ -1,18 +1,18 @@
-//! Function expression parsing.
+//! Generator expression parsing.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]
 //!  - [ECMAScript specification][spec]
 //!
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
-//! [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
+//! [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
 
 #[cfg(test)]
 mod tests;
 
 use crate::{
     syntax::{
-        ast::{node::FunctionExpr, Keyword, Punctuator},
+        ast::{node::GeneratorExpr, Keyword, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -25,32 +25,37 @@ use crate::{
 
 use std::io::Read;
 
-/// Function expression parsing.
+/// Generator expression parsing.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
-/// [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
+/// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct FunctionExpression;
+pub(super) struct GeneratorExpression;
 
-impl<R> TokenParser<R> for FunctionExpression
+impl<R> TokenParser<R> for GeneratorExpression
 where
     R: Read,
 {
-    type Output = FunctionExpr;
+    type Output = GeneratorExpr;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
+        let _timer = BoaProfiler::global().start_event("GeneratorExpression", "Parsing");
+
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::Mul),
+            "generator expression",
+        )?;
 
         let name = if let Some(token) = cursor.peek(0)? {
             match token.kind() {
                 TokenKind::Identifier(_)
                 | TokenKind::Keyword(Keyword::Yield)
                 | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                    Some(BindingIdentifier::new(true, false).parse(cursor)?)
                 }
                 _ => None,
             }
@@ -73,18 +78,18 @@ where
         }
 
         let params_start_position = cursor
-            .expect(Punctuator::OpenParen, "function expression")?
+            .expect(Punctuator::OpenParen, "generator expression")?
             .span()
             .end();
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(true, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "function expression")?;
-        cursor.expect(Punctuator::OpenBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseParen, "generator expression")?;
+        cursor.expect(Punctuator::OpenBlock, "generator expression")?;
 
-        let body = FunctionBody::new(false, false).parse(cursor)?;
+        let body = FunctionBody::new(true, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function expression")?;
+        cursor.expect(Punctuator::CloseBlock, "generator expression")?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -122,6 +127,6 @@ where
             }
         }
 
-        Ok(FunctionExpr::new(name, params.parameters, body))
+        Ok(GeneratorExpr::new(name, params.parameters, body))
     }
 }

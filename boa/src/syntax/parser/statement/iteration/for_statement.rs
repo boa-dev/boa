@@ -93,18 +93,40 @@ where
                 let _ = cursor.next();
                 let expr =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "for in statement")?;
+
+                let position = cursor
+                    .expect(Punctuator::CloseParen, "for in statement")?
+                    .span()
+                    .end();
+
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
+
+                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
+                if let Node::FunctionDecl(_) = body {
+                    return Err(ParseError::general("In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.", position));
+                }
+
                 return Ok(ForInLoop::new(init.unwrap(), expr, body).into());
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();
                 let iterable =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "for of statement")?;
+
+                let position = cursor
+                    .expect(Punctuator::CloseParen, "for of statement")?
+                    .span()
+                    .end();
+
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)?;
+
+                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
+                if let Node::FunctionDecl(_) = body {
+                    return Err(ParseError::general("In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.", position));
+                }
+
                 return Ok(ForOfLoop::new(init.unwrap(), iterable, body).into());
             }
             _ => {}
@@ -131,8 +153,15 @@ where
             Some(step)
         };
 
+        let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
+
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+
+        // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
+        if let Node::FunctionDecl(_) = body {
+            return Err(ParseError::general("In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.", position));
+        }
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body).into())

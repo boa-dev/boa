@@ -72,7 +72,7 @@ impl Object {
                     match &kind {
                         MethodDefinitionKind::Get => write!(f, "get ")?,
                         MethodDefinitionKind::Set => write!(f, "set ")?,
-                        MethodDefinitionKind::Ordinary => (),
+                        MethodDefinitionKind::Ordinary | MethodDefinitionKind::Generator => (),
                     }
                     write!(f, "{}(", key)?;
                     join_nodes(f, node.parameters())?;
@@ -165,6 +165,17 @@ impl Executable for Object {
                                     .build(),
                                 context,
                             )?;
+                        }
+                        &MethodDefinitionKind::Generator => {
+                            // TODO: Implement generator method definition execution.
+                            obj.set_property(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .value(JsValue::undefined())
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true),
+                            );
                         }
                     }
                 }

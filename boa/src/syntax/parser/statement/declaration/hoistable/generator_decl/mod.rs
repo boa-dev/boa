@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::FunctionDecl, Keyword, Punctuator},
+    ast::{node::declaration::generator_decl::GeneratorDecl, Keyword, Punctuator},
     parser::{
         function::FormalParameters,
         function::FunctionBody,
@@ -12,29 +12,24 @@ use crate::syntax::{
 };
 use std::io::Read;
 
-/// Function declaration parsing.
+/// Generator declaration parsing.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
-/// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
-
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+/// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct FunctionDeclaration {
+pub(super) struct GeneratorDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
 }
 
-impl FunctionDeclaration {
-    /// Creates a new `FunctionDeclaration` parser.
-    pub(in crate::syntax::parser) fn new<Y, A, D>(
-        allow_yield: Y,
-        allow_await: A,
-        is_default: D,
-    ) -> Self
+impl GeneratorDeclaration {
+    /// Creates a new `GeneratorDeclaration` parser.
+    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -48,14 +43,15 @@ impl FunctionDeclaration {
     }
 }
 
-impl<R> TokenParser<R> for FunctionDeclaration
+impl<R> TokenParser<R> for GeneratorDeclaration
 where
     R: Read,
 {
-    type Output = FunctionDecl;
+    type Output = GeneratorDecl;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Function, "function declaration")?;
+        cursor.expect(Keyword::Function, "generator declaration")?;
+        cursor.expect(Punctuator::Mul, "generator declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
@@ -77,14 +73,14 @@ where
             .span()
             .end();
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(true, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "function declaration")?;
-        cursor.expect(Punctuator::OpenBlock, "function declaration")?;
+        cursor.expect(Punctuator::CloseParen, "generator declaration")?;
+        cursor.expect(Punctuator::OpenBlock, "generator declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let body = FunctionBody::new(true, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function declaration")?;
+        cursor.expect(Punctuator::CloseBlock, "generator declaration")?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -95,7 +91,7 @@ where
             )));
         }
 
-        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
         // and IsSimpleParameterList of FormalParameters is false.
         if body.strict() && !params.is_simple {
             return Err(ParseError::lex(LexError::Syntax(
@@ -104,9 +100,8 @@ where
             )));
         }
 
-        // It is a Syntax Error if any element of the BoundNames of FormalParameters
-        // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
+        // Early Error: It is a Syntax Error if any element of the BoundNames of FormalParameters
+        // also occurs in the LexicallyDeclaredNames of GeneratorBody.
         {
             let lexically_declared_names = body.lexically_declared_names();
             for param in params.parameters.as_ref() {
@@ -122,6 +117,6 @@ where
             }
         }
 
-        Ok(FunctionDecl::new(name, params.parameters, body))
+        Ok(GeneratorDecl::new(name, params.parameters, body))
     }
 }

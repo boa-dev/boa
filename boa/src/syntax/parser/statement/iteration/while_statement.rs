@@ -1,6 +1,6 @@
 use crate::{
     syntax::{
-        ast::{node::WhileLoop, Keyword, Punctuator},
+        ast::{node::WhileLoop, Keyword, Node, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
@@ -60,10 +60,18 @@ where
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "while statement")?;
+        let position = cursor
+            .expect(Punctuator::CloseParen, "while statement")?
+            .span()
+            .end();
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+
+        // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
+        if let Node::FunctionDecl(_) = body {
+            return Err(ParseError::general("In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.", position));
+        }
 
         Ok(WhileLoop::new(cond, body))
     }

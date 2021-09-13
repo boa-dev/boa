@@ -1,20 +1,18 @@
 #[cfg(test)]
 mod tests;
 
-use super::Statement;
-
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::If, Keyword, Node, Punctuator},
+        lexer::TokenKind,
         parser::{
-            expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-            TokenParser,
+            expression::Expression,
+            statement::{declaration::hoistable::FunctionDeclaration, Statement},
+            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
 };
-
 use std::io::Read;
 
 /// If statement parsing.
@@ -58,30 +56,73 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
+
         cursor.expect(Keyword::If, "if statement")?;
         cursor.expect(Punctuator::OpenParen, "if statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "if statement")?;
+        let position = cursor
+            .expect(Punctuator::CloseParen, "if statement")?
+            .span()
+            .end();
 
-        let then_stm =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let then_node = if !cursor.strict_mode()
+            && cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+                == &TokenKind::Keyword(Keyword::Function)
+        {
+            // FunctionDeclarations in IfStatement Statement Clauses
+            // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
+            FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                .parse(cursor)?
+                .into()
+        } else {
+            let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor)?;
 
-        let else_stm = if let Some(else_tok) = cursor.peek(0)? {
-            if else_tok.kind() == &TokenKind::Keyword(Keyword::Else) {
-                cursor.next()?.expect("else token vanished");
+            // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
+            if let Node::FunctionDecl(_) = node {
+                return Err(ParseError::general(
+                    "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
+                    position
+                ));
+            }
+
+            node
+        };
+
+        let else_node = if cursor.next_if(Keyword::Else)?.is_some() {
+            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
+
+            if !cursor.strict_mode()
+                && cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+                    == &TokenKind::Keyword(Keyword::Function)
+            {
+                // FunctionDeclarations in IfStatement Statement Clauses
+                // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
                 Some(
-                    Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
+                    FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                        .parse(cursor)?
+                        .into(),
                 )
             } else {
-                None
+                let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)?;
+
+                // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
+                if let Node::FunctionDecl(_) = node {
+                    return Err(ParseError::general(
+                        "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
+                        position
+                    ));
+                }
+
+                Some(node)
             }
         } else {
             None
         };
 
-        Ok(If::new::<_, _, Node, _>(cond, then_stm, else_stm))
+        Ok(If::new::<_, _, Node, _>(condition, then_node, else_node))
     }
 }
