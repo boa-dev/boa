@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     property::PropertyDescriptor,
-    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition},
+    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition, PropertyName},
     BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
@@ -64,11 +64,6 @@ impl Object {
                     value.display_no_indent(f, indent + 1)?;
                     writeln!(f, ",")?;
                 }
-                PropertyDefinition::ComputedPropertyName(key, value) => {
-                    writeln!(f, "{}{},", indentation, key)?;
-                    value.display_no_indent(f, indent + 1)?;
-                    writeln!(f, ",")?;
-                }
                 PropertyDefinition::SpreadObject(key) => {
                     writeln!(f, "{}...{},", indentation, key)?;
                 }
@@ -99,9 +94,15 @@ impl Executable for Object {
         // TODO: Implement the rest of the property types.
         for property in self.properties().iter() {
             match property {
-                PropertyDefinition::Property(key, value) => {
+                PropertyDefinition::Property(name, value) => {
+                    let name = match name {
+                        PropertyName::Literal(name) => name.clone().into(),
+                        PropertyName::Computed(node) => {
+                            node.run(context)?.to_property_key(context)?
+                        }
+                    };
                     obj.set_property(
-                        key.clone(),
+                        name,
                         PropertyDescriptor::builder()
                             .value(value.run(context)?)
                             .writable(true)
@@ -109,58 +110,56 @@ impl Executable for Object {
                             .configurable(true),
                     );
                 }
-                PropertyDefinition::ComputedPropertyName(key, value) => {
-                    obj.set_property(
-                        key.run(context)?.to_property_key(context)?,
-                        PropertyDescriptor::builder()
-                            .value(value.run(context)?)
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true),
-                    );
+                PropertyDefinition::MethodDefinition(kind, name, func) => {
+                    let name = match name {
+                        PropertyName::Literal(name) => name.clone().into(),
+                        PropertyName::Computed(node) => {
+                            node.run(context)?.to_property_key(context)?
+                        }
+                    };
+                    match kind {
+                        MethodDefinitionKind::Ordinary => {
+                            obj.set_property(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .value(func.run(context)?)
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true),
+                            );
+                        }
+                        MethodDefinitionKind::Get => {
+                            let set = obj
+                                .get_property(name.clone())
+                                .as_ref()
+                                .and_then(|a| a.set())
+                                .cloned();
+                            obj.set_property(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .maybe_get(func.run(context)?.as_object())
+                                    .maybe_set(set)
+                                    .enumerable(true)
+                                    .configurable(true),
+                            )
+                        }
+                        MethodDefinitionKind::Set => {
+                            let get = obj
+                                .get_property(name.clone())
+                                .as_ref()
+                                .and_then(|a| a.get())
+                                .cloned();
+                            obj.set_property(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .maybe_get(get)
+                                    .maybe_set(func.run(context)?.as_object())
+                                    .enumerable(true)
+                                    .configurable(true),
+                            )
+                        }
+                    }
                 }
-                PropertyDefinition::MethodDefinition(kind, name, func) => match kind {
-                    MethodDefinitionKind::Ordinary => {
-                        obj.set_property(
-                            name.clone(),
-                            PropertyDescriptor::builder()
-                                .value(func.run(context)?)
-                                .writable(true)
-                                .enumerable(true)
-                                .configurable(true),
-                        );
-                    }
-                    MethodDefinitionKind::Get => {
-                        let set = obj
-                            .get_property(name.clone())
-                            .as_ref()
-                            .and_then(|a| a.set())
-                            .cloned();
-                        obj.set_property(
-                            name.clone(),
-                            PropertyDescriptor::builder()
-                                .maybe_get(func.run(context)?.as_object())
-                                .maybe_set(set)
-                                .enumerable(true)
-                                .configurable(true),
-                        )
-                    }
-                    MethodDefinitionKind::Set => {
-                        let get = obj
-                            .get_property(name.clone())
-                            .as_ref()
-                            .and_then(|a| a.get())
-                            .cloned();
-                        obj.set_property(
-                            name.clone(),
-                            PropertyDescriptor::builder()
-                                .maybe_get(get)
-                                .maybe_set(func.run(context)?.as_object())
-                                .enumerable(true)
-                                .configurable(true),
-                        )
-                    }
-                },
                 // [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation
                 PropertyDefinition::SpreadObject(node) => {
                     let val = node.run(context)?;

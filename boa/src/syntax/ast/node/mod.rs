@@ -482,17 +482,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    Property(Box<str>, Node),
-
-    /// Binds a computed property name to a JavaScript value.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    ComputedPropertyName(Node, Node),
+    Property(PropertyName, Node),
 
     /// A property of an object can also refer to a function or a getter or setter method.
     ///
@@ -502,7 +492,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
-    MethodDefinition(MethodDefinitionKind, Box<str>, FunctionExpr),
+    MethodDefinition(MethodDefinitionKind, PropertyName, FunctionExpr),
 
     /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
     /// It copies own enumerable properties from a provided object onto a new object.
@@ -530,7 +520,7 @@ impl PropertyDefinition {
     /// Creates a `Property` definition.
     pub fn property<N, V>(name: N, value: V) -> Self
     where
-        N: Into<Box<str>>,
+        N: Into<PropertyName>,
         V: Into<Node>,
     {
         Self::Property(name.into(), value.into())
@@ -539,7 +529,7 @@ impl PropertyDefinition {
     /// Creates a `MethodDefinition`.
     pub fn method_definition<N>(kind: MethodDefinitionKind, name: N, body: FunctionExpr) -> Self
     where
-        N: Into<Box<str>>,
+        N: Into<PropertyName>,
     {
         Self::MethodDefinition(kind, name.into(), body)
     }
@@ -611,6 +601,59 @@ pub enum MethodDefinitionKind {
 }
 
 unsafe impl Trace for MethodDefinitionKind {
+    empty_trace!();
+}
+
+/// PropertyName can be either a literal or computed.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-PropertyName
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Finalize)]
+pub enum PropertyName {
+    /// A `Literal` property name can be either an identifier, a string or a numeric literal.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
+    Literal(Box<str>),
+    /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
+    Computed(Node),
+}
+
+impl Display for PropertyName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PropertyName::Literal(key) => write!(f, "{}", key),
+            PropertyName::Computed(key) => write!(f, "{}", key),
+        }
+    }
+}
+
+impl<T> From<T> for PropertyName
+where
+    T: Into<Box<str>>,
+{
+    fn from(name: T) -> Self {
+        Self::Literal(name.into())
+    }
+}
+
+impl From<Node> for PropertyName {
+    fn from(name: Node) -> Self {
+        Self::Computed(name)
+    }
+}
+
+unsafe impl Trace for PropertyName {
     empty_trace!();
 }
 
