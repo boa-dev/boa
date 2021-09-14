@@ -204,7 +204,6 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
-<span id="207">207</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Object node.</span>
 
@@ -212,7 +211,7 @@
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">property::PropertyDescriptor</span>,
-    <span class="ident">syntax::ast::node</span>::{<span class="ident">join_nodes</span>, <span class="ident">MethodDefinitionKind</span>, <span class="ident">Node</span>, <span class="ident">PropertyDefinition</span>},
+    <span class="ident">syntax::ast::node</span>::{<span class="ident">join_nodes</span>, <span class="ident">MethodDefinitionKind</span>, <span class="ident">Node</span>, <span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
@@ -272,11 +271,6 @@
                     <span class="ident">value</span>.<span class="ident">display_no_indent</span>(<span class="ident">f</span>, <span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;,&quot;</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">PropertyDefinition::ComputedPropertyName</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}{},&quot;</span>, <span class="ident">indentation</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
-                    <span class="ident">value</span>.<span class="ident">display_no_indent</span>(<span class="ident">f</span>, <span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
-                    <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;,&quot;</span>)<span class="question-mark">?</span>;
-                }
                 <span class="ident">PropertyDefinition::SpreadObject</span>(<span class="ident">key</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}...{},&quot;</span>, <span class="ident">indentation</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
                 }
@@ -307,9 +301,15 @@
         <span class="comment">// TODO: Implement the rest of the property types.</span>
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
             <span class="kw">match</span> <span class="ident">property</span> {
-                <span class="ident">PropertyDefinition::Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">PropertyDefinition::Property</span>(<span class="ident">name</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span> {
+                        <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                        <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">node</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+                        }
+                    };
                     <span class="ident">obj</span>.<span class="ident">set_property</span>(
-                        <span class="ident">key</span>.<span class="ident">clone</span>(),
+                        <span class="ident">name</span>,
                         <span class="ident">PropertyDescriptor::builder</span>()
                             .<span class="ident">value</span>(<span class="ident">value</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
                             .<span class="ident">writable</span>(<span class="bool-val">true</span>)
@@ -317,58 +317,56 @@
                             .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                     );
                 }
-                <span class="ident">PropertyDefinition::ComputedPropertyName</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">obj</span>.<span class="ident">set_property</span>(
-                        <span class="ident">key</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-                        <span class="ident">PropertyDescriptor::builder</span>()
-                            .<span class="ident">value</span>(<span class="ident">value</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
-                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                    );
+                <span class="ident">PropertyDefinition::MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span> {
+                        <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                        <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">node</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+                        }
+                    };
+                    <span class="kw">match</span> <span class="ident">kind</span> {
+                        <span class="ident">MethodDefinitionKind::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                                <span class="ident">name</span>,
+                                <span class="ident">PropertyDescriptor::builder</span>()
+                                    .<span class="ident">value</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
+                                    .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+                            );
+                        }
+                        <span class="ident">MethodDefinitionKind::Get</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">obj</span>
+                                .<span class="ident">get_property</span>(<span class="ident">name</span>.<span class="ident">clone</span>())
+                                .<span class="ident">as_ref</span>()
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">set</span>())
+                                .<span class="ident">cloned</span>();
+                            <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                                <span class="ident">name</span>,
+                                <span class="ident">PropertyDescriptor::builder</span>()
+                                    .<span class="ident">maybe_get</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
+                                    .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
+                                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+                            )
+                        }
+                        <span class="ident">MethodDefinitionKind::Set</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">obj</span>
+                                .<span class="ident">get_property</span>(<span class="ident">name</span>.<span class="ident">clone</span>())
+                                .<span class="ident">as_ref</span>()
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">get</span>())
+                                .<span class="ident">cloned</span>();
+                            <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                                <span class="ident">name</span>,
+                                <span class="ident">PropertyDescriptor::builder</span>()
+                                    .<span class="ident">maybe_get</span>(<span class="ident">get</span>)
+                                    .<span class="ident">maybe_set</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
+                                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+                            )
+                        }
+                    }
                 }
-                <span class="ident">PropertyDefinition::MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">kind</span> {
-                    <span class="ident">MethodDefinitionKind::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">obj</span>.<span class="ident">set_property</span>(
-                            <span class="ident">name</span>.<span class="ident">clone</span>(),
-                            <span class="ident">PropertyDescriptor::builder</span>()
-                                .<span class="ident">value</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
-                                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                        );
-                    }
-                    <span class="ident">MethodDefinitionKind::Get</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">obj</span>
-                            .<span class="ident">get_property</span>(<span class="ident">name</span>.<span class="ident">clone</span>())
-                            .<span class="ident">as_ref</span>()
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">set</span>())
-                            .<span class="ident">cloned</span>();
-                        <span class="ident">obj</span>.<span class="ident">set_property</span>(
-                            <span class="ident">name</span>.<span class="ident">clone</span>(),
-                            <span class="ident">PropertyDescriptor::builder</span>()
-                                .<span class="ident">maybe_get</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
-                                .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
-                                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                        )
-                    }
-                    <span class="ident">MethodDefinitionKind::Set</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">obj</span>
-                            .<span class="ident">get_property</span>(<span class="ident">name</span>.<span class="ident">clone</span>())
-                            .<span class="ident">as_ref</span>()
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">get</span>())
-                            .<span class="ident">cloned</span>();
-                        <span class="ident">obj</span>.<span class="ident">set_property</span>(
-                            <span class="ident">name</span>.<span class="ident">clone</span>(),
-                            <span class="ident">PropertyDescriptor::builder</span>()
-                                .<span class="ident">maybe_get</span>(<span class="ident">get</span>)
-                                .<span class="ident">maybe_set</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
-                                .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                        )
-                    }
-                },
                 <span class="comment">// [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation</span>
                 <span class="ident">PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">node</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
