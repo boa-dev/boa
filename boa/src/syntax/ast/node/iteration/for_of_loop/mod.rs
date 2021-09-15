@@ -100,12 +100,16 @@ impl Executable for ForOfLoop {
 
             match self.variable() {
                 Node::Identifier(ref name) => {
-                    if context.has_binding(name.as_ref()) {
+                    if context.has_binding(name.as_ref())? {
                         // Binding already exists
-                        context.set_mutable_binding(name.as_ref(), next_result, true)?;
+                        context.set_mutable_binding(
+                            name.as_ref(),
+                            next_result.clone(),
+                            context.strict(),
+                        )?;
                     } else {
                         context.create_mutable_binding(
-                            name.as_ref().to_owned(),
+                            name.as_ref(),
                             true,
                             VariableScope::Function,
                         )?;
@@ -120,15 +124,15 @@ impl Executable for ForOfLoop {
 
                         match &var {
                             Declaration::Identifier { ident, .. } => {
-                                if context.has_binding(ident.as_ref()) {
+                                if context.has_binding(ident.as_ref())? {
                                     context.set_mutable_binding(
                                         ident.as_ref(),
                                         next_result,
-                                        true,
+                                        context.strict(),
                                     )?;
                                 } else {
                                     context.create_mutable_binding(
-                                        ident.to_string(),
+                                        ident.as_ref(),
                                         false,
                                         VariableScope::Function,
                                     )?;
@@ -137,11 +141,15 @@ impl Executable for ForOfLoop {
                             }
                             Declaration::Pattern(p) => {
                                 for (ident, value) in p.run(Some(next_result), context)? {
-                                    if context.has_binding(ident.as_ref()) {
-                                        context.set_mutable_binding(ident.as_ref(), value, true)?;
+                                    if context.has_binding(ident.as_ref())? {
+                                        context.set_mutable_binding(
+                                            ident.as_ref(),
+                                            value,
+                                            context.strict(),
+                                        )?;
                                     } else {
                                         context.create_mutable_binding(
-                                            ident.to_string(),
+                                            ident.as_ref(),
                                             false,
                                             VariableScope::Function,
                                         )?;
@@ -166,7 +174,7 @@ impl Executable for ForOfLoop {
                         match &var {
                             Declaration::Identifier { ident, .. } => {
                                 context.create_mutable_binding(
-                                    ident.to_string(),
+                                    ident.as_ref(),
                                     false,
                                     VariableScope::Block,
                                 )?;
@@ -175,7 +183,7 @@ impl Executable for ForOfLoop {
                             Declaration::Pattern(p) => {
                                 for (ident, value) in p.run(Some(next_result), context)? {
                                     context.create_mutable_binding(
-                                        ident.to_string(),
+                                        ident.as_ref(),
                                         false,
                                         VariableScope::Block,
                                     )?;
@@ -199,7 +207,7 @@ impl Executable for ForOfLoop {
                         match &var {
                             Declaration::Identifier { ident, .. } => {
                                 context.create_immutable_binding(
-                                    ident.to_string(),
+                                    ident.as_ref(),
                                     false,
                                     VariableScope::Block,
                                 )?;
@@ -208,7 +216,7 @@ impl Executable for ForOfLoop {
                             Declaration::Pattern(p) => {
                                 for (ident, value) in p.run(Some(next_result), context)? {
                                     context.create_immutable_binding(
-                                        ident.to_string(),
+                                        ident.as_ref(),
                                         false,
                                         VariableScope::Block,
                                     )?;

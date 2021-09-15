@@ -199,7 +199,8 @@ impl JsObject {
                                 BindingStatus::Uninitialized
                             },
                             JsValue::undefined(),
-                        );
+                            context,
+                        )?;
 
                         let mut arguments_in_parameter_names = false;
 
@@ -224,12 +225,7 @@ impl JsObject {
                         {
                             // Add arguments object
                             let arguments_obj = create_unmapped_arguments_object(args, context)?;
-                            local_env.create_mutable_binding(
-                                "arguments".to_string(),
-                                false,
-                                true,
-                                context,
-                            )?;
+                            local_env.create_mutable_binding("arguments", false, true, context)?;
                             local_env.initialize_binding("arguments", arguments_obj, context)?;
                         }
 
@@ -280,7 +276,8 @@ impl JsObject {
                                     BindingStatus::Uninitialized
                                 },
                                 JsValue::undefined(),
-                            );
+                                context,
+                            )?;
                             context.push_environment(second_env);
                         }
 

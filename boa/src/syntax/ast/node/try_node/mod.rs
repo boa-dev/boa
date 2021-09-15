@@ -105,11 +105,7 @@ impl Executable for Try {
                         context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
 
                         if let Some(param) = catch.parameter() {
-                            context.create_mutable_binding(
-                                param.to_owned(),
-                                false,
-                                VariableScope::Block,
-                            )?;
+                            context.create_mutable_binding(param, false, VariableScope::Block)?;
                             context.initialize_binding(param, err)?;
                         }
                     }

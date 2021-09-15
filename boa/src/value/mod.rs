@@ -154,19 +154,6 @@ impl JsValue {
         }
     }
 
-    /// This will tell us if we can exten an object or not, not properly implemented yet
-    ///
-    /// For now always returns true.
-    ///
-    /// For scalar types it should be false, for objects check the private field for extensibilaty.
-    /// By default true.
-    ///
-    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal> would turn `extensible` to `false`
-    /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze> would also turn `extensible` to `false`
-    pub(crate) fn is_extensible(&self) -> bool {
-        true
-    }
-
     /// Returns true if the value is an object
     #[inline]
     pub fn is_object(&self) -> bool {
@@ -363,19 +350,6 @@ impl JsValue {
         } else {
             Ok(JsValue::undefined())
         }
-    }
-
-    /// Check to see if the Value has the field, mainly used by environment records.
-    #[inline]
-    pub(crate) fn has_field<K>(&self, key: K) -> bool
-    where
-        K: Into<PropertyKey>,
-    {
-        let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
-        // todo: call `__has_property__` instead of directly getting from object
-        self.as_object()
-            .map(|object| object.borrow().properties().contains_key(&key.into()))
-            .unwrap_or(false)
     }
 
     /// Set the field in the value
