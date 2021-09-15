@@ -93,10 +93,6 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment::lexical_environment::VariableScope</span>,
@@ -158,15 +154,11 @@
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">lhs</span>() {
             <span class="ident">Node::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>()) {
+                <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span> {
                     <span class="comment">// Binding already exists</span>
-                    <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">val</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">val</span>.<span class="ident">clone</span>(), <span class="ident">context</span>.<span class="ident">strict</span>())<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
-                    <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                        <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>(),
-                        <span class="bool-val">true</span>,
-                        <span class="ident">VariableScope::Function</span>,
-                    )<span class="question-mark">?</span>;
+                    <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="bool-val">true</span>, <span class="ident">VariableScope::Function</span>)<span class="question-mark">?</span>;
                     <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">val</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
                 }
             }

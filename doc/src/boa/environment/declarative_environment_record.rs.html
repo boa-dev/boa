@@ -229,6 +229,105 @@
 <span id="229">229</span>
 <span id="230">230</span>
 <span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
 </pre><pre class="rust">
 <span class="doccomment">//! # Declarative Records</span>
 <span class="doccomment">//!</span>
@@ -281,27 +380,44 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EnvironmentRecordTrait</span> <span class="kw">for</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
-    <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">contains_key</span>(<span class="ident">name</span>)
+    <span class="doccomment">/// `9.1.1.1.1 HasBinding ( N )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-hasbinding-n</span>
+    <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If envRec has a binding for the name that is the value of N, return true.</span>
+        <span class="comment">// 2. Return false.</span>
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">contains_key</span>(<span class="ident">name</span>))
     }
 
+    <span class="doccomment">/// `9.1.1.1.2 CreateMutableBinding ( N, D )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-createmutablebinding-n-d</span>
     <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">allow_name_reuse</span>: <span class="ident">bool</span>,
         <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="comment">// 1. Assert: envRec does not already have a binding for N.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">allow_name_reuse</span> {
             <span class="macro">assert!</span>(
-                <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">contains_key</span>(<span class="ident">name</span>.<span class="ident">as_str</span>()),
+                <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">contains_key</span>(<span class="ident">name</span>),
                 <span class="string">&quot;Identifier {} has already been declared&quot;</span>,
                 <span class="ident">name</span>
             );
         }
 
+        <span class="comment">// 2. Create a mutable binding in envRec for N and record that it is uninitialized.</span>
+        <span class="comment">//    If D is true, record that the newly created binding may be deleted by a subsequent DeleteBinding call.</span>
         <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
-            <span class="ident">name</span>.<span class="ident">into_boxed_str</span>(),
+            <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">DeclarativeEnvironmentRecordBinding</span> {
                 <span class="ident">value</span>: <span class="prelude-val">None</span>,
                 <span class="ident">can_delete</span>: <span class="ident">deletion</span>,
@@ -309,23 +425,34 @@
                 <span class="ident">strict</span>: <span class="bool-val">false</span>,
             },
         );
+
+        <span class="comment">// 3. Return NormalCompletion(empty).</span>
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// `9.1.1.1.3 CreateImmutableBinding ( N, S )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-createimmutablebinding-n-s</span>
     <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
         <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="comment">// 1. Assert: envRec does not already have a binding for N.</span>
         <span class="macro">assert!</span>(
-            <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">contains_key</span>(<span class="ident">name</span>.<span class="ident">as_str</span>()),
+            <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">contains_key</span>(<span class="ident">name</span>),
             <span class="string">&quot;Identifier {} has already been declared&quot;</span>,
             <span class="ident">name</span>
         );
 
+        <span class="comment">// 2. Create an immutable binding in envRec for N and record that it is uninitialized.</span>
+        <span class="comment">//    If S is true, record that the newly created binding is a strict binding.</span>
         <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
-            <span class="ident">name</span>.<span class="ident">into_boxed_str</span>(),
+            <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">DeclarativeEnvironmentRecordBinding</span> {
                 <span class="ident">value</span>: <span class="prelude-val">None</span>,
                 <span class="ident">can_delete</span>: <span class="bool-val">true</span>,
@@ -333,9 +460,17 @@
                 <span class="ident">strict</span>,
             },
         );
+
+        <span class="comment">// 3. Return NormalCompletion(empty).</span>
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// `9.1.1.1.4 InitializeBinding ( N, V )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-initializebinding-n-v</span>
     <span class="kw">fn</span> <span class="ident">initialize_binding</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -344,13 +479,25 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">record</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow_mut</span>().<span class="ident">get_mut</span>(<span class="ident">name</span>) {
             <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">value</span>.<span class="ident">is_none</span>() {
+                <span class="comment">// 2. Set the bound value for N in envRec to V.</span>
+                <span class="comment">// 3. Record that the binding for N in envRec has been initialized.</span>
                 <span class="ident">record</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
+
+                <span class="comment">// 4. Return NormalCompletion(empty).</span>
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             }
         }
+
+        <span class="comment">// 1. Assert: envRec must have an uninitialized binding for N.</span>
         <span class="macro">panic!</span>(<span class="string">&quot;record must have binding for {}&quot;</span>, <span class="ident">name</span>);
     }
 
+    <span class="doccomment">/// `9.1.1.1.5 SetMutableBinding ( N, V, S )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-setmutablebinding-n-v-s</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::else_if_without_else</span>)]</span>
     <span class="kw">fn</span> <span class="ident">set_mutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -359,49 +506,70 @@
         <span class="kw-2">mut</span> <span class="ident">strict</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="comment">// 1. If envRec does not have a binding for N, then</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="ident">name</span>).<span class="ident">is_none</span>() {
+            <span class="comment">// a. If S is true, throw a ReferenceError exception.</span>
             <span class="kw">if</span> <span class="ident">strict</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} not found&quot;</span>, <span class="ident">name</span>)));
             }
 
-            <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">to_owned</span>(), <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// b. Perform envRec.CreateMutableBinding(N, true).</span>
+            <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// c. Perform envRec.InitializeBinding(N, V).</span>
             <span class="self">self</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// d. Return NormalCompletion(empty).</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
 
-        <span class="kw">let</span> (<span class="ident">record_strict</span>, <span class="ident">record_has_no_value</span>, <span class="ident">record_mutable</span>) <span class="op">=</span> {
+        <span class="kw">let</span> (<span class="ident">binding_strict</span>, <span class="ident">binding_value_is_none</span>, <span class="ident">binding_mutable</span>) <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">env_rec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">env_rec</span>.<span class="ident">get</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>();
-            (<span class="ident">record</span>.<span class="ident">strict</span>, <span class="ident">record</span>.<span class="ident">value</span>.<span class="ident">is_none</span>(), <span class="ident">record</span>.<span class="ident">mutable</span>)
+            <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">env_rec</span>.<span class="ident">get</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>();
+            (<span class="ident">binding</span>.<span class="ident">strict</span>, <span class="ident">binding</span>.<span class="ident">value</span>.<span class="ident">is_none</span>(), <span class="ident">binding</span>.<span class="ident">mutable</span>)
         };
-        <span class="kw">if</span> <span class="ident">record_strict</span> {
-            <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>
+
+        <span class="comment">// 2. If the binding for N in envRec is a strict binding, set S to true.</span>
+        <span class="kw">if</span> <span class="ident">binding_strict</span> {
+            <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>;
         }
-        <span class="kw">if</span> <span class="ident">record_has_no_value</span> {
+
+        <span class="comment">// 3. If the binding for N in envRec has not yet been initialized, throw a ReferenceError exception.</span>
+        <span class="kw">if</span> <span class="ident">binding_value_is_none</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(
                 <span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} has not been initialized&quot;</span>, <span class="ident">name</span>))
             );
-        }
-        <span class="kw">if</span> <span class="ident">record_mutable</span> {
+        <span class="comment">// 4. Else if the binding for N in envRec is a mutable binding, change its bound value to V.</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">binding_mutable</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env_rec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="ident">env_rec</span>.<span class="ident">get_mut</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>();
-            <span class="ident">record</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
+            <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">env_rec</span>.<span class="ident">get_mut</span>(<span class="ident">name</span>).<span class="ident">unwrap</span>();
+            <span class="ident">binding</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
+        <span class="comment">// 5. Else,</span>
+        <span class="comment">// a. Assert: This is an attempt to change the value of an immutable binding.</span>
+        <span class="comment">// b. If S is true, throw a TypeError exception.</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">strict</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;Cannot mutate an immutable binding {}&quot;</span>,
-                <span class="ident">name</span>
-            )));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
+                .<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot mutate an immutable binding {}&quot;</span>, <span class="ident">name</span>)));
         }
 
+        <span class="comment">// 6. Return NormalCompletion(empty).</span>
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// `9.1.1.1.6 GetBindingValue ( N, S )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-getbindingvalue-n-s</span>
     <span class="kw">fn</span> <span class="ident">get_binding_value</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">_strict</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Assert: envRec has a binding for N.</span>
+        <span class="comment">// 2. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.</span>
+        <span class="comment">// 3. Return the value currently bound to N in envRec.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="ident">name</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="op">=</span> <span class="ident">binding</span>.<span class="ident">value</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">val</span>.<span class="ident">clone</span>())
@@ -413,21 +581,38 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">delete_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="doccomment">/// `9.1.1.1.7 DeleteBinding ( N )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-deletebinding-n</span>
+    <span class="kw">fn</span> <span class="ident">delete_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Assert: envRec has a binding for the name that is the value of N.</span>
+        <span class="comment">// 2. If the binding for N in envRec cannot be deleted, return false.</span>
+        <span class="comment">// 3. Remove the binding for N from envRec.</span>
+        <span class="comment">// 4. Return true.</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="ident">name</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">binding</span>.<span class="ident">can_delete</span> {
                     <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove</span>(<span class="ident">name</span>);
-                    <span class="bool-val">true</span>
+                    <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
                 } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
+                    <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
                 }
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;env_rec has no binding for {}&quot;</span>, <span class="ident">name</span>),
         }
     }
 
+    <span class="doccomment">/// `9.1.1.1.8 HasThisBinding ( )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-hasthisbinding</span>
     <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="comment">// 1. Return false.</span>
         <span class="bool-val">false</span>
     }
 
@@ -435,10 +620,23 @@
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 
+    <span class="doccomment">/// `9.1.1.1.9 HasSuperBinding ( )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-hassuperbinding</span>
     <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="comment">// 1. Return false.</span>
         <span class="bool-val">false</span>
     }
 
+    <span class="doccomment">/// `9.1.1.1.10 WithBaseObject ( )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-declarative-environment-records-withbaseobject</span>
     <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }

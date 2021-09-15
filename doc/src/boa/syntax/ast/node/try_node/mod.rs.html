@@ -222,10 +222,6 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::{
@@ -334,11 +330,7 @@
                         <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">DeclarativeEnvironmentRecord::new</span>(<span class="prelude-val">Some</span>(<span class="ident">env</span>)));
 
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">param</span>) <span class="op">=</span> <span class="ident">catch</span>.<span class="ident">parameter</span>() {
-                            <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                                <span class="ident">param</span>.<span class="ident">to_owned</span>(),
-                                <span class="bool-val">false</span>,
-                                <span class="ident">VariableScope::Block</span>,
-                            )<span class="question-mark">?</span>;
+                            <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>, <span class="bool-val">false</span>, <span class="ident">VariableScope::Block</span>)<span class="question-mark">?</span>;
                             <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="ident">param</span>, <span class="ident">err</span>)<span class="question-mark">?</span>;
                         }
                     }

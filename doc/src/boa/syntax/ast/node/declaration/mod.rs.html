@@ -1061,6 +1061,10 @@
 <span id="1061">1061</span>
 <span id="1062">1062</span>
 <span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Declaration nodes</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1168,26 +1172,26 @@
 
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">decl</span> {
                 <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, <span class="ident">init</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_var</span>() <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()) {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_var</span>() <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span> {
                         <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">is_some</span>() {
-                            <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>(), <span class="ident">val</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>(), <span class="ident">val</span>, <span class="ident">context</span>.<span class="ident">strict</span>())<span class="question-mark">?</span>;
                         }
                         <span class="kw">continue</span>;
                     }
 
                     <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span> {
                         <span class="ident">Const</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">create_immutable_binding</span>(
-                            <span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
                             <span class="bool-val">false</span>,
                             <span class="ident">VariableScope::Block</span>,
                         )<span class="question-mark">?</span>,
                         <span class="ident">Let</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                            <span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
                             <span class="bool-val">false</span>,
                             <span class="ident">VariableScope::Block</span>,
                         )<span class="question-mark">?</span>,
                         <span class="ident">Var</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                            <span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
                             <span class="bool-val">false</span>,
                             <span class="ident">VariableScope::Function</span>,
                         )<span class="question-mark">?</span>,
@@ -1197,26 +1201,30 @@
                 }
                 <span class="ident">Declaration::Pattern</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">for</span> (<span class="ident">ident</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">run</span>(<span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_var</span>() <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()) {
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_var</span>() <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span> {
                             <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_undefined</span>() {
-                                <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>(), <span class="ident">value</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(
+                                    <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
+                                    <span class="ident">value</span>,
+                                    <span class="ident">context</span>.<span class="ident">strict</span>(),
+                                )<span class="question-mark">?</span>;
                             }
                             <span class="kw">continue</span>;
                         }
 
                         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span> {
                             <span class="ident">Const</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">create_immutable_binding</span>(
-                                <span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                                <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
                                 <span class="bool-val">false</span>,
                                 <span class="ident">VariableScope::Block</span>,
                             )<span class="question-mark">?</span>,
                             <span class="ident">Let</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                                <span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                                <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
                                 <span class="bool-val">false</span>,
                                 <span class="ident">VariableScope::Block</span>,
                             )<span class="question-mark">?</span>,
                             <span class="ident">Var</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                                <span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                                <span class="ident">ident</span>.<span class="ident">as_ref</span>(),
                                 <span class="bool-val">false</span>,
                                 <span class="ident">VariableScope::Function</span>,
                             )<span class="question-mark">?</span>,

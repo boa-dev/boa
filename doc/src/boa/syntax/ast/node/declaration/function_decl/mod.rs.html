@@ -117,10 +117,6 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::FunctionFlags</span>,
@@ -219,14 +215,10 @@
             <span class="ident">FunctionFlags::CONSTRUCTABLE</span>,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="self">self</span>.<span class="ident">name</span>()) {
-            <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="self">self</span>.<span class="ident">name</span>())<span class="question-mark">?</span> {
+            <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>, <span class="ident">context</span>.<span class="ident">strict</span>())<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
-                <span class="self">self</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
-                <span class="bool-val">false</span>,
-                <span class="ident">VariableScope::Function</span>,
-            )<span class="question-mark">?</span>;
+            <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="bool-val">false</span>, <span class="ident">VariableScope::Function</span>)<span class="question-mark">?</span>;
 
             <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>)<span class="question-mark">?</span>;
         }

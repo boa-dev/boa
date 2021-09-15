@@ -641,7 +641,7 @@
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
             <span class="comment">// Function parameters can share names in JavaScript...</span>
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding for rest param&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>
@@ -660,7 +660,7 @@
     ) {
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
-            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>

@@ -1034,9 +1034,6 @@
 <span id="1034">1034</span>
 <span id="1035">1035</span>
 <span id="1036">1036</span>
-<span id="1037">1037</span>
-<span id="1038">1038</span>
-<span id="1039">1039</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1239,7 +1236,8 @@
                                 <span class="ident">BindingStatus::Uninitialized</span>
                             },
                             <span class="ident">JsValue::undefined</span>(),
-                        );
+                            <span class="ident">context</span>,
+                        )<span class="question-mark">?</span>;
 
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
@@ -1264,12 +1262,7 @@
                         {
                             <span class="comment">// Add arguments object</span>
                             <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                            <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(
-                                <span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(),
-                                <span class="bool-val">false</span>,
-                                <span class="bool-val">true</span>,
-                                <span class="ident">context</span>,
-                            )<span class="question-mark">?</span>;
+                            <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                             <span class="ident">local_env</span>.<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                         }
 
@@ -1320,7 +1313,8 @@
                                     <span class="ident">BindingStatus::Uninitialized</span>
                                 },
                                 <span class="ident">JsValue::undefined</span>(),
-                            );
+                                <span class="ident">context</span>,
+                            )<span class="question-mark">?</span>;
                             <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">second_env</span>);
                         }
 
