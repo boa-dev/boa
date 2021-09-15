@@ -846,13 +846,6 @@ impl JsObject {
         self.borrow_mut().insert(key, property)
     }
 
-    /// Helper function for property removal.
-    #[inline]
-    #[track_caller]
-    pub(crate) fn remove(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
-        self.borrow_mut().remove(key)
-    }
-
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name that a `Some` is returned

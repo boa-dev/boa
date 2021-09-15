@@ -19,7 +19,7 @@ use crate::{
         BuiltIn,
     },
     object::{JsObject, ObjectInitializer, RecursionLimiter},
-    property::{Attribute, PropertyKey, PropertyNameKind},
+    property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
     BoaProfiler, Context, JsResult, JsString, JsValue,
@@ -72,59 +72,131 @@ impl Json {
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let arg = args
+        // 1. Let jsonString be ? ToString(text).
+        let json_string = args
             .get(0)
             .cloned()
-            .unwrap_or_else(JsValue::undefined)
+            .unwrap_or_default()
             .to_string(context)?;
 
-        match serde_json::from_str::<JSONValue>(&arg) {
-            Ok(json) => {
-                let j = JsValue::from_json(json, context);
-                match args.get(1) {
-                    Some(reviver) if reviver.is_function() => {
-                        let mut holder: JsValue = context.construct_object().into();
-                        holder.set_field("", j, true, context)?;
-                        Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
-                    }
-                    _ => Ok(j),
-                }
+        // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
+        //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
+        if let Err(e) = serde_json::from_str::<JSONValue>(&json_string) {
+            return context.throw_syntax_error(e.to_string());
+        }
+
+        // 3. Let scriptString be the string-concatenation of "(", jsonString, and ");".
+        let script_string = JsString::concat_array(&["(", json_string.as_str(), ");"]);
+
+        // 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).
+        // 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
+        // 6. Assert: script is a Parse Node.
+        // 7. Let completion be the result of evaluating script.
+        // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
+        // 9. Let unfiltered be completion.[[Value]].
+        // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
+        let unfiltered = context.eval(script_string.as_bytes())?;
+
+        match args.get(1).cloned().unwrap_or_default().as_object() {
+            // 11. If IsCallable(reviver) is true, then
+            Some(obj) if obj.is_callable() => {
+                // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
+                let root = context.construct_object();
+
+                // b. Let rootName be the empty String.
+                // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
+                root.create_data_property_or_throw("", unfiltered, context)
+                    .expect("CreateDataPropertyOrThrow should never throw here");
+
+                // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
+                Self::internalize_json_property(root, "".into(), obj, context)
             }
-            Err(err) => context.throw_syntax_error(err.to_string()),
+            // 12. Else,
+            // a. Return unfiltered.
+            _ => Ok(unfiltered),
         }
     }
 
-    /// This is a translation of the [Polyfill implementation][polyfill]
+    /// `25.5.1.1 InternalizeJSONProperty ( holder, name, reviver )`
     ///
-    /// This function recursively walks the structure, passing each key-value pair to the reviver function
-    /// for possible transformation.
+    /// More information:
+    ///  - [ECMAScript reference][spec]
     ///
-    /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    fn walk(
-        reviver: &JsValue,
+    /// [spec]: https://tc39.es/ecma262/#sec-internalizejsonproperty
+    fn internalize_json_property(
+        holder: JsObject,
+        name: JsString,
+        reviver: JsObject,
         context: &mut Context,
-        holder: &mut JsValue,
-        key: &PropertyKey,
     ) -> JsResult<JsValue> {
-        let value = holder.get_field(key.clone(), context)?;
+        // 1. Let val be ? Get(holder, name).
+        let val = holder.get(name.clone(), context)?;
 
-        if let JsValue::Object(ref object) = value {
-            let keys: Vec<_> = object.borrow().properties().keys().collect();
+        // 2. If Type(val) is Object, then
+        if let Some(obj) = val.as_object() {
+            // a. Let isArray be ? IsArray(val).
+            // b. If isArray is true, then
+            if obj.is_array() {
+                // i. Let I be 0.
+                // ii. Let len be ? LengthOfArrayLike(val).
+                // iii. Repeat, while I < len,
+                let len = obj.length_of_array_like(context)? as i64;
+                for i in 0..len {
+                    // 1. Let prop be ! ToString(𝔽(I)).
+                    // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
+                    let new_element = Self::internalize_json_property(
+                        obj.clone(),
+                        i.to_string().into(),
+                        reviver.clone(),
+                        context,
+                    )?;
 
-            for key in keys {
-                let v = Self::walk(reviver, context, &mut value.clone(), &key);
-                match v {
-                    Ok(v) if !v.is_undefined() => {
-                        value.set_field(key, v, false, context)?;
+                    // 3. If newElement is undefined, then
+                    if new_element.is_undefined() {
+                        // a. Perform ? val.[[Delete]](prop).
+                        obj.__delete__(&i.into(), context)?;
                     }
-                    Ok(_) => {
-                        value.remove_property(key);
+                    // 4. Else,
+                    else {
+                        // a. Perform ? CreateDataProperty(val, prop, newElement).
+                        obj.create_data_property(i, new_element, context)?;
                     }
-                    Err(_v) => {}
+                }
+            }
+            // c. Else,
+            else {
+                // i. Let keys be ? EnumerableOwnPropertyNames(val, key).
+                let keys = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
+
+                // ii. For each String P of keys, do
+                for p in keys {
+                    // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
+                    let p = p.as_string().unwrap();
+
+                    // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
+                    let new_element = Self::internalize_json_property(
+                        obj.clone(),
+                        p.clone(),
+                        reviver.clone(),
+                        context,
+                    )?;
+
+                    // 2. If newElement is undefined, then
+                    if new_element.is_undefined() {
+                        // a. Perform ? val.[[Delete]](P).
+                        obj.__delete__(&p.clone().into(), context)?;
+                    }
+                    // 3. Else,
+                    else {
+                        // a. Perform ? CreateDataProperty(val, P, newElement).
+                        obj.create_data_property(p.as_str(), new_element, context)?;
+                    }
                 }
             }
         }
-        context.call(reviver, holder, &[key.into(), value])
+
+        // 3. Return ? Call(reviver, holder, « name, val »).
+        reviver.call(&holder.into(), &[name.into(), val], context)
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
