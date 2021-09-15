@@ -411,6 +411,19 @@ impl Map {
     ) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
+        const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
+
+        let key = match key {
+            JsValue::Rational(r) => {
+                if r.is_zero() {
+                    JS_ZERO
+                } else {
+                    key
+                }
+            }
+            _ => key,
+        };
+
         // 1. Let M be the this value.
         if let JsValue::Object(ref object) = this {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
