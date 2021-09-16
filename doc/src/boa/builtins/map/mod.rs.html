@@ -591,6 +591,19 @@
 <span id="591">591</span>
 <span id="592">592</span>
 <span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Map` object.</span>
 <span class="doccomment">//!</span>
@@ -1004,6 +1017,19 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+
+        <span class="kw">const</span> <span class="ident">JS_ZERO</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">JsValue::Rational</span>(<span class="number">0f64</span>);
+
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
+            <span class="ident">JsValue::Rational</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">is_zero</span>() {
+                    <span class="ident">JS_ZERO</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">key</span>
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">key</span>,
+        };
 
         <span class="comment">// 1. Let M be the this value.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
