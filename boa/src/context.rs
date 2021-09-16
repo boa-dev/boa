@@ -694,7 +694,7 @@ impl Context {
         name: N,
         params: P,
         mut body: StatementList,
-        constructable: bool,
+        constructor: bool,
         this_mode: ThisMode,
     ) -> JsResult<JsValue>
     where
@@ -715,7 +715,7 @@ impl Context {
         let params = params.into();
         let params_len = params.len();
         let func = Function::Ordinary {
-            constructable,
+            constructor,
             this_mode,
             body: RcStatementList::from(body),
             params,
@@ -782,7 +782,7 @@ impl Context {
         let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
-            .constructable(true)
+            .constructor(true)
             .build();
 
         self.global_object().insert_property(
@@ -825,7 +825,7 @@ impl Context {
         let function = FunctionBuilder::closure(self, body)
             .name(name)
             .length(length)
-            .constructable(true)
+            .constructor(true)
             .build();
 
         self.global_object().insert_property(

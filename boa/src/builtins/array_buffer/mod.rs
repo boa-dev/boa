@@ -40,7 +40,7 @@ impl BuiltIn for ArrayBuffer {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         ConstructorBuilder::with_standard_object(

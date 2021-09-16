@@ -102,12 +102,12 @@ impl BuiltIn for Symbol {
         let to_primitive = FunctionBuilder::native(context, Self::to_primitive)
             .name("[Symbol.toPrimitive]")
             .length(1)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_description = FunctionBuilder::native(context, Self::get_description)
             .name("get description")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let symbol_object = ConstructorBuilder::with_standard_object(
@@ -141,7 +141,7 @@ impl BuiltIn for Symbol {
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .callable(true)
-        .constructable(false)
+        .constructor(false)
         .property(
             symbol_to_string_tag,
             Self::NAME,

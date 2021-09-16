@@ -53,7 +53,7 @@ impl BuiltIn for BigInt {
         .static_method(Self::as_int_n, "asIntN", 2)
         .static_method(Self::as_uint_n, "asUintN", 2)
         .callable(true)
-        .constructable(false)
+        .constructor(false)
         .property(
             to_string_tag,
             Self::NAME,

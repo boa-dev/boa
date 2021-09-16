@@ -71,7 +71,7 @@ impl Executable for New {
         }
 
         match func_object {
-            JsValue::Object(ref object) => {
+            JsValue::Object(ref object) if object.is_constructor() => {
                 object.construct(&v_args, &object.clone().into(), context)
             }
             _ => context

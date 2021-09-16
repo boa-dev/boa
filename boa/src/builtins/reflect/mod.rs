@@ -110,12 +110,12 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
         let args_list = args.get_or_undefined(1);
 
-        if !target.is_constructable() {
+        if !target.is_constructor() {
             return context.throw_type_error("target must be a constructor");
         }
 
         let new_target = if let Some(new_target) = args.get(2) {
-            if new_target.as_object().map(|o| o.is_constructable()) != Some(true) {
+            if new_target.as_object().map(|o| o.is_constructor()) != Some(true) {
                 return context.throw_type_error("newTarget must be constructor");
             }
             new_target.clone()

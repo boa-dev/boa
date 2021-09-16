@@ -80,42 +80,42 @@ impl BuiltIn for RegExp {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_global = FunctionBuilder::native(context, Self::get_global)
             .name("get global")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_ignore_case = FunctionBuilder::native(context, Self::get_ignore_case)
             .name("get ignoreCase")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_multiline = FunctionBuilder::native(context, Self::get_multiline)
             .name("get multiline")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_dot_all = FunctionBuilder::native(context, Self::get_dot_all)
             .name("get dotAll")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_unicode = FunctionBuilder::native(context, Self::get_unicode)
             .name("get unicode")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_sticky = FunctionBuilder::native(context, Self::get_sticky)
             .name("get sticky")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_flags = FunctionBuilder::native(context, Self::get_flags)
             .name("get flags")
-            .constructable(false)
+            .constructor(false)
             .build();
         let get_source = FunctionBuilder::native(context, Self::get_source)
             .name("get source")
-            .constructable(false)
+            .constructor(false)
             .build();
         let regexp_object = ConstructorBuilder::with_standard_object(
             context,
@@ -785,22 +785,24 @@ impl RegExp {
         // 2. Assert: Type(S) is String.
 
         // 3. Let exec be ? Get(R, "exec").
-        let exec = this.get_field("exec", context)?;
+        let exec = object.get("exec", context)?;
 
         // 4. If IsCallable(exec) is true, then
-        if exec.is_function() {
-            // a. Let result be ? Call(exec, R, « S »).
-            let result = context.call(&exec, this, &[input.into()])?;
+        match exec {
+            JsValue::Object(ref obj) if obj.is_callable() => {
+                // a. Let result be ? Call(exec, R, « S »).
+                let result = context.call(&exec, this, &[input.into()])?;
 
-            // b. If Type(result) is neither Object nor Null, throw a TypeError exception.
-            if !result.is_object() && !result.is_null() {
-                return Err(
-                    context.construct_type_error("regexp exec returned neither object nor null")
-                );
+                // b. If Type(result) is neither Object nor Null, throw a TypeError exception.
+                if !result.is_object() && !result.is_null() {
+                    return Err(context
+                        .construct_type_error("regexp exec returned neither object nor null"));
+                }
+
+                // c. Return result.
+                return Ok(result.as_object());
             }
-
-            // c. Return result.
-            return Ok(result.as_object());
+            _ => {}
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
@@ -1282,7 +1284,10 @@ impl RegExp {
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
         let mut replace_value = args.get_or_undefined(1).clone();
-        let functional_replace = replace_value.is_function();
+        let functional_replace = replace_value
+            .as_object()
+            .map(|obj| obj.is_callable())
+            .unwrap_or_default();
 
         // 6. If functionalReplace is false, then
         if !functional_replace {

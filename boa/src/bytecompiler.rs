@@ -849,7 +849,7 @@ impl ByteCompiler {
         let mut code = CodeBlock::new(name.unwrap_or("").into(), length, false, true);
 
         if let FunctionKind::Arrow = kind {
-            code.constructable = false;
+            code.constructor = false;
             code.this_mode = ThisMode::Lexical;
         }
 

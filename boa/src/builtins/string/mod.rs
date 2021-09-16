@@ -759,12 +759,12 @@ impl String {
             let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
 
             // b. If replacer is not undefined, then
-            if !replacer.is_undefined() {
+            if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return context.call(
-                    &replacer,
+                return replacer.call(
                     search_value,
                     &[this.clone(), replace_value.clone()],
+                    context,
                 );
             }
         }
@@ -776,7 +776,10 @@ impl String {
         let search_str = search_value.to_string(context)?;
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let functional_replace = replace_value.is_function();
+        let functional_replace = replace_value
+            .as_object()
+            .map(|obj| obj.is_callable())
+            .unwrap_or_default();
 
         // 6. If functionalReplace is false, then
         // a. Set replaceValue to ? ToString(replaceValue).
@@ -890,9 +893,9 @@ impl String {
             let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
 
             // d. If replacer is not undefined, then
-            if !replacer.is_undefined() {
+            if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return context.call(&replacer, search_value, &[o.into(), replace_value.clone()]);
+                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
             }
         }
 
@@ -903,7 +906,10 @@ impl String {
         let search_string = search_value.to_string(context)?;
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let functional_replace = replace_value.is_function();
+        let functional_replace = replace_value
+            .as_object()
+            .map(|obj| obj.is_callable())
+            .unwrap_or_default();
 
         // 6. If functionalReplace is false, then
         let replace_value_string = if !functional_replace {
@@ -1127,9 +1133,9 @@ impl String {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             let matcher = regexp.get_method(WellKnownSymbols::r#match(), context)?;
             // b. If matcher is not undefined, then
-            if !matcher.is_undefined() {
+            if let Some(matcher) = matcher {
                 // i. Return ? Call(matcher, regexp, « O »).
-                return context.call(&matcher, regexp, &[o.clone()]);
+                return matcher.call(regexp, &[o.clone()], context);
             }
         }
 
@@ -1492,9 +1498,9 @@ impl String {
             // a. Let splitter be ? GetMethod(separator, @@split).
             let splitter = separator.get_method(WellKnownSymbols::split(), context)?;
             // b. If splitter is not undefined, then
-            if !splitter.is_undefined() {
+            if let Some(splitter) = splitter {
                 // i. Return ? Call(splitter, separator, « O, limit »).
-                return context.call(&splitter, separator, &[this.clone(), limit.clone()]);
+                return splitter.call(separator, &[this.clone(), limit.clone()], context);
             }
         }
 
@@ -1679,9 +1685,8 @@ impl String {
             // c. Let matcher be ? GetMethod(regexp, @@matchAll).
             let matcher = regexp.get_method(WellKnownSymbols::match_all(), context)?;
             // d. If matcher is not undefined, then
-            if !matcher.is_undefined() {
-                // i. Return ? Call(matcher, regexp, « O »).
-                return context.call(&matcher, regexp, &[o.clone()]);
+            if let Some(matcher) = matcher {
+                return matcher.call(regexp, &[o.clone()], context);
             }
         }
 
@@ -1757,9 +1762,9 @@ impl String {
             // a. Let searcher be ? GetMethod(regexp, @@search).
             let searcher = regexp.get_method(WellKnownSymbols::search(), context)?;
             // b. If searcher is not undefined, then
-            if !searcher.is_undefined() {
+            if let Some(searcher) = searcher {
                 // i. Return ? Call(searcher, regexp, « O »).
-                return context.call(&searcher, regexp, &[o.clone()]);
+                return searcher.call(regexp, &[o.clone()], context);
             }
         }
 

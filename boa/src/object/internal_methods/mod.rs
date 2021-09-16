@@ -17,6 +17,8 @@ use super::{JsPrototype, PROTOTYPE};
 
 pub(super) mod arguments;
 pub(super) mod array;
+pub(super) mod bound_function;
+pub(super) mod function;
 pub(super) mod integer_indexed;
 pub(super) mod string;
 
@@ -209,6 +211,50 @@ impl JsObject {
         let func = self.borrow().data.internal_methods.__own_property_keys__;
         func(self, context)
     }
+
+    /// Internal method `[[Call]]`
+    ///
+    /// Call this object if it has a `[[Call]]` internal method.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist
+    #[inline]
+    #[track_caller]
+    pub(crate) fn __call__(
+        &self,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let func = self.borrow().data.internal_methods.__call__;
+        func.expect("called `[[Call]]` for object without a `[[Call]]` internal method")(
+            self, this, args, context,
+        )
+    }
+
+    /// Internal method `[[Construct]]`
+    ///
+    /// Construct a new instance of this object if this object has a `[[Construct]]` internal method.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
+    #[inline]
+    #[track_caller]
+    pub(crate) fn __construct__(
+        &self,
+        args: &[JsValue],
+        new_target: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let func = self.borrow().data.internal_methods.__construct__;
+        func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
+            self, args, new_target, context,
+        )
+    }
 }
 
 /// Definitions of the internal object methods for ordinary objects.
@@ -234,6 +280,8 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
     __set__: ordinary_set,
     __delete__: ordinary_delete,
     __own_property_keys__: ordinary_own_property_keys,
+    __call__: None,
+    __construct__: None,
 };
 
 /// The internal representation of the internal methods of a `JsObject`.
@@ -244,6 +292,7 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
 ///
 /// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.
 #[derive(Clone, Copy)]
+#[allow(clippy::type_complexity)]
 pub(crate) struct InternalObjectMethods {
     pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsPrototype>,
     pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &mut Context) -> JsResult<bool>,
@@ -259,6 +308,10 @@ pub(crate) struct InternalObjectMethods {
         fn(&JsObject, PropertyKey, JsValue, JsValue, &mut Context) -> JsResult<bool>,
     pub(crate) __delete__: fn(&JsObject, &PropertyKey, &mut Context) -> JsResult<bool>,
     pub(crate) __own_property_keys__: fn(&JsObject, &mut Context) -> JsResult<Vec<PropertyKey>>,
+    pub(crate) __call__:
+        Option<fn(&JsObject, &JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>>,
+    pub(crate) __construct__:
+        Option<fn(&JsObject, &[JsValue], &JsValue, &mut Context) -> JsResult<JsValue>>,
 }
 
 /// Abstract operation `OrdinaryGetPrototypeOf`.

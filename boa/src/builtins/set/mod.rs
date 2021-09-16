@@ -47,11 +47,11 @@ impl BuiltIn for Set {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let size_getter = FunctionBuilder::native(context, Self::size_getter)
-            .constructable(false)
+            .constructor(false)
             .name("get size")
             .build();
 
@@ -62,7 +62,7 @@ impl BuiltIn for Set {
         let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let set_object = ConstructorBuilder::with_standard_object(
@@ -142,9 +142,10 @@ impl Set {
         let adder = obj.get("add", context)?;
 
         // 6
-        if !adder.is_function() {
-            return context.throw_type_error("'add' of 'newTarget' is not a function");
-        }
+        let adder = match adder {
+            JsValue::Object(ref obj) if obj.is_callable() => obj,
+            _ => return context.throw_type_error("'add' of 'newTarget' is not a function"),
+        };
 
         // 7
         let iterator_record = iterable.clone().get_iterator(context, None, None)?;
@@ -158,7 +159,7 @@ impl Set {
             let next_value = next.value;
 
             // d, e
-            if let Err(status) = context.call(&adder, &obj.clone().into(), &[next_value]) {
+            if let Err(status) = adder.call(&obj.clone().into(), &[next_value], context) {
                 return iterator_record.close(Err(status), context);
             }
 

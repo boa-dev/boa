@@ -45,8 +45,8 @@ pub struct CodeBlock {
     /// Is this function in strict mode.
     pub(crate) strict: bool,
 
-    /// Is this function constructable.
-    pub(crate) constructable: bool,
+    /// Is this function a constructor.
+    pub(crate) constructor: bool,
 
     /// [[ThisMode]]
     pub(crate) this_mode: ThisMode,
@@ -67,7 +67,7 @@ pub struct CodeBlock {
 }
 
 impl CodeBlock {
-    pub fn new(name: JsString, length: u32, strict: bool, constructable: bool) -> Self {
+    pub fn new(name: JsString, length: u32, strict: bool, constructor: bool) -> Self {
         Self {
             code: Vec::new(),
             literals: Vec::new(),
@@ -76,7 +76,7 @@ impl CodeBlock {
             name,
             length,
             strict,
-            constructable,
+            constructor,
             this_mode: ThisMode::Global,
             params: Vec::new().into_boxed_slice(),
         }
@@ -398,9 +398,10 @@ impl JsObject {
 
         match body {
             FunctionBody::Native { function } => function(this, args, context),
-            FunctionBody::Closure { function, captures } => {
-                (function)(this, args, captures, context)
-            }
+            FunctionBody::Closure {
+                function,
+                mut captures,
+            } => (function)(this, args, &mut captures, context),
             FunctionBody::Ordinary { code, environment } => {
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
@@ -483,7 +484,7 @@ impl JsObject {
         let this_function_object = self.clone();
         // let mut has_parameter_expressions = false;
 
-        if !self.is_constructable() {
+        if !self.is_constructor() {
             return context.throw_type_error("not a constructable function");
         }
 
@@ -511,9 +512,10 @@ impl JsObject {
 
         match body {
             FunctionBody::Native { function, .. } => function(this_target, args, context),
-            FunctionBody::Closure { function, captures } => {
-                (function)(this_target, args, captures, context)
-            }
+            FunctionBody::Closure {
+                function,
+                mut captures,
+            } => (function)(this_target, args, &mut captures, context),
             FunctionBody::Ordinary { code, environment } => {
                 let this: JsValue = {
                     // If the prototype of the constructor is not an object, then use the default object

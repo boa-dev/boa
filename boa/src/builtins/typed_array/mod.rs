@@ -56,7 +56,7 @@ macro_rules! typed_array {
 
                 let get_species = FunctionBuilder::native(context, TypedArray::get_species)
                     .name("get [Symbol.species]")
-                    .constructable(false)
+                    .constructor(false)
                     .build();
 
                 ConstructorBuilder::with_standard_object(
@@ -177,10 +177,13 @@ macro_rules! typed_array {
                             first_argument_v.get_method(WellKnownSymbols::replace(), context)?;
 
                         // 3. If usingIterator is not undefined, then
-                        if !using_iterator.is_undefined() {
+                        if let Some(using_iterator) = using_iterator {
                             // a. Let values be ? IterableToList(firstArgument, usingIterator).
-                            let values =
-                                iterable_to_list(context, first_argument_v, Some(using_iterator))?;
+                            let values = iterable_to_list(
+                                context,
+                                first_argument_v,
+                                Some(using_iterator.into()),
+                            )?;
 
                             // b. Perform ? InitializeTypedArrayFromList(O, values).
                             TypedArray::initialize_from_list(&o, values, context)?;
@@ -233,38 +236,38 @@ impl TypedArray {
     pub(crate) fn init(context: &mut Context) -> JsObject {
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_buffer = FunctionBuilder::native(context, Self::buffer)
             .name("get buffer")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_byte_length = FunctionBuilder::native(context, Self::byte_length)
             .name("get byteLength")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_byte_offset = FunctionBuilder::native(context, Self::byte_offset)
             .name("get byteOffset")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_length = FunctionBuilder::native(context, Self::length)
             .name("get length")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_to_string_tag = FunctionBuilder::native(context, Self::to_string_tag)
             .name("get [Symbol.toStringTag]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let object = ConstructorBuilder::with_standard_object(
@@ -380,7 +383,7 @@ impl TypedArray {
         // 1. Let C be the this value.
         // 2. If IsConstructor(C) is false, throw a TypeError exception.
         let constructor = match this.as_object() {
-            Some(obj) if obj.is_constructable() => obj,
+            Some(obj) if obj.is_constructor() => obj,
             _ => {
                 return context
                     .throw_type_error("TypedArray.from called on non-constructable value")
@@ -409,9 +412,9 @@ impl TypedArray {
         let this_arg = args.get_or_undefined(2);
 
         // 6. If usingIterator is not undefined, then
-        if !using_iterator.is_undefined() {
+        if let Some(using_iterator) = using_iterator {
             // a. Let values be ? IterableToList(source, usingIterator).
-            let values = iterable_to_list(context, source.clone(), Some(using_iterator))?;
+            let values = iterable_to_list(context, source.clone(), Some(using_iterator.into()))?;
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
@@ -490,7 +493,7 @@ impl TypedArray {
         // 2. Let C be the this value.
         // 3. If IsConstructor(C) is false, throw a TypeError exception.
         let constructor = match this.as_object() {
-            Some(obj) if obj.is_constructable() => obj,
+            Some(obj) if obj.is_constructor() => obj,
             _ => {
                 return context.throw_type_error("TypedArray.of called on non-constructable value")
             }
@@ -2942,10 +2945,10 @@ impl TypedArray {
         let len = values.len();
         {
             let mut o = o.borrow_mut();
-            let mut o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
+            let o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
 
             // 2. Perform ? AllocateTypedArrayBuffer(O, len).
-            TypedArray::allocate_buffer(&mut o_inner, len, context)?;
+            TypedArray::allocate_buffer(o_inner, len, context)?;
         }
 
         // 3. Let k be 0.

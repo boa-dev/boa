@@ -50,19 +50,19 @@ impl BuiltIn for Map {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_size = FunctionBuilder::native(context, Self::get_size)
             .name("get size")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let entries_function = FunctionBuilder::native(context, Self::entries)
             .name("entries")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let map_object = ConstructorBuilder::with_standard_object(

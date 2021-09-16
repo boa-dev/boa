@@ -150,12 +150,6 @@ impl JsValue {
         }
     }
 
-    /// Returns true if the value is a function
-    #[inline]
-    pub fn is_function(&self) -> bool {
-        matches!(self, Self::Object(o) if o.is_function())
-    }
-
     /// Returns true if the value is undefined.
     #[inline]
     pub fn is_undefined(&self) -> bool {
@@ -396,7 +390,7 @@ impl JsValue {
             let exotic_to_prim = self.get_method(WellKnownSymbols::to_primitive(), context)?;
 
             // b. If exoticToPrim is not undefined, then
-            if !exotic_to_prim.is_undefined() {
+            if let Some(exotic_to_prim) = exotic_to_prim {
                 // i. If preferredType is not present, let hint be "default".
                 // ii. Else if preferredType is string, let hint be "string".
                 // iii. Else,
@@ -410,7 +404,7 @@ impl JsValue {
                 .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-                let result = context.call(&exotic_to_prim, self, &[hint])?;
+                let result = exotic_to_prim.call(self, &[hint], context)?;
                 // v. If Type(result) is not Object, return result.
                 // vi. Throw a TypeError exception.
                 return if result.is_object() {
@@ -1048,24 +1042,6 @@ impl JsValue {
             obj.is_callable()
         } else {
             false
-        }
-    }
-
-    /// Determines if `value` inherits from the instance object inheritance path.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
-    pub(crate) fn ordinary_has_instance(
-        &self,
-        context: &mut Context,
-        value: &JsValue,
-    ) -> JsResult<bool> {
-        if let Self::Object(obj) = self {
-            obj.ordinary_has_instance(context, value)
-        } else {
-            Ok(false)
         }
     }
 }

@@ -18,17 +18,7 @@ use std::{
     result::Result as StdResult,
 };
 
-#[cfg(not(feature = "vm"))]
-use crate::{
-    builtins::function::{Captures, ClosureFunctionSignature, Function, NativeFunctionSignature},
-    environment::{
-        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
-        lexical_environment::Environment,
-    },
-    exec::InterpreterState,
-    syntax::ast::node::RcStatementList,
-    Executable,
-};
+
 
 /// A wrapper type for an immutably borrowed type T.
 pub type Ref<'a, T> = GcCellRef<'a, T>;
@@ -122,266 +112,6 @@ impl JsObject {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
     }
 
-    /// Internal implementation of [`call`](#method.call) and [`construct`](#method.construct).
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    ///
-    /// <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    /// <https://tc39.es/ecma262/#sec-ordinarycallbindthis>
-    /// <https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody>
-    /// <https://tc39.es/ecma262/#sec-ordinarycallevaluatebody>
-    #[track_caller]
-    #[cfg(not(feature = "vm"))]
-    pub(super) fn call_construct(
-        &self,
-        this_target: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-        construct: bool,
-    ) -> JsResult<JsValue> {
-        use crate::{builtins::function::arguments::Arguments, context::StandardObjects};
-
-        use super::internal_methods::get_prototype_from_constructor;
-
-        /// The body of a JavaScript function.
-        ///
-        /// This is needed for the call method since we cannot mutate the function itself since we
-        /// already borrow it so we get the function body clone it then drop the borrow and run the body
-        #[cfg(not(feature = "vm"))]
-        enum FunctionBody {
-            BuiltInFunction(NativeFunctionSignature),
-            BuiltInConstructor(NativeFunctionSignature),
-            Closure {
-                function: Box<dyn ClosureFunctionSignature>,
-                captures: Captures,
-            },
-            Ordinary(RcStatementList),
-        }
-
-        let this_function_object = self.clone();
-        let mut has_parameter_expressions = false;
-
-        let body = if let Some(function) = self.borrow().as_function() {
-            if construct && !function.is_constructable() {
-                let name = self.get("name", context)?.display().to_string();
-                return context.throw_type_error(format!("{} is not a constructor", name));
-            } else {
-                match function {
-                    Function::Native {
-                        function,
-                        constructable,
-                    } => {
-                        if *constructable || construct {
-                            FunctionBody::BuiltInConstructor(*function)
-                        } else {
-                            FunctionBody::BuiltInFunction(*function)
-                        }
-                    }
-                    Function::Closure {
-                        function, captures, ..
-                    } => FunctionBody::Closure {
-                        function: function.clone(),
-                        captures: captures.clone(),
-                    },
-                    Function::Ordinary {
-                        constructable: _,
-                        this_mode,
-                        body,
-                        params,
-                        environment,
-                    } => {
-                        let this = if construct {
-                            // If the prototype of the constructor is not an object, then use the default object
-                            // prototype as prototype for the new object
-                            // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
-                            // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                            let proto = get_prototype_from_constructor(
-                                this_target,
-                                StandardObjects::object_object,
-                                context,
-                            )?;
-                            JsObject::from_proto_and_data(Some(proto), ObjectData::ordinary())
-                                .into()
-                        } else {
-                            this_target.clone()
-                        };
-
-                        // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
-                        // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                        let local_env = FunctionEnvironmentRecord::new(
-                            this_function_object.clone(),
-                            if construct || !this_mode.is_lexical() {
-                                Some(this.clone())
-                            } else {
-                                None
-                            },
-                            Some(environment.clone()),
-                            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                            if this_mode.is_lexical() {
-                                BindingStatus::Lexical
-                            } else {
-                                BindingStatus::Uninitialized
-                            },
-                            JsValue::undefined(),
-                            context,
-                        )?;
-
-                        let mut arguments_in_parameter_names = false;
-                        let mut is_simple_parameter_list = true;
-
-                        for param in params.iter() {
-                            has_parameter_expressions =
-                                has_parameter_expressions || param.init().is_some();
-                            arguments_in_parameter_names =
-                                arguments_in_parameter_names || param.name() == "arguments";
-                            is_simple_parameter_list = is_simple_parameter_list
-                                && !param.is_rest_param()
-                                && param.init().is_none()
-                        }
-
-                        // Turn local_env into Environment so it can be cloned
-                        let local_env: Environment = local_env.into();
-
-                        // An arguments object is added when all of the following conditions are met
-                        // - If not in an arrow function (10.2.11.16)
-                        // - If the parameter list does not contain `arguments` (10.2.11.17)
-                        // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
-                        //
-                        // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-                        if !this_mode.is_lexical()
-                            && !arguments_in_parameter_names
-                            && (has_parameter_expressions
-                                || (!body.lexically_declared_names().contains("arguments")
-                                    && !body.function_declared_names().contains("arguments")))
-                        {
-                            // Add arguments object
-                            let arguments_obj =
-                                if context.strict() || body.strict() || !is_simple_parameter_list {
-                                    Arguments::create_unmapped_arguments_object(args, context)
-                                } else {
-                                    Arguments::create_mapped_arguments_object(
-                                        self, params, args, &local_env, context,
-                                    )
-                                };
-                            local_env.create_mutable_binding("arguments", false, true, context)?;
-                            local_env.initialize_binding(
-                                "arguments",
-                                arguments_obj.into(),
-                                context,
-                            )?;
-                        }
-
-                        // Push the environment first so that it will be used by default parameters
-                        context.push_environment(local_env.clone());
-
-                        // Add argument bindings to the function environment
-                        for (i, param) in params.iter().enumerate() {
-                            // Rest Parameters
-                            if param.is_rest_param() {
-                                Function::add_rest_param(param, i, args, context, &local_env);
-                                break;
-                            }
-
-                            let value = match args.get(i).cloned() {
-                                None | Some(JsValue::Undefined) => param
-                                    .init()
-                                    .map(|init| init.run(context).ok())
-                                    .flatten()
-                                    .unwrap_or_default(),
-                                Some(value) => value,
-                            };
-
-                            Function::add_arguments_to_environment(
-                                param, value, &local_env, context,
-                            );
-                        }
-
-                        if has_parameter_expressions {
-                            // Create a second environment when default parameter expressions are used
-                            // This prevents variables declared in the function body from being
-                            // used in default parameter initializers.
-                            // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-                            let second_env = FunctionEnvironmentRecord::new(
-                                this_function_object,
-                                if construct || !this_mode.is_lexical() {
-                                    Some(this)
-                                } else {
-                                    None
-                                },
-                                Some(local_env),
-                                // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                                if this_mode.is_lexical() {
-                                    BindingStatus::Lexical
-                                } else {
-                                    BindingStatus::Uninitialized
-                                },
-                                JsValue::undefined(),
-                                context,
-                            )?;
-                            context.push_environment(second_env);
-                        }
-
-                        FunctionBody::Ordinary(body.clone())
-                    }
-                    #[cfg(feature = "vm")]
-                    Function::VmOrdinary { .. } => {
-                        todo!("vm call")
-                    }
-                }
-            }
-        } else {
-            return context.throw_type_error("not a function");
-        };
-
-        match body {
-            FunctionBody::BuiltInConstructor(function) if construct => {
-                function(this_target, args, context)
-            }
-            FunctionBody::BuiltInConstructor(function) => {
-                function(&JsValue::undefined(), args, context)
-            }
-            FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
-            FunctionBody::Closure { function, captures } => {
-                (function)(this_target, args, captures, context)
-            }
-            FunctionBody::Ordinary(body) => {
-                let result = body.run(context);
-                let this = context.get_this_binding();
-
-                if has_parameter_expressions {
-                    context.pop_environment();
-                }
-                context.pop_environment();
-
-                if construct {
-                    // https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget
-                    // 12. If result.[[Type]] is return, then
-                    if context.executor().get_current_state() == &InterpreterState::Return {
-                        // a. If Type(result.[[Value]]) is Object, return NormalCompletion(result.[[Value]]).
-                        if let Ok(v) = &result {
-                            if v.is_object() {
-                                return result;
-                            }
-                        }
-                    }
-
-                    // 13. Else, ReturnIfAbrupt(result).
-                    result?;
-
-                    // 14. Return ? constructorEnv.GetThisBinding().
-                    this
-                } else if context.executor().get_current_state() == &InterpreterState::Return {
-                    result
-                } else {
-                    result?;
-                    Ok(JsValue::undefined())
-                }
-            }
-        }
-    }
-
     /// Converts an object to a primitive.
     ///
     /// Diverges from the spec to prevent a stack overflow when the object is recursive.
@@ -435,18 +165,20 @@ impl JsObject {
         };
 
         // 5. For each name in methodNames in List order, do
-        let this = JsValue::new(self.clone());
         for name in &method_names {
             // a. Let method be ? Get(O, name).
-            let method: JsValue = this.get_field(*name, context)?;
+            let method = self.get(*name, context)?;
             // b. If IsCallable(method) is true, then
-            if method.is_function() {
-                // i. Let result be ? Call(method, O).
-                let result = context.call(&method, &this, &[])?;
-                // ii. If Type(result) is not Object, return result.
-                if !result.is_object() {
-                    return Ok(result);
+            match method {
+                JsValue::Object(ref method) if method.is_callable() => {
+                    // i. Let result be ? Call(method, O).
+                    let result = method.call(&self.clone().into(), &[], context)?;
+                    // ii. If Type(result) is not Object, return result.
+                    if !result.is_object() {
+                        return Ok(result);
+                    }
                 }
+                _ => {}
             }
         }
 
@@ -705,55 +437,6 @@ impl JsObject {
         self.borrow().is_native_object()
     }
 
-    /// Determines if `value` inherits from the instance object inheritance path.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
-    #[inline]
-    pub(crate) fn ordinary_has_instance(
-        &self,
-        context: &mut Context,
-        value: &JsValue,
-    ) -> JsResult<bool> {
-        // 1. If IsCallable(C) is false, return false.
-        if !self.is_callable() {
-            return Ok(false);
-        }
-
-        // TODO: 2. If C has a [[BoundTargetFunction]] internal slot, then
-        //         a. Let BC be C.[[BoundTargetFunction]].
-        //         b.  Return ? InstanceofOperator(O, BC).
-
-        // 3. If Type(O) is not Object, return false.
-        if let Some(object) = value.as_object() {
-            // 4. Let P be ? Get(C, "prototype").
-            // 5. If Type(P) is not Object, throw a TypeError exception.
-            if let Some(prototype) = self.get("prototype", context)?.as_object() {
-                // 6. Repeat,
-                //      a. Set O to ? O.[[GetPrototypeOf]]().
-                //      b. If O is null, return false.
-                let mut object = object.__get_prototype_of__(context)?;
-                while let Some(object_prototype) = object {
-                    //     c. If SameValue(P, O) is true, return true.
-                    if prototype == object_prototype {
-                        return Ok(true);
-                    }
-                    // a. Set O to ? O.[[GetPrototypeOf]]().
-                    object = object_prototype.__get_prototype_of__(context)?;
-                }
-
-                Ok(false)
-            } else {
-                Err(context
-                    .construct_type_error("function has non-object prototype in instanceof check"))
-            }
-        } else {
-            Ok(false)
-        }
-    }
-
     pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1 is implemented on the method `to_property_descriptor` of value
 
@@ -947,7 +630,7 @@ impl JsObject {
     #[inline]
     #[track_caller]
     pub fn is_callable(&self) -> bool {
-        self.borrow().is_callable()
+        self.borrow().data.internal_methods.__call__.is_some()
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -958,8 +641,8 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
     #[track_caller]
-    pub fn is_constructable(&self) -> bool {
-        self.borrow().is_constructable()
+    pub fn is_constructor(&self) -> bool {
+        self.borrow().data.internal_methods.__construct__.is_some()
     }
 
     /// Returns true if the JsObject is the global for a Realm
