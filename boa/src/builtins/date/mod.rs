@@ -1924,10 +1924,8 @@ impl Date {
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
 pub fn this_time_value(value: &JsValue, context: &mut Context) -> JsResult<Date> {
-    if let JsValue::Object(ref object) = value {
-        if let Some(date) = object.borrow().as_date() {
-            return Ok(*date);
-        }
-    }
-    Err(context.construct_type_error("'this' is not a Date"))
+    value
+        .as_object()
+        .and_then(|obj| obj.borrow().as_date().copied())
+        .ok_or_else(|| context.construct_type_error("'this' is not a Date"))
 }

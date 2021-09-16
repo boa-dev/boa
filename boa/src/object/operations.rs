@@ -444,7 +444,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").
-        let c = self.clone().get("constructor", context)?;
+        let c = self.get("constructor", context)?;
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
@@ -466,14 +466,9 @@ impl JsObject {
 
         // 7. If IsConstructor(S) is true, return S.
         // 8. Throw a TypeError exception.
-        if let Some(obj) = s.as_object() {
-            if obj.is_constructor() {
-                Ok(obj)
-            } else {
-                Err(context.construct_type_error("property 'constructor' is not a constructor"))
-            }
-        } else {
-            Err(context.construct_type_error("property 'constructor' is not an object"))
+        match s.as_object() {
+            Some(obj) if obj.is_constructor() => Ok(obj.clone()),
+            _ => Err(context.construct_type_error("property 'constructor' is not a constructor")),
         }
     }
 
@@ -701,9 +696,10 @@ impl JsValue {
         context: &mut Context,
     ) -> JsResult<bool> {
         // 1. If IsCallable(C) is false, return false.
-        let function = match function {
-            JsValue::Object(obj) if obj.is_callable() => obj,
-            _ => return Ok(false),
+        let function = if let Some(function) = function.as_callable() {
+            function
+        } else {
+            return Ok(false);
         };
 
         // 2. If C has a [[BoundTargetFunction]] internal slot, then
@@ -718,7 +714,7 @@ impl JsValue {
         }
 
         let mut object = if let Some(obj) = object.as_object() {
-            obj
+            obj.clone()
         } else {
             // 3. If Type(O) is not Object, return false.
             return Ok(false);
@@ -745,7 +741,7 @@ impl JsValue {
             };
 
             // c. If SameValue(P, O) is true, return true.
-            if JsObject::equals(&object, &prototype) {
+            if JsObject::equals(&object, prototype) {
                 return Ok(true);
             }
         }

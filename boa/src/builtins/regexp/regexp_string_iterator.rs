@@ -23,7 +23,7 @@ use crate::{
 // TODO: See todos in create_regexp_string_iterator and next.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct RegExpStringIterator {
-    matcher: JsValue,
+    matcher: JsObject,
     string: JsString,
     global: bool,
     unicode: bool,
@@ -32,7 +32,7 @@ pub struct RegExpStringIterator {
 
 // TODO: See todos in create_regexp_string_iterator and next.
 impl RegExpStringIterator {
-    fn new(matcher: JsValue, string: JsString, global: bool, unicode: bool) -> Self {
+    fn new(matcher: JsObject, string: JsString, global: bool, unicode: bool) -> Self {
         Self {
             matcher,
             string,
@@ -49,7 +49,7 @@ impl RegExpStringIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createregexpstringiterator
     pub(crate) fn create_regexp_string_iterator(
-        matcher: &JsValue,
+        matcher: JsObject,
         string: JsString,
         global: bool,
         unicode: bool,
@@ -69,83 +69,71 @@ impl RegExpStringIterator {
 
         let regexp_string_iterator = JsObject::from_proto_and_data(
             context.iterator_prototypes().regexp_string_iterator(),
-            ObjectData::reg_exp_string_iterator(Self::new(
-                matcher.clone(),
-                string,
-                global,
-                unicode,
-            )),
+            ObjectData::reg_exp_string_iterator(Self::new(matcher, string, global, unicode)),
         );
 
         Ok(regexp_string_iterator.into())
     }
 
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let JsValue::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(iterator) = object.as_regexp_string_iterator_mut() {
-                if iterator.completed {
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ));
-                }
+        let mut iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let iterator = iterator
+            .as_mut()
+            .and_then(|obj| obj.as_regexp_string_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not a RegExpStringIterator"))?;
+        if iterator.completed {
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
+        }
 
-                // TODO: This is the code that should be created as a closure in create_regexp_string_iterator.
+        // TODO: This is the code that should be created as a closure in create_regexp_string_iterator.
 
-                // i. Let match be ? RegExpExec(R, S).
-                let m = RegExp::abstract_exec(&iterator.matcher, iterator.string.clone(), context)?;
+        // i. Let match be ? RegExpExec(R, S).
+        let m = RegExp::abstract_exec(&iterator.matcher, iterator.string.clone(), context)?;
 
-                if let Some(m) = m {
-                    // iii. If global is false, then
-                    if !iterator.global {
-                        // 1. Perform ? Yield(match).
-                        // 2. Return undefined.
-                        iterator.completed = true;
-                        return Ok(create_iter_result_object(m.into(), false, context));
-                    }
-
-                    // iv. Let matchStr be ? ToString(? Get(match, "0")).
-                    let m_str = m.get("0", context)?.to_string(context)?;
-
-                    // v. If matchStr is the empty String, then
-                    if m_str.is_empty() {
-                        // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
-                        let this_index = iterator
-                            .matcher
-                            .get_field("lastIndex", context)?
-                            .to_length(context)?;
-
-                        // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
-                        let next_index = advance_string_index(
-                            iterator.string.clone(),
-                            this_index,
-                            iterator.unicode,
-                        );
-
-                        // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
-                        iterator
-                            .matcher
-                            .set_field("lastIndex", next_index, true, context)?;
-                    }
-
-                    // vi. Perform ? Yield(match).
-                    Ok(create_iter_result_object(m.into(), false, context))
-                } else {
-                    // ii. If match is null, return undefined.
-                    iterator.completed = true;
-                    Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ))
-                }
-            } else {
-                context.throw_type_error("`this` is not a RegExpStringIterator")
+        if let Some(m) = m {
+            // iii. If global is false, then
+            if !iterator.global {
+                // 1. Perform ? Yield(match).
+                // 2. Return undefined.
+                iterator.completed = true;
+                return Ok(create_iter_result_object(m.into(), false, context));
             }
+
+            // iv. Let matchStr be ? ToString(? Get(match, "0")).
+            let m_str = m.get("0", context)?.to_string(context)?;
+
+            // v. If matchStr is the empty String, then
+            if m_str.is_empty() {
+                // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
+                let this_index = iterator
+                    .matcher
+                    .get("lastIndex", context)?
+                    .to_length(context)?;
+
+                // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
+                let next_index =
+                    advance_string_index(iterator.string.clone(), this_index, iterator.unicode);
+
+                // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
+                iterator
+                    .matcher
+                    .set("lastIndex", next_index, true, context)?;
+            }
+
+            // vi. Perform ? Yield(match).
+            Ok(create_iter_result_object(m.into(), false, context))
         } else {
-            context.throw_type_error("`this` is not a RegExpStringIterator")
+            // ii. If match is null, return undefined.
+            iterator.completed = true;
+            Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ))
         }
     }
 

@@ -426,7 +426,8 @@ impl Default for Context {
             .get("prototype", &mut context)
             .expect("prototype must exist")
             .as_object()
-            .expect("prototype must be object");
+            .expect("prototype must be object")
+            .clone();
         context.typed_array_constructor.constructor = typed_array_constructor_constructor;
         context.typed_array_constructor.prototype = typed_array_constructor_prototype;
         context.create_intrinsics();
@@ -516,10 +517,9 @@ impl Context {
         this: &JsValue,
         args: &[JsValue],
     ) -> JsResult<JsValue> {
-        match *f {
-            JsValue::Object(ref object) if object.is_callable() => object.call(this, args, self),
-            _ => self.throw_type_error("Value is not callable"),
-        }
+        f.as_callable()
+            .ok_or_else(|| self.construct_type_error("not a function"))
+            .and_then(|obj| obj.call(this, args, self))
     }
 
     /// Return the global object.

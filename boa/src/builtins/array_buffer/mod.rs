@@ -229,11 +229,11 @@ impl ArrayBuffer {
         let ctor = obj.species_constructor(StandardObjects::array_buffer_object, context)?;
 
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
-        let new = Self::constructor(&ctor.into(), &[new_len.into()], context)?;
+        let new = ctor.construct(&[new_len.into()], &ctor.clone().into(), context)?;
 
         // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
         let new_obj = if let Some(obj) = new.as_object() {
-            obj
+            obj.clone()
         } else {
             return context.throw_type_error("ArrayBuffer constructor returned non-object value");
         };

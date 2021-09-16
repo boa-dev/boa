@@ -134,9 +134,10 @@ impl Object {
         let properties = args.get_or_undefined(1);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => {
-                JsObject::from_proto_and_data(prototype.as_object(), ObjectData::ordinary())
-            }
+            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data(
+                prototype.as_object().cloned(),
+                ObjectData::ordinary(),
+            ),
             _ => {
                 return context.throw_type_error(format!(
                     "Object prototype may only be an Object or null: {}",
@@ -195,10 +196,7 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args
-            .get(0)
-            .unwrap_or(&JsValue::undefined())
-            .to_object(context)?;
+        let object = args.get_or_undefined(0).to_object(context)?;
         let descriptors = context.construct_object();
 
         for key in object.borrow().properties().keys() {
@@ -321,7 +319,7 @@ impl Object {
             }
         };
 
-        let mut obj = if let Some(obj) = o.as_object() {
+        let obj = if let Some(obj) = o.as_object() {
             obj
         } else {
             // 3. If Type(O) is not Object, return O.
@@ -379,7 +377,7 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let object = args.get_or_undefined(0);
-        if let Some(object) = object.as_object() {
+        if let JsValue::Object(object) = object {
             let key = args
                 .get(1)
                 .unwrap_or(&JsValue::Undefined)
@@ -391,7 +389,7 @@ impl Object {
 
             object.define_property_or_throw(key, desc, context)?;
 
-            Ok(object.into())
+            Ok(object.clone().into())
         } else {
             context.throw_type_error("Object.defineProperty called on non-object")
         }
@@ -413,10 +411,9 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
-        let arg_obj = arg.as_object();
-        if let Some(obj) = arg_obj {
+        if let JsValue::Object(obj) = arg {
             let props = args.get_or_undefined(1);
-            object_define_properties(&obj, props.clone(), context)?;
+            object_define_properties(obj, props.clone(), context)?;
             Ok(arg.clone())
         } else {
             context.throw_type_error("Expected an object")

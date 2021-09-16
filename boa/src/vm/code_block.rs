@@ -1,7 +1,5 @@
 use crate::{
-    builtins::function::{
-        Captures, ClosureFunctionSignature, Function, NativeFunctionSignature, ThisMode,
-    },
+    builtins::function::{Function, ThisMode},
     context::StandardObjects,
     environment::{
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
@@ -345,20 +343,6 @@ impl JsVmFunction {
     }
 }
 
-pub(crate) enum FunctionBody {
-    Ordinary {
-        code: Gc<CodeBlock>,
-        environment: Environment,
-    },
-    Native {
-        function: NativeFunctionSignature,
-    },
-    Closure {
-        function: Box<dyn ClosureFunctionSignature>,
-        captures: Captures,
-    },
-}
-
 impl JsObject {
     pub(crate) fn call_internal(
         &self,
@@ -374,95 +358,77 @@ impl JsObject {
             return context.throw_type_error("not a callable function");
         }
 
-        let body = {
-            let object = self.borrow();
-            let function = object.as_function().unwrap();
+        let (code, environment) = {
+            let mut object = self.borrow_mut();
+            let function = object.as_function_mut().unwrap();
 
             match function {
-                Function::Native { function, .. } => FunctionBody::Native {
-                    function: *function,
-                },
+                Function::Native { function, .. } => return function(this, args, context),
                 Function::Closure {
                     function, captures, ..
-                } => FunctionBody::Closure {
-                    function: function.clone(),
-                    captures: captures.clone(),
-                },
-                Function::VmOrdinary { code, environment } => FunctionBody::Ordinary {
-                    code: code.clone(),
-                    environment: environment.clone(),
-                },
+                } => return (function)(this, args, captures, context),
+                Function::VmOrdinary { code, environment } => (code.clone(), environment.clone()),
                 Function::Ordinary { .. } => unreachable!(),
             }
         };
+        let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
-        match body {
-            FunctionBody::Native { function } => function(this, args, context),
-            FunctionBody::Closure {
-                function,
-                mut captures,
-            } => (function)(this, args, &mut captures, context),
-            FunctionBody::Ordinary { code, environment } => {
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+        // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
+        // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+        let local_env = FunctionEnvironmentRecord::new(
+            this_function_object,
+            if !lexical_this_mode {
+                Some(this.clone())
+            } else {
+                None
+            },
+            Some(environment.clone()),
+            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+            if lexical_this_mode {
+                BindingStatus::Lexical
+            } else {
+                BindingStatus::Uninitialized
+            },
+            JsValue::undefined(),
+            context,
+        )?;
 
-                // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
-                // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                let local_env = FunctionEnvironmentRecord::new(
-                    this_function_object,
-                    if !lexical_this_mode {
-                        Some(this.clone())
-                    } else {
-                        None
-                    },
-                    Some(environment.clone()),
-                    // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                    if lexical_this_mode {
-                        BindingStatus::Lexical
-                    } else {
-                        BindingStatus::Uninitialized
-                    },
-                    JsValue::undefined(),
-                    context,
-                )?;
+        // Turn local_env into Environment so it can be cloned
+        let local_env: Environment = local_env.into();
 
-                // Turn local_env into Environment so it can be cloned
-                let local_env: Environment = local_env.into();
+        // Push the environment first so that it will be used by default parameters
+        context.push_environment(local_env.clone());
 
-                // Push the environment first so that it will be used by default parameters
-                context.push_environment(local_env.clone());
-
-                // Add argument bindings to the function environment
-                for (i, param) in code.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param() {
-                        todo!("Rest parameter");
-                    }
-
-                    let value = match args.get(i).cloned() {
-                        None => JsValue::undefined(),
-                        Some(value) => value,
-                    };
-
-                    Function::add_arguments_to_environment(param, value, &local_env, context);
-                }
-
-                context.vm.push_frame(CallFrame {
-                    prev: None,
-                    code,
-                    this: this.clone(),
-                    pc: 0,
-                    fp: context.vm.stack.len(),
-                    exit_on_return,
-                    environment: local_env,
-                });
-
-                let result = context.run();
-
-                context.pop_environment();
-
-                result
+        // Add argument bindings to the function environment
+        for (i, param) in code.params.iter().enumerate() {
+            // Rest Parameters
+            if param.is_rest_param() {
+                todo!("Rest parameter");
             }
+
+            let value = match args.get(i).cloned() {
+                None => JsValue::undefined(),
+                Some(value) => value,
+            };
+
+            Function::add_arguments_to_environment(param, value, &local_env, context);
         }
+
+        context.vm.push_frame(CallFrame {
+            prev: None,
+            code,
+            this: this.clone(),
+            pc: 0,
+            fp: context.vm.stack.len(),
+            exit_on_return,
+            environment: local_env,
+        });
+
+        let result = context.run();
+
+        context.pop_environment();
+
+        result
     }
 
     pub fn call(
@@ -488,103 +454,85 @@ impl JsObject {
             return context.throw_type_error("not a constructable function");
         }
 
-        let body = {
-            let object = self.borrow();
-            let function = object.as_function().unwrap();
+        let (code, environment) = {
+            let mut object = self.borrow_mut();
+            let function = object.as_function_mut().unwrap();
 
             match function {
-                Function::Native { function, .. } => FunctionBody::Native {
-                    function: *function,
-                },
+                Function::Native { function, .. } => return function(this_target, args, context),
                 Function::Closure {
                     function, captures, ..
-                } => FunctionBody::Closure {
-                    function: function.clone(),
-                    captures: captures.clone(),
-                },
-                Function::VmOrdinary { code, environment } => FunctionBody::Ordinary {
-                    code: code.clone(),
-                    environment: environment.clone(),
-                },
+                } => return (function)(this_target, args, captures, context),
+                Function::VmOrdinary { code, environment } => (code.clone(), environment.clone()),
                 Function::Ordinary { .. } => unreachable!(),
             }
         };
+        let this: JsValue = {
+            // If the prototype of the constructor is not an object, then use the default object
+            // prototype as prototype for the new object
+            // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+            // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+            let prototype = get_prototype_from_constructor(
+                this_target,
+                StandardObjects::object_object,
+                context,
+            )?;
+            JsObject::from_proto_and_data(prototype, ObjectData::ordinary()).into()
+        };
+        let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
-        match body {
-            FunctionBody::Native { function, .. } => function(this_target, args, context),
-            FunctionBody::Closure {
-                function,
-                mut captures,
-            } => (function)(this_target, args, &mut captures, context),
-            FunctionBody::Ordinary { code, environment } => {
-                let this: JsValue = {
-                    // If the prototype of the constructor is not an object, then use the default object
-                    // prototype as prototype for the new object
-                    // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
-                    // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                    let prototype = get_prototype_from_constructor(
-                        this_target,
-                        StandardObjects::object_object,
-                        context,
-                    )?;
-                    JsObject::from_proto_and_data(prototype, ObjectData::ordinary()).into()
-                };
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+        // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
+        // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+        let local_env = FunctionEnvironmentRecord::new(
+            this_function_object,
+            Some(this.clone()),
+            Some(environment),
+            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+            if lexical_this_mode {
+                BindingStatus::Lexical
+            } else {
+                BindingStatus::Uninitialized
+            },
+            JsValue::undefined(),
+            context,
+        )?;
 
-                // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
-                // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                let local_env = FunctionEnvironmentRecord::new(
-                    this_function_object,
-                    Some(this.clone()),
-                    Some(environment),
-                    // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                    if lexical_this_mode {
-                        BindingStatus::Lexical
-                    } else {
-                        BindingStatus::Uninitialized
-                    },
-                    JsValue::undefined(),
-                    context,
-                )?;
+        // Turn local_env into Environment so it can be cloned
+        let local_env: Environment = local_env.into();
 
-                // Turn local_env into Environment so it can be cloned
-                let local_env: Environment = local_env.into();
+        // Push the environment first so that it will be used by default parameters
+        context.push_environment(local_env.clone());
 
-                // Push the environment first so that it will be used by default parameters
-                context.push_environment(local_env.clone());
-
-                // Add argument bindings to the function environment
-                for (i, param) in code.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param() {
-                        todo!("Rest parameter");
-                    }
-
-                    let value = match args.get(i).cloned() {
-                        None => JsValue::undefined(),
-                        Some(value) => value,
-                    };
-
-                    Function::add_arguments_to_environment(param, value, &local_env, context);
-                }
-
-                context.vm.push_frame(CallFrame {
-                    prev: None,
-                    code,
-                    this,
-                    pc: 0,
-                    fp: context.vm.stack.len(),
-                    exit_on_return,
-                    environment: local_env,
-                });
-
-                let _result = context.run();
-
-                context.pop_environment();
-
-                context.get_this_binding()
+        // Add argument bindings to the function environment
+        for (i, param) in code.params.iter().enumerate() {
+            // Rest Parameters
+            if param.is_rest_param() {
+                todo!("Rest parameter");
             }
+
+            let value = match args.get(i).cloned() {
+                None => JsValue::undefined(),
+                Some(value) => value,
+            };
+
+            Function::add_arguments_to_environment(param, value, &local_env, context);
         }
+
+        context.vm.push_frame(CallFrame {
+            prev: None,
+            code,
+            this,
+            pc: 0,
+            fp: context.vm.stack.len(),
+            exit_on_return,
+            environment: local_env,
+        });
+
+        let _result = context.run();
+
+        context.pop_environment();
+
+        context.get_this_binding()
     }
 
     pub fn construct(

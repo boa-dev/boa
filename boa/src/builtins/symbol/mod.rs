@@ -190,18 +190,10 @@ impl Symbol {
     }
 
     fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
-        match value {
-            JsValue::Symbol(ref symbol) => return Ok(symbol.clone()),
-            JsValue::Object(ref object) => {
-                let object = object.borrow();
-                if let Some(symbol) = object.as_symbol() {
-                    return Ok(symbol);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a Symbol"))
+        value
+            .as_symbol()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a Symbol"))
     }
 
     /// `Symbol.prototype.toString()`

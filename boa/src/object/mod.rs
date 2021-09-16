@@ -696,7 +696,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_mut_function(&mut self) -> Option<&mut Function> {
+    pub fn as_function_mut(&mut self) -> Option<&mut Function> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Function(ref mut function),

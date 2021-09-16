@@ -70,13 +70,15 @@ impl Executable for New {
             }
         }
 
-        match func_object {
-            JsValue::Object(ref object) if object.is_constructor() => {
-                object.construct(&v_args, &object.clone().into(), context)
-            }
-            _ => context
-                .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
-        }
+        func_object
+            .as_constructor()
+            .ok_or_else(|| {
+                context.construct_type_error(format!(
+                    "{} is not a constructor",
+                    self.expr().to_string(),
+                ))
+            })
+            .and_then(|cons| cons.construct(&v_args, &cons.clone().into(), context))
     }
 }
 

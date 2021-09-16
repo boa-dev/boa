@@ -345,7 +345,7 @@ impl Context {
 
                 let value = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object
+                    object.clone()
                 } else {
                     value.to_object(self)?
                 };
@@ -359,7 +359,7 @@ impl Context {
                 let value = self.vm.pop();
                 let key = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object
+                    object.clone()
                 } else {
                     value.to_object(self)?
                 };
@@ -375,7 +375,7 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object
+                    object.clone()
                 } else {
                     object.to_object(self)?
                 };
@@ -389,7 +389,7 @@ impl Context {
                 let key = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object
+                    object.clone()
                 } else {
                     object.to_object(self)?
                 };

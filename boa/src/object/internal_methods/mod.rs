@@ -48,7 +48,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
     #[inline]
     pub(crate) fn __set_prototype_of__(
-        &mut self,
+        &self,
         val: JsPrototype,
         context: &mut Context,
     ) -> JsResult<bool> {
@@ -498,14 +498,12 @@ pub(crate) fn ordinary_has_property(
         // 4. Let parent be ? O.[[GetPrototypeOf]]().
         let parent = obj.__get_prototype_of__(context)?;
 
-        // 5. If parent is not null, then
-        if let Some(object) = parent {
+        parent
+            // 5. If parent is not null, then
             // a. Return ? parent.[[HasProperty]](P).
-            object.__has_property__(key, context)
-        } else {
+            .map(|obj| obj.__has_property__(key, context))
             // 6. Return false.
-            Ok(false)
-        }
+            .unwrap_or(Ok(false))
     }
 }
 
@@ -933,7 +931,7 @@ where
     // 2. Let proto be ? Get(constructor, "prototype").
     if let Some(object) = constructor.as_object() {
         if let Some(proto) = object.get(PROTOTYPE, context)?.as_object() {
-            return Ok(proto);
+            return Ok(proto.clone());
         }
     }
     // 3. If Type(proto) is not Object, then

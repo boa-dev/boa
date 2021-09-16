@@ -519,7 +519,7 @@ impl DeclarationPatternObject {
                     // 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).
 
                     // 2. Let restObj be ! OrdinaryObjectCreate(%Object.prototype%).
-                    let mut rest_obj = context.construct_object();
+                    let rest_obj = context.construct_object();
 
                     // 3. Perform ? CopyDataProperties(restObj, value, excludedNames).
                     rest_obj.copy_data_properties(value, excluded_keys.clone(), context)?;

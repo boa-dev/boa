@@ -19,7 +19,6 @@ use std::{
 
 use dyn_clone::DynClone;
 
-use crate::symbol::WellKnownSymbols;
 use crate::value::IntegerOrInfinity;
 use crate::{
     builtins::BuiltIn,
@@ -33,6 +32,7 @@ use crate::{
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
+use crate::{object::Object, symbol::WellKnownSymbols};
 use crate::{
     object::{ConstructorBuilder, FunctionBuilder},
     property::PropertyKey,
@@ -124,19 +124,11 @@ impl ConstructorKind {
         matches!(self, Self::Derived)
     }
 }
-// We don't use a standalone `NativeObject` for `Captures` because it doesn't
-// guarantee that the internal type implements `Clone`.
-// This private trait guarantees that the internal type passed to `Captures`
-// implements `Clone`, and `DynClone` allows us to implement `Clone` for
-// `Box<dyn CapturesObject>`.
-trait CapturesObject: NativeObject + DynClone {}
-impl<T: NativeObject + Clone> CapturesObject for T {}
-dyn_clone::clone_trait_object!(CapturesObject);
 
-/// Wrapper for `Box<dyn NativeObject + Clone>` that allows passing additional
+/// Wrapper for `Box<dyn NativeObject>` that allows passing additional
 /// captures through a `Copy` closure.
 ///
-/// Any type implementing `Trace + Any + Debug + Clone`
+/// Any type implementing `Trace + Any + Debug`
 /// can be used as a capture context, so you can pass e.g. a String,
 /// a tuple or even a full struct.
 ///
@@ -144,14 +136,14 @@ dyn_clone::clone_trait_object!(CapturesObject);
 /// with `downcast_ref` and `downcast_mut`, or you can use `try_downcast_ref`
 /// and `try_downcast_mut` to automatically throw a `TypeError` if the downcast
 /// fails.
-#[derive(Debug, Clone, Trace, Finalize)]
-pub struct Captures(Box<dyn CapturesObject>);
+#[derive(Debug, Trace, Finalize)]
+pub struct Captures(Box<dyn NativeObject>);
 
 impl Captures {
     /// Creates a new capture context.
     pub(crate) fn new<T>(captures: T) -> Self
     where
-        T: NativeObject + Clone,
+        T: NativeObject,
     {
         Self(Box::new(captures))
     }
@@ -160,7 +152,7 @@ impl Captures {
     /// downcasted type if successful or `None` otherwise.
     pub fn downcast_ref<T>(&self) -> Option<&T>
     where
-        T: NativeObject + Clone,
+        T: NativeObject,
     {
         self.0.deref().as_any().downcast_ref::<T>()
     }
@@ -169,7 +161,7 @@ impl Captures {
     /// mutable reference to the downcasted type if successful or `None` otherwise.
     pub fn downcast_mut<T>(&mut self) -> Option<&mut T>
     where
-        T: NativeObject + Clone,
+        T: NativeObject,
     {
         self.0.deref_mut().as_mut_any().downcast_mut::<T>()
     }
@@ -178,7 +170,7 @@ impl Captures {
     /// downcasted type if successful or a `TypeError` otherwise.
     pub fn try_downcast_ref<T>(&self, context: &mut Context) -> JsResult<&T>
     where
-        T: NativeObject + Clone,
+        T: NativeObject,
     {
         self.0
             .deref()
@@ -191,7 +183,7 @@ impl Captures {
     /// downcasted type if successful or a `TypeError` otherwise.
     pub fn try_downcast_mut<T>(&mut self, context: &mut Context) -> JsResult<&mut T>
     where
-        T: NativeObject + Clone,
+        T: NativeObject,
     {
         self.0
             .deref_mut()
@@ -206,7 +198,7 @@ impl Captures {
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Clone, Trace, Finalize)]
+#[derive(Trace, Finalize)]
 pub enum Function {
     Native {
         #[unsafe_ignore_trace]
@@ -389,11 +381,10 @@ impl BuiltInFunctionObject {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
     fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
-        let func = match this {
-            JsValue::Object(obj) if obj.is_callable() => obj,
-            // 2. If IsCallable(func) is false, throw a TypeError exception.
-            _ => return context.throw_type_error(format!("{} is not a function", this.display())),
-        };
+        // 2. If IsCallable(func) is false, throw a TypeError exception.
+        let func = this.as_callable().ok_or_else(|| {
+            context.construct_type_error(format!("{} is not a function", this.display()))
+        })?;
 
         let this_arg = args.get_or_undefined(0);
         let arg_array = args.get_or_undefined(1);
@@ -430,14 +421,11 @@ impl BuiltInFunctionObject {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
     fn bind(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let Target be the this value.
-        let target = match this {
-            JsValue::Object(obj) if obj.is_callable() => obj,
-            // 2. If IsCallable(Target) is false, throw a TypeError exception.
-            _ => {
-                return context
-                    .throw_type_error("cannot bind `this` without a `[[Call]]` internal method")
-            }
-        };
+        // 2. If IsCallable(Target) is false, throw a TypeError exception.
+        let target = this.as_callable().ok_or_else(|| {
+            context.construct_type_error("cannot bind `this` without a `[[Call]]` internal method")
+        })?;
+
         let this_arg = args.get_or_undefined(0).clone();
         let bound_args = args.get(1..).unwrap_or_else(|| &[]).to_vec();
         let arg_count = bound_args.len() as i64;
@@ -514,12 +502,10 @@ impl BuiltInFunctionObject {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
     fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
-        let func = match this {
-            JsValue::Object(obj) if obj.is_callable() => obj,
-            // 2. If IsCallable(func) is false, throw a TypeError exception.
-            _ => return context.throw_type_error(format!("{} is not a function", this.display())),
-        };
-
+        // 2. If IsCallable(func) is false, throw a TypeError exception.
+        let func = this.as_callable().ok_or_else(|| {
+            context.construct_type_error(format!("{} is not a function", this.display()))
+        })?;
         let this_arg = args.get_or_undefined(0);
 
         // 3. Perform PrepareForTailCall().
@@ -531,10 +517,19 @@ impl BuiltInFunctionObject {
 
     #[allow(clippy::wrong_self_convention)]
     fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let object = this.as_object().map(JsObject::borrow);
+        let function = object
+            .as_deref()
+            .and_then(Object::as_function)
+            .ok_or_else(|| context.construct_type_error("Not a function"))?;
+
         let name = {
             // Is there a case here where if there is no name field on a value
             // name should default to None? Do all functions have names set?
-            let value = this.get_field("name", &mut *context)?;
+            let value = this
+                .as_object()
+                .expect("checked that `this` was an object above")
+                .get("name", &mut *context)?;
             if value.is_null_or_undefined() {
                 None
             } else {
@@ -542,19 +537,7 @@ impl BuiltInFunctionObject {
             }
         };
 
-        let function = {
-            let object = this
-                .as_object()
-                .map(|object| object.borrow().as_function().cloned());
-
-            if let Some(Some(function)) = object {
-                function
-            } else {
-                return context.throw_type_error("Not a function");
-            }
-        };
-
-        match (&function, name) {
+        match (function, name) {
             (
                 Function::Native {
                     function: _,

@@ -123,23 +123,20 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
     fn this_bigint_value(value: &JsValue, context: &mut Context) -> JsResult<JsBigInt> {
-        match value {
+        value
             // 1. If Type(value) is BigInt, return value.
-            JsValue::BigInt(ref bigint) => return Ok(bigint.clone()),
-
+            .as_bigint()
+            .cloned()
             // 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
             //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
             //    b. Return value.[[BigIntData]].
-            JsValue::Object(ref object) => {
-                if let Some(bigint) = object.borrow().as_bigint() {
-                    return Ok(bigint.clone());
-                }
-            }
-            _ => {}
-        }
-
-        // 3. Throw a TypeError exception.
-        Err(context.construct_type_error("'this' is not a BigInt"))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.borrow().as_bigint().cloned())
+            })
+            // 3. Throw a TypeError exception.
+            .ok_or_else(|| context.construct_type_error("'this' is not a BigInt"))
     }
 
     /// `BigInt.prototype.toString( [radix] )`

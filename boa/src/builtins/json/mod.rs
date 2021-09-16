@@ -97,23 +97,22 @@ impl Json {
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let unfiltered = context.eval(script_string.as_bytes())?;
 
-        match args.get(1).cloned().unwrap_or_default().as_object() {
-            // 11. If IsCallable(reviver) is true, then
-            Some(obj) if obj.is_callable() => {
-                // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
-                let root = context.construct_object();
+        // 11. If IsCallable(reviver) is true, then
+        if let Some(obj) = args.get_or_undefined(1).as_callable() {
+            // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
+            let root = context.construct_object();
 
-                // b. Let rootName be the empty String.
-                // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
-                root.create_data_property_or_throw("", unfiltered, context)
-                    .expect("CreateDataPropertyOrThrow should never throw here");
+            // b. Let rootName be the empty String.
+            // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
+            root.create_data_property_or_throw("", unfiltered, context)
+                .expect("CreateDataPropertyOrThrow should never throw here");
 
-                // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-                Self::internalize_json_property(root, "".into(), obj, context)
-            }
+            // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
+            Self::internalize_json_property(&root, "".into(), obj, context)
+        } else {
             // 12. Else,
             // a. Return unfiltered.
-            _ => Ok(unfiltered),
+            Ok(unfiltered)
         }
     }
 
@@ -124,9 +123,9 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-internalizejsonproperty
     fn internalize_json_property(
-        holder: JsObject,
+        holder: &JsObject,
         name: JsString,
-        reviver: JsObject,
+        reviver: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let val be ? Get(holder, name).
@@ -145,9 +144,9 @@ impl Json {
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
                     let new_element = Self::internalize_json_property(
-                        obj.clone(),
+                        obj,
                         i.to_string().into(),
-                        reviver.clone(),
+                        reviver,
                         context,
                     )?;
 
@@ -174,12 +173,8 @@ impl Json {
                     let p = p.as_string().unwrap();
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
-                    let new_element = Self::internalize_json_property(
-                        obj.clone(),
-                        p.clone(),
-                        reviver.clone(),
-                        context,
-                    )?;
+                    let new_element =
+                        Self::internalize_json_property(obj, p.clone(), reviver, context)?;
 
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -196,7 +191,7 @@ impl Json {
         }
 
         // 3. Return ? Call(reviver, holder, « name, val »).
-        reviver.call(&holder.into(), &[name.into(), val], context)
+        reviver.call(&holder.clone().into(), &[name.into(), val], context)
     }
 
     /// `JSON.stringify( value[, replacer[, space]] )`
@@ -237,7 +232,7 @@ impl Json {
             // a. If IsCallable(replacer) is true, then
             if replacer_obj.is_callable() {
                 // i. Set ReplacerFunction to replacer.
-                replacer_function = Some(replacer_obj)
+                replacer_function = Some(replacer_obj.clone())
             // b. Else,
             } else {
                 // i. Let isArray be ? IsArray(replacer).
@@ -352,7 +347,7 @@ impl Json {
 
         // 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).
         Ok(
-            Self::serialize_json_property(&mut state, JsString::new(""), wrapper, context)?
+            Self::serialize_json_property(&mut state, JsString::new(""), &wrapper, context)?
                 .map(|s| s.into())
                 .unwrap_or_default(),
         )
@@ -367,7 +362,7 @@ impl Json {
     fn serialize_json_property(
         state: &mut StateRecord,
         key: JsString,
-        holder: JsObject,
+        holder: &JsObject,
         context: &mut Context,
     ) -> JsResult<Option<JsString>> {
         // 1. Let value be ? Get(holder, key).
@@ -390,11 +385,11 @@ impl Json {
         // 3. If state.[[ReplacerFunction]] is not undefined, then
         if let Some(obj) = &state.replacer_function {
             // a. Set value to ? Call(state.[[ReplacerFunction]], holder, « key, value »).
-            value = obj.call(&holder.into(), &[key.into(), value], context)?
+            value = obj.call(&holder.clone().into(), &[key.into(), value], context)?
         }
 
         // 4. If Type(value) is Object, then
-        if let Some(obj) = value.as_object() {
+        if let Some(obj) = value.as_object().cloned() {
             // a. If value has a [[NumberData]] internal slot, then
             if obj.is_number() {
                 // i. Set value to ? ToNumber(value).
@@ -530,11 +525,11 @@ impl Json {
     /// [spec]: https://tc39.es/ecma262/#sec-serializejsonobject
     fn serialize_json_object(
         state: &mut StateRecord,
-        value: JsObject,
+        value: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        let limiter = RecursionLimiter::new(&value);
+        let limiter = RecursionLimiter::new(value);
         if limiter.live {
             return Err(context.construct_type_error("cyclic object value"));
         }
@@ -566,7 +561,7 @@ impl Json {
         // 8. For each element P of K, do
         for p in &k {
             // a. Let strP be ? SerializeJSONProperty(state, P, value).
-            let str_p = Self::serialize_json_property(state, p.clone(), value.clone(), context)?;
+            let str_p = Self::serialize_json_property(state, p.clone(), value, context)?;
 
             // b. If strP is not undefined, then
             if let Some(str_p) = str_p {
@@ -643,11 +638,11 @@ impl Json {
     /// [spec]: https://tc39.es/ecma262/#sec-serializejsonarray
     fn serialize_json_array(
         state: &mut StateRecord,
-        value: JsObject,
+        value: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsString> {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
-        let limiter = RecursionLimiter::new(&value);
+        let limiter = RecursionLimiter::new(value);
         if limiter.live {
             return Err(context.construct_type_error("cyclic object value"));
         }
@@ -673,12 +668,8 @@ impl Json {
         // 8. Repeat, while index < len,
         while index < len {
             // a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
-            let str_p = Self::serialize_json_property(
-                state,
-                index.to_string().into(),
-                value.clone(),
-                context,
-            )?;
+            let str_p =
+                Self::serialize_json_property(state, index.to_string().into(), value, context)?;
 
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {

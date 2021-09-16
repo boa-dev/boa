@@ -63,73 +63,62 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let JsValue::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(set_iterator) = object.as_set_iterator_mut() {
-                let m = &set_iterator.iterated_set;
-                let mut index = set_iterator.next_index;
-                let item_kind = &set_iterator.iteration_kind;
+        let mut set_iterator = this.as_object().map(|obj| obj.borrow_mut());
 
-                if set_iterator.iterated_set.is_undefined() {
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ));
-                }
+        let set_iterator = set_iterator
+            .as_mut()
+            .and_then(|obj| obj.as_set_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not an SetIterator"))?;
+        {
+            let m = &set_iterator.iterated_set;
+            let mut index = set_iterator.next_index;
+            let item_kind = &set_iterator.iteration_kind;
 
-                if let JsValue::Object(ref object) = m {
-                    if let Some(entries) = object.borrow().as_set_ref() {
-                        let num_entries = entries.size();
-                        while index < num_entries {
-                            let e = entries.get_index(index);
-                            index += 1;
-                            set_iterator.next_index = index;
-                            if let Some(value) = e {
-                                match item_kind {
-                                    PropertyNameKind::Value => {
-                                        return Ok(create_iter_result_object(
-                                            value.clone(),
-                                            false,
-                                            context,
-                                        ));
-                                    }
-                                    PropertyNameKind::KeyAndValue => {
-                                        let result = Array::create_array_from_list(
-                                            [value.clone(), value.clone()],
-                                            context,
-                                        );
-                                        return Ok(create_iter_result_object(
-                                            result.into(),
-                                            false,
-                                            context,
-                                        ));
-                                    }
-                                    PropertyNameKind::Key => {
-                                        panic!("tried to collect only keys of Set")
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        return Err(context.construct_type_error("'this' is not a Set"));
-                    }
-                } else {
-                    return Err(context.construct_type_error("'this' is not a Set"));
-                }
-
-                set_iterator.iterated_set = JsValue::undefined();
-                Ok(create_iter_result_object(
+            if set_iterator.iterated_set.is_undefined() {
+                return Ok(create_iter_result_object(
                     JsValue::undefined(),
                     true,
                     context,
-                ))
-            } else {
-                context.throw_type_error("`this` is not an SetIterator")
+                ));
             }
-        } else {
-            context.throw_type_error("`this` is not an SetIterator")
+
+            let entries = m.as_object().map(|obj| obj.borrow());
+            let entries = entries
+                .as_ref()
+                .and_then(|obj| obj.as_set_ref())
+                .ok_or_else(|| context.construct_type_error("'this' is not a Set"))?;
+
+            let num_entries = entries.size();
+            while index < num_entries {
+                let e = entries.get_index(index);
+                index += 1;
+                set_iterator.next_index = index;
+                if let Some(value) = e {
+                    match item_kind {
+                        PropertyNameKind::Value => {
+                            return Ok(create_iter_result_object(value.clone(), false, context));
+                        }
+                        PropertyNameKind::KeyAndValue => {
+                            let result = Array::create_array_from_list(
+                                [value.clone(), value.clone()],
+                                context,
+                            );
+                            return Ok(create_iter_result_object(result.into(), false, context));
+                        }
+                        PropertyNameKind::Key => {
+                            panic!("tried to collect only keys of Set")
+                        }
+                    }
+                }
+            }
         }
+
+        set_iterator.iterated_set = JsValue::undefined();
+        Ok(create_iter_result_object(
+            JsValue::undefined(),
+            true,
+            context,
+        ))
     }
 
     /// Create the %SetIteratorPrototype% object

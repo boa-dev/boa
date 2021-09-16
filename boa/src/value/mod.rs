@@ -130,11 +130,38 @@ impl JsValue {
     }
 
     #[inline]
-    pub fn as_object(&self) -> Option<JsObject> {
+    pub fn as_object(&self) -> Option<&JsObject> {
         match *self {
-            Self::Object(ref o) => Some(o.clone()),
+            Self::Object(ref o) => Some(o),
             _ => None,
         }
+    }
+
+    /// It determines if the value is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[inline]
+    pub fn is_callable(&self) -> bool {
+        matches!(self, Self::Object(obj) if obj.is_callable())
+    }
+
+    #[inline]
+    pub fn as_callable(&self) -> Option<&JsObject> {
+        self.as_object().filter(|obj| obj.is_callable())
+    }
+
+    /// Returns true if the value is a constructor object
+    #[inline]
+    pub fn is_constructor(&self) -> bool {
+        matches!(self, Self::Object(obj) if obj.is_constructor())
+    }
+
+    #[inline]
+    pub fn as_constructor(&self) -> Option<&JsObject> {
+        self.as_object().filter(|obj| obj.is_constructor())
     }
 
     /// Returns true if the value is a symbol.
@@ -944,11 +971,13 @@ impl JsValue {
     #[inline]
     pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
-        match self {
-            JsValue::Object(ref obj) => obj.to_property_descriptor(context),
-            _ => Err(context
-                .construct_type_error("Cannot construct a property descriptor from a non-object")),
-        }
+        self.as_object()
+            .ok_or_else(|| {
+                context.construct_type_error(
+                    "Cannot construct a property descriptor from a non-object",
+                )
+            })
+            .and_then(|obj| obj.to_property_descriptor(context))
     }
 
     /// Converts argument to an integer, +∞, or -∞.
@@ -1023,25 +1052,11 @@ impl JsValue {
             // 3. If argument is a Proxy exotic object, then
             //     b. Let target be argument.[[ProxyTarget]].
             //     c. Return ? IsArray(target).
-            // 4. Return false.
+            // TODO: handle ProxyObjects
             Ok(object.is_array())
         } else {
+            // 4. Return false.
             Ok(false)
-        }
-    }
-
-    /// It determines if the value is a callable function with a `[[Call]]` internal method.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
-    #[track_caller]
-    pub(crate) fn is_callable(&self) -> bool {
-        if let Self::Object(obj) = self {
-            obj.is_callable()
-        } else {
-            false
         }
     }
 }

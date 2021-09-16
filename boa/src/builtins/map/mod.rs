@@ -450,19 +450,16 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = match this {
-            JsValue::Object(obj) if obj.is_map() => obj,
-            _ => return context.throw_type_error("`this` is not a Map"),
-        };
+        let map = this
+            .as_object()
+            .filter(|obj| obj.is_map())
+            .ok_or_else(|| context.construct_type_error("`this` is not a Map"))?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = match args.get_or_undefined(0) {
-            JsValue::Object(obj) if obj.is_callable() => obj,
-            val => {
-                let name = val.to_string(context)?;
-                return context.throw_type_error(format!("{} is not a function", name));
-            }
-        };
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
+            context.construct_type_error(format!("{} is not a function", callback.display()))
+        })?;
 
         let this_arg = args.get_or_undefined(1);
 
@@ -543,10 +540,9 @@ pub(crate) fn add_entries_from_iterable(
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsCallable(adder) is false, throw a TypeError exception.
-    let adder = match adder {
-        JsValue::Object(obj) if obj.is_callable() => obj,
-        _ => return context.throw_type_error("property `set` of `NewTarget` is not callable"),
-    };
+    let adder = adder.as_callable().ok_or_else(|| {
+        context.construct_type_error("property `set` of `NewTarget` is not callable")
+    })?;
 
     // 2. Let iteratorRecord be ? GetIterator(iterable).
     let iterator_record = iterable.get_iterator(context, None, None)?;
