@@ -109,10 +109,14 @@ impl Executable for UnaryOp {
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
-                    let res = obj
+                    let delete_status = obj
                         .to_object(context)?
                         .__delete__(&field.to_property_key(context)?, context)?;
-                    return Ok(JsValue::new(res));
+                    if !delete_status && context.strict() {
+                        return context.throw_type_error("Cannot delete property");
+                    } else {
+                        JsValue::new(delete_status)
+                    }
                 }
                 // TODO: implement delete on references.
                 Node::Identifier(_) => JsValue::new(false),
