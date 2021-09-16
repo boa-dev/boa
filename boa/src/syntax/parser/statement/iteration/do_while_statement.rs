@@ -74,7 +74,7 @@ where
 
         // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
         if let Node::FunctionDecl(_) = body {
-            return Err(ParseError::general("In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.", position));
+            return Err(ParseError::wrong_function_declaration_non_strict(position));
         }
 
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
