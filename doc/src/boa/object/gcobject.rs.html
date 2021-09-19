@@ -1027,6 +1027,16 @@
 <span id="1027">1027</span>
 <span id="1028">1028</span>
 <span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1035,7 +1045,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function</span>::{
-        <span class="ident">create_unmapped_arguments_object</span>, <span class="ident">ClosureFunction</span>, <span class="ident">Function</span>, <span class="ident">NativeFunction</span>,
+        <span class="ident">create_unmapped_arguments_object</span>, <span class="ident">Captures</span>, <span class="ident">ClosureFunction</span>, <span class="ident">Function</span>, <span class="ident">NativeFunction</span>,
     },
     <span class="ident">environment</span>::{
         <span class="ident">environment_record_trait::EnvironmentRecordTrait</span>,
@@ -1075,7 +1085,10 @@
 <span class="kw">enum</span> <span class="ident">FunctionBody</span> {
     <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunction</span>),
     <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunction</span>),
-    <span class="ident">Closure</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunction</span><span class="op">&gt;</span>),
+    <span class="ident">Closure</span> {
+        <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunction</span><span class="op">&gt;</span>,
+        <span class="ident">captures</span>: <span class="ident">Captures</span>,
+    },
     <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
 }
 
@@ -1181,7 +1194,12 @@
                             <span class="ident">FunctionBody::BuiltInFunction</span>(<span class="ident">function</span>.<span class="number">0</span>)
                         }
                     }
-                    <span class="ident">Function::Closure</span> { <span class="ident">function</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FunctionBody::Closure</span>(<span class="ident">function</span>.<span class="ident">clone</span>()),
+                    <span class="ident">Function::Closure</span> {
+                        <span class="ident">function</span>, <span class="ident">captures</span>, ..
+                    } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FunctionBody::Closure</span> {
+                        <span class="ident">function</span>: <span class="ident">function</span>.<span class="ident">clone</span>(),
+                        <span class="ident">captures</span>: <span class="ident">captures</span>.<span class="ident">clone</span>(),
+                    },
                     <span class="ident">Function::Ordinary</span> {
                         <span class="ident">body</span>,
                         <span class="ident">params</span>,
@@ -1327,7 +1345,9 @@
                 <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="ident">args</span>, <span class="ident">context</span>)
             }
             <span class="ident">FunctionBody::BuiltInFunction</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function</span>(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>),
-            <span class="ident">FunctionBody::Closure</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">function</span>)(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>),
+            <span class="ident">FunctionBody::Closure</span> { <span class="ident">function</span>, <span class="ident">captures</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="ident">function</span>)(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="ident">captures</span>)
+            }
             <span class="ident">FunctionBody::Ordinary</span>(<span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
                 <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">get_this_binding</span>();

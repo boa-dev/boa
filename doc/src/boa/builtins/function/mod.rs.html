@@ -479,6 +479,87 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -493,22 +574,25 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-function-objects</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function</span>
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::StandardObjects</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::object::internal_methods::get_prototype_from_constructor</span>;
-
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">Array</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">context::StandardObjects</span>,
     <span class="ident">environment::lexical_environment::Environment</span>,
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{
+        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
+        <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>,
+    },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">syntax::ast::node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">RcStatementList</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
 <span class="kw">use</span> <span class="ident">dyn_clone::DynClone</span>;
+
 <span class="kw">use</span> <span class="ident">sealed::Sealed</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
+<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 
@@ -537,13 +621,13 @@
 <span class="doccomment">/// be callable from Javascript, but most of the time the compiler</span>
 <span class="doccomment">/// is smart enough to correctly infer the types.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ClosureFunction</span>:
-    <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DynCopy</span> <span class="op">+</span> <span class="ident">DynClone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">Captures</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DynCopy</span> <span class="op">+</span> <span class="ident">DynClone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
 {
 }
 
 <span class="comment">// The `Copy` bound automatically infers `DynCopy` and `DynClone`</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ClosureFunction</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    <span class="ident">T</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">Captures</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
 {
 }
 
@@ -593,6 +677,83 @@
     <span class="macro">empty_trace!</span>();
 }
 
+<span class="comment">// We don&#39;t use a standalone `NativeObject` for `Captures` because it doesn&#39;t</span>
+<span class="comment">// guarantee that the internal type implements `Clone`.</span>
+<span class="comment">// This private trait guarantees that the internal type passed to `Captures`</span>
+<span class="comment">// implements `Clone`, and `DynClone` allows us to implement `Clone` for</span>
+<span class="comment">// `Box&lt;dyn CapturesObject&gt;`.</span>
+<span class="kw">trait</span> <span class="ident">CapturesObject</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">DynClone</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">CapturesObject</span> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="macro">dyn_clone::clone_trait_object!</span>(<span class="ident">CapturesObject</span>);
+
+<span class="doccomment">/// Wrapper for `Box&lt;dyn NativeObject + Clone&gt;` that allows passing additional</span>
+<span class="doccomment">/// captures through a `Copy` closure.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Any type implementing `Trace + Any + Debug + Clone`</span>
+<span class="doccomment">/// can be used as a capture context, so you can pass e.g. a String,</span>
+<span class="doccomment">/// a tuple or even a full struct.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// You can downcast to any type and handle the fail case as you like</span>
+<span class="doccomment">/// with `downcast_ref` and `downcast_mut`, or you can use `try_downcast_ref`</span>
+<span class="doccomment">/// and `try_downcast_mut` to automatically throw a `TypeError` if the downcast</span>
+<span class="doccomment">/// fails.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Captures</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">CapturesObject</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">Captures</span> {
+    <span class="doccomment">/// Creates a new capture context.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">captures</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    {
+        <span class="self">Self</span>(<span class="ident">Box::new</span>(<span class="ident">captures</span>))
+    }
+
+    <span class="doccomment">/// Downcasts `Captures` to the specified type, returning a reference to the</span>
+    <span class="doccomment">/// downcasted type if successful or `None` otherwise.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deref</span>().<span class="ident">as_any</span>().<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+    }
+
+    <span class="doccomment">/// Mutably downcasts `Captures` to the specified type, returning a</span>
+    <span class="doccomment">/// mutable reference to the downcasted type if successful or `None` otherwise.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deref_mut</span>().<span class="ident">as_mut_any</span>().<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+    }
+
+    <span class="doccomment">/// Downcasts `Captures` to the specified type, returning a reference to the</span>
+    <span class="doccomment">/// downcasted type if successful or a `TypeError` otherwise.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    {
+        <span class="self">self</span>.<span class="number">0</span>
+            .<span class="ident">deref</span>()
+            .<span class="ident">as_any</span>()
+            .<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot downcast `Captures` to given type&quot;</span>))
+    }
+
+    <span class="doccomment">/// Downcasts `Captures` to the specified type, returning a reference to the</span>
+    <span class="doccomment">/// downcasted type if successful or a `TypeError` otherwise.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_downcast_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    {
+        <span class="self">self</span>.<span class="number">0</span>
+            .<span class="ident">deref_mut</span>()
+            .<span class="ident">as_mut_any</span>()
+            .<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot downcast `Captures` to given type&quot;</span>))
+    }
+}
+
 <span class="doccomment">/// Boa representation of a Function Object.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)</span>
@@ -608,6 +769,7 @@
         <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
         <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunction</span><span class="op">&gt;</span>,
         <span class="ident">constructable</span>: <span class="ident">bool</span>,
+        <span class="ident">captures</span>: <span class="ident">Captures</span>,
     },
     <span class="ident">Ordinary</span> {
         <span class="ident">flags</span>: <span class="ident">FunctionFlags</span>,
