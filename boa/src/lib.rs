@@ -38,7 +38,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
-    missing_doc_code_examples
+    rustdoc::missing_doc_code_examples
 )]
 
 pub mod bigint;
