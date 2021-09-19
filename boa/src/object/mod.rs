@@ -3,7 +3,7 @@
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
-        function::{Function, NativeFunction},
+        function::{Captures, Function, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         regexp::regexp_string_iterator::RegExpStringIterator,
@@ -1135,8 +1135,40 @@ impl<'context> FunctionBuilder<'context> {
         Self {
             context,
             function: Some(Function::Closure {
-                function: Box::new(function),
+                function: Box::new(move |this, args, context, _| function(this, args, context)),
                 constructable: false,
+                captures: Captures::new(()),
+            }),
+            name: JsString::default(),
+            length: 0,
+        }
+    }
+
+    /// Create a new closure function with additional captures.
+    ///
+    /// # Note
+    ///
+    /// You can only move variables that implement `Debug + Any + Trace + Clone`.
+    /// In other words, only `NativeObject + Clone` objects are movable.
+    #[inline]
+    pub fn closure_with_captures<F, C>(
+        context: &'context mut Context,
+        function: F,
+        captures: C,
+    ) -> Self
+    where
+        F: Fn(&JsValue, &[JsValue], &mut Context, &mut C) -> JsResult<JsValue> + Copy + 'static,
+        C: NativeObject + Clone,
+    {
+        Self {
+            context,
+            function: Some(Function::Closure {
+                function: Box::new(move |this, args, context, mut captures: Captures| {
+                    let data = captures.try_downcast_mut::<C>(context)?;
+                    function(this, args, context, data)
+                }),
+                constructable: false,
+                captures: Captures::new(captures),
             }),
             name: JsString::default(),
             length: 0,
