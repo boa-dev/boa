@@ -52,11 +52,7 @@ impl BuiltIn for Array {
             .constructable(false)
             .build();
 
-        let values_function = FunctionBuilder::native(context, Self::values)
-            .name("values")
-            .length(0)
-            .constructable(false)
-            .build();
+        let values_function = Self::values_intrinsic(context);
 
         let array = ConstructorBuilder::with_standard_object(
             context,
@@ -2659,5 +2655,13 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
             }
         }
+    }
+
+    pub(crate) fn values_intrinsic(context: &mut Context) -> JsObject {
+        FunctionBuilder::native(context, Self::values)
+            .name("values")
+            .length(0)
+            .constructable(false)
+            .build()
     }
 }

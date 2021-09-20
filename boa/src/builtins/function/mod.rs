@@ -36,6 +36,7 @@ use crate::{
 
 use super::JsArgs;
 
+pub(crate) mod arguments;
 #[cfg(test)]
 mod tests;
 
@@ -286,45 +287,6 @@ impl Function {
             Self::VmOrdinary { code, .. } => code.constructable,
         }
     }
-}
-
-/// Arguments.
-///
-/// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
-pub fn create_unmapped_arguments_object(
-    arguments_list: &[JsValue],
-    context: &mut Context,
-) -> JsResult<JsValue> {
-    let len = arguments_list.len();
-    let obj = JsObject::empty();
-    // Set length
-    let length = PropertyDescriptor::builder()
-        .value(len)
-        .writable(true)
-        .enumerable(false)
-        .configurable(true)
-        .build();
-    // Define length as a property
-    crate::object::internal_methods::ordinary_define_own_property(
-        &obj,
-        "length".into(),
-        length,
-        context,
-    )?;
-    let mut index: usize = 0;
-    while index < len {
-        let val = arguments_list.get(index).expect("Could not get argument");
-        let prop = PropertyDescriptor::builder()
-            .value(val.clone())
-            .writable(true)
-            .enumerable(true)
-            .configurable(true);
-
-        obj.insert(index, prop);
-        index += 1;
-    }
-
-    Ok(JsValue::new(obj))
 }
 
 /// Creates a new member function of a `Object` or `prototype`.
