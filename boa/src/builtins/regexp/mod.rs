@@ -71,11 +71,11 @@ unsafe impl Trace for RegExp {
 impl BuiltIn for RegExp {
     const NAME: &'static str = "RegExp";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -171,7 +171,7 @@ impl BuiltIn for RegExp {
 
         // TODO: add them RegExp accessor properties
 
-        (Self::NAME, regexp_object.into(), Self::attribute())
+        regexp_object.into()
     }
 }
 

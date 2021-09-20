@@ -1,8 +1,5 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
-// builtins module has a lot of built-in functions that need unnecessary_wraps
-#![allow(clippy::unnecessary_wraps)]
-
 pub mod array;
 pub mod bigint;
 pub mod boolean;
@@ -53,6 +50,7 @@ pub(crate) use self::{
     undefined::Undefined,
 };
 use crate::{
+    object::JsObject,
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
 };
@@ -61,56 +59,64 @@ pub(crate) trait BuiltIn {
     /// The binding name of the property.
     const NAME: &'static str;
 
-    fn attribute() -> Attribute;
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute);
+    const ATTRIBUTE: Attribute;
+    fn init(context: &mut Context) -> JsValue;
+}
+
+#[inline]
+fn init_builtin<B: BuiltIn>(global: &JsObject, context: &mut Context) {
+    let value = B::init(context);
+    let property = PropertyDescriptor::builder()
+        .value(value)
+        .writable(B::ATTRIBUTE.writable())
+        .enumerable(B::ATTRIBUTE.enumerable())
+        .configurable(B::ATTRIBUTE.configurable());
+    global.borrow_mut().insert(B::NAME, property);
 }
 
 /// Initializes builtin objects and functions
 #[inline]
 pub fn init(context: &mut Context) {
-    let globals = [
-        // Global properties.
-        Undefined::init,
-        Infinity::init,
-        NaN::init,
-        GlobalThis::init,
-        BuiltInFunctionObject::init,
-        BuiltInObjectObject::init,
-        Math::init,
-        Json::init,
-        Array::init,
-        BigInt::init,
-        Boolean::init,
-        Date::init,
-        Map::init,
-        Number::init,
-        Set::init,
-        String::init,
-        RegExp::init,
-        Symbol::init,
-        Error::init,
-        RangeError::init,
-        ReferenceError::init,
-        TypeError::init,
-        SyntaxError::init,
-        EvalError::init,
-        UriError::init,
-        Reflect::init,
-        #[cfg(feature = "console")]
-        console::Console::init,
-    ];
-
     let global_object = context.global_object();
 
-    for init in &globals {
-        let (name, value, attribute) = init(context);
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        global_object.borrow_mut().insert(name, property);
+    macro_rules! globals {
+        ($( $builtin:ty ),*) => {
+            $(init_builtin::<$builtin>(&global_object, context)
+            );*
+        }
     }
+
+    globals! {
+        Undefined,
+        Infinity,
+        NaN,
+        GlobalThis,
+        BuiltInFunctionObject,
+        BuiltInObjectObject,
+        Math,
+        Json,
+        Array,
+        BigInt,
+        Boolean,
+        Date,
+        Map,
+        Number,
+        Set,
+        String,
+        RegExp,
+        Symbol,
+        Error,
+        RangeError,
+        ReferenceError,
+        TypeError,
+        SyntaxError,
+        EvalError,
+        UriError,
+        Reflect
+    };
+
+    #[cfg(feature = "console")]
+    init_builtin::<console::Console>(&global_object, context);
 }
 
 pub trait JsArgs {

@@ -30,11 +30,11 @@ pub struct BigInt;
 impl BuiltIn for BigInt {
     const NAME: &'static str = "BigInt";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
@@ -59,7 +59,7 @@ impl BuiltIn for BigInt {
         )
         .build();
 
-        (Self::NAME, bigint_object.into(), Self::attribute())
+        bigint_object.into()
     }
 }
 

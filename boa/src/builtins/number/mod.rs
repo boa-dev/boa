@@ -50,11 +50,11 @@ const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
@@ -103,7 +103,7 @@ impl BuiltIn for Number {
         make_builtin_fn(Self::global_is_finite, "isFinite", &global, 1, context);
         make_builtin_fn(Self::global_is_nan, "isNaN", &global, 1, context);
 
-        (Self::NAME, number_object.into(), Self::attribute())
+        number_object.into()
     }
 }
 

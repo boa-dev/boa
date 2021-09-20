@@ -28,11 +28,11 @@ pub(crate) struct Math;
 impl BuiltIn for Math {
     const NAME: &'static str = "Math";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
@@ -88,7 +88,7 @@ impl BuiltIn for Math {
             )
             .build();
 
-        (Self::NAME, object.into(), Self::attribute())
+        object.into()
     }
 }
 

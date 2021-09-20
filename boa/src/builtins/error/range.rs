@@ -25,11 +25,11 @@ pub(crate) struct RangeError;
 impl BuiltIn for RangeError {
     const NAME: &'static str = "RangeError";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let error_prototype = context.standard_objects().error_object().prototype();
@@ -46,7 +46,7 @@ impl BuiltIn for RangeError {
         .property("message", "", attribute)
         .build();
 
-        (Self::NAME, range_error_object.into(), Self::attribute())
+        range_error_object.into()
     }
 }
 

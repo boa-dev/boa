@@ -44,11 +44,11 @@ pub(crate) struct Map(OrderedMap<JsValue>);
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -107,7 +107,7 @@ impl BuiltIn for Map {
         .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
         .build();
 
-        (Self::NAME, map_object.into(), Self::attribute())
+        map_object.into()
     }
 }
 

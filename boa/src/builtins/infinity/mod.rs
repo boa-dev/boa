@@ -21,13 +21,13 @@ pub(crate) struct Infinity;
 impl BuiltIn for Infinity {
     const NAME: &'static str = "Infinity";
 
-    fn attribute() -> Attribute {
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT
-    }
+    const ATTRIBUTE: Attribute = Attribute::READONLY
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::PERMANENT);
 
-    fn init(_: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(_: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, f64::INFINITY.into(), Self::attribute())
+        f64::INFINITY.into()
     }
 }
