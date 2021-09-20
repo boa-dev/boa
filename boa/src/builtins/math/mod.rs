@@ -514,7 +514,7 @@ impl Math {
         // 2. Let b be ℝ(? ToUint32(y)).
         let y = args.get_or_undefined(1).to_u32(context)?;
 
-        // 3. Let product be (a × b) modulo 232.
+        // 3. Let product be (a × b) modulo 2^32.
         // 4. If product ≥ 2^31, return 𝔽(product - 2^32); otherwise return 𝔽(product).
         Ok((x.wrapping_mul(y) as i32).into())
     }
@@ -619,14 +619,14 @@ impl Math {
         // 2. For each element arg of args, do
         // b. Append n to coerced.
         // 3. Let highest be -∞𝔽.
-        let mut max = f64::NEG_INFINITY;
+        let mut highest = f64::NEG_INFINITY;
 
         // 4. For each element number of coerced, do
         for arg in args {
             // a. Let n be ? ToNumber(arg).
             let num = arg.to_number(context)?;
 
-            max = if max.is_nan() {
+            highest = if highest.is_nan() {
                 continue;
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
@@ -634,11 +634,11 @@ impl Math {
             } else {
                 // b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
                 // c. If number > highest, set highest to number.
-                max.max(num)
+                highest.max(num)
             };
         }
         // 5. Return highest.
-        Ok(max.into())
+        Ok(highest.into())
     }
 
     /// Get the minimum of several numbers.
@@ -654,14 +654,14 @@ impl Math {
         // 2. For each element arg of args, do
         // b. Append n to coerced.
         // 3. Let lowest be +∞𝔽.
-        let mut min = f64::INFINITY;
+        let mut lowest = f64::INFINITY;
 
         // 4. For each element number of coerced, do
         for arg in args {
             // a. Let n be ? ToNumber(arg).
             let num = arg.to_number(context)?;
 
-            min = if min.is_nan() {
+            lowest = if lowest.is_nan() {
                 continue;
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
@@ -669,11 +669,11 @@ impl Math {
             } else {
                 // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
                 // c. If number < lowest, set lowest to number.
-                min.min(num)
+                lowest.min(num)
             };
         }
         // 5. Return lowest.
-        Ok(min.into())
+        Ok(lowest.into())
     }
 
     /// Raise a number to a power.
