@@ -16,6 +16,8 @@ use crate::{
     BoaProfiler, Context, JsResult, JsValue,
 };
 
+use super::JsArgs;
+
 #[cfg(test)]
 mod tests;
 
@@ -37,13 +39,13 @@ impl BuiltIn for Math {
         let string_tag = WellKnownSymbols::to_string_tag();
         let object = ObjectInitializer::new(context)
             .property("E", std::f64::consts::E, attribute)
-            .property("LN2", std::f64::consts::LN_2, attribute)
             .property("LN10", std::f64::consts::LN_10, attribute)
-            .property("LOG2E", std::f64::consts::LOG2_E, attribute)
+            .property("LN2", std::f64::consts::LN_2, attribute)
             .property("LOG10E", std::f64::consts::LOG10_E, attribute)
+            .property("LOG2E", std::f64::consts::LOG2_E, attribute)
+            .property("PI", std::f64::consts::PI, attribute)
             .property("SQRT1_2", std::f64::consts::FRAC_1_SQRT_2, attribute)
             .property("SQRT2", std::f64::consts::SQRT_2, attribute)
-            .property("PI", std::f64::consts::PI, attribute)
             .function(Self::abs, "abs", 1)
             .function(Self::acos, "acos", 1)
             .function(Self::acosh, "acosh", 1)
@@ -101,10 +103,15 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
     pub(crate) fn abs(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::abs)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 3. If n is -0𝔽, return +0𝔽.
+            // 2. If n is NaN, return NaN.
+            // 4. If n is -∞𝔽, return +∞𝔽.
+            // 5. If n < +0𝔽, return -n.
+            // 6. Return n.
+            .abs()
             .into())
     }
 
@@ -118,10 +125,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
     pub(crate) fn acos(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::acos)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n > 1𝔽, or n < -1𝔽, return NaN.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. Return an implementation-approximated value representing the result of the inverse cosine of ℝ(n).
+            .acos()
             .into())
     }
 
@@ -135,10 +145,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
     pub(crate) fn acosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::acosh)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 4. If n < 1𝔽, return NaN.
+            // 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 5. Return an implementation-approximated value representing the result of the inverse hyperbolic cosine of ℝ(n).
+            .acosh()
             .into())
     }
 
@@ -152,10 +166,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
     pub(crate) fn asin(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::asin)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n > 1𝔽 or n < -1𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the inverse sine of ℝ(n).
+            .asin()
             .into())
     }
 
@@ -169,10 +186,12 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
     pub(crate) fn asinh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::asinh)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. Return an implementation-approximated value representing the result of the inverse hyperbolic sine of ℝ(n).
+            .asinh()
             .into())
     }
 
@@ -186,10 +205,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
     pub(crate) fn atan(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::atan)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽, return an implementation-approximated value representing π / 2.
+            // 4. If n is -∞𝔽, return an implementation-approximated value representing -π / 2.
+            // 5. Return an implementation-approximated value representing the result of the inverse tangent of ℝ(n).
+            .atan()
             .into())
     }
 
@@ -203,14 +226,19 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
     pub(crate) fn atanh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::atanh)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n > 1𝔽 or n < -1𝔽, return NaN.
+            // 4. If n is 1𝔽, return +∞𝔽.
+            // 5. If n is -1𝔽, return -∞𝔽.
+            // 6. Return an implementation-approximated value representing the result of the inverse hyperbolic tangent of ℝ(n).
+            .atanh()
             .into())
     }
 
-    /// Get the arctangent of a numbers.
+    /// Get the four quadrant arctangent of the quotient y / x.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -219,14 +247,38 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
     pub(crate) fn atan2(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(match (
-            args.get(0).map(|x| x.to_number(context)).transpose()?,
-            args.get(1).map(|x| x.to_number(context)).transpose()?,
-        ) {
-            (Some(x), Some(y)) => x.atan2(y),
-            (_, _) => f64::NAN,
-        }
-        .into())
+        // 1. Let ny be ? ToNumber(y).
+        let y = args.get_or_undefined(0).to_number(context)?;
+
+        // 2. Let nx be ? ToNumber(x).
+        let x = args.get_or_undefined(1).to_number(context)?;
+
+        // 4. If ny is +∞𝔽, then
+        // a. If nx is +∞𝔽, return an implementation-approximated value representing π / 4.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing 3π / 4.
+        // c. Return an implementation-approximated value representing π / 2.
+        // 5. If ny is -∞𝔽, then
+        // a. If nx is +∞𝔽, return an implementation-approximated value representing -π / 4.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing -3π / 4.
+        // c. Return an implementation-approximated value representing -π / 2.
+        // 6. If ny is +0𝔽, then
+        // a. If nx > +0𝔽 or nx is +0𝔽, return +0𝔽.
+        // b. Return an implementation-approximated value representing π.
+        // 7. If ny is -0𝔽, then
+        // a. If nx > +0𝔽 or nx is +0𝔽, return -0𝔽.
+        // b. Return an implementation-approximated value representing -π.
+        // 8. Assert: ny is finite and is neither +0𝔽 nor -0𝔽.
+        // 9. If ny > +0𝔽, then
+        // a. If nx is +∞𝔽, return +0𝔽.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing π.
+        // c. If nx is +0𝔽 or nx is -0𝔽, return an implementation-approximated value representing π / 2.
+        // 10. If ny < +0𝔽, then
+        // a. If nx is +∞𝔽, return -0𝔽.
+        // b. If nx is -∞𝔽, return an implementation-approximated value representing -π.
+        // c. If nx is +0𝔽 or nx is -0𝔽, return an implementation-approximated value representing -π / 2.
+        // 11. Assert: nx is finite and is neither +0𝔽 nor -0𝔽.
+        // 12. Return an implementation-approximated value representing the result of the inverse tangent of the quotient ℝ(ny) / ℝ(nx).
+        Ok(y.atan2(x).into())
     }
 
     /// Get the cubic root of a number.
@@ -239,10 +291,12 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
     pub(crate) fn cbrt(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::cbrt)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. Return an implementation-approximated value representing the result of the cube root of ℝ(n).
+            .cbrt()
             .into())
     }
 
@@ -256,10 +310,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
     pub(crate) fn ceil(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::ceil)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. If n < +0𝔽 and n > -1𝔽, return -0𝔽.
+            // 4. If n is an integral Number, return n.
+            // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
+            .ceil()
             .into())
     }
 
@@ -273,11 +331,12 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
     pub(crate) fn clz32(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_u32(context))
-            .transpose()?
-            .map(u32::leading_zeros)
-            .unwrap_or(32)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToUint32(x).
+            .to_u32(context)?
+            // 2. Let p be the number of leading zero bits in the unsigned 32-bit binary representation of n.
+            // 3. Return 𝔽(p).
+            .leading_zeros()
             .into())
     }
 
@@ -291,10 +350,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
     pub(crate) fn cos(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::cos)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +∞𝔽, or n is -∞𝔽, return NaN.
+            // 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+            // 4. Return an implementation-approximated value representing the result of the cosine of ℝ(n).
+            .cos()
             .into())
     }
 
@@ -308,10 +370,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
     pub(crate) fn cosh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::cosh)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, return NaN.
+            // 3. If n is +∞𝔽 or n is -∞𝔽, return +∞𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+            // 5. Return an implementation-approximated value representing the result of the hyperbolic cosine of ℝ(n).
+            .cosh()
             .into())
     }
 
@@ -325,10 +391,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
     pub(crate) fn exp(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::exp)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+            // 4. If n is -∞𝔽, return +0𝔽.
+            // 5. Return an implementation-approximated value representing the result of the exponential function of ℝ(n).
+            .exp()
             .into())
     }
 
@@ -344,10 +414,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
     pub(crate) fn expm1(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::exp_m1)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+            // 3. If n is -∞𝔽, return -1𝔽.
+            // 4. Return an implementation-approximated value representing the result of subtracting 1 from the exponential function of ℝ(n).
+            .exp_m1()
             .into())
     }
 
@@ -361,10 +434,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
     pub(crate) fn floor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::floor)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
+            // 4. If n is an integral Number, return n.
+            // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
+            .floor()
             .into())
     }
 
@@ -381,12 +458,15 @@ impl Math {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, |x| (x as f32) as f64)
-            .into())
+        // 1. Let n be ? ToNumber(x).
+        let x = args.get_or_undefined(0).to_number(context)?;
+
+        // 2. If n is NaN, return NaN.
+        // 3. If n is one of +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return n.
+        // 4. Let n32 be the result of converting n to a value in IEEE 754-2019 binary32 format using roundTiesToEven mode.
+        // 5. Let n64 be the result of converting n32 to a value in IEEE 754-2019 binary64 format.
+        // 6. Return the ECMAScript Number value corresponding to n64.
+        Ok((x as f32 as f64).into())
     }
 
     /// Get an approximation of the square root of the sum of squares of all arguments.
@@ -398,11 +478,24 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
     pub(crate) fn hypot(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let coerced be a new empty List.
+        // 2. For each element arg of args, do
+        // a. Let n be ? ToNumber(arg).
+        // b. Append n to coerced.
+        // 3. For each element number of coerced, do
+        // 5. For each element number of coerced, do
         let mut result = 0f64;
         for arg in args {
-            let x = arg.to_number(context)?;
-            result = result.hypot(x);
+            let num = arg.to_number(context)?;
+            // a. If number is +∞𝔽 or number is -∞𝔽, return +∞𝔽.
+            // 4. Let onlyZero be true.
+            // a. If number is NaN, return NaN.
+            // b. If number is neither +0𝔽 nor -0𝔽, set onlyZero to false.
+            // 6. If onlyZero is true, return +0𝔽.
+            // 7. Return an implementation-approximated value representing the square root of the sum of squares of the mathematical values of the elements of coerced.
+            result = result.hypot(num);
         }
+
         Ok(result.into())
     }
 
@@ -415,14 +508,15 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.imul
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
     pub(crate) fn imul(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(match (
-            args.get(0).map(|x| x.to_u32(context)).transpose()?,
-            args.get(1).map(|x| x.to_u32(context)).transpose()?,
-        ) {
-            (Some(x), Some(y)) => x.wrapping_mul(y) as i32,
-            (_, _) => 0,
-        }
-        .into())
+        // 1. Let a be ℝ(? ToUint32(x)).
+        let x = args.get_or_undefined(0).to_u32(context)?;
+
+        // 2. Let b be ℝ(? ToUint32(y)).
+        let y = args.get_or_undefined(1).to_u32(context)?;
+
+        // 3. Let product be (a × b) modulo 2^32.
+        // 4. If product ≥ 2^31, return 𝔽(product - 2^32); otherwise return 𝔽(product).
+        Ok((x.wrapping_mul(y) as i32).into())
     }
 
     /// Get the natural logarithm of a number.
@@ -435,10 +529,15 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
     pub(crate) fn log(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, |x| if x <= 0.0 { f64::NAN } else { x.ln() })
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.
+            // 5. If n < +0𝔽, return NaN.
+            // 6. Return an implementation-approximated value representing the result of the natural logarithm of ℝ(n).
+            .ln()
             .into())
     }
 
@@ -452,10 +551,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
     pub(crate) fn log1p(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::ln_1p)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+            // 3. If n is -1𝔽, return -∞𝔽.
+            // 4. If n < -1𝔽, return NaN.
+            // 5. Return an implementation-approximated value representing the result of the natural logarithm of 1 + ℝ(n).
+            .ln_1p()
             .into())
     }
 
@@ -469,10 +572,15 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
     pub(crate) fn log10(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, |x| if x <= 0.0 { f64::NAN } else { x.log10() })
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.
+            // 5. If n < +0𝔽, return NaN.
+            // 6. Return an implementation-approximated value representing the result of the base 10 logarithm of ℝ(n).
+            .log10()
             .into())
     }
 
@@ -486,10 +594,15 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
     pub(crate) fn log2(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, |x| if x <= 0.0 { f64::NAN } else { x.log2() })
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN or n is +∞𝔽, return n.
+            // 3. If n is 1𝔽, return +0𝔽.
+            // 4. If n is +0𝔽 or n is -0𝔽, return -∞𝔽.
+            // 5. If n < +0𝔽, return NaN.
+            // 6. Return an implementation-approximated value representing the result of the base 2 logarithm of ℝ(n).
+            .log2()
             .into())
     }
 
@@ -502,12 +615,30 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.max
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
     pub(crate) fn max(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut max = f64::NEG_INFINITY;
+        // 1. Let coerced be a new empty List.
+        // 2. For each element arg of args, do
+        // b. Append n to coerced.
+        // 3. Let highest be -∞𝔽.
+        let mut highest = f64::NEG_INFINITY;
+
+        // 4. For each element number of coerced, do
         for arg in args {
+            // a. Let n be ? ToNumber(arg).
             let num = arg.to_number(context)?;
-            max = max.max(num);
+
+            highest = if highest.is_nan() {
+                continue;
+            } else if num.is_nan() {
+                // a. If number is NaN, return NaN.
+                f64::NAN
+            } else {
+                // b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
+                // c. If number > highest, set highest to number.
+                highest.max(num)
+            };
         }
-        Ok(max.into())
+        // 5. Return highest.
+        Ok(highest.into())
     }
 
     /// Get the minimum of several numbers.
@@ -519,12 +650,30 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.min
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
     pub(crate) fn min(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut min = f64::INFINITY;
+        // 1. Let coerced be a new empty List.
+        // 2. For each element arg of args, do
+        // b. Append n to coerced.
+        // 3. Let lowest be +∞𝔽.
+        let mut lowest = f64::INFINITY;
+
+        // 4. For each element number of coerced, do
         for arg in args {
+            // a. Let n be ? ToNumber(arg).
             let num = arg.to_number(context)?;
-            min = min.min(num);
+
+            lowest = if lowest.is_nan() {
+                continue;
+            } else if num.is_nan() {
+                // a. If number is NaN, return NaN.
+                f64::NAN
+            } else {
+                // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
+                // c. If number < lowest, set lowest to number.
+                lowest.min(num)
+            };
         }
-        Ok(min.into())
+        // 5. Return lowest.
+        Ok(lowest.into())
     }
 
     /// Raise a number to a power.
@@ -536,14 +685,14 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.pow
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
     pub(crate) fn pow(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(match (
-            args.get(0).map(|x| x.to_number(context)).transpose()?,
-            args.get(1).map(|x| x.to_number(context)).transpose()?,
-        ) {
-            (Some(x), Some(y)) => x.powf(y),
-            (_, _) => f64::NAN,
-        }
-        .into())
+        // 1. Set base to ? ToNumber(base).
+        let x = args.get_or_undefined(0).to_number(context)?;
+
+        // 2. Set exponent to ? ToNumber(exponent).
+        let y = args.get_or_undefined(1).to_number(context)?;
+
+        // 3. Return ! Number::exponentiate(base, exponent).
+        Ok(x.powf(y).into())
     }
 
     /// Generate a random floating-point number between `0` and `1`.
@@ -555,6 +704,7 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.random
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
     pub(crate) fn random(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // NOTE: Each Math.random function created for distinct realms must produce a distinct sequence of values from successive calls.
         Ok(rand::random::<f64>().into())
     }
 
@@ -568,10 +718,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
     pub(crate) fn round(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::round)
+            .get_or_undefined(0)
+            //1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            //2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.
+            //3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
+            //4. If n < +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
+            //5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
+            .round()
             .into())
     }
 
@@ -584,21 +738,16 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.sign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
     pub(crate) fn sign(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(
-                f64::NAN,
-                |x| {
-                    if x == 0.0 || x == -0.0 {
-                        x
-                    } else {
-                        x.signum()
-                    }
-                },
-            )
-            .into())
+        // 1. Let n be ? ToNumber(x).
+        let n = args.get_or_undefined(0).to_number(context)?;
+
+        // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+        if n == 0.0 {
+            return Ok(n.into());
+        }
+        // 3. If n < +0𝔽, return -1𝔽.
+        // 4. Return 1𝔽.
+        Ok(n.signum().into())
     }
 
     /// Get the sine of a number.
@@ -611,10 +760,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
     pub(crate) fn sin(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::sin)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽 or n is -∞𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the sine of ℝ(n).
+            .sin()
             .into())
     }
 
@@ -628,10 +780,12 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
     pub(crate) fn sinh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::sinh)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. Return an implementation-approximated value representing the result of the hyperbolic sine of ℝ(n).
+            .sinh()
             .into())
     }
 
@@ -645,10 +799,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
     pub(crate) fn sqrt(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::sqrt)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+            // 3. If n < +0𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the square root of ℝ(n).
+            .sqrt()
             .into())
     }
 
@@ -662,10 +819,13 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tan
     pub(crate) fn tan(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::tan)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽, or n is -∞𝔽, return NaN.
+            // 4. Return an implementation-approximated value representing the result of the tangent of ℝ(n).
+            .tan()
             .into())
     }
 
@@ -679,10 +839,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
     pub(crate) fn tanh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::tanh)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+            // 3. If n is +∞𝔽, return 1𝔽.
+            // 4. If n is -∞𝔽, return -1𝔽.
+            // 5. Return an implementation-approximated value representing the result of the hyperbolic tangent of ℝ(n).
+            .tanh()
             .into())
     }
 
@@ -696,10 +860,14 @@ impl Math {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
     pub(crate) fn trunc(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(args
-            .get(0)
-            .map(|x| x.to_number(context))
-            .transpose()?
-            .map_or(f64::NAN, f64::trunc)
+            .get_or_undefined(0)
+            // 1. Let n be ? ToNumber(x).
+            .to_number(context)?
+            // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+            // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
+            // 4. If n < +0𝔽 and n > -1𝔽, return -0𝔽.
+            // 5. Return the integral Number nearest n in the direction of +0𝔽.
+            .trunc()
             .into())
     }
 }
