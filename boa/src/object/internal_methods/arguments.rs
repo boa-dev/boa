@@ -145,7 +145,7 @@ pub(crate) fn arguments_exotic_define_own_property(
     Ok(true)
 }
 
-/// [[Get]] for arguments exotic objects.
+/// `[[Get]]` for arguments exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -181,7 +181,7 @@ pub(crate) fn arguments_exotic_get(
     }
 }
 
-/// [[Set]] for arguments exotic objects.
+/// `[[Set]]` for arguments exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -223,7 +223,7 @@ pub(crate) fn arguments_exotic_set(
     super::ordinary_set(obj, key, value, receiver, context)
 }
 
-/// [[Delete]] for arguments exotic objects.
+/// `[[Delete]]` for arguments exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
