@@ -16,7 +16,7 @@ pub(crate) static ARGUMENTS_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
         ..ORDINARY_INTERNAL_METHODS
     };
 
-/// [[GetOwnProperty]] for arguments exotic objects.
+/// `[[GetOwnProperty]]` for arguments exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -64,7 +64,7 @@ pub(crate) fn arguments_exotic_get_own_property(
     ))
 }
 
-/// [[DefineOwnProperty]] for arguments exotic objects.
+/// `[[DefineOwnProperty]]` for arguments exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -121,17 +121,16 @@ pub(crate) fn arguments_exotic_define_own_property(
         if desc.is_accessor_descriptor() {
             // i. Call map.[[Delete]](P).
             map.__delete__(&key, context)?;
-
+        }
         // b. Else,
-        } else {
+        else {
             // i. If Desc.[[Value]] is present, then
             if let Some(value) = desc.value() {
                 // 1. Let setStatus be Set(map, P, Desc.[[Value]], false).
-                let set_status = map.set(key.clone(), value, false, context)?;
+                let set_status = map.set(key.clone(), value, false, context);
 
-                // 2. Assert: setStatus is true because formal parameters mapped by argument
-                // objects are always writable.
-                debug_assert!(set_status)
+                // 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
+                assert_eq!(set_status, Ok(true))
             }
 
             // ii. If Desc.[[Writable]] is present and its value is false, then
@@ -213,10 +212,10 @@ pub(crate) fn arguments_exotic_set(
             .expect("HasOwnProperty must not fail per the spec")
         {
             // a. Let setStatus be Set(map, P, V, false).
-            let set_status = map.set(key.clone(), value.clone(), false, context)?;
+            let set_status = map.set(key.clone(), value.clone(), false, context);
 
             // b. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
-            debug_assert!(set_status);
+            assert_eq!(set_status, Ok(true));
         }
     }
 

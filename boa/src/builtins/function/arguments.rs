@@ -137,13 +137,6 @@ impl Arguments {
             ObjectData::arguments(Arguments::Mapped(MappedArguments(map.clone()))),
         );
 
-        // 12. Let parameterNames be the BoundNames of formals.
-        // 13. Let numberOfParameters be the number of elements in parameterNames.
-        let parameter_names: Vec<_> = formals
-            .iter()
-            .map(|formal| formal.name().to_owned())
-            .collect();
-
         // 14. Let index be 0.
         // 15. Repeat, while index < len,
         for (index, val) in arguments_list.iter().cloned().enumerate() {
@@ -171,14 +164,16 @@ impl Arguments {
         // using a set to optimize `contains`
         let mut mapped_names = FxHashSet::default();
 
+        // 12. Let parameterNames be the BoundNames of formals.
+        // 13. Let numberOfParameters be the number of elements in parameterNames.
         // 18. Set index to numberOfParameters - 1.
         // 19. Repeat, while index ≥ 0,
         // a. Let name be parameterNames[index].
-        for (index, name) in parameter_names.iter().enumerate().rev() {
+        for (index, parameter_name) in formals.iter().map(|fp| fp.name()).enumerate().rev() {
             // b. If name is not an element of mappedNames, then
-            if !mapped_names.contains(name) {
+            if !mapped_names.contains(parameter_name) {
                 // i. Add name as an element of the list mappedNames.
-                mapped_names.insert(name);
+                mapped_names.insert(parameter_name);
                 // ii. If index < len, then
                 if index < len {
                     // 1. Let g be MakeArgGetter(name, env).
@@ -194,7 +189,7 @@ impl Arguments {
                             |_, _, captures, context| {
                                 captures.0.get_binding_value(&captures.1, false, context)
                             },
-                            (env.clone(), name.clone()),
+                            (env.clone(), parameter_name.to_owned()),
                         )
                         .length(0)
                         .name("")
@@ -220,7 +215,7 @@ impl Arguments {
                                     .map(|_| JsValue::Undefined)
                                 // Ok(JsValue::Undefined)
                             },
-                            (env.clone(), name.clone()),
+                            (env.clone(), parameter_name.to_owned()),
                         )
                         .length(1)
                         .name("")
