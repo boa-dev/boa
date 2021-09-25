@@ -1,5 +1,64 @@
 # CHANGELOG
 
+# 0.13
+
+Feature Enhancements:
+
+- [FEATURE #1469](https://github.com/boa-dev/boa/pull/1469): Implement String.prototype.replaceAll (@raskad)
+- [FEATURE #1442](https://github.com/boa-dev/boa/pull/1442): Implement closure functions (@HalidOdat)
+- [FEATURE #1390](https://github.com/boa-dev/boa/pull/1390): Implement RegExp named capture groups (@raskad)
+- [FEATURE #1424](https://github.com/boa-dev/boa/pull/1424): Implement Symbol.for and Symbol.keyFor (@HalidOdat)
+- [FEATURE #1375](https://github.com/boa-dev/boa/pull/1375): Implement `at` method for string (@neeldug)
+- [FEATURE #1369](https://github.com/boa-dev/boa/pull/1369): Implement normalize method (@neeldug)
+- [FEATURE #1334](https://github.com/boa-dev/boa/pull/1334): Implement Array.prototype.copyWithin (@jedel1043)
+- [FEATURE #1326](https://github.com/boa-dev/boa/pull/1326): Implement get RegExp[@@species] (@raskad)
+- [FEATURE #1314](https://github.com/boa-dev/boa/pull/1314): Implement RegExp.prototype [ @@search ] ( string ) (@raskad)
+- [FEATURE #1451](https://github.com/boa-dev/boa/pull/1451): Feature prelude module (@HalidOdat)
+
+Bug Fixes:
+
+- [BUG #1477](https://github.com/boa-dev/boa/pull/1477): Properly handle NaN in new Date() (@raskad)
+- [BUG #1449](https://github.com/boa-dev/boa/pull/1449): Make Array.prototype methods spec compliant (@HalidOdat)
+- [BUG #1353](https://github.com/boa-dev/boa/pull/1353): Make Array.prototype.concat spec compliant (@neeldug)
+- [BUG #1384](https://github.com/boa-dev/boa/pull/1384): bitwise not operation (spec improvements) (@neeldug)
+- [BUG #1374](https://github.com/boa-dev/boa/pull/1374): Match and regexp construct fixes (@neeldug)
+- [BUG #1366](https://github.com/boa-dev/boa/pull/1366): Use lock for map iteration (@joshwd36)
+- [BUG #1360](https://github.com/boa-dev/boa/pull/1360): Adjust a comment to be next to the correct module (@teymour-aldridge)
+- [BUG #1349](https://github.com/boa-dev/boa/pull/1349): Fixes Array.protoype.includes (@neeldug)
+- [BUG #1348](https://github.com/boa-dev/boa/pull/1348): Fixes unshift maximum size (@neeldug)
+- [BUG #1339](https://github.com/boa-dev/boa/pull/1339): Scripts should not be considered in a block (@macmv)
+- [BUG #1312](https://github.com/boa-dev/boa/pull/1312): Fix display for nodes (@macmv)
+- [BUG #1347](https://github.com/boa-dev/boa/pull/1347): Fix stringpad abstract operation (@neeldug)
+
+Internal Improvements:
+
+- [INTERNAL #1485](https://github.com/boa-dev/boa/pull/1485): Implement abstract operation CreateArrayFromList (@jedel1043)
+- [INTERNAL #1463](https://github.com/boa-dev/boa/pull/1463): Return function execution result from constructor if the function returned (@raskad)
+- [INTERNAL #1465](https://github.com/boa-dev/boa/pull/1465): Feature throw Error object (@HalidOdat)
+- [INTERNAL #1457](https://github.com/boa-dev/boa/pull/1457): Rename Value to JsValue (@HalidOdat)
+- [INTERNAL #1460](https://github.com/boa-dev/boa/pull/1460): Change StringGetOwnProperty to produce the same strings that the lexer produces (@raskad)
+- [INTERNAL #1425](https://github.com/boa-dev/boa/pull/1425): Extract PropertyMap struct from Object (@jedel1043)
+- [INTERNAL #1432](https://github.com/boa-dev/boa/pull/1432): Proposal of new PropertyDescriptor design (@jedel1043)
+- [INTERNAL #1434](https://github.com/boa-dev/boa/pull/1434): Refactor regexp costructor (@raskad)
+- [INTERNAL #1383](https://github.com/boa-dev/boa/pull/1383): clippy lints and cleanup of old todos (@neeldug)
+- [INTERNAL #1346](https://github.com/boa-dev/boa/pull/1346): Implement gh-page workflow on release (@FrancisMurillo)
+- [INTERNAL #1422](https://github.com/boa-dev/boa/pull/1422): Refactor internal methods and make some builtins spec compliant (@HalidOdat)
+- [INTERNAL #1419](https://github.com/boa-dev/boa/pull/1419): Fix DataDescriptor Value to possibly be empty (@raskad)
+- [INTERNAL #1357](https://github.com/boa-dev/boa/pull/1357): Add Example to Execute a Function of a Script File (@schrieveslaach)
+- [INTERNAL #1408](https://github.com/boa-dev/boa/pull/1408): Refactor JavaScript bigint rust type (@HalidOdat)
+- [INTERNAL #1380](https://github.com/boa-dev/boa/pull/1380): Custom JavaScript string rust type (@HalidOdat)
+- [INTERNAL #1382](https://github.com/boa-dev/boa/pull/1382): Refactor JavaScript symbol rust type (@HalidOdat)
+- [INTERNAL #1350](https://github.com/boa-dev/boa/pull/1350): Refactor / Implement RegExp functions (@RageKnify) (@raskad)
+- [INTERNAL #1361](https://github.com/boa-dev/boa/pull/1361): Redesign bytecode virtual machine (@HalidOdat)
+- [INTERNAL #1381](https://github.com/boa-dev/boa/pull/1381): Fixed documentation warnings (@Razican)
+- [INTERNAL #1352](https://github.com/boa-dev/boa/pull/1352): Respect Rust 1.53 (@RageKnify)
+- [INTERNAL #1356](https://github.com/boa-dev/boa/pull/1356): Respect Rust fmt updates (@RageKnify)
+- [INTERNAL #1338](https://github.com/boa-dev/boa/pull/1338): Fix cargo check errors (@neeldug)
+- [INTERNAL #1331](https://github.com/boa-dev/boa/pull/1331): Implement missing species getters (@raskad)
+- [INTERNAL #1329](https://github.com/boa-dev/boa/pull/1329): Allow Value.set_field to throw (@raskad)
+- [INTERNAL #1333](https://github.com/boa-dev/boa/pull/1333): adds condition to avoid triggers from dependabot (@neeldug)
+- [INTERNAL #1337](https://github.com/boa-dev/boa/pull/1337): Fix github actions (@neeldug)
+
 # [0.12.0 (2021-06-07) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
 
 Feature Enhancements:
