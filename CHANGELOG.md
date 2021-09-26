@@ -1,9 +1,17 @@
 # CHANGELOG
 
-# 0.13
+# 0.13.0 (2021-09-30)
 
 Feature Enhancements:
 
+- [FEATURE #1526](https://github.com/boa-dev/boa/pull/1526) :Implement ComputedPropertyName for accessor properties in ObjectLiteral (@raskad)
+- [FEATURE #1365](https://github.com/boa-dev/boa/pull/1365): Implement splice method (@neeldug)
+- [FEATURE #1364](https://github.com/boa-dev/boa/pull/1364): Implement spread for objects (@FrancisMurillo)
+- [FEATURE #1525](https://github.com/boa-dev/boa/pull/1525): Implement Object.preventExtensions() and Object.isExtensible() (@HalidOdat)
+- [FEATURE #1508](https://github.com/boa-dev/boa/pull/1508): Implement Object.values() (@HalidOdat)
+- [FEATURE #1332](https://github.com/boa-dev/boa/pull/1332): Implement Array.prototype.sort (@jedel1043)
+- [FEATURE #1417](https://github.com/boa-dev/boa/pull/1471): Implement Object.keys and Object.entries (@skyne98)
+- [FEATURE #1406](https://github.com/boa-dev/boa/pull/1406): Implement destructuring assignments (@raskad)
 - [FEATURE #1469](https://github.com/boa-dev/boa/pull/1469): Implement String.prototype.replaceAll (@raskad)
 - [FEATURE #1442](https://github.com/boa-dev/boa/pull/1442): Implement closure functions (@HalidOdat)
 - [FEATURE #1390](https://github.com/boa-dev/boa/pull/1390): Implement RegExp named capture groups (@raskad)
@@ -17,6 +25,11 @@ Feature Enhancements:
 
 Bug Fixes:
 
+- [BUG #152](https://github.com/boa-dev/boa/pull/1521): Added "js" feature for getrandom for WebAssembly builds (@Razican)
+- [BUG #1528](https://github.com/boa-dev/boa/pull/1528): Always return undefined from functions that do not return (@raskad)
+- [BUG #1518](https://github.com/boa-dev/boa/pull/1518): Moving a JsObject inside a closure caused a panic (@jedel1043)
+- [BUG #1502](https://github.com/boa-dev/boa/pull/1502): Adjust EnumerableOwnPropertyNames to use all String type property keys (@raskad)
+- [BUG #1415](https://github.com/boa-dev/boa/pull/1415): Fix panic on bigint size (@neeldug)
 - [BUG #1477](https://github.com/boa-dev/boa/pull/1477): Properly handle NaN in new Date() (@raskad)
 - [BUG #1449](https://github.com/boa-dev/boa/pull/1449): Make Array.prototype methods spec compliant (@HalidOdat)
 - [BUG #1353](https://github.com/boa-dev/boa/pull/1353): Make Array.prototype.concat spec compliant (@neeldug)
@@ -32,9 +45,27 @@ Bug Fixes:
 
 Internal Improvements:
 
+- [INTERNAL #1584](https://github.com/boa-dev/boa/pull/1584): Refactor the Math builtin object (spec compliant) (@jedel1043)
+- [INTERNAL #1523](https://github.com/boa-dev/boa/pull/1523): Allow moving NativeObject variables into closures as external captures (@jedel1043)
+- [INTERNAL #1535](https://github.com/boa-dev/boa/pull/1535): Refactor JSON.parse (@raskad)
+- [INTERNAL #1569](https://github.com/boa-dev/boa/pull/1569): Refactor EnvironmentRecordTrait functions (@raskad)
+- [INTERNAL #1572](https://github.com/boa-dev/boa/pull/1572): Refactor builtin Map intrinsics to follow more closely the spec (@jedel1043)
+- [INTERNAL #1445](https://github.com/boa-dev/boa/pull/1445): improve map conformance without losing perf (@neeldug)
+- [INTERNAL #1464](https://github.com/boa-dev/boa/pull/1464): Optimize integer negation (@HalidOdat)
+- [INTERNAL #1550](https://github.com/boa-dev/boa/pull/1550): Add strict mode flag to Context (@raskad)
+- [INTERNAL #1561](https://github.com/boa-dev/boa/pull/1561): Implement abstract operation GetPrototypeFromConstructor (@jedel1043)
+- [INTERNAL #1309](https://github.com/boa-dev/boa/pull/1309): Implement Display for function objects(@kvnvelasco)
+- [INTERNAL #1492](https://github.com/boa-dev/boa/pull/1492): Implement new get_or_undefined method for `JsValue` (@jedel1043)
+- [INTERNAL #1553](https://github.com/boa-dev/boa/pull/1553): Fix benchmark action in CI (@jedel1043)
+- [INTERNAL #1547](https://github.com/boa-dev/boa/pull/1547): Replace FxHashMap with IndexMap in object properties (@raskad)
+- [INTERNAL #1435](https://github.com/boa-dev/boa/pull/1435): Constant JsStrings (@HalidOdat)
+- [INTERNAL #1499](https://github.com/boa-dev/boa/pull/1499): Updated the Test262 submodule (@Razican)
+- [INTERNAL #1488](https://github.com/boa-dev/boa/pull/1488): Date refactor (@raskad)
+- [INTERNAL #1458](https://github.com/boa-dev/boa/pull/1458): Refactor the JS testing system (@bartlomieju)
 - [INTERNAL #1485](https://github.com/boa-dev/boa/pull/1485): Implement abstract operation CreateArrayFromList (@jedel1043)
 - [INTERNAL #1463](https://github.com/boa-dev/boa/pull/1463): Return function execution result from constructor if the function returned (@raskad)
 - [INTERNAL #1465](https://github.com/boa-dev/boa/pull/1465): Feature throw Error object (@HalidOdat)
+- [INTERNAL #1493](https://github.com/boa-dev/boa/pull/1493): Rename boa::Result to JsResult (@bartlomieju)
 - [INTERNAL #1457](https://github.com/boa-dev/boa/pull/1457): Rename Value to JsValue (@HalidOdat)
 - [INTERNAL #1460](https://github.com/boa-dev/boa/pull/1460): Change StringGetOwnProperty to produce the same strings that the lexer produces (@raskad)
 - [INTERNAL #1425](https://github.com/boa-dev/boa/pull/1425): Extract PropertyMap struct from Object (@jedel1043)
