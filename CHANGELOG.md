@@ -4,7 +4,7 @@
 
 Feature Enhancements:
 
-- [FEATURE #1526](https://github.com/boa-dev/boa/pull/1526) :Implement ComputedPropertyName for accessor properties in ObjectLiteral (@raskad)
+- [FEATURE #1526](https://github.com/boa-dev/boa/pull/1526): Implement ComputedPropertyName for accessor properties in ObjectLiteral (@raskad)
 - [FEATURE #1365](https://github.com/boa-dev/boa/pull/1365): Implement splice method (@neeldug)
 - [FEATURE #1364](https://github.com/boa-dev/boa/pull/1364): Implement spread for objects (@FrancisMurillo)
 - [FEATURE #1525](https://github.com/boa-dev/boa/pull/1525): Implement Object.preventExtensions() and Object.isExtensible() (@HalidOdat)
