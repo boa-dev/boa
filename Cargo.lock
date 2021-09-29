@@ -119,14 +119,14 @@ dependencies = [
 
 [[package]]
 name = "boa_unicode"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "unicode-general-category",
 ]
 
 [[package]]
 name = "boa_wasm"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "Boa",
  "getrandom",
