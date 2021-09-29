@@ -1,6 +1,6 @@
 [package]
 name = "Boa"
-version = "0.11.0"
+version = "0.13.0"
 authors = ["boa-dev"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
@@ -21,7 +21,7 @@ vm = []
 console = []
 
 [dependencies]
-boa_unicode = { path = "../boa_unicode", version = "0.11.0" }
+boa_unicode = { path = "../boa_unicode", version = "0.13.0" }
 gc = { version = "0.4.1", features = ["derive"] }
 serde = { version = "1.0.130", features = ["derive", "rc"] }
 serde_json = "1.0.68"
