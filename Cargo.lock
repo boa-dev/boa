@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "Boa"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "bitflags",
  "boa_unicode",
@@ -83,7 +83,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "boa_cli"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "Boa",
  "colored",
@@ -98,7 +98,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "0.11.0"
+version = "0.13.0"
 dependencies = [
  "Boa",
  "bitflags",
