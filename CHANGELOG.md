@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# 0.13.0 (2021-09-30)
+# [0.13.0 (2021-09-30) - Many new features and refactors](https://github.com/boa-dev/boa/compare/v0.12.0...v0.13.0)
 
 Feature Enhancements:
 
@@ -22,6 +22,7 @@ Feature Enhancements:
 - [FEATURE #1326](https://github.com/boa-dev/boa/pull/1326): Implement get RegExp[@@species] (@raskad)
 - [FEATURE #1314](https://github.com/boa-dev/boa/pull/1314): Implement RegExp.prototype [ @@search ] ( string ) (@raskad)
 - [FEATURE #1451](https://github.com/boa-dev/boa/pull/1451): Feature prelude module (@HalidOdat)
+- [FEATURE #1523](https://github.com/boa-dev/boa/pull/1523): Allow moving NativeObject variables into closures as external captures (@jedel1043)
 
 Bug Fixes:
 
@@ -42,15 +43,19 @@ Bug Fixes:
 - [BUG #1339](https://github.com/boa-dev/boa/pull/1339): Scripts should not be considered in a block (@macmv)
 - [BUG #1312](https://github.com/boa-dev/boa/pull/1312): Fix display for nodes (@macmv)
 - [BUG #1347](https://github.com/boa-dev/boa/pull/1347): Fix stringpad abstract operation (@neeldug)
+- [BUG #1584](https://github.com/boa-dev/boa/pull/1584): Refactor the Math builtin object (spec compliant) (@jedel1043)
+- [BUG #1535](https://github.com/boa-dev/boa/pull/1535): Refactor JSON.parse (@raskad)
+- [BUG #1572](https://github.com/boa-dev/boa/pull/1572): Refactor builtin Map intrinsics to follow more closely the spec (@jedel1043)
+- [BUG #1445](https://github.com/boa-dev/boa/pull/1445): improve map conformance without losing perf (@neeldug)
+- [BUG #1488](https://github.com/boa-dev/boa/pull/1488): Date refactor (@raskad)
+- [BUG #1463](https://github.com/boa-dev/boa/pull/1463): Return function execution result from constructor if the function returned (@raskad)
+- [BUG #1434](https://github.com/boa-dev/boa/pull/1434): Refactor regexp costructor (@raskad)
+- [BUG #1350](https://github.com/boa-dev/boa/pull/1350): Refactor / Implement RegExp functions (@RageKnify) (@raskad)
+- [BUG #1331](https://github.com/boa-dev/boa/pull/1331): Implement missing species getters (@raskad)
 
 Internal Improvements:
 
-- [INTERNAL #1584](https://github.com/boa-dev/boa/pull/1584): Refactor the Math builtin object (spec compliant) (@jedel1043)
-- [INTERNAL #1523](https://github.com/boa-dev/boa/pull/1523): Allow moving NativeObject variables into closures as external captures (@jedel1043)
-- [INTERNAL #1535](https://github.com/boa-dev/boa/pull/1535): Refactor JSON.parse (@raskad)
 - [INTERNAL #1569](https://github.com/boa-dev/boa/pull/1569): Refactor EnvironmentRecordTrait functions (@raskad)
-- [INTERNAL #1572](https://github.com/boa-dev/boa/pull/1572): Refactor builtin Map intrinsics to follow more closely the spec (@jedel1043)
-- [INTERNAL #1445](https://github.com/boa-dev/boa/pull/1445): improve map conformance without losing perf (@neeldug)
 - [INTERNAL #1464](https://github.com/boa-dev/boa/pull/1464): Optimize integer negation (@HalidOdat)
 - [INTERNAL #1550](https://github.com/boa-dev/boa/pull/1550): Add strict mode flag to Context (@raskad)
 - [INTERNAL #1561](https://github.com/boa-dev/boa/pull/1561): Implement abstract operation GetPrototypeFromConstructor (@jedel1043)
@@ -60,17 +65,14 @@ Internal Improvements:
 - [INTERNAL #1547](https://github.com/boa-dev/boa/pull/1547): Replace FxHashMap with IndexMap in object properties (@raskad)
 - [INTERNAL #1435](https://github.com/boa-dev/boa/pull/1435): Constant JsStrings (@HalidOdat)
 - [INTERNAL #1499](https://github.com/boa-dev/boa/pull/1499): Updated the Test262 submodule (@Razican)
-- [INTERNAL #1488](https://github.com/boa-dev/boa/pull/1488): Date refactor (@raskad)
 - [INTERNAL #1458](https://github.com/boa-dev/boa/pull/1458): Refactor the JS testing system (@bartlomieju)
 - [INTERNAL #1485](https://github.com/boa-dev/boa/pull/1485): Implement abstract operation CreateArrayFromList (@jedel1043)
-- [INTERNAL #1463](https://github.com/boa-dev/boa/pull/1463): Return function execution result from constructor if the function returned (@raskad)
 - [INTERNAL #1465](https://github.com/boa-dev/boa/pull/1465): Feature throw Error object (@HalidOdat)
 - [INTERNAL #1493](https://github.com/boa-dev/boa/pull/1493): Rename boa::Result to JsResult (@bartlomieju)
 - [INTERNAL #1457](https://github.com/boa-dev/boa/pull/1457): Rename Value to JsValue (@HalidOdat)
 - [INTERNAL #1460](https://github.com/boa-dev/boa/pull/1460): Change StringGetOwnProperty to produce the same strings that the lexer produces (@raskad)
 - [INTERNAL #1425](https://github.com/boa-dev/boa/pull/1425): Extract PropertyMap struct from Object (@jedel1043)
 - [INTERNAL #1432](https://github.com/boa-dev/boa/pull/1432): Proposal of new PropertyDescriptor design (@jedel1043)
-- [INTERNAL #1434](https://github.com/boa-dev/boa/pull/1434): Refactor regexp costructor (@raskad)
 - [INTERNAL #1383](https://github.com/boa-dev/boa/pull/1383): clippy lints and cleanup of old todos (@neeldug)
 - [INTERNAL #1346](https://github.com/boa-dev/boa/pull/1346): Implement gh-page workflow on release (@FrancisMurillo)
 - [INTERNAL #1422](https://github.com/boa-dev/boa/pull/1422): Refactor internal methods and make some builtins spec compliant (@HalidOdat)
@@ -79,13 +81,11 @@ Internal Improvements:
 - [INTERNAL #1408](https://github.com/boa-dev/boa/pull/1408): Refactor JavaScript bigint rust type (@HalidOdat)
 - [INTERNAL #1380](https://github.com/boa-dev/boa/pull/1380): Custom JavaScript string rust type (@HalidOdat)
 - [INTERNAL #1382](https://github.com/boa-dev/boa/pull/1382): Refactor JavaScript symbol rust type (@HalidOdat)
-- [INTERNAL #1350](https://github.com/boa-dev/boa/pull/1350): Refactor / Implement RegExp functions (@RageKnify) (@raskad)
 - [INTERNAL #1361](https://github.com/boa-dev/boa/pull/1361): Redesign bytecode virtual machine (@HalidOdat)
 - [INTERNAL #1381](https://github.com/boa-dev/boa/pull/1381): Fixed documentation warnings (@Razican)
 - [INTERNAL #1352](https://github.com/boa-dev/boa/pull/1352): Respect Rust 1.53 (@RageKnify)
 - [INTERNAL #1356](https://github.com/boa-dev/boa/pull/1356): Respect Rust fmt updates (@RageKnify)
 - [INTERNAL #1338](https://github.com/boa-dev/boa/pull/1338): Fix cargo check errors (@neeldug)
-- [INTERNAL #1331](https://github.com/boa-dev/boa/pull/1331): Implement missing species getters (@raskad)
 - [INTERNAL #1329](https://github.com/boa-dev/boa/pull/1329): Allow Value.set_field to throw (@raskad)
 - [INTERNAL #1333](https://github.com/boa-dev/boa/pull/1333): adds condition to avoid triggers from dependabot (@neeldug)
 - [INTERNAL #1337](https://github.com/boa-dev/boa/pull/1337): Fix github actions (@neeldug)
