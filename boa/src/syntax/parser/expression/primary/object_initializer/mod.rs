@@ -267,12 +267,12 @@ where
             return Ok(node::PropertyDefinition::property(property_name, value));
         }
 
-        let ordinary = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+        let ordinary_method = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::OpenParen);
 
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
-            node::PropertyName::Literal(str) if str.as_ref() == "get" && !ordinary => {
+            node::PropertyName::Literal(str) if str.as_ref() == "get" && !ordinary_method => {
                 property_name =
                     PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
@@ -302,7 +302,7 @@ where
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
-            node::PropertyName::Literal(str) if str.as_ref() == "set" && !ordinary => {
+            node::PropertyName::Literal(str) if str.as_ref() == "set" && !ordinary_method => {
                 property_name =
                     PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
 

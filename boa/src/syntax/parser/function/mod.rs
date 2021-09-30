@@ -22,7 +22,8 @@ use crate::{
     },
     BoaProfiler,
 };
-use std::{collections::HashSet, io::Read};
+use rustc_hash::FxHashSet;
+use std::io::Read;
 
 /// Intermediate type for a list of FormalParameters with some meta information.
 pub(in crate::syntax::parser) struct FormalParameterList {
@@ -83,7 +84,7 @@ where
         }
         let start_position = next_token.span().start();
 
-        let mut parameter_names = HashSet::new();
+        let mut parameter_names = FxHashSet::default();
 
         loop {
             let mut rest_param = false;

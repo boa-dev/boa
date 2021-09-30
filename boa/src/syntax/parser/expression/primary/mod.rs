@@ -130,7 +130,7 @@ where
                 }
                 Ok(Identifier::from("yield").into())
             }
-            TokenKind::Keyword(Keyword::Await) if self.allow_yield.0 => {
+            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
                     "Unexpected identifier",
