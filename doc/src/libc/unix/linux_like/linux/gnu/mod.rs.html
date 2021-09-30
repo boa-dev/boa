@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.101&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;gnu&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script src="../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.103&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;gnu&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script src="../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1353,41 +1353,6 @@
 <span id="1353">1353</span>
 <span id="1354">1354</span>
 <span id="1355">1355</span>
-<span id="1356">1356</span>
-<span id="1357">1357</span>
-<span id="1358">1358</span>
-<span id="1359">1359</span>
-<span id="1360">1360</span>
-<span id="1361">1361</span>
-<span id="1362">1362</span>
-<span id="1363">1363</span>
-<span id="1364">1364</span>
-<span id="1365">1365</span>
-<span id="1366">1366</span>
-<span id="1367">1367</span>
-<span id="1368">1368</span>
-<span id="1369">1369</span>
-<span id="1370">1370</span>
-<span id="1371">1371</span>
-<span id="1372">1372</span>
-<span id="1373">1373</span>
-<span id="1374">1374</span>
-<span id="1375">1375</span>
-<span id="1376">1376</span>
-<span id="1377">1377</span>
-<span id="1378">1378</span>
-<span id="1379">1379</span>
-<span id="1380">1380</span>
-<span id="1381">1381</span>
-<span id="1382">1382</span>
-<span id="1383">1383</span>
-<span id="1384">1384</span>
-<span id="1385">1385</span>
-<span id="1386">1386</span>
-<span id="1387">1387</span>
-<span id="1388">1388</span>
-<span id="1389">1389</span>
-<span id="1390">1390</span>
 </pre><pre class="rust">
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">pthread_t</span> <span class="op">=</span> <span class="ident">c_ulong</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__priority_which_t</span> <span class="op">=</span> <span class="ident">::c_uint</span>;
@@ -1532,19 +1497,6 @@
         <span class="kw">pub</span> <span class="ident">keepcost</span>: <span class="ident">::size_t</span>,
     }
 
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">nlmsghdr</span> {
-        <span class="kw">pub</span> <span class="ident">nlmsg_len</span>: <span class="ident">u32</span>,
-        <span class="kw">pub</span> <span class="ident">nlmsg_type</span>: <span class="ident">u16</span>,
-        <span class="kw">pub</span> <span class="ident">nlmsg_flags</span>: <span class="ident">u16</span>,
-        <span class="kw">pub</span> <span class="ident">nlmsg_seq</span>: <span class="ident">u32</span>,
-        <span class="kw">pub</span> <span class="ident">nlmsg_pid</span>: <span class="ident">u32</span>,
-    }
-
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">nlmsgerr</span> {
-        <span class="kw">pub</span> <span class="ident">error</span>: <span class="ident">::c_int</span>,
-        <span class="kw">pub</span> <span class="ident">msg</span>: <span class="ident">nlmsghdr</span>,
-    }
-
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">nl_pktinfo</span> {
         <span class="kw">pub</span> <span class="ident">group</span>: <span class="ident">u32</span>,
     }
@@ -1563,11 +1515,6 @@
         <span class="kw">pub</span> <span class="ident">nm_pid</span>: <span class="ident">u32</span>,
         <span class="kw">pub</span> <span class="ident">nm_uid</span>: <span class="ident">u32</span>,
         <span class="kw">pub</span> <span class="ident">nm_gid</span>: <span class="ident">u32</span>,
-    }
-
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">nlattr</span> {
-        <span class="kw">pub</span> <span class="ident">nla_len</span>: <span class="ident">u16</span>,
-        <span class="kw">pub</span> <span class="ident">nla_type</span>: <span class="ident">u16</span>,
     }
 
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">rtentry</span> {
@@ -2601,13 +2548,6 @@
         <span class="ident">statxbuf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">statx</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrandom</span>(<span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_void</span>, <span class="ident">buflen</span>: <span class="ident">::size_t</span>, <span class="ident">flags</span>: <span class="ident">::c_uint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::ssize_t</span>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memmem</span>(
-        <span class="ident">haystack</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::c_void</span>,
-        <span class="ident">haystacklen</span>: <span class="ident">::size_t</span>,
-        <span class="ident">needle</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::c_void</span>,
-        <span class="ident">needlelen</span>: <span class="ident">::size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_void</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getauxval</span>(<span class="ident">type_</span>: <span class="ident">::c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_ulong</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">adjtimex</span>(<span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">timex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
@@ -2696,16 +2636,6 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getpriority</span>(<span class="ident">which</span>: <span class="ident">::__priority_which_t</span>, <span class="ident">who</span>: <span class="ident">::id_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setpriority</span>(<span class="ident">which</span>: <span class="ident">::__priority_which_t</span>, <span class="ident">who</span>: <span class="ident">::id_t</span>, <span class="ident">prio</span>: <span class="ident">::c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pthread_getaffinity_np</span>(
-        <span class="ident">thread</span>: <span class="ident">::pthread_t</span>,
-        <span class="ident">cpusetsize</span>: <span class="ident">::size_t</span>,
-        <span class="ident">cpuset</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::cpu_set_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pthread_setaffinity_np</span>(
-        <span class="ident">thread</span>: <span class="ident">::pthread_t</span>,
-        <span class="ident">cpusetsize</span>: <span class="ident">::size_t</span>,
-        <span class="ident">cpuset</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::cpu_set_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pthread_rwlockattr_getkind_np</span>(
         <span class="ident">attr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::pthread_rwlockattr_t</span>,
         <span class="ident">val</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_int</span>,
@@ -2714,9 +2644,9 @@
         <span class="ident">attr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::pthread_rwlockattr_t</span>,
         <span class="ident">val</span>: <span class="ident">::c_int</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sched_getcpu</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mallinfo</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::mallinfo</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mallinfo2</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::mallinfo2</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">malloc_info</span>(<span class="ident">options</span>: <span class="ident">::c_int</span>, <span class="ident">stream</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::FILE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">malloc_usable_size</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::size_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getpwent_r</span>(
         <span class="ident">pwd</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::passwd</span>,
