@@ -827,7 +827,14 @@ impl Object {
         }
     }
 
-    /// TODO: Documentation
+    /// `Object.getOwnPropertyNames( object )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertynames
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames
     pub fn get_own_property_names(
         _: &JsValue,
         args: &[JsValue],
@@ -837,7 +844,14 @@ impl Object {
         get_own_property_keys(o, GetOwnPropertyKeysType::String, context)
     }
 
-    /// TODO: Documentation
+    /// `Object.getOwnPropertySymbols( object )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertysymbols
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertySymbols
     pub fn get_own_property_symbols(
         _: &JsValue,
         args: &[JsValue],
@@ -900,14 +914,19 @@ fn object_define_properties(
     Ok(())
 }
 
-/// TODO: Docs
+/// Type enum used in the abstract operation GetOwnPropertyKeys
 #[derive(Debug, Copy, Clone)]
 enum GetOwnPropertyKeysType {
     String,
     Symbol,
 }
 
-/// TODO: Docs
+/// The abstract operation GetOwnPropertyKeys
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getownpropertykeys
 fn get_own_property_keys(
     o: &JsValue,
     r#type: GetOwnPropertyKeysType,
