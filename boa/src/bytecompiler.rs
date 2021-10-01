@@ -868,8 +868,8 @@ impl ByteCompiler {
 
         compiler.code_block.params = paramaters.to_owned().into_boxed_slice();
 
-        compiler.emit(Opcode::PushUndefined, &[]);
-        compiler.emit(Opcode::Return, &[]);
+        // compiler.emit(Opcode::PushUndefined, &[]);
+        // compiler.emit(Opcode::Return, &[]);
 
         let code = Gc::new(compiler.finish());
 

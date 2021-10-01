@@ -2,18 +2,18 @@
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
 
-use crate::environment::lexical_environment::Environment;
 use crate::{
     builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
 };
 
+mod call_frame;
 mod code_block;
 mod opcode;
 
+pub use call_frame::CallFrame;
 pub use code_block::CodeBlock;
 pub use code_block::JsVmFunction;
-use gc::Gc;
 pub use opcode::Opcode;
 
 use std::{convert::TryInto, mem::size_of, time::Instant};
@@ -22,18 +22,6 @@ use self::code_block::Readable;
 
 #[cfg(test)]
 mod tests;
-
-#[derive(Debug)]
-pub struct CallFrame {
-    pub(crate) prev: Option<Box<Self>>,
-    pub(crate) code: Gc<CodeBlock>,
-    pub(crate) pc: usize,
-    pub(crate) fp: usize,
-    pub(crate) exit_on_return: bool,
-    pub(crate) this: JsValue,
-    pub(crate) environment: Environment,
-}
-
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {
@@ -521,11 +509,17 @@ impl Context {
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
 
+        let msg = if !self.vm.frame().exit_on_return {
+            " Call Frame "
+        } else {
+            " VM Start"
+        };
+
         if self.vm.trace {
             println!("{}\n", self.vm.frame().code);
             println!(
                 "{:-^width$}",
-                " Vm Start ",
+                msg,
                 width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - 10
             );
             println!(

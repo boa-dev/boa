@@ -219,7 +219,7 @@ impl CodeBlock {
 
 impl std::fmt::Display for CodeBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
+        writeln!(
             f,
             "----------------- name '{}' (length: {}) ------------------",
             self.name, self.length
