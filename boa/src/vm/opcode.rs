@@ -506,6 +506,23 @@ pub enum Opcode {
     /// Stack: `value` **=>**
     Default,
 
+    /// Get function from the precompiled inner functions.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: **=>** `func`
+    GetFunction,
+
+    /// Call a function.
+    ///
+    /// Operands: argc: `u32`
+    ///
+    /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
+    Call,
+
+    /// Return from a function.
+    Return,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -596,6 +613,9 @@ impl Opcode {
             Opcode::This => "This",
             Opcode::Case => "Case",
             Opcode::Default => "Default",
+            Opcode::GetFunction => "GetFunction",
+            Opcode::Call => "Call",
+            Opcode::Return => "Return",
             Opcode::Nop => "Nop",
         }
     }

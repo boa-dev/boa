@@ -2,22 +2,12 @@
 //!
 //! The `JsObject` is a garbage collected Object.
 
-use super::{NativeObject, Object, PROTOTYPE};
+use super::{NativeObject, Object};
 use crate::{
-    builtins::function::{
-        create_unmapped_arguments_object, Captures, ClosureFunction, Function, NativeFunction,
-    },
-    environment::{
-        environment_record_trait::EnvironmentRecordTrait,
-        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
-        lexical_environment::Environment,
-    },
-    exec::InterpreterState,
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
-    syntax::ast::node::RcStatementList,
     value::PreferredType,
-    Context, Executable, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use std::{
@@ -26,6 +16,25 @@ use std::{
     error::Error,
     fmt::{self, Debug, Display},
     result::Result as StdResult,
+};
+
+#[cfg(not(feature = "vm"))]
+use crate::{
+    environment::{
+        environment_record_trait::EnvironmentRecordTrait,
+        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+        lexical_environment::Environment,
+    },
+    exec::InterpreterState,
+    object::{
+        function::{
+            create_unmapped_arguments_object, Captures, ClosureFunctionSignature, Function,
+            NativeFunctionSignature,
+        },
+        PROTOTYPE,
+    },
+    syntax::ast::node::RcStatementList,
+    Executable,
 };
 
 /// A wrapper type for an immutably borrowed type T.
@@ -42,11 +51,12 @@ pub struct JsObject(Gc<GcCell<Object>>);
 ///
 /// This is needed for the call method since we cannot mutate the function itself since we
 /// already borrow it so we get the function body clone it then drop the borrow and run the body
+#[cfg(not(feature = "vm"))]
 enum FunctionBody {
-    BuiltInFunction(NativeFunction),
-    BuiltInConstructor(NativeFunction),
+    BuiltInFunction(NativeFunctionSignature),
+    BuiltInConstructor(NativeFunctionSignature),
     Closure {
-        function: Box<dyn ClosureFunction>,
+        function: Box<dyn ClosureFunctionSignature>,
         captures: Captures,
     },
     Ordinary(RcStatementList),
@@ -125,6 +135,7 @@ impl JsObject {
     /// <https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody>
     /// <https://tc39.es/ecma262/#sec-ordinarycallevaluatebody>
     #[track_caller]
+    #[cfg(not(feature = "vm"))]
     pub(super) fn call_construct(
         &self,
         this_target: &JsValue,
@@ -137,10 +148,7 @@ impl JsObject {
 
         let body = if let Some(function) = self.borrow().as_function() {
             if construct && !function.is_constructable() {
-                let name = self
-                    .__get__(&"name".into(), self.clone().into(), context)?
-                    .display()
-                    .to_string();
+                let name = self.get("name", context)?.display().to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
             } else {
                 match function {
@@ -149,9 +157,9 @@ impl JsObject {
                         constructable,
                     } => {
                         if *constructable || construct {
-                            FunctionBody::BuiltInConstructor(function.0)
+                            FunctionBody::BuiltInConstructor(*function)
                         } else {
-                            FunctionBody::BuiltInFunction(function.0)
+                            FunctionBody::BuiltInFunction(*function)
                         }
                     }
                     Function::Closure {
@@ -161,10 +169,11 @@ impl JsObject {
                         captures: captures.clone(),
                     },
                     Function::Ordinary {
+                        constructable: _,
+                        this_mode,
                         body,
                         params,
                         environment,
-                        flags,
                     } => {
                         let this = if construct {
                             // If the prototype of the constructor is not an object, then use the default object
@@ -194,14 +203,14 @@ impl JsObject {
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = FunctionEnvironmentRecord::new(
                             this_function_object.clone(),
-                            if construct || !flags.is_lexical_this_mode() {
+                            if construct || !this_mode.is_lexical() {
                                 Some(this.clone())
                             } else {
                                 None
                             },
                             Some(environment.clone()),
                             // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                            if flags.is_lexical_this_mode() {
+                            if this_mode.is_lexical() {
                                 BindingStatus::Lexical
                             } else {
                                 BindingStatus::Uninitialized
@@ -225,7 +234,7 @@ impl JsObject {
                         // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
                         //
                         // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-                        if !flags.is_lexical_this_mode()
+                        if !this_mode.is_lexical()
                             && !arguments_in_parameter_names
                             && (has_parameter_expressions
                                 || (!body.lexically_declared_names().contains("arguments")
@@ -247,7 +256,7 @@ impl JsObject {
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, context, &local_env);
+                                Function::add_rest_param(param, i, args, context, &local_env);
                                 break;
                             }
 
@@ -260,8 +269,9 @@ impl JsObject {
                                 Some(value) => value,
                             };
 
-                            function
-                                .add_arguments_to_environment(param, value, &local_env, context);
+                            Function::add_arguments_to_environment(
+                                param, value, &local_env, context,
+                            );
                         }
 
                         if has_parameter_expressions {
@@ -271,14 +281,14 @@ impl JsObject {
                             // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
                             let second_env = FunctionEnvironmentRecord::new(
                                 this_function_object,
-                                if construct || !flags.is_lexical_this_mode() {
+                                if construct || !this_mode.is_lexical() {
                                     Some(this)
                                 } else {
                                     None
                                 },
                                 Some(local_env),
                                 // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                                if flags.is_lexical_this_mode() {
+                                if this_mode.is_lexical() {
                                     BindingStatus::Lexical
                                 } else {
                                     BindingStatus::Uninitialized
@@ -290,6 +300,10 @@ impl JsObject {
                         }
 
                         FunctionBody::Ordinary(body.clone())
+                    }
+                    #[cfg(feature = "vm")]
+                    Function::VmOrdinary { .. } => {
+                        todo!("vm call")
                     }
                 }
             }
@@ -306,7 +320,7 @@ impl JsObject {
             }
             FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
             FunctionBody::Closure { function, captures } => {
-                (function)(this_target, args, context, captures)
+                (function)(this_target, args, captures, context)
             }
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
@@ -893,7 +907,7 @@ impl JsObject {
         self.borrow().is_constructable()
     }
 
-    /// Returns true if the GcObject is the global for a Realm
+    /// Returns true if the JsObject is the global for a Realm
     pub fn is_global(&self) -> bool {
         matches!(
             self.borrow().data,

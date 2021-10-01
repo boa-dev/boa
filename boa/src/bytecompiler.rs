@@ -1,6 +1,9 @@
+use gc::Gc;
+
 use crate::{
+    object::function::ThisMode,
     syntax::ast::{
-        node::{Declaration, GetConstField, GetField, Identifier, StatementList},
+        node::{Declaration, GetConstField, GetField, StatementList},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
     },
@@ -31,7 +34,7 @@ struct JumpControlInfo {
 
 #[derive(Debug, Clone, Copy)]
 enum Access<'a> {
-    Variable { name: &'a Identifier },
+    Variable { index: u32 },
     ByName { node: &'a GetConstField },
     ByValue { node: &'a GetField },
     This,
@@ -42,13 +45,9 @@ pub struct ByteCompiler {
     code_block: CodeBlock,
     literals_map: HashMap<Literal, u32>,
     names_map: HashMap<JsString, u32>,
+    functions_map: HashMap<JsString, u32>,
     jump_info: Vec<JumpControlInfo>,
-}
-
-impl Default for ByteCompiler {
-    fn default() -> Self {
-        Self::new()
-    }
+    top_level: bool,
 }
 
 impl ByteCompiler {
@@ -56,12 +55,14 @@ impl ByteCompiler {
     const DUMMY_ADDRESS: u32 = u32::MAX;
 
     #[inline]
-    pub fn new() -> Self {
+    pub fn new(name: JsString, strict: bool) -> Self {
         Self {
-            code_block: CodeBlock::new(),
+            code_block: CodeBlock::new(name, 0, strict, false),
             literals_map: HashMap::new(),
             names_map: HashMap::new(),
+            functions_map: HashMap::new(),
             jump_info: Vec::new(),
+            top_level: true,
         }
     }
 
@@ -89,8 +90,8 @@ impl ByteCompiler {
         }
 
         let name = JsString::new(name);
-        let index = self.code_block.names.len() as u32;
-        self.code_block.names.push(name.clone());
+        let index = self.code_block.variables.len() as u32;
+        self.code_block.variables.push(name.clone());
         self.names_map.insert(name, index);
         index
     }
@@ -267,7 +268,10 @@ impl ByteCompiler {
     #[inline]
     fn compile_access<'a>(&mut self, node: &'a Node) -> Access<'a> {
         match node {
-            Node::Identifier(name) => Access::Variable { name },
+            Node::Identifier(name) => {
+                let index = self.get_or_insert_name(name.as_ref());
+                Access::Variable { index }
+            }
             Node::GetConstField(node) => Access::ByName { node },
             Node::GetField(node) => Access::ByValue { node },
             Node::This => Access::This,
@@ -278,9 +282,8 @@ impl ByteCompiler {
     #[inline]
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
-            Access::Variable { name } => {
-                let index = self.get_or_insert_name(name.as_ref());
-                self.emit(Opcode::GetName, &[index]);
+            Access::Variable { index: name } => {
+                self.emit(Opcode::GetName, &[name]);
             }
             Access::ByName { node } => {
                 let index = self.get_or_insert_name(node.field());
@@ -313,8 +316,7 @@ impl ByteCompiler {
         }
 
         match access {
-            Access::Variable { name } => {
-                let index = self.get_or_insert_name(name.as_ref());
+            Access::Variable { index } => {
                 self.emit(Opcode::SetName, &[index]);
             }
             Access::ByName { node } => {
@@ -532,7 +534,8 @@ impl ByteCompiler {
                 }
             }
             Node::Identifier(name) => {
-                let access = Access::Variable { name };
+                let index = self.get_or_insert_name(name.as_ref());
+                let access = Access::Variable { index };
                 self.access_get(access, use_expr);
             }
             Node::Assign(assign) => {
@@ -578,6 +581,37 @@ impl ByteCompiler {
             }
             Node::This => {
                 self.access_get(Access::This, use_expr);
+            }
+            Node::FunctionExpr(_function) => self.function(expr, use_expr),
+            Node::ArrowFunctionDecl(_function) => self.function(expr, use_expr),
+            Node::Call(call) => {
+                for arg in call.args().iter().rev() {
+                    self.compile_expr(arg, true);
+                }
+                match call.expr() {
+                    Node::GetConstField(field) => {
+                        self.compile_expr(field.obj(), true);
+                        self.emit(Opcode::Dup, &[]);
+                        let index = self.get_or_insert_name(field.field());
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    Node::GetField(field) => {
+                        self.compile_expr(field.obj(), true);
+                        self.emit(Opcode::Dup, &[]);
+                        self.compile_expr(field.field(), true);
+                        self.emit(Opcode::Swap, &[]);
+                        self.emit(Opcode::GetPropertyByValue, &[]);
+                    }
+                    expr => {
+                        self.emit(Opcode::This, &[]);
+                        self.compile_expr(expr, true);
+                    }
+                }
+                self.emit(Opcode::Call, &[call.args().len() as u32]);
+
+                if !use_expr {
+                    self.emit(Opcode::Pop, &[]);
+                }
             }
             expr => todo!("TODO compile: {}", expr),
         }
@@ -767,8 +801,99 @@ impl ByteCompiler {
 
                 self.pop_switch_control_info();
             }
+            Node::FunctionDecl(_function) => self.function(node, false),
+            Node::Return(ret) => {
+                if let Some(expr) = ret.expr() {
+                    self.compile_expr(expr, true);
+                } else {
+                    self.emit(Opcode::PushUndefined, &[]);
+                }
+                self.emit(Opcode::Return, &[]);
+            }
             Node::Empty => {}
             expr => self.compile_expr(expr, use_expr),
+        }
+    }
+
+    pub(crate) fn function(&mut self, function: &Node, use_expr: bool) {
+        #[derive(Debug, Clone, Copy, PartialEq)]
+        enum FunctionKind {
+            Declaration,
+            Expression,
+            Arrow,
+        }
+
+        let (kind, name, paramaters, body) = match function {
+            Node::FunctionDecl(function) => (
+                FunctionKind::Declaration,
+                Some(function.name()),
+                function.parameters(),
+                function.body(),
+            ),
+            Node::FunctionExpr(function) => (
+                FunctionKind::Expression,
+                function.name(),
+                function.parameters(),
+                function.body(),
+            ),
+            Node::ArrowFunctionDecl(function) => (
+                FunctionKind::Arrow,
+                None,
+                function.params(),
+                function.body(),
+            ),
+            _ => unreachable!(),
+        };
+
+        let length = paramaters.len() as u32;
+        let mut code = CodeBlock::new(name.unwrap_or("").into(), length, false, true);
+
+        if let FunctionKind::Arrow = kind {
+            code.constructable = false;
+            code.this_mode = ThisMode::Lexical;
+        }
+
+        let mut compiler = ByteCompiler {
+            code_block: code,
+            literals_map: HashMap::new(),
+            names_map: HashMap::new(),
+            functions_map: HashMap::new(),
+            jump_info: Vec::new(),
+            top_level: false,
+        };
+
+        for node in body.items() {
+            compiler.compile_stmt(node, false);
+        }
+
+        compiler.code_block.params = paramaters.to_owned().into_boxed_slice();
+
+        compiler.emit(Opcode::PushUndefined, &[]);
+        compiler.emit(Opcode::Return, &[]);
+
+        let code = Gc::new(compiler.finish());
+
+        let index = self.code_block.functions.len() as u32;
+        self.code_block.functions.push(code);
+
+        self.emit(Opcode::GetFunction, &[index]);
+
+        match kind {
+            FunctionKind::Declaration => {
+                let index = self.get_or_insert_name(name.unwrap());
+                let access = Access::Variable { index };
+                self.access_set(access, None, false);
+            }
+            FunctionKind::Expression => {
+                if use_expr {
+                    self.emit(Opcode::Dup, &[]);
+                }
+            }
+            FunctionKind::Arrow => {
+                if !use_expr {
+                    self.emit(Opcode::Pop, &[]);
+                }
+            }
         }
     }
 

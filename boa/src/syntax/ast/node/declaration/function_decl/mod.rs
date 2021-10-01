@@ -1,8 +1,8 @@
 use crate::{
-    builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
+    object::function::ThisMode,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -92,7 +92,8 @@ impl Executable for FunctionDecl {
             self.name(),
             self.parameters().to_vec(),
             self.body().clone(),
-            FunctionFlags::CONSTRUCTABLE,
+            true,
+            ThisMode::Global,
         )?;
 
         if context.has_binding(self.name())? {

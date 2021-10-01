@@ -62,8 +62,10 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    builtins::function::NativeFunction,
-    object::{ConstructorBuilder, JsObject, NativeObject, ObjectData, PROTOTYPE},
+    object::{
+        function::NativeFunctionSignature, ConstructorBuilder, JsObject, NativeObject, ObjectData,
+        PROTOTYPE,
+    },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -174,7 +176,12 @@ impl<'context> ClassBuilder<'context> {
     ///
     /// It is added to `prototype`.
     #[inline]
-    pub fn method<N>(&mut self, name: N, length: usize, function: NativeFunction) -> &mut Self
+    pub fn method<N>(
+        &mut self,
+        name: N,
+        length: usize,
+        function: NativeFunctionSignature,
+    ) -> &mut Self
     where
         N: AsRef<str>,
     {
@@ -190,7 +197,7 @@ impl<'context> ClassBuilder<'context> {
         &mut self,
         name: N,
         length: usize,
-        function: NativeFunction,
+        function: NativeFunctionSignature,
     ) -> &mut Self
     where
         N: AsRef<str>,
