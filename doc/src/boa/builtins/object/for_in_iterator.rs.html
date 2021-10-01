@@ -149,9 +149,9 @@
 <span id="149">149</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>},
+    <span class="ident">builtins::iterable::create_iter_result_object</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">property::PropertyKey</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,

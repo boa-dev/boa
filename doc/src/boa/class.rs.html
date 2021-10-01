@@ -293,6 +293,13 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Traits and structs for implementing native classes.</span>
 <span class="doccomment">//!</span>
@@ -358,8 +365,10 @@
 <span class="doccomment">//! [class-trait]: ./trait.Class.html</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::function::NativeFunction</span>,
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
+    <span class="ident">object</span>::{
+        <span class="ident">function::NativeFunctionSignature</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">ObjectData</span>,
+        <span class="ident">PROTOTYPE</span>,
+    },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
@@ -470,7 +479,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// It is added to `prototype`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">length</span>: <span class="ident">usize</span>, <span class="ident">function</span>: <span class="ident">NativeFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">method</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">N</span>,
+        <span class="ident">length</span>: <span class="ident">usize</span>,
+        <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
@@ -486,7 +500,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">length</span>: <span class="ident">usize</span>,
-        <span class="ident">function</span>: <span class="ident">NativeFunction</span>,
+        <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,

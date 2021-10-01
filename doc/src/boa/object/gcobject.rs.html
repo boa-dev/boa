@@ -1037,27 +1037,31 @@
 <span id="1037">1037</span>
 <span id="1038">1038</span>
 <span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JsObject` is a garbage collected Object.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NativeObject</span>, <span class="ident">Object</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::function</span>::{
-        <span class="ident">create_unmapped_arguments_object</span>, <span class="ident">Captures</span>, <span class="ident">ClosureFunction</span>, <span class="ident">Function</span>, <span class="ident">NativeFunction</span>,
-    },
-    <span class="ident">environment</span>::{
-        <span class="ident">environment_record_trait::EnvironmentRecordTrait</span>,
-        <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
-        <span class="ident">lexical_environment::Environment</span>,
-    },
-    <span class="ident">exec::InterpreterState</span>,
     <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">ObjectKind</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">syntax::ast::node::RcStatementList</span>,
     <span class="ident">value::PreferredType</span>,
-    <span class="ident">Context</span>, <span class="ident">Executable</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">GcCell</span>, <span class="ident">GcCellRef</span>, <span class="ident">GcCellRefMut</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1066,6 +1070,25 @@
     <span class="ident">error::Error</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>},
     <span class="ident">result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>,
+};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">environment</span>::{
+        <span class="ident">environment_record_trait::EnvironmentRecordTrait</span>,
+        <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
+        <span class="ident">lexical_environment::Environment</span>,
+    },
+    <span class="ident">exec::InterpreterState</span>,
+    <span class="ident">object</span>::{
+        <span class="ident">function</span>::{
+            <span class="ident">create_unmapped_arguments_object</span>, <span class="ident">Captures</span>, <span class="ident">ClosureFunctionSignature</span>, <span class="ident">Function</span>,
+            <span class="ident">NativeFunctionSignature</span>,
+        },
+        <span class="ident">PROTOTYPE</span>,
+    },
+    <span class="ident">syntax::ast::node::RcStatementList</span>,
+    <span class="ident">Executable</span>,
 };
 
 <span class="doccomment">/// A wrapper type for an immutably borrowed type T.</span>
@@ -1082,11 +1105,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is needed for the call method since we cannot mutate the function itself since we</span>
 <span class="doccomment">/// already borrow it so we get the function body clone it then drop the borrow and run the body</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
 <span class="kw">enum</span> <span class="ident">FunctionBody</span> {
-    <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunction</span>),
-    <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunction</span>),
+    <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunctionSignature</span>),
+    <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunctionSignature</span>),
     <span class="ident">Closure</span> {
-        <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunction</span><span class="op">&gt;</span>,
+        <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunctionSignature</span><span class="op">&gt;</span>,
         <span class="ident">captures</span>: <span class="ident">Captures</span>,
     },
     <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
@@ -1165,6 +1189,7 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody&gt;</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinarycallevaluatebody&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">call_construct</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">this_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
@@ -1177,10 +1202,7 @@
 
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">construct</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">function</span>.<span class="ident">is_constructable</span>() {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="string">&quot;name&quot;</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                    .<span class="ident">display</span>()
-                    .<span class="ident">to_string</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">display</span>().<span class="ident">to_string</span>();
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a constructor&quot;</span>, <span class="ident">name</span>));
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="ident">function</span> {
@@ -1189,9 +1211,9 @@
                         <span class="ident">constructable</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">constructable</span> <span class="op">|</span><span class="op">|</span> <span class="ident">construct</span> {
-                            <span class="ident">FunctionBody::BuiltInConstructor</span>(<span class="ident">function</span>.<span class="number">0</span>)
+                            <span class="ident">FunctionBody::BuiltInConstructor</span>(<span class="kw-2">*</span><span class="ident">function</span>)
                         } <span class="kw">else</span> {
-                            <span class="ident">FunctionBody::BuiltInFunction</span>(<span class="ident">function</span>.<span class="number">0</span>)
+                            <span class="ident">FunctionBody::BuiltInFunction</span>(<span class="kw-2">*</span><span class="ident">function</span>)
                         }
                     }
                     <span class="ident">Function::Closure</span> {
@@ -1201,10 +1223,11 @@
                         <span class="ident">captures</span>: <span class="ident">captures</span>.<span class="ident">clone</span>(),
                     },
                     <span class="ident">Function::Ordinary</span> {
+                        <span class="ident">constructable</span>: <span class="kw">_</span>,
+                        <span class="ident">this_mode</span>,
                         <span class="ident">body</span>,
                         <span class="ident">params</span>,
                         <span class="ident">environment</span>,
-                        <span class="ident">flags</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">construct</span> {
                             <span class="comment">// If the prototype of the constructor is not an object, then use the default object</span>
@@ -1234,14 +1257,14 @@
                         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                         <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">FunctionEnvironmentRecord::new</span>(
                             <span class="ident">this_function_object</span>.<span class="ident">clone</span>(),
-                            <span class="kw">if</span> <span class="ident">construct</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">is_lexical_this_mode</span>() {
+                            <span class="kw">if</span> <span class="ident">construct</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">this_mode</span>.<span class="ident">is_lexical</span>() {
                                 <span class="prelude-val">Some</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
                             } <span class="kw">else</span> {
                                 <span class="prelude-val">None</span>
                             },
                             <span class="prelude-val">Some</span>(<span class="ident">environment</span>.<span class="ident">clone</span>()),
                             <span class="comment">// Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records</span>
-                            <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_lexical_this_mode</span>() {
+                            <span class="kw">if</span> <span class="ident">this_mode</span>.<span class="ident">is_lexical</span>() {
                                 <span class="ident">BindingStatus::Lexical</span>
                             } <span class="kw">else</span> {
                                 <span class="ident">BindingStatus::Uninitialized</span>
@@ -1265,7 +1288,7 @@
                         <span class="comment">// - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)</span>
                         <span class="comment">//</span>
                         <span class="comment">// https://tc39.es/ecma262/#sec-functiondeclarationinstantiation</span>
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">is_lexical_this_mode</span>()
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_mode</span>.<span class="ident">is_lexical</span>()
                             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">arguments_in_parameter_names</span>
                             <span class="op">&amp;&amp;</span> (<span class="ident">has_parameter_expressions</span>
                                 <span class="op">|</span><span class="op">|</span> (<span class="op">!</span><span class="ident">body</span>.<span class="ident">lexically_declared_names</span>().<span class="ident">contains</span>(<span class="string">&quot;arguments&quot;</span>)
@@ -1287,7 +1310,7 @@
                         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                             <span class="comment">// Rest Parameters</span>
                             <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span>() {
-                                <span class="ident">function</span>.<span class="ident">add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
+                                <span class="ident">Function::add_rest_param</span>(<span class="ident">param</span>, <span class="ident">i</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>);
                                 <span class="kw">break</span>;
                             }
 
@@ -1300,8 +1323,9 @@
                                 <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
                             };
 
-                            <span class="ident">function</span>
-                                .<span class="ident">add_arguments_to_environment</span>(<span class="ident">param</span>, <span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>, <span class="ident">context</span>);
+                            <span class="ident">Function::add_arguments_to_environment</span>(
+                                <span class="ident">param</span>, <span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">local_env</span>, <span class="ident">context</span>,
+                            );
                         }
 
                         <span class="kw">if</span> <span class="ident">has_parameter_expressions</span> {
@@ -1311,14 +1335,14 @@
                             <span class="comment">// https://tc39.es/ecma262/#sec-functiondeclarationinstantiation</span>
                             <span class="kw">let</span> <span class="ident">second_env</span> <span class="op">=</span> <span class="ident">FunctionEnvironmentRecord::new</span>(
                                 <span class="ident">this_function_object</span>,
-                                <span class="kw">if</span> <span class="ident">construct</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">is_lexical_this_mode</span>() {
+                                <span class="kw">if</span> <span class="ident">construct</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">this_mode</span>.<span class="ident">is_lexical</span>() {
                                     <span class="prelude-val">Some</span>(<span class="ident">this</span>)
                                 } <span class="kw">else</span> {
                                     <span class="prelude-val">None</span>
                                 },
                                 <span class="prelude-val">Some</span>(<span class="ident">local_env</span>),
                                 <span class="comment">// Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records</span>
-                                <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_lexical_this_mode</span>() {
+                                <span class="kw">if</span> <span class="ident">this_mode</span>.<span class="ident">is_lexical</span>() {
                                     <span class="ident">BindingStatus::Lexical</span>
                                 } <span class="kw">else</span> {
                                     <span class="ident">BindingStatus::Uninitialized</span>
@@ -1330,6 +1354,10 @@
                         }
 
                         <span class="ident">FunctionBody::Ordinary</span>(<span class="ident">body</span>.<span class="ident">clone</span>())
+                    }
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+                    <span class="ident">Function::VmOrdinary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">todo!</span>(<span class="string">&quot;vm call&quot;</span>)
                     }
                 }
             }
@@ -1346,7 +1374,7 @@
             }
             <span class="ident">FunctionBody::BuiltInFunction</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function</span>(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>),
             <span class="ident">FunctionBody::Closure</span> { <span class="ident">function</span>, <span class="ident">captures</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                (<span class="ident">function</span>)(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="ident">captures</span>)
+                (<span class="ident">function</span>)(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="ident">context</span>)
             }
             <span class="ident">FunctionBody::Ordinary</span>(<span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
@@ -1933,7 +1961,7 @@
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">is_constructable</span>()
     }
 
-    <span class="doccomment">/// Returns true if the GcObject is the global for a Realm</span>
+    <span class="doccomment">/// Returns true if the JsObject is the global for a Realm</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_global</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>,

@@ -117,12 +117,13 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::function::FunctionFlags</span>,
     <span class="ident">environment::lexical_environment::VariableScope</span>,
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
+    <span class="ident">object::function::ThisMode</span>,
     <span class="ident">syntax::ast::node</span>::{<span class="ident">join_nodes</span>, <span class="ident">FormalParameter</span>, <span class="ident">Node</span>, <span class="ident">StatementList</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
@@ -212,7 +213,8 @@
             <span class="self">self</span>.<span class="ident">name</span>(),
             <span class="self">self</span>.<span class="ident">parameters</span>().<span class="ident">to_vec</span>(),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">clone</span>(),
-            <span class="ident">FunctionFlags::CONSTRUCTABLE</span>,
+            <span class="bool-val">true</span>,
+            <span class="ident">ThisMode::Global</span>,
         )<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="self">self</span>.<span class="ident">name</span>())<span class="question-mark">?</span> {

@@ -1121,6 +1121,9 @@
 <span id="1121">1121</span>
 <span id="1122">1122</span>
 <span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1138,11 +1141,14 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number</span>
 
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::string::is_trimmable_whitespace</span>;
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">JsArgs</span>};
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::StandardObjects</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{
+        <span class="ident">function::make_builtin_fn</span>, <span class="ident">internal_methods::get_prototype_from_constructor</span>,
+        <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>,
+    },
     <span class="ident">property::Attribute</span>,
     <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>,
