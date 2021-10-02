@@ -877,6 +877,85 @@
 <span id="877">877</span>
 <span id="878">878</span>
 <span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -965,6 +1044,8 @@
             <span class="string">&quot;getOwnPropertyDescriptors&quot;</span>,
             <span class="number">1</span>,
         )
+        .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::get_own_property_names</span>, <span class="string">&quot;getOwnPropertyNames&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::get_own_property_symbols</span>, <span class="string">&quot;getOwnPropertySymbols&quot;</span>, <span class="number">1</span>)
         .<span class="ident">build</span>();
 
         (<span class="self">Self</span><span class="ident">::NAME</span>, <span class="ident">object</span>.<span class="ident">into</span>(), <span class="self">Self</span><span class="ident">::attribute</span>())
@@ -1704,6 +1785,42 @@
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
         }
     }
+
+    <span class="doccomment">/// `Object.getOwnPropertyNames( object )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertynames</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_own_property_names</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Return ? GetOwnPropertyKeys(O, string).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="ident">get_own_property_keys</span>(<span class="ident">o</span>, <span class="ident">PropertyKeyType::String</span>, <span class="ident">context</span>)
+    }
+
+    <span class="doccomment">/// `Object.getOwnPropertySymbols( object )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertysymbols</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertySymbols</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_own_property_symbols</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Return ? GetOwnPropertyKeys(O, symbol).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="ident">get_own_property_keys</span>(<span class="ident">o</span>, <span class="ident">PropertyKeyType::Symbol</span>, <span class="ident">context</span>)
+    }
 }
 
 <span class="doccomment">/// The abstract operation ObjectDefineProperties</span>
@@ -1756,6 +1873,47 @@
 
     <span class="comment">// 7. Return O.</span>
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="doccomment">/// Type enum used in the abstract operation GetOwnPropertyKeys</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">enum</span> <span class="ident">PropertyKeyType</span> {
+    <span class="ident">String</span>,
+    <span class="ident">Symbol</span>,
+}
+
+<span class="doccomment">/// The abstract operation GetOwnPropertyKeys</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getownpropertykeys</span>
+<span class="kw">fn</span> <span class="ident">get_own_property_keys</span>(
+    <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+    <span class="ident">r#type</span>: <span class="ident">PropertyKeyType</span>,
+    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="comment">// 1. Let obj be ? ToObject(o).</span>
+    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+    <span class="comment">// 2. Let keys be ? obj.[[OwnPropertyKeys]]().</span>
+    <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+    <span class="comment">// 3. Let nameList be a new empty List.</span>
+    <span class="comment">// 4. For each element nextKey of keys, do</span>
+    <span class="kw">let</span> <span class="ident">name_list</span> <span class="op">=</span> <span class="ident">keys</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">next_key</span><span class="op">|</span> {
+        <span class="comment">// a. If Type(nextKey) is Symbol and type is symbol or Type(nextKey) is String and type is string, then</span>
+        <span class="comment">// i. Append nextKey as the last element of nameList.</span>
+        <span class="kw">match</span> (<span class="ident">r#type</span>, <span class="kw-2">&amp;</span><span class="ident">next_key</span>) {
+            (<span class="ident">PropertyKeyType::String</span>, <span class="ident">PropertyKey::String</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">next_key</span>.<span class="ident">into</span>()),
+            (<span class="ident">PropertyKeyType::String</span>, <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
+            (<span class="ident">PropertyKeyType::Symbol</span>, <span class="ident">PropertyKey::Symbol</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">next_key</span>.<span class="ident">into</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    });
+
+    <span class="comment">// 5. Return CreateArrayFromList(nameList).</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>(<span class="ident">name_list</span>, <span class="ident">context</span>).<span class="ident">into</span>())
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
