@@ -487,6 +487,20 @@ impl Array {
         Ok(a.into())
     }
 
+    ///'Array.prototype.at(index)'
+    ///
+    /// When at method is called with desired index, it returns the value at given
+    /// index. If index is invalid, the at method returns undefined.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.at
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at
+    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        //let O be ? ToObject(this value)
+        let obj = this.to_object(context)?;
+
+        Ok()
+    }
+
     /// `Array.prototype.concat(...arguments)`
     ///
     /// When the concat method is called with zero or more arguments, it returns an
