@@ -134,11 +134,31 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
-
-<span class="comment">// builtins module has a lot of built-in functions that need unnecessary_wraps</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
@@ -194,60 +214,86 @@
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
 
+<span class="doccomment">/// Trait representing a global built-in object such as `Math`, `Object` or</span>
+<span class="doccomment">/// `String`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This trait must be implemented for any global built-in accessible from</span>
+<span class="doccomment">/// Javascript.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">BuiltIn</span> {
-    <span class="doccomment">/// The binding name of the property.</span>
+    <span class="doccomment">/// Binding name of the built-in inside the global object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// E.g. If you want access the properties of a `Complex` built-in</span>
+    <span class="doccomment">/// with the name `Cplx` you must assign `&quot;Cplx&quot;` to this constant,</span>
+    <span class="doccomment">/// making any property inside it accessible from Javascript as `Cplx.prop`</span>
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 
-    <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Attribute</span>;
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">JsValue</span>, <span class="ident">Attribute</span>);
+    <span class="doccomment">/// Property attribute flags of the built-in.</span>
+    <span class="doccomment">/// Check [Attribute] for more information.</span>
+    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span>;
+
+    <span class="doccomment">/// Initialization code for the built-in.</span>
+    <span class="doccomment">/// This is where the methods, properties, static methods and the constructor</span>
+    <span class="doccomment">/// of a built-in must be initialized to be accessible from Javascript.</span>
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span>;
 }
 
-<span class="doccomment">/// Initializes builtin objects and functions</span>
+<span class="doccomment">/// Utility function that checks if a type implements `BuiltIn` before</span>
+<span class="doccomment">/// initializing it as a global built-in.</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">init_builtin</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BuiltIn</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) {
+    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">B::init</span>(<span class="ident">context</span>);
+    <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
+        .<span class="ident">value</span>(<span class="ident">value</span>)
+        .<span class="ident">writable</span>(<span class="ident">B::ATTRIBUTE</span>.<span class="ident">writable</span>())
+        .<span class="ident">enumerable</span>(<span class="ident">B::ATTRIBUTE</span>.<span class="ident">enumerable</span>())
+        .<span class="ident">configurable</span>(<span class="ident">B::ATTRIBUTE</span>.<span class="ident">configurable</span>());
+    <span class="ident">context</span>
+        .<span class="ident">global_object</span>()
+        .<span class="ident">borrow_mut</span>()
+        .<span class="ident">insert</span>(<span class="ident">B::NAME</span>, <span class="ident">property</span>);
+}
+
+<span class="doccomment">/// Initializes built-in objects and functions</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) {
-    <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> [
-        <span class="comment">// Global properties.</span>
-        <span class="ident">Undefined::init</span>,
-        <span class="ident">Infinity::init</span>,
-        <span class="ident">NaN::init</span>,
-        <span class="ident">GlobalThis::init</span>,
-        <span class="ident">BuiltInFunctionObject::init</span>,
-        <span class="ident">BuiltInObjectObject::init</span>,
-        <span class="ident">Math::init</span>,
-        <span class="ident">Json::init</span>,
-        <span class="ident">Array::init</span>,
-        <span class="ident">BigInt::init</span>,
-        <span class="ident">Boolean::init</span>,
-        <span class="ident">Date::init</span>,
-        <span class="ident">Map::init</span>,
-        <span class="ident">Number::init</span>,
-        <span class="ident">Set::init</span>,
-        <span class="ident">String::init</span>,
-        <span class="ident">RegExp::init</span>,
-        <span class="ident">Symbol::init</span>,
-        <span class="ident">Error::init</span>,
-        <span class="ident">RangeError::init</span>,
-        <span class="ident">ReferenceError::init</span>,
-        <span class="ident">TypeError::init</span>,
-        <span class="ident">SyntaxError::init</span>,
-        <span class="ident">EvalError::init</span>,
-        <span class="ident">UriError::init</span>,
-        <span class="ident">Reflect::init</span>,
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-        <span class="ident">console::Console::init</span>,
-    ];
-
-    <span class="kw">let</span> <span class="ident">global_object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>();
-
-    <span class="kw">for</span> <span class="ident">init</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">globals</span> {
-        <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">attribute</span>) <span class="op">=</span> <span class="ident">init</span>(<span class="ident">context</span>);
-        <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-            .<span class="ident">value</span>(<span class="ident">value</span>)
-            .<span class="ident">writable</span>(<span class="ident">attribute</span>.<span class="ident">writable</span>())
-            .<span class="ident">enumerable</span>(<span class="ident">attribute</span>.<span class="ident">enumerable</span>())
-            .<span class="ident">configurable</span>(<span class="ident">attribute</span>.<span class="ident">configurable</span>());
-        <span class="ident">global_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">property</span>);
+    <span class="macro">macro_rules!</span> <span class="ident">globals</span> {
+        ($( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">builtin</span>:<span class="ident">ty</span> ),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            $(<span class="ident">init_builtin</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">builtin</span><span class="op">&gt;</span>(<span class="ident">context</span>)
+            );<span class="op">*</span>
+        }
     }
+
+    <span class="macro">globals!</span> {
+        <span class="ident">Undefined</span>,
+        <span class="ident">Infinity</span>,
+        <span class="ident">NaN</span>,
+        <span class="ident">GlobalThis</span>,
+        <span class="ident">BuiltInFunctionObject</span>,
+        <span class="ident">BuiltInObjectObject</span>,
+        <span class="ident">Math</span>,
+        <span class="ident">Json</span>,
+        <span class="ident">Array</span>,
+        <span class="ident">BigInt</span>,
+        <span class="ident">Boolean</span>,
+        <span class="ident">Date</span>,
+        <span class="ident">Map</span>,
+        <span class="ident">Number</span>,
+        <span class="ident">Set</span>,
+        <span class="ident">String</span>,
+        <span class="ident">RegExp</span>,
+        <span class="ident">Symbol</span>,
+        <span class="ident">Error</span>,
+        <span class="ident">RangeError</span>,
+        <span class="ident">ReferenceError</span>,
+        <span class="ident">TypeError</span>,
+        <span class="ident">SyntaxError</span>,
+        <span class="ident">EvalError</span>,
+        <span class="ident">UriError</span>,
+        <span class="ident">Reflect</span>
+    };
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
+    <span class="ident">init_builtin</span>::<span class="op">&lt;</span><span class="ident">console::Console</span><span class="op">&gt;</span>(<span class="ident">context</span>);
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">JsArgs</span> {

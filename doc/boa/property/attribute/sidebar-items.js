@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Attribute","This struct constains the property flags as describen in the ECMAScript specification."]]});
+initSidebarItems({"struct":[["Attribute","This struct constains the property flags as described in the ECMAScript specification."]]});
