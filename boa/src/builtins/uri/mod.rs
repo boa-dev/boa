@@ -119,7 +119,7 @@ impl Uri {
                 let character = &String::from_utf8(vec![code_point as u8]).unwrap()[..];
 
                 let should_push_unencoded = is_unescaped_uri_component_character(character)
-                    || is_uri_reserved(character);
+                    || (!is_uri_component && is_uri_reserved(character));
 
                 if should_push_unencoded {
                     k += 1;
