@@ -506,8 +506,8 @@ impl Array {
         //2. let len be ? LengthOfArrayLike(O)
         let len = obj.length_of_array_like(context)? as i64;
         //3. let relativeIndex be ? ToIntegerOrInfinity(index)
-        let relativeIndex = args.get(0).unwrap().to_integer_or_infinity(context)?;
-        let k = match relativeIndex {
+        let relative_index = args.get(0).unwrap().to_integer_or_infinity(context)?;
+        let k = match relative_index {
             //4. if relativeIndex >= 0, then let k be relativeIndex
             IntegerOrInfinity::Integer(i) if i >= 0 => i,
             //5. Else, let k be len + relativeIndex
