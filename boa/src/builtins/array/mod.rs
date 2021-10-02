@@ -504,7 +504,7 @@ impl Array {
         //1. let O be ? ToObject(this value)
         let obj = this.to_object(context)?;
         //2. let len be ? LengthOfArrayLike(O)
-        let len = obj.length_of_array_like(context)?;
+        let len = obj.length_of_array_like(context)? as i64;
         //3. let relativeIndex be ? ToIntegerOrInfinity(index)
         let relativeIndex = args.get(0).unwrap().to_integer_or_infinity(context)?;
         let k = match relativeIndex {
@@ -523,7 +523,7 @@ impl Array {
             Ok(JsValue::undefined())
         } else {
             //7. Return ? Get(O, !ToString(𝔽(k)))
-            obj.get(k, context)?
+            obj.get(k, context)
         }
     }
 
