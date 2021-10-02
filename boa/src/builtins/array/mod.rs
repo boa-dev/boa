@@ -490,9 +490,10 @@ impl Array {
 
     ///'Array.prototype.at(index)'
     ///
-    /// When at method takes desired integer as index and returns the value at given
-    /// index. Negative integer counts backwards. If index is invalid, the at method
-    /// returns undefined.
+    /// The at() method takes an integer value and returns the
+    /// item at that index, allowing for positive and negative
+    /// integers. Negative integers count back from the last
+    /// item in the array.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -505,10 +506,8 @@ impl Array {
         let obj = this.to_object(context)?;
         //2. let len be ? LengthOfArrayLike(O)
         let len = obj.length_of_array_like(context)? as i64;
-        //fetch provided index, defaults to 0 index by default on at()
-        let arg_index = args.get(0).unwrap_or(&JsValue::new(0)).clone();
         //3. let relativeIndex be ? ToIntegerOrInfinity(index)
-        let relative_index = arg_index.to_integer_or_infinity(context)?;
+        let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
         let k = match relative_index {
             //4. if relativeIndex >= 0, then let k be relativeIndex
             IntegerOrInfinity::Integer(i) if i >= 0 => i,
@@ -516,8 +515,8 @@ impl Array {
             IntegerOrInfinity::Integer(i) => len + i,
             //handle most likely impossible case of
             //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
-            //by setting k to len which will return undefined below
-            _ => len,
+            //by returning undefined
+            _ => return Ok(JsValue::undefined()),
         };
         //6. if k < 0  or k >= len,
         if k < 0 || k >= len {
