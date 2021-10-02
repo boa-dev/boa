@@ -289,3 +289,51 @@ fn object_is_prototype_of() {
 
     assert_eq!(context.eval(init).unwrap(), JsValue::new(true));
 }
+
+#[test]
+fn object_get_own_property_names_invalid_args() {
+    let mut context = Context::new();
+
+    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
+
+    assert_eq!(
+        forward(&mut context, r#"Object.getOwnPropertyNames()"#),
+        error_message
+    );
+    assert_eq!(
+        forward(&mut context, r#"Object.getOwnPropertyNames(null)"#),
+        error_message
+    );
+    assert_eq!(
+        forward(&mut context, r#"Object.getOwnPropertyNames(undefined)"#),
+        error_message
+    );
+}
+
+#[test]
+fn object_get_own_property_names() {
+    let mut context = Context::new();
+
+    let init = r#"
+        const a = Object.getOwnPropertyNames(0);
+        const b = Object.getOwnPropertyNames(false);
+        const c = Object.getOwnPropertyNames(Symbol("a"));
+        const d = Object.getOwnPropertyNames({});
+        const e = Object.getOwnPropertyNames(NaN);
+
+        const f = Object.getOwnPropertyNames("abc");
+        const g = Object.getOwnPropertyNames([1, 2, 3]);
+        const h = Object.getOwnPropertyNames({ "a": 1, "b": 2, [ Symbol("c") ]: 3 });
+    "#;
+    forward(&mut context, init);
+
+    assert_eq!(forward(&mut context, "a"), "[]");
+    assert_eq!(forward(&mut context, "b"), "[]");
+    assert_eq!(forward(&mut context, "c"), "[]");
+    assert_eq!(forward(&mut context, "d"), "[]");
+    assert_eq!(forward(&mut context, "e"), "[]");
+
+    assert_eq!(forward(&mut context, "f"), r#"[ "0", "1", "2", "length" ]"#);
+    assert_eq!(forward(&mut context, "g"), r#"[ "0", "1", "2", "length" ]"#);
+    assert_eq!(forward(&mut context, "h"), r#"[ "a", "b" ]"#);
+}
