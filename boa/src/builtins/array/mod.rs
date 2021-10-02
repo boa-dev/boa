@@ -511,7 +511,7 @@ impl Array {
             //5. Else, let k be len + relativeIndex
             IntegerOrInfinity::Integer(i) => len + i,
             //handle most likely impossible case of
-            //IntegerOrInfinity::NegativeInfinity | IntegerOrInfinity::PositiveInfinity
+            //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
             //by setting to len which will return undefined
             _ => len,
         };
