@@ -489,8 +489,9 @@ impl Array {
 
     ///'Array.prototype.at(index)'
     ///
-    /// When at method is called with desired index, it returns the value at given
-    /// index. If index is invalid, the at method returns undefined.
+    /// When at method takes desired integer as index and returns the value at given
+    /// index. Negative integer counts backwards. If index is invalid, the at method
+    /// returns undefined.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
