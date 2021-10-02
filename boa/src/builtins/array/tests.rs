@@ -1412,7 +1412,8 @@ fn array_spread_non_iterable() {
         try {
             const array2 = [...5];
         } catch (err) {
-            err.name === "TypeError" && err.message === "Not an iterable"
+            console.log(err.message);
+            err.name === "TypeError" && err.message === "Value is not callable"
         }
     "#;
     assert_eq!(forward(&mut context, init), "true");

@@ -87,7 +87,7 @@ impl BuiltIn for Symbol {
         let symbol_has_instance = WellKnownSymbols::has_instance();
         let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
         let symbol_iterator = WellKnownSymbols::iterator();
-        let symbol_match = WellKnownSymbols::match_();
+        let symbol_match = WellKnownSymbols::r#match();
         let symbol_match_all = WellKnownSymbols::match_all();
         let symbol_replace = WellKnownSymbols::replace();
         let symbol_search = WellKnownSymbols::search();

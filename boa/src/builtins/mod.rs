@@ -1,6 +1,7 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
 pub mod array;
+pub mod array_buffer;
 pub mod bigint;
 pub mod boolean;
 #[cfg(feature = "console")]
@@ -22,8 +23,10 @@ pub mod regexp;
 pub mod set;
 pub mod string;
 pub mod symbol;
+pub mod typed_array;
 pub mod undefined;
 
+use self::array_buffer::ArrayBuffer;
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
@@ -47,6 +50,10 @@ pub(crate) use self::{
     set::Set,
     string::String,
     symbol::Symbol,
+    typed_array::{
+        BigInt64Array, BigUint64Array, Float32Array, Float64Array, Int16Array, Int32Array,
+        Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
+    },
     undefined::Undefined,
 };
 use crate::{
@@ -113,6 +120,7 @@ pub fn init(context: &mut Context) {
         Math,
         Json,
         Array,
+        ArrayBuffer,
         BigInt,
         Boolean,
         Date,
@@ -121,6 +129,17 @@ pub fn init(context: &mut Context) {
         Set,
         String,
         RegExp,
+        Int8Array,
+        Uint8Array,
+        Uint8ClampedArray,
+        Int16Array,
+        Uint16Array,
+        Int32Array,
+        Uint32Array,
+        BigInt64Array,
+        BigUint64Array,
+        Float32Array,
+        Float64Array,
         Symbol,
         Error,
         RangeError,

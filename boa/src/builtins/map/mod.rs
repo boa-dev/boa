@@ -13,10 +13,7 @@
 #![allow(clippy::mutable_key_type)]
 
 use crate::{
-    builtins::{
-        iterable::{get_iterator, IteratorResult},
-        BuiltIn,
-    },
+    builtins::{iterable::IteratorResult, BuiltIn},
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -555,7 +552,7 @@ pub(crate) fn add_entries_from_iterable(
     };
 
     // 2. Let iteratorRecord be ? GetIterator(iterable).
-    let iterator_record = get_iterator(iterable, context)?;
+    let iterator_record = iterable.get_iterator(context, None, None)?;
 
     // 3. Repeat,
     loop {

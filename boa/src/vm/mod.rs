@@ -226,29 +226,24 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::InstanceOf => {
-                let y = self.vm.pop();
-                let x = self.vm.pop();
-                let value = if let Some(object) = y.as_object() {
-                    let key = WellKnownSymbols::has_instance();
-
-                    match object.get_method(self, key)? {
-                        Some(instance_of_handler) => {
-                            instance_of_handler.call(&y, &[x], self)?.to_boolean()
-                        }
-                        None if object.is_callable() => object.ordinary_has_instance(self, &x)?,
-                        None => {
-                            return Err(self.construct_type_error(
-                                "right-hand side of 'instanceof' is not callable",
-                            ));
-                        }
-                    }
-                } else {
+                let target = self.vm.pop();
+                let v = self.vm.pop();
+                if !target.is_object() {
                     return Err(self.construct_type_error(format!(
                         "right-hand side of 'instanceof' should be an object, got {}",
-                        y.type_of()
+                        target.type_of()
                     )));
                 };
-
+                let handler = target.get_method(WellKnownSymbols::has_instance(), self)?;
+                if !handler.is_undefined() {
+                    let value = self.call(&handler, &target, &[v.clone()])?.to_boolean();
+                    self.vm.push(value);
+                }
+                if !target.is_callable() {
+                    return Err(self
+                        .construct_type_error("right-hand side of 'instanceof' is not callable"));
+                }
+                let value = target.ordinary_has_instance(self, &v)?;
                 self.vm.push(value);
             }
             Opcode::Void => {

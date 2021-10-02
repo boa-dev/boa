@@ -15,19 +15,21 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ArrayIterator {
-    array: JsValue,
-    next_index: u32,
+    array: JsObject,
+    next_index: usize,
     kind: PropertyNameKind,
+    done: bool,
 }
 
 impl ArrayIterator {
     pub(crate) const NAME: &'static str = "ArrayIterator";
 
-    fn new(array: JsValue, kind: PropertyNameKind) -> Self {
+    fn new(array: JsObject, kind: PropertyNameKind) -> Self {
         ArrayIterator {
             array,
             kind,
             next_index: 0,
+            done: false,
         }
     }
 
@@ -40,7 +42,7 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator
     pub(crate) fn create_array_iterator(
-        array: JsValue,
+        array: JsObject,
         kind: PropertyNameKind,
         context: &Context,
     ) -> JsValue {
@@ -66,21 +68,28 @@ impl ArrayIterator {
             let mut object = object.borrow_mut();
             if let Some(array_iterator) = object.as_array_iterator_mut() {
                 let index = array_iterator.next_index;
-                if array_iterator.array.is_undefined() {
+                if array_iterator.done {
                     return Ok(create_iter_result_object(
                         JsValue::undefined(),
                         true,
                         context,
                     ));
                 }
-                let len = array_iterator
-                    .array
-                    .get_field("length", context)?
-                    .as_number()
-                    .ok_or_else(|| context.construct_type_error("Not an array"))?
-                    as u32;
-                if array_iterator.next_index >= len {
-                    array_iterator.array = JsValue::undefined();
+
+                let len = if let Some(f) = array_iterator.array.borrow().as_typed_array() {
+                    if f.is_detached() {
+                        return context.throw_type_error(
+                            "Cannot get value from typed array that has a detached array buffer",
+                        );
+                    }
+
+                    f.array_length()
+                } else {
+                    array_iterator.array.length_of_array_like(context)?
+                };
+
+                if index >= len {
+                    array_iterator.done = true;
                     return Ok(create_iter_result_object(
                         JsValue::undefined(),
                         true,
@@ -93,11 +102,11 @@ impl ArrayIterator {
                         Ok(create_iter_result_object(index.into(), false, context))
                     }
                     PropertyNameKind::Value => {
-                        let element_value = array_iterator.array.get_field(index, context)?;
+                        let element_value = array_iterator.array.get(index, context)?;
                         Ok(create_iter_result_object(element_value, false, context))
                     }
                     PropertyNameKind::KeyAndValue => {
-                        let element_value = array_iterator.array.get_field(index, context)?;
+                        let element_value = array_iterator.array.get(index, context)?;
                         let result =
                             Array::create_array_from_list([index.into(), element_value], context);
                         Ok(create_iter_result_object(result.into(), false, context))

@@ -3,8 +3,10 @@ flag:module
 flag:async
 
 // Non-implemented features:
-feature:TypedArray
 feature:json-modules
+feature:DataView
+feature:SharedArrayBuffer
+feature:resizable-arraybuffer
 //feature:generators
 //feature:async-iteration
 //feature:class

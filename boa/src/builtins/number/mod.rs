@@ -610,7 +610,6 @@ impl Number {
 
         let integer_cursor = int_iter.next().unwrap().0 + 1;
         let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
-        // dbg!("Number: {}, Radix: {}, Cursors: {}, {}", value, radix, integer_cursor, fraction_cursor);
         String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
     }
 

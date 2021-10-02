@@ -1713,11 +1713,8 @@ impl Date {
         }
 
         // 4. Return ? Invoke(O, "toISOString").
-        if let Some(to_iso_string) = o.get_method(context, "toISOString")? {
-            to_iso_string.call(this, &[], context)
-        } else {
-            context.throw_type_error("toISOString in undefined")
-        }
+        let func = o.get("toISOString", context)?;
+        context.call(&func, &o.into(), &[])
     }
 
     /// `Date.prototype.toString()`

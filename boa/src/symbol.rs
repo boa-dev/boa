@@ -42,7 +42,7 @@ pub struct WellKnownSymbols {
     has_instance: JsSymbol,
     is_concat_spreadable: JsSymbol,
     iterator: JsSymbol,
-    match_: JsSymbol,
+    r#match: JsSymbol,
     match_all: JsSymbol,
     replace: JsSymbol,
     search: JsSymbol,
@@ -106,7 +106,7 @@ impl WellKnownSymbols {
             has_instance,
             is_concat_spreadable,
             iterator,
-            match_,
+            r#match: match_,
             match_all,
             replace,
             search,
@@ -161,8 +161,8 @@ impl WellKnownSymbols {
     /// A regular expression method that matches the regular expression
     /// against a string. Called by the `String.prototype.match` method.
     #[inline]
-    pub fn match_() -> JsSymbol {
-        WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_.clone())
+    pub fn r#match() -> JsSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.r#match.clone())
     }
 
     /// The `Symbol.matchAll` well known symbol.

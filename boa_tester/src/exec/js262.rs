@@ -1,4 +1,5 @@
 use boa::{
+    builtins::JsArgs,
     exec::Executable,
     object::{JsObject, ObjectInitializer},
     property::Attribute,
@@ -11,6 +12,7 @@ pub(super) fn init(context: &mut Context) -> JsObject {
 
     let obj = ObjectInitializer::new(context)
         .function(create_realm, "createRealm", 0)
+        .function(detach_array_buffer, "detachArrayBuffer", 2)
         .function(eval_script, "evalScript", 1)
         .property("global", global_obj, Attribute::default())
         // .property("agent", agent, Attribute::default())
@@ -39,13 +41,42 @@ fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsRes
 /// The `$262.detachArrayBuffer()` function.
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
-#[allow(dead_code)]
 fn detach_array_buffer(
     _this: &JsValue,
-    _: &[JsValue],
-    _context: &mut Context,
+    args: &[JsValue],
+    context: &mut Context,
 ) -> JsResult<JsValue> {
-    todo!()
+    fn type_err(context: &mut Context) -> JsValue {
+        context.construct_type_error("The provided object was not an ArrayBuffer")
+    }
+
+    let array_buffer = args
+        .get(0)
+        .map(JsValue::as_object)
+        .flatten()
+        .ok_or_else(|| type_err(context))?;
+    let mut array_buffer = array_buffer.borrow_mut();
+    let array_buffer = array_buffer
+        .as_array_buffer_mut()
+        .ok_or_else(|| type_err(context))?;
+
+    // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false. TODO
+    // 2. If key is not present, set key to undefined.
+    let key = args.get_or_undefined(1);
+
+    // 3. If SameValue(arrayBuffer.[[ArrayBufferDetachKey]], key) is false, throw a TypeError exception.
+    if !JsValue::same_value(&array_buffer.array_buffer_detach_key, key) {
+        return Err(context.construct_type_error("Cannot detach array buffer with different key"));
+    }
+
+    // 4. Set arrayBuffer.[[ArrayBufferData]] to null.
+    array_buffer.array_buffer_data = None;
+
+    // 5. Set arrayBuffer.[[ArrayBufferByteLength]] to 0.
+    array_buffer.array_buffer_byte_length = 0;
+
+    // 6. Return NormalCompletion(null).
+    Ok(JsValue::null())
 }
 
 /// The `$262.evalScript()` function.

@@ -720,10 +720,11 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If separator is undefined, let sep be the single-element String ",".
         // 4. Else, let sep be ? ToString(separator).
-        let separator = if let Some(separator) = args.get(0) {
-            separator.to_string(context)?
-        } else {
+        let separator = args.get_or_undefined(0);
+        let separator = if separator.is_undefined() {
             JsString::new(",")
+        } else {
+            separator.to_string(context)?
         };
 
         // 5. Let R be the empty String.
@@ -2527,8 +2528,12 @@ impl Array {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, value).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::Value,
             context,
         ))
@@ -2542,11 +2547,15 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, key).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::Key,
             context,
         ))
@@ -2560,15 +2569,19 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn entries(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, key+value).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::KeyAndValue,
             context,
         ))

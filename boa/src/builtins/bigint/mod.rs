@@ -17,9 +17,10 @@ use crate::{
     object::ConstructorBuilder,
     property::Attribute,
     symbol::WellKnownSymbols,
-    value::IntegerOrInfinity,
+    value::{IntegerOrInfinity, PreferredType::Number},
     BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
+use num_bigint::ToBigInt;
 #[cfg(test)]
 mod tests;
 
@@ -78,11 +79,35 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let data = match args.get(0) {
-            Some(value) => value.to_bigint(context)?,
-            None => JsBigInt::zero(),
-        };
-        Ok(JsValue::new(data))
+        let value = args.get_or_undefined(0);
+
+        // 2. Let prim be ? ToPrimitive(value, number).
+        let prim = value.to_primitive(context, Number)?;
+
+        // 3. If Type(prim) is Number, return ? NumberToBigInt(prim).
+        if let Some(number) = prim.as_number() {
+            return Self::number_to_bigint(number, context);
+        }
+
+        // 4. Otherwise, return ? ToBigInt(value).
+        Ok(value.to_bigint(context)?.into())
+    }
+
+    /// `NumberToBigInt ( number )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
+    #[inline]
+    fn number_to_bigint(number: f64, context: &mut Context) -> JsResult<JsValue> {
+        // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
+        if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
+            return context.throw_range_error(format!("Cannot convert {} to BigInt", number));
+        }
+
+        // 2. Return the BigInt value that represents ℝ(number).
+        Ok(JsBigInt::from(number.to_bigint().expect("This conversion must be safe")).into())
     }
 
     /// The abstract operation thisBigIntValue takes argument value.
