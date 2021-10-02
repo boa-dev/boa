@@ -11,6 +11,7 @@ use crate::{
 };
 use std::io::Read;
 use std::str;
+use std::num::IntErrorKind;
 
 /// Number literal lexing.
 ///
@@ -398,13 +399,13 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 if let Ok(num) = i32::from_str_radix(num_str, base) {
                     Numeric::Integer(num)
                 } else {
-                    let b = f64::from(base);
-                    let mut result = 0.0_f64;
-                    for c in num_str.chars() {
-                        let digit = f64::from(c.to_digit(base).expect("could not parse digit after already checking validity"));
-                        result = result * b + digit;
-                    }
-                    Numeric::Rational(result)
+                    let num = i128::from_str_radix(num_str, base)
+                        .unwrap_or_else(|e| match e.kind() {
+                            IntErrorKind::PosOverflow => i128::MAX,
+                            IntErrorKind::NegOverflow => i128::MIN,
+                            _ => unreachable!("Failed to parse integer after checks")
+                        });
+                    Numeric::Rational(num as f64)
                 }
             }
         };
