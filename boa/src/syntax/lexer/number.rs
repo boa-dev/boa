@@ -10,7 +10,6 @@ use crate::{
     JsBigInt,
 };
 use std::io::Read;
-use std::num::IntErrorKind;
 use std::str;
 
 /// Number literal lexing.
@@ -399,13 +398,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 if let Ok(num) = i32::from_str_radix(num_str, base) {
                     Numeric::Integer(num)
                 } else {
-                    let num = i128::from_str_radix(num_str, base)
-                        .unwrap_or_else(|e| match e.kind() {
-                            IntErrorKind::PosOverflow => i128::MAX,
-                            IntErrorKind::NegOverflow => i128::MIN,
-                            _ => unreachable!("Failed to parse integer after checks")
-                        });
-                    Numeric::Rational(num as f64)
+                    let num = JsBigInt::from_string_radix(num_str, base).expect("Failed to parse integer after checks");
+                    Numeric::Rational(num.to_f64())
                 }
             }
         };
