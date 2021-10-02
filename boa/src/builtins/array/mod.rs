@@ -86,6 +86,7 @@ impl BuiltIn for Array {
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .method(Self::at, "at", 1)
         .method(Self::concat, "concat", 1)
         .method(Self::push, "push", 1)
         .method(Self::index_of, "indexOf", 1)
