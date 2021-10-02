@@ -1,4 +1,4 @@
-use crate::{forward, Context, JsValue};
+use crate::{check_output, forward, Context, JsValue, TestAction};
 
 #[test]
 fn object_create_with_regular_object() {
@@ -292,34 +292,37 @@ fn object_is_prototype_of() {
 
 #[test]
 fn object_get_own_property_names_invalid_args() {
-    let args = vec!["", "null", "undefined"];
+    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
 
-    for arg in args {
-        let mut context = Context::new();
-        let init = format!("Object.getOwnPropertyNames({})", arg);
-        assert_eq!(
-            forward(&mut context, init),
-            r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#
-        );
-    }
+    check_output(&[
+        TestAction::TestEq("Object.getOwnPropertyNames()", error_message),
+        TestAction::TestEq("Object.getOwnPropertyNames(null)", error_message),
+        TestAction::TestEq("Object.getOwnPropertyNames(undefined)", error_message),
+    ]);
 }
 
 #[test]
 fn object_get_own_property_names() {
-    let tests = vec![
-        ("0", "[]"),
-        ("NaN", "[]"),
-        ("false", "[]"),
-        ("{}", "[]"),
-        ("Symbol(\"a\")", "[]"),
-        ("\"abc\"", r#"[ "0", "1", "2", "length" ]"#),
-        ("[ 1, 2, 3 ]", r#"[ "0", "1", "2", "length" ]"#),
-        (r#"{ "a": 1, "b": 2, [Symbol("c")]: 3 }"#, r#"[ "a", "b" ]"#),
-    ];
+    let scenario = r#"
+        const a = Object.getOwnPropertyNames(0);
+        const b = Object.getOwnPropertyNames(false);
+        const c = Object.getOwnPropertyNames(Symbol("a"));
+        const d = Object.getOwnPropertyNames({});
+        const e = Object.getOwnPropertyNames(NaN);
+        const f = Object.getOwnPropertyNames("abc");
+        const g = Object.getOwnPropertyNames([1, 2, 3]);
+        const h = Object.getOwnPropertyNames({ "a": 1, "b": 2, [ Symbol("c") ]: 3 });
+    "#;
 
-    for (arg, expected) in tests {
-        let mut context = Context::new();
-        let init = format!("Object.getOwnPropertyNames({})", arg);
-        assert_eq!(forward(&mut context, init), expected);
-    }
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("a", "[]"),
+        TestAction::TestEq("b", "[]"),
+        TestAction::TestEq("c", "[]"),
+        TestAction::TestEq("d", "[]"),
+        TestAction::TestEq("e", "[]"),
+        TestAction::TestEq("f", r#"[ "0", "1", "2", "length" ]"#),
+        TestAction::TestEq("g", r#"[ "0", "1", "2", "length" ]"#),
+        TestAction::TestEq("h", r#"[ "a", "b" ]"#),
+    ]);
 }
