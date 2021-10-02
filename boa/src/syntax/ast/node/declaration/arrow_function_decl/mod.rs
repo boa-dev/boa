@@ -1,7 +1,7 @@
 use crate::{
-    builtins::function::FunctionFlags,
     exec::Executable,
     gc::{Finalize, Trace},
+    object::function::ThisMode,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     Context, JsResult, JsValue,
 };
@@ -77,7 +77,8 @@ impl Executable for ArrowFunctionDecl {
             "",
             self.params().to_vec(),
             self.body().clone(),
-            FunctionFlags::LEXICAL_THIS_MODE,
+            false,
+            ThisMode::Lexical,
         )
     }
 }

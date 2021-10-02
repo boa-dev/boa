@@ -1,4 +1,4 @@
-use crate::{forward, Context, JsValue};
+use crate::{check_output, forward, Context, JsValue, TestAction};
 
 #[test]
 fn object_create_with_regular_object() {
@@ -288,4 +288,72 @@ fn object_is_prototype_of() {
     "#;
 
     assert_eq!(context.eval(init).unwrap(), JsValue::new(true));
+}
+
+#[test]
+fn object_get_own_property_names_invalid_args() {
+    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
+
+    check_output(&[
+        TestAction::TestEq("Object.getOwnPropertyNames()", error_message),
+        TestAction::TestEq("Object.getOwnPropertyNames(null)", error_message),
+        TestAction::TestEq("Object.getOwnPropertyNames(undefined)", error_message),
+    ]);
+}
+
+#[test]
+fn object_get_own_property_names() {
+    check_output(&[
+        TestAction::TestEq("Object.getOwnPropertyNames(0)", "[]"),
+        TestAction::TestEq("Object.getOwnPropertyNames(false)", "[]"),
+        TestAction::TestEq(r#"Object.getOwnPropertyNames(Symbol("a"))"#, "[]"),
+        TestAction::TestEq("Object.getOwnPropertyNames({})", "[]"),
+        TestAction::TestEq("Object.getOwnPropertyNames(NaN)", "[]"),
+        TestAction::TestEq(
+            "Object.getOwnPropertyNames([1, 2, 3])",
+            r#"[ "0", "1", "2", "length" ]"#,
+        ),
+        TestAction::TestEq(
+            r#"Object.getOwnPropertyNames({
+                "a": 1,
+                "b": 2,
+                [ Symbol("c") ]: 3,
+                [ Symbol("d") ]: 4,
+            })"#,
+            r#"[ "a", "b" ]"#,
+        ),
+    ]);
+}
+
+#[test]
+fn object_get_own_property_symbols_invalid_args() {
+    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
+
+    check_output(&[
+        TestAction::TestEq("Object.getOwnPropertySymbols()", error_message),
+        TestAction::TestEq("Object.getOwnPropertySymbols(null)", error_message),
+        TestAction::TestEq("Object.getOwnPropertySymbols(undefined)", error_message),
+    ]);
+}
+
+#[test]
+fn object_get_own_property_symbols() {
+    check_output(&[
+        TestAction::TestEq("Object.getOwnPropertySymbols(0)", "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols(false)", "[]"),
+        TestAction::TestEq(r#"Object.getOwnPropertySymbols(Symbol("a"))"#, "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols({})", "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols(NaN)", "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols([1, 2, 3])", "[]"),
+        TestAction::TestEq(
+            r#"
+            Object.getOwnPropertySymbols({
+                "a": 1,
+                "b": 2,
+                [ Symbol("c") ]: 3,
+                [ Symbol("d") ]: 4,
+            })"#,
+            "[ Symbol(c), Symbol(d) ]",
+        ),
+    ]);
 }

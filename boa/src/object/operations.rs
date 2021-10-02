@@ -287,6 +287,7 @@ impl JsObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
     #[inline]
+    #[cfg(not(feature = "vm"))]
     pub fn call(
         &self,
         this: &JsValue,
@@ -304,6 +305,7 @@ impl JsObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     #[inline]
+    #[cfg(not(feature = "vm"))]
     pub fn construct(
         &self,
         args: &[JsValue],

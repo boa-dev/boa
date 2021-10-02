@@ -85,6 +85,8 @@ impl BuiltIn for Object {
             "getOwnPropertyDescriptors",
             1,
         )
+        .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
+        .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
         .build();
 
         (Self::NAME, object.into(), Self::attribute())
@@ -824,6 +826,42 @@ impl Object {
             Ok(JsValue::new(false))
         }
     }
+
+    /// `Object.getOwnPropertyNames( object )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertynames
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames
+    pub fn get_own_property_names(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Return ? GetOwnPropertyKeys(O, string).
+        let o = args.get_or_undefined(0);
+        get_own_property_keys(o, PropertyKeyType::String, context)
+    }
+
+    /// `Object.getOwnPropertySymbols( object )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.getownpropertysymbols
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertySymbols
+    pub fn get_own_property_symbols(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Return ? GetOwnPropertyKeys(O, symbol).
+        let o = args.get_or_undefined(0);
+        get_own_property_keys(o, PropertyKeyType::Symbol, context)
+    }
 }
 
 /// The abstract operation ObjectDefineProperties
@@ -876,4 +914,45 @@ fn object_define_properties(
 
     // 7. Return O.
     Ok(())
+}
+
+/// Type enum used in the abstract operation GetOwnPropertyKeys
+#[derive(Debug, Copy, Clone)]
+enum PropertyKeyType {
+    String,
+    Symbol,
+}
+
+/// The abstract operation GetOwnPropertyKeys
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getownpropertykeys
+fn get_own_property_keys(
+    o: &JsValue,
+    r#type: PropertyKeyType,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // 1. Let obj be ? ToObject(o).
+    let obj = o.to_object(context)?;
+
+    // 2. Let keys be ? obj.[[OwnPropertyKeys]]().
+    let keys = obj.__own_property_keys__(context)?;
+
+    // 3. Let nameList be a new empty List.
+    // 4. For each element nextKey of keys, do
+    let name_list = keys.iter().filter_map(|next_key| {
+        // a. If Type(nextKey) is Symbol and type is symbol or Type(nextKey) is String and type is string, then
+        // i. Append nextKey as the last element of nameList.
+        match (r#type, &next_key) {
+            (PropertyKeyType::String, PropertyKey::String(_)) => Some(next_key.into()),
+            (PropertyKeyType::String, PropertyKey::Index(index)) => Some(index.to_string().into()),
+            (PropertyKeyType::Symbol, PropertyKey::Symbol(_)) => Some(next_key.into()),
+            _ => None,
+        }
+    });
+
+    // 5. Return CreateArrayFromList(nameList).
+    Ok(Array::create_array_from_list(name_list, context).into())
 }

@@ -1,7 +1,7 @@
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    builtins::iterable::create_iter_result_object,
     gc::{Finalize, Trace},
-    object::{JsObject, ObjectData},
+    object::{function::make_builtin_fn, JsObject, ObjectData},
     property::PropertyDescriptor,
     property::PropertyKey,
     symbol::WellKnownSymbols,

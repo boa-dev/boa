@@ -12,9 +12,9 @@
 use regexp::{advance_string_index, RegExp};
 
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, regexp},
+    builtins::{iterable::create_iter_result_object, regexp},
     gc::{Finalize, Trace},
-    object::{JsObject, ObjectData},
+    object::{function::make_builtin_fn, JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsString, JsValue,

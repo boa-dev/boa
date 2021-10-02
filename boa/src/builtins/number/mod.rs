@@ -14,11 +14,14 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use super::string::is_trimmable_whitespace;
-use super::{function::make_builtin_fn, JsArgs};
+use super::JsArgs;
 use crate::context::StandardObjects;
 use crate::{
     builtins::BuiltIn,
-    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
+    object::{
+        function::make_builtin_fn, internal_methods::get_prototype_from_constructor,
+        ConstructorBuilder, ObjectData,
+    },
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
