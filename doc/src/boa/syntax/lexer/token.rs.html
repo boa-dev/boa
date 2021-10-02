@@ -255,10 +255,6 @@
 <span id="255">255</span>
 <span id="256">256</span>
 <span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
@@ -369,8 +365,6 @@
     <span class="ident">Identifier</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A keyword.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// see: [`Keyword`](../keyword/enum.Keyword.html)</span>
     <span class="ident">Keyword</span>(<span class="ident">Keyword</span>),
 
     <span class="doccomment">/// A `null` literal.</span>
@@ -380,8 +374,6 @@
     <span class="ident">NumericLiteral</span>(<span class="ident">Numeric</span>),
 
     <span class="doccomment">/// A piece of punctuation</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// see: [`Punctuator`](../punc/enum.Punctuator.html)</span>
     <span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>),
 
     <span class="doccomment">/// A string literal.</span>
