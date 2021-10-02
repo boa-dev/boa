@@ -303,30 +303,25 @@ fn object_get_own_property_names_invalid_args() {
 
 #[test]
 fn object_get_own_property_names() {
-    let scenario = r#"
-        const a = Object.getOwnPropertyNames(0);
-        const b = Object.getOwnPropertyNames(false);
-        const c = Object.getOwnPropertyNames(Symbol("a"));
-        const d = Object.getOwnPropertyNames({});
-        const e = Object.getOwnPropertyNames(NaN);
-        const f = Object.getOwnPropertyNames([1, 2, 3]);
-        const g = Object.getOwnPropertyNames({
-            "a": 1,
-            "b": 2,
-            [ Symbol("c") ]: 3,
-            [ Symbol("d") ]: 4,
-        });
-    "#;
-
     check_output(&[
-        TestAction::Execute(scenario),
-        TestAction::TestEq("a", "[]"),
-        TestAction::TestEq("b", "[]"),
-        TestAction::TestEq("c", "[]"),
-        TestAction::TestEq("d", "[]"),
-        TestAction::TestEq("e", "[]"),
-        TestAction::TestEq("f", r#"[ "0", "1", "2", "length" ]"#),
-        TestAction::TestEq("g", r#"[ "a", "b" ]"#),
+        TestAction::TestEq("Object.getOwnPropertyNames(0)", "[]"),
+        TestAction::TestEq("Object.getOwnPropertyNames(false)", "[]"),
+        TestAction::TestEq(r#"Object.getOwnPropertyNames(Symbol("a"))"#, "[]"),
+        TestAction::TestEq("Object.getOwnPropertyNames({})", "[]"),
+        TestAction::TestEq("Object.getOwnPropertyNames(NaN)", "[]"),
+        TestAction::TestEq(
+            "Object.getOwnPropertyNames([1, 2, 3])",
+            r#"[ "0", "1", "2", "length" ]"#,
+        ),
+        TestAction::TestEq(
+            r#"Object.getOwnPropertyNames({
+                "a": 1,
+                "b": 2,
+                [ Symbol("c") ]: 3,
+                [ Symbol("d") ]: 4,
+            })"#,
+            r#"[ "a", "b" ]"#,
+        ),
     ]);
 }
 
@@ -343,29 +338,22 @@ fn object_get_own_property_symbols_invalid_args() {
 
 #[test]
 fn object_get_own_property_symbols() {
-    let scenario = r#"
-        const a = Object.getOwnPropertySymbols(0);
-        const b = Object.getOwnPropertySymbols(false);
-        const c = Object.getOwnPropertySymbols(Symbol("a"));
-        const d = Object.getOwnPropertySymbols({});
-        const e = Object.getOwnPropertySymbols(NaN);
-        const f = Object.getOwnPropertySymbols([1, 2, 3]);
-        const g = Object.getOwnPropertySymbols({
-            "a": 1,
-            "b": 2,
-            [ Symbol("c") ]: 3,
-            [ Symbol("d") ]: 4,
-        });
-    "#;
-
     check_output(&[
-        TestAction::Execute(scenario),
-        TestAction::TestEq("a", "[]"),
-        TestAction::TestEq("b", "[]"),
-        TestAction::TestEq("c", "[]"),
-        TestAction::TestEq("d", "[]"),
-        TestAction::TestEq("e", "[]"),
-        TestAction::TestEq("f", "[]"),
-        TestAction::TestEq("g", "[ Symbol(c), Symbol(d) ]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols(0)", "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols(false)", "[]"),
+        TestAction::TestEq(r#"Object.getOwnPropertySymbols(Symbol("a"))"#, "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols({})", "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols(NaN)", "[]"),
+        TestAction::TestEq("Object.getOwnPropertySymbols([1, 2, 3])", "[]"),
+        TestAction::TestEq(
+            r#"
+            Object.getOwnPropertySymbols({
+                "a": 1,
+                "b": 2,
+                [ Symbol("c") ]: 3,
+                [ Symbol("d") ]: 4,
+            })"#,
+            "[ Symbol(c), Symbol(d) ]",
+        ),
     ]);
 }
