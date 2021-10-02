@@ -10,8 +10,8 @@ use crate::{
     JsBigInt,
 };
 use std::io::Read;
-use std::str;
 use std::num::IntErrorKind;
+use std::str;
 
 /// Number literal lexing.
 ///
