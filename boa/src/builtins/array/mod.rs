@@ -505,7 +505,7 @@ impl Array {
         let obj = this.to_object(context)?;
         //2. let len be ? LengthOfArrayLike(O)
         let len = obj.length_of_array_like(context)? as i64;
-        //handle unwrap() panicking on no input -> returns 0 index by default on at()
+        //fetch provided index, defaults to 0 index by default on at()
         let arg_index = args.get(0).unwrap_or(&JsValue::new(0)).clone();
         //3. let relativeIndex be ? ToIntegerOrInfinity(index)
         let relative_index = arg_index.to_integer_or_infinity(context)?;
