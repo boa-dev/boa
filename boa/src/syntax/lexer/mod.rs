@@ -3,7 +3,7 @@
 //! This module contains the Boa lexer or tokenizer implementation.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
-//! represented by the [Token](../ast/token/struct.Token.html) structure. It also removes
+//! represented by the [Token] structure. It also removes
 //! whitespace and comments and attaches them to the next token.
 //!
 //! This is tightly coupled with the parser due to the javascript goal-symbol requirements
