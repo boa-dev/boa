@@ -50,38 +50,55 @@ pub(crate) use self::{
     undefined::Undefined,
 };
 use crate::{
-    object::JsObject,
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
 };
 
+/// Trait representing a global built-in object such as `Math`, `Object` or
+/// `String`.
+///
+/// This trait must be implemented for any global built-in accessible from
+/// Javascript.
 pub(crate) trait BuiltIn {
-    /// The binding name of the property.
+    /// Binding name of the built-in inside the global object.
+    ///
+    /// E.g. If you want access the properties of a `Complex` built-in
+    /// with the name `Cplx` you must assign `"Cplx"` to this constant,
+    /// making any property inside it accessible from Javascript as `Cplx.prop`
     const NAME: &'static str;
 
+    /// Property attribute flags of the built-in.
+    /// Check [Attribute] for more information.
     const ATTRIBUTE: Attribute;
+
+    /// Initialization code for the built-in.
+    /// This is where the methods, properties, static methods and the constructor
+    /// of a built-in must be initialized to be accessible from Javascript.
     fn init(context: &mut Context) -> JsValue;
 }
 
+/// Utility function that checks if a type implements `BuiltIn` before
+/// initializing it as a global built-in.
 #[inline]
-fn init_builtin<B: BuiltIn>(global: &JsObject, context: &mut Context) {
+fn init_builtin<B: BuiltIn>(context: &mut Context) {
     let value = B::init(context);
     let property = PropertyDescriptor::builder()
         .value(value)
         .writable(B::ATTRIBUTE.writable())
         .enumerable(B::ATTRIBUTE.enumerable())
         .configurable(B::ATTRIBUTE.configurable());
-    global.borrow_mut().insert(B::NAME, property);
+    context
+        .global_object()
+        .borrow_mut()
+        .insert(B::NAME, property);
 }
 
-/// Initializes builtin objects and functions
+/// Initializes built-in objects and functions
 #[inline]
 pub fn init(context: &mut Context) {
-    let global_object = context.global_object();
-
     macro_rules! globals {
         ($( $builtin:ty ),*) => {
-            $(init_builtin::<$builtin>(&global_object, context)
+            $(init_builtin::<$builtin>(context)
             );*
         }
     }
@@ -116,7 +133,7 @@ pub fn init(context: &mut Context) {
     };
 
     #[cfg(feature = "console")]
-    init_builtin::<console::Console>(&global_object, context);
+    init_builtin::<console::Console>(context);
 }
 
 pub trait JsArgs {
