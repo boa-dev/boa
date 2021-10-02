@@ -26,6 +26,7 @@ pub mod set;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
+pub mod uri;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
@@ -50,6 +51,7 @@ pub(crate) use self::{
     set::Set,
     string::String,
     symbol::Symbol,
+    uri::Uri,
     undefined::Undefined,
 };
 use crate::{
@@ -88,6 +90,7 @@ pub fn init(context: &mut Context) {
         String::init,
         RegExp::init,
         Symbol::init,
+        Uri::init,
         Error::init,
         RangeError::init,
         ReferenceError::init,
