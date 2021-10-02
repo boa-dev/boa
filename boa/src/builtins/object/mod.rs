@@ -840,8 +840,9 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Return ? GetOwnPropertyKeys(O, string).
         let o = args.get_or_undefined(0);
-        get_own_property_keys(o, GetOwnPropertyKeysType::String, context)
+        get_own_property_keys(o, PropertyKeyType::String, context)
     }
 
     /// `Object.getOwnPropertySymbols( object )`
@@ -857,8 +858,9 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Return ? GetOwnPropertyKeys(O, symbol).
         let o = args.get_or_undefined(0);
-        get_own_property_keys(o, GetOwnPropertyKeysType::Symbol, context)
+        get_own_property_keys(o, PropertyKeyType::Symbol, context)
     }
 }
 
@@ -916,7 +918,7 @@ fn object_define_properties(
 
 /// Type enum used in the abstract operation GetOwnPropertyKeys
 #[derive(Debug, Copy, Clone)]
-enum GetOwnPropertyKeysType {
+enum PropertyKeyType {
     String,
     Symbol,
 }
@@ -929,7 +931,7 @@ enum GetOwnPropertyKeysType {
 /// [spec]: https://tc39.es/ecma262/#sec-getownpropertykeys
 fn get_own_property_keys(
     o: &JsValue,
-    r#type: GetOwnPropertyKeysType,
+    r#type: PropertyKeyType,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Let obj be ? ToObject(o).
@@ -940,20 +942,16 @@ fn get_own_property_keys(
 
     // 3. Let nameList be a new empty List.
     // 4. For each element nextKey of keys, do
-    let name_list: Vec<_> = keys
-        .iter()
-        .filter_map(|next_key| {
-            // a. If Type(nextKey) is Symbol and type is symbol or Type(nextKey) is String and type is string, then
-            // i. Append nextKey as the last element of nameList.
-            use GetOwnPropertyKeysType as Type;
-            match (r#type, next_key) {
-                (Type::String, PropertyKey::String(key)) => Some(key.clone().into()),
-                (Type::String, PropertyKey::Index(index)) => Some(index.to_string().into()),
-                (Type::Symbol, PropertyKey::Symbol(symbol)) => Some(symbol.clone().into()),
-                _ => None,
-            }
-        })
-        .collect();
+    let name_list = keys.iter().filter_map(|next_key| {
+        // a. If Type(nextKey) is Symbol and type is symbol or Type(nextKey) is String and type is string, then
+        // i. Append nextKey as the last element of nameList.
+        match (r#type, next_key) {
+            (PropertyKeyType::String, PropertyKey::String(key)) => Some(key.clone().into()),
+            (PropertyKeyType::String, PropertyKey::Index(index)) => Some(index.to_string().into()),
+            (PropertyKeyType::Symbol, PropertyKey::Symbol(symbol)) => Some(symbol.clone().into()),
+            _ => None,
+        }
+    });
 
     // 5. Return CreateArrayFromList(nameList).
     Ok(Array::create_array_from_list(name_list, context).into())
