@@ -502,14 +502,27 @@ impl Array {
         //1. let O be ? ToObject(this value)
         let obj = this.to_object(context)?;
         //2. let len be ? LengthOfArrayLike(O)
+        let len = obj.length_of_array_like(context)?;
         //3. let relativeIndex be ? ToIntegerOrInfinity(index)
-        //4. if relativeIndex >= 0, then
-        //a. let k be relativeIndex
-        //5. Else,
-        //a. let k be len + relativeIndex
-        //6. if k <0> or k >= len, return undefined
-        //7. Return ? Get(O, !ToString(𝔽(k)))
-        Ok()
+        let relativeIndex = args.get(0).unwrap().to_integer_or_infinity(context)?;
+        let k = match relativeIndex {
+            //4. if relativeIndex >= 0, then let k be relativeIndex
+            IntegerOrInfinity::Integer(i) if i >= 0 => i,
+            //5. Else, let k be len + relativeIndex
+            IntegerOrInfinity::Integer(i) => len + i,
+            //handle most likely impossible case of
+            //IntegerOrInfinity::NegativeInfinity | IntegerOrInfinity::PositiveInfinity
+            //by setting to len which will return undefined
+            _ => len,
+        };
+        //6. if k < 0  or k >= len,
+        if k < 0 || k >= len {
+            //return undefined
+            Ok(JsValue::undefined())
+        } else {
+            //7. Return ? Get(O, !ToString(𝔽(k)))
+            obj.get(k, context)?
+        }
     }
 
     /// `Array.prototype.concat(...arguments)`
