@@ -107,8 +107,6 @@ pub enum TokenKind {
     Identifier(Box<str>),
 
     /// A keyword.
-    ///
-    /// see: [`Keyword`](../keyword/enum.Keyword.html)
     Keyword(Keyword),
 
     /// A `null` literal.
@@ -118,8 +116,6 @@ pub enum TokenKind {
     NumericLiteral(Numeric),
 
     /// A piece of punctuation
-    ///
-    /// see: [`Punctuator`](../punc/enum.Punctuator.html)
     Punctuator(Punctuator),
 
     /// A string literal.
