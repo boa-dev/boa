@@ -184,11 +184,11 @@ impl BuiltInFunctionObject {
 impl BuiltIn for BuiltInFunctionObject {
     const NAME: &'static str = "Function";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event("function", "init");
 
         let function_prototype = context.standard_objects().function_object().prototype();
@@ -210,6 +210,6 @@ impl BuiltIn for BuiltInFunctionObject {
         .method(Self::to_string, "toString", 0)
         .build();
 
-        (Self::NAME, function_object.into(), Self::attribute())
+        function_object.into()
     }
 }

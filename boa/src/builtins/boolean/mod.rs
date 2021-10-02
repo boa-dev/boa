@@ -28,11 +28,11 @@ impl BuiltIn for Boolean {
     /// The name of the object.
     const NAME: &'static str = "Boolean";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let boolean_object = ConstructorBuilder::with_standard_object(
@@ -46,7 +46,7 @@ impl BuiltIn for Boolean {
         .method(Self::value_of, "valueOf", 0)
         .build();
 
-        (Self::NAME, boolean_object.into(), Self::attribute())
+        boolean_object.into()
     }
 }
 

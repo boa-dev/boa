@@ -43,11 +43,11 @@ pub(crate) struct Error;
 impl BuiltIn for Error {
     const NAME: &'static str = "Error";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
@@ -63,7 +63,7 @@ impl BuiltIn for Error {
         .method(Self::to_string, "toString", 0)
         .build();
 
-        (Self::NAME, error_object.into(), Self::attribute())
+        error_object.into()
     }
 }
 

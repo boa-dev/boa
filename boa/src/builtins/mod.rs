@@ -1,8 +1,5 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
-// builtins module has a lot of built-in functions that need unnecessary_wraps
-#![allow(clippy::unnecessary_wraps)]
-
 pub mod array;
 pub mod bigint;
 pub mod boolean;
@@ -57,60 +54,86 @@ use crate::{
     Context, JsValue,
 };
 
+/// Trait representing a global built-in object such as `Math`, `Object` or
+/// `String`.
+///
+/// This trait must be implemented for any global built-in accessible from
+/// Javascript.
 pub(crate) trait BuiltIn {
-    /// The binding name of the property.
+    /// Binding name of the built-in inside the global object.
+    ///
+    /// E.g. If you want access the properties of a `Complex` built-in
+    /// with the name `Cplx` you must assign `"Cplx"` to this constant,
+    /// making any property inside it accessible from Javascript as `Cplx.prop`
     const NAME: &'static str;
 
-    fn attribute() -> Attribute;
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute);
+    /// Property attribute flags of the built-in.
+    /// Check [Attribute] for more information.
+    const ATTRIBUTE: Attribute;
+
+    /// Initialization code for the built-in.
+    /// This is where the methods, properties, static methods and the constructor
+    /// of a built-in must be initialized to be accessible from Javascript.
+    fn init(context: &mut Context) -> JsValue;
 }
 
-/// Initializes builtin objects and functions
+/// Utility function that checks if a type implements `BuiltIn` before
+/// initializing it as a global built-in.
+#[inline]
+fn init_builtin<B: BuiltIn>(context: &mut Context) {
+    let value = B::init(context);
+    let property = PropertyDescriptor::builder()
+        .value(value)
+        .writable(B::ATTRIBUTE.writable())
+        .enumerable(B::ATTRIBUTE.enumerable())
+        .configurable(B::ATTRIBUTE.configurable());
+    context
+        .global_object()
+        .borrow_mut()
+        .insert(B::NAME, property);
+}
+
+/// Initializes built-in objects and functions
 #[inline]
 pub fn init(context: &mut Context) {
-    let globals = [
-        // Global properties.
-        Undefined::init,
-        Infinity::init,
-        NaN::init,
-        GlobalThis::init,
-        BuiltInFunctionObject::init,
-        BuiltInObjectObject::init,
-        Math::init,
-        Json::init,
-        Array::init,
-        BigInt::init,
-        Boolean::init,
-        Date::init,
-        Map::init,
-        Number::init,
-        Set::init,
-        String::init,
-        RegExp::init,
-        Symbol::init,
-        Error::init,
-        RangeError::init,
-        ReferenceError::init,
-        TypeError::init,
-        SyntaxError::init,
-        EvalError::init,
-        UriError::init,
-        Reflect::init,
-        #[cfg(feature = "console")]
-        console::Console::init,
-    ];
-
-    let global_object = context.global_object();
-
-    for init in &globals {
-        let (name, value, attribute) = init(context);
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        global_object.borrow_mut().insert(name, property);
+    macro_rules! globals {
+        ($( $builtin:ty ),*) => {
+            $(init_builtin::<$builtin>(context)
+            );*
+        }
     }
+
+    globals! {
+        Undefined,
+        Infinity,
+        NaN,
+        GlobalThis,
+        BuiltInFunctionObject,
+        BuiltInObjectObject,
+        Math,
+        Json,
+        Array,
+        BigInt,
+        Boolean,
+        Date,
+        Map,
+        Number,
+        Set,
+        String,
+        RegExp,
+        Symbol,
+        Error,
+        RangeError,
+        ReferenceError,
+        TypeError,
+        SyntaxError,
+        EvalError,
+        UriError,
+        Reflect
+    };
+
+    #[cfg(feature = "console")]
+    init_builtin::<console::Console>(context);
 }
 
 pub trait JsArgs {

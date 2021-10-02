@@ -89,11 +89,11 @@ impl Default for Date {
 impl BuiltIn for Date {
     const NAME: &'static str = "Date";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let date_object = ConstructorBuilder::new(context, Self::constructor)
@@ -157,7 +157,7 @@ impl BuiltIn for Date {
             .static_method(Self::utc, "UTC", 7)
             .build();
 
-        (Self::NAME, date_object.into(), Self::attribute())
+        date_object.into()
     }
 }
 

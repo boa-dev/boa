@@ -38,11 +38,11 @@ pub(crate) struct Set(OrderedSet<JsValue>);
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -107,7 +107,7 @@ impl BuiltIn for Set {
         )
         .build();
 
-        (Self::NAME, set_object.into(), Self::attribute())
+        set_object.into()
     }
 }
 

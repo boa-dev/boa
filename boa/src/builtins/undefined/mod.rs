@@ -21,13 +21,13 @@ pub(crate) struct Undefined;
 impl BuiltIn for Undefined {
     const NAME: &'static str = "undefined";
 
-    fn attribute() -> Attribute {
-        Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT
-    }
+    const ATTRIBUTE: Attribute = Attribute::READONLY
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::PERMANENT);
 
-    fn init(_: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(_: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        (Self::NAME, JsValue::undefined(), Self::attribute())
+        JsValue::undefined()
     }
 }

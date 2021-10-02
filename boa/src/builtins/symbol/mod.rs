@@ -76,11 +76,11 @@ pub struct Symbol;
 impl BuiltIn for Symbol {
     const NAME: &'static str = "Symbol";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let symbol_async_iterator = WellKnownSymbols::async_iterator();
@@ -142,7 +142,7 @@ impl BuiltIn for Symbol {
         )
         .build();
 
-        (Self::NAME, symbol_object.into(), Self::attribute())
+        symbol_object.into()
     }
 }
 
