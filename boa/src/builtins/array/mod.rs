@@ -512,7 +512,7 @@ impl Array {
             IntegerOrInfinity::Integer(i) => len + i,
             //handle most likely impossible case of
             //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
-            //by setting to len which will return undefined
+            //by setting k to len which will return undefined below
             _ => len,
         };
         //6. if k < 0  or k >= len,
