@@ -509,22 +509,20 @@ impl Array {
         let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
         let k = match relative_index {
             //4. if relativeIndex >= 0, then let k be relativeIndex
-            IntegerOrInfinity::Integer(i) if i >= 0 => i,
+            //check if positive and if below length of array
+            IntegerOrInfinity::Integer(i) if i >= 0 && i < len => i,
             //5. Else, let k be len + relativeIndex
-            IntegerOrInfinity::Integer(i) => len + i,
+            //should be negative, so abs() and check if less than or equal to length of array
+            IntegerOrInfinity::Integer(i) if i.abs() <= len => len + i,
             //handle most likely impossible case of
             //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
             //by returning undefined
             _ => return Ok(JsValue::undefined()),
         };
         //6. if k < 0  or k >= len,
-        if k < 0 || k >= len {
-            //return undefined
-            Ok(JsValue::undefined())
-        } else {
-            //7. Return ? Get(O, !ToString(𝔽(k)))
-            obj.get(k, context)
-        }
+        //handled by the above match guards
+        //7. Return ? Get(O, !ToString(𝔽(k)))
+        obj.get(k, context)
     }
 
     /// `Array.prototype.concat(...arguments)`
