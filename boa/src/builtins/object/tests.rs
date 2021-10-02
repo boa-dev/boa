@@ -309,9 +309,13 @@ fn object_get_own_property_names() {
         const c = Object.getOwnPropertyNames(Symbol("a"));
         const d = Object.getOwnPropertyNames({});
         const e = Object.getOwnPropertyNames(NaN);
-        const f = Object.getOwnPropertyNames("abc");
-        const g = Object.getOwnPropertyNames([1, 2, 3]);
-        const h = Object.getOwnPropertyNames({ "a": 1, "b": 2, [ Symbol("c") ]: 3 });
+        const f = Object.getOwnPropertyNames([1, 2, 3]);
+        const g = Object.getOwnPropertyNames({
+            "a": 1,
+            "b": 2,
+            [ Symbol("c") ]: 3,
+            [ Symbol("d") ]: 4,
+        });
     "#;
 
     check_output(&[
@@ -322,7 +326,46 @@ fn object_get_own_property_names() {
         TestAction::TestEq("d", "[]"),
         TestAction::TestEq("e", "[]"),
         TestAction::TestEq("f", r#"[ "0", "1", "2", "length" ]"#),
-        TestAction::TestEq("g", r#"[ "0", "1", "2", "length" ]"#),
-        TestAction::TestEq("h", r#"[ "a", "b" ]"#),
+        TestAction::TestEq("g", r#"[ "a", "b" ]"#),
+    ]);
+}
+
+#[test]
+fn object_get_own_property_symbols_invalid_args() {
+    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
+
+    check_output(&[
+        TestAction::TestEq("Object.getOwnPropertySymbols()", error_message),
+        TestAction::TestEq("Object.getOwnPropertySymbols(null)", error_message),
+        TestAction::TestEq("Object.getOwnPropertySymbols(undefined)", error_message),
+    ]);
+}
+
+#[test]
+fn object_get_own_property_symbols() {
+    let scenario = r#"
+        const a = Object.getOwnPropertySymbols(0);
+        const b = Object.getOwnPropertySymbols(false);
+        const c = Object.getOwnPropertySymbols(Symbol("a"));
+        const d = Object.getOwnPropertySymbols({});
+        const e = Object.getOwnPropertySymbols(NaN);
+        const f = Object.getOwnPropertySymbols([1, 2, 3]);
+        const g = Object.getOwnPropertySymbols({
+            "a": 1,
+            "b": 2,
+            [ Symbol("c") ]: 3,
+            [ Symbol("d") ]: 4,
+        });
+    "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("a", "[]"),
+        TestAction::TestEq("b", "[]"),
+        TestAction::TestEq("c", "[]"),
+        TestAction::TestEq("d", "[]"),
+        TestAction::TestEq("e", "[]"),
+        TestAction::TestEq("f", "[]"),
+        TestAction::TestEq("g", "[ Symbol(c), Symbol(d) ]"),
     ]);
 }
