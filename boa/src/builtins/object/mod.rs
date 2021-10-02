@@ -945,10 +945,10 @@ fn get_own_property_keys(
     let name_list = keys.iter().filter_map(|next_key| {
         // a. If Type(nextKey) is Symbol and type is symbol or Type(nextKey) is String and type is string, then
         // i. Append nextKey as the last element of nameList.
-        match (r#type, next_key) {
-            (PropertyKeyType::String, PropertyKey::String(key)) => Some(key.clone().into()),
+        match (r#type, &next_key) {
+            (PropertyKeyType::String, PropertyKey::String(_)) => Some(next_key.into()),
             (PropertyKeyType::String, PropertyKey::Index(index)) => Some(index.to_string().into()),
-            (PropertyKeyType::Symbol, PropertyKey::Symbol(symbol)) => Some(symbol.clone().into()),
+            (PropertyKeyType::Symbol, PropertyKey::Symbol(_)) => Some(next_key.into()),
             _ => None,
         }
     });
