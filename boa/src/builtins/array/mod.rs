@@ -492,12 +492,23 @@ impl Array {
     /// When at method is called with desired index, it returns the value at given
     /// index. If index is invalid, the at method returns undefined.
     ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.at
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at
     pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        //let O be ? ToObject(this value)
+        //1. let O be ? ToObject(this value)
         let obj = this.to_object(context)?;
-
+        //2. let len be ? LengthOfArrayLike(O)
+        //3. let relativeIndex be ? ToIntegerOrInfinity(index)
+        //4. if relativeIndex >= 0, then
+        //a. let k be relativeIndex
+        //5. Else,
+        //a. let k be len + relativeIndex
+        //6. if k <0> or k >= len, return undefined
+        //7. Return ? Get(O, !ToString(𝔽(k)))
         Ok()
     }
 
