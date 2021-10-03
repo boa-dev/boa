@@ -4,8 +4,11 @@ use crate::{
             node::{self, Identifier},
             Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
-            statement::{block::Block, BindingIdentifier},
+            statement::{
+                block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern,
+            },
             AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
@@ -64,7 +67,7 @@ where
         };
 
         // Catch block
-        Ok(node::Catch::new::<_, Identifier, _>(
+        Ok(node::Catch::new::<_, node::Declaration, _>(
             catch_param,
             Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?,
         ))
@@ -103,12 +106,29 @@ impl<R> TokenParser<R> for CatchParameter
 where
     R: Read,
 {
-    type Output = Identifier;
+    type Output = node::Declaration;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Identifier, ParseError> {
-        // TODO: should accept BindingPattern
-        BindingIdentifier::new(self.allow_yield, self.allow_await)
-            .parse(cursor)
-            .map(Identifier::from)
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
+        match token.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                let pat = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor)?;
+                Ok(node::Declaration::new_with_object_pattern(pat, None))
+            }
+            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                let pat = ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor)?;
+                Ok(node::Declaration::new_with_array_pattern(pat, None))
+            }
+            TokenKind::Identifier(_) => {
+                let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor)
+                    .map(Identifier::from)?;
+                Ok(node::Declaration::new_with_identifier(ident, None))
+            }
+            _ => Err(ParseError::unexpected(token.clone(), None)),
+        }
     }
 }

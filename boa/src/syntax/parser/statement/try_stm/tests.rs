@@ -1,6 +1,9 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Catch, Declaration, DeclarationList, Finally, Identifier, Try},
+        node::{
+            declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
+            Block, Catch, Declaration, DeclarationList, Finally, Try,
+        },
         Const,
     },
     parser::tests::{check_invalid, check_parser},
@@ -10,7 +13,15 @@ use crate::syntax::{
 fn check_inline_with_empty_try_catch() {
     check_parser(
         "try { } catch(e) {}",
-        vec![Try::new(vec![], Some(Catch::new("e", vec![])), None).into()],
+        vec![Try::new(
+            vec![],
+            Some(Catch::new(
+                Declaration::new_with_identifier("e", None),
+                vec![],
+            )),
+            None,
+        )
+        .into()],
     );
 }
 
@@ -27,7 +38,10 @@ fn check_inline_with_var_decl_inside_try() {
                 .into(),
             )
             .into()],
-            Some(Catch::new("e", vec![])),
+            Some(Catch::new(
+                Declaration::new_with_identifier("e", None),
+                vec![],
+            )),
             None,
         )
         .into()],
@@ -48,7 +62,7 @@ fn check_inline_with_var_decl_inside_catch() {
             )
             .into()],
             Some(Catch::new(
-                "e",
+                Declaration::new_with_identifier("e", None),
                 vec![DeclarationList::Var(
                     vec![Declaration::new_with_identifier(
                         "x",
@@ -70,7 +84,10 @@ fn check_inline_with_empty_try_catch_finally() {
         "try {} catch(e) {} finally {}",
         vec![Try::new(
             vec![],
-            Some(Catch::new("e", vec![])),
+            Some(Catch::new(
+                Declaration::new_with_identifier("e", None),
+                vec![],
+            )),
             Some(Finally::from(vec![])),
         )
         .into()],
@@ -111,7 +128,7 @@ fn check_inline_empty_try_paramless_catch() {
         "try {} catch { var x = 1; }",
         vec![Try::new(
             Block::from(vec![]),
-            Some(Catch::new::<_, Identifier, _>(
+            Some(Catch::new::<_, Declaration, _>(
                 None,
                 vec![DeclarationList::Var(
                     vec![Declaration::new_with_identifier(
@@ -121,6 +138,64 @@ fn check_inline_empty_try_paramless_catch() {
                     .into(),
                 )
                 .into()],
+            )),
+            None,
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn check_inline_with_binding_pattern_object() {
+    check_parser(
+        "try {} catch ({ a, b: c }) {}",
+        vec![Try::new(
+            Block::from(vec![]),
+            Some(Catch::new::<_, Declaration, _>(
+                Some(Declaration::new_with_object_pattern(
+                    vec![
+                        BindingPatternTypeObject::SingleName {
+                            ident: "a".into(),
+                            property_name: "a".into(),
+                            default_init: None,
+                        },
+                        BindingPatternTypeObject::SingleName {
+                            ident: "c".into(),
+                            property_name: "b".into(),
+                            default_init: None,
+                        },
+                    ],
+                    None,
+                )),
+                vec![],
+            )),
+            None,
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn check_inline_with_binding_pattern_array() {
+    check_parser(
+        "try {} catch ([a, b]) {}",
+        vec![Try::new(
+            Block::from(vec![]),
+            Some(Catch::new::<_, Declaration, _>(
+                Some(Declaration::new_with_array_pattern(
+                    vec![
+                        BindingPatternTypeArray::SingleName {
+                            ident: "a".into(),
+                            default_init: None,
+                        },
+                        BindingPatternTypeArray::SingleName {
+                            ident: "b".into(),
+                            default_init: None,
+                        },
+                    ],
+                    None,
+                )),
+                vec![],
             )),
             None,
         )
@@ -144,6 +219,11 @@ fn check_inline_invalid_catch_parameter() {
 }
 
 #[test]
-fn check_invalide_try_no_catch_finally() {
+fn check_invalid_try_no_catch_finally() {
     check_invalid("try {} let a = 10;");
+}
+
+#[test]
+fn check_invalid_catch_with_empty_paren() {
+    check_invalid("try {} catch() {}");
 }
