@@ -228,7 +228,7 @@ impl Symbol {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // valueOf a symbol is itself
+        // 1. Return ? thisSymbolValue(this value).
         let symbol = Self::this_symbol_value(this, context)?;
         Ok(JsValue::Symbol(symbol))
     }
