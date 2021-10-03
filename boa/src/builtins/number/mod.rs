@@ -214,6 +214,21 @@ impl Number {
         }
     }
 
+    /// Helper function that formats a float as a ES6-style exponential number string with a given precision.
+    // We can't use the same approach as in `num_to_exponential`
+    // because in cases like (0.999).toExponential(0) the result will be 1e0.
+    // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
+    fn num_to_exponential_with_precision(n: f64, prec: usize) -> String {
+        let mut res = format!("{:.*e}", prec, n);
+        let idx = res
+            .find('e')
+            .unwrap_or_else(|| unreachable!("'e' not found in exponential string"));
+        if res.as_bytes()[idx + 1] != b'-' {
+            res.insert(idx + 1, '+');
+        }
+        res
+    }
+
     /// `Number.prototype.toExponential( [fractionDigits] )`
     ///
     /// The `toExponential()` method returns a string representing the Number object in exponential notation.
@@ -227,11 +242,30 @@ impl Number {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_exponential(
         this: &JsValue,
-        _: &[JsValue],
+        args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
-        let this_str_num = Self::num_to_exponential(this_num);
+        let precision = match args.get(0) {
+            Some(arg) if arg.is_undefined() => None,
+            Some(n) => Some(n.to_integer(context)? as i32),
+            None => None,
+        };
+        if !this_num.is_finite() {
+            return Ok(JsValue::new(Self::to_native_string(this_num)));
+        }
+        // Get rid of the '-' sign for -0.0
+        let this_num = if this_num == 0. { 0. } else { this_num };
+        let this_str_num = if let Some(precision) = precision {
+            if precision < 0 || precision > 100 {
+                return Err(context.construct_range_error(
+                    "toExponential() argument must be between 0 and 100",
+                ));
+            }
+            Self::num_to_exponential_with_precision(this_num, precision as usize)
+        } else {
+            Self::num_to_exponential(this_num)
+        };
         Ok(JsValue::new(this_str_num))
     }
 
@@ -254,13 +288,23 @@ impl Number {
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer(context)? as i32 {
-                x if x > 0 => n.to_integer(context)? as usize,
-                _ => 0,
+                0..=100 => n.to_integer(context)? as usize,
+                _ => {
+                    return Err(context.construct_range_error(
+                        "toFixed() digits argument must be between 0 and 100",
+                    ))
+                }
             },
             None => 0,
         };
-        let this_fixed_num = format!("{:.*}", precision, this_num);
-        Ok(JsValue::new(this_fixed_num))
+        // Get rid of the '-' sign for -0.0
+        let this_num = if this_num == 0. { 0. } else { this_num };
+        if this_num >= 1.0e21 {
+            Ok(JsValue::new(Self::num_to_exponential(this_num)))
+        } else {
+            let this_fixed_num = format!("{:.*}", precision, this_num);
+            Ok(JsValue::new(this_fixed_num))
+        }
     }
 
     /// `Number.prototype.toLocaleString( [locales [, options]] )`
