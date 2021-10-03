@@ -10,6 +10,7 @@ pub mod error;
 pub mod function;
 pub mod global_this;
 pub mod infinity;
+pub mod intl;
 pub mod iterable;
 pub mod json;
 pub mod map;
@@ -33,6 +34,7 @@ pub(crate) use self::{
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
+    intl::Intl,
     json::Json,
     map::map_iterator::MapIterator,
     map::Map,
@@ -111,6 +113,7 @@ pub fn init(context: &mut Context) {
         BuiltInFunctionObject,
         BuiltInObjectObject,
         Math,
+        Intl,
         Json,
         Array,
         BigInt,
