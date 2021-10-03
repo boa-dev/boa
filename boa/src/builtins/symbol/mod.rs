@@ -127,6 +127,7 @@ impl BuiltIn for Symbol {
         .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
         .static_property("unscopables", symbol_unscopables, attribute)
         .method(Self::to_string, "toString", 0)
+        .method(Self::value_of, "valueOf", 0)
         .accessor(
             "description",
             Some(get_description),
@@ -210,6 +211,26 @@ impl Symbol {
     ) -> JsResult<JsValue> {
         let symbol = Self::this_symbol_value(this, context)?;
         Ok(symbol.to_string().into())
+    }
+
+    /// `Symbol.prototype.valueOf()`
+    ///
+    /// This method returns a `Symbol` that is the primitive value of the specified `Symbol` object.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof
+    pub(crate) fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Return ? thisSymbolValue(this value).
+        let symbol = Self::this_symbol_value(this, context)?;
+        Ok(JsValue::Symbol(symbol))
     }
 
     /// `get Symbol.prototype.description`
