@@ -206,6 +206,8 @@ impl CodeBlock {
             | Opcode::LogicalNot
             | Opcode::Pos
             | Opcode::Neg
+            | Opcode::Inc
+            | Opcode::Dec
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
             | Opcode::DeletePropertyByValue
