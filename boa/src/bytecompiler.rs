@@ -868,8 +868,9 @@ impl ByteCompiler {
 
         compiler.code_block.params = paramaters.to_owned().into_boxed_slice();
 
-        // compiler.emit(Opcode::PushUndefined, &[]);
-        // compiler.emit(Opcode::Return, &[]);
+        // TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn't
+        compiler.emit(Opcode::PushUndefined, &[]);
+        compiler.emit(Opcode::Return, &[]);
 
         let code = Gc::new(compiler.finish());
 
