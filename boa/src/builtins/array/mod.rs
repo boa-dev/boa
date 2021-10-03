@@ -86,6 +86,7 @@ impl BuiltIn for Array {
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .method(Self::at, "at", 1)
         .method(Self::concat, "concat", 1)
         .method(Self::push, "push", 1)
         .method(Self::index_of, "indexOf", 1)
@@ -485,6 +486,43 @@ impl Array {
 
         // 9. Return A.
         Ok(a.into())
+    }
+
+    ///'Array.prototype.at(index)'
+    ///
+    /// The at() method takes an integer value and returns the item at that
+    /// index, allowing for positive and negative integers. Negative integers
+    /// count back from the last item in the array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.at
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at
+    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        //1. let O be ? ToObject(this value)
+        let obj = this.to_object(context)?;
+        //2. let len be ? LengthOfArrayLike(O)
+        let len = obj.length_of_array_like(context)? as i64;
+        //3. let relativeIndex be ? ToIntegerOrInfinity(index)
+        let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+        let k = match relative_index {
+            //4. if relativeIndex >= 0, then let k be relativeIndex
+            //check if positive and if below length of array
+            IntegerOrInfinity::Integer(i) if i >= 0 && i < len => i,
+            //5. Else, let k be len + relativeIndex
+            //integer should be negative, so abs() and check if less than or equal to length of array
+            IntegerOrInfinity::Integer(i) if i < 0 && i.abs() <= len => len + i,
+            //handle most likely impossible case of
+            //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
+            //by returning undefined
+            _ => return Ok(JsValue::undefined()),
+        };
+        //6. if k < 0  or k >= len,
+        //handled by the above match guards
+        //7. Return ? Get(O, !ToString(𝔽(k)))
+        obj.get(k, context)
     }
 
     /// `Array.prototype.concat(...arguments)`
