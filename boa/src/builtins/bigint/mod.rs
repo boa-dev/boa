@@ -21,6 +21,7 @@ use crate::{
     BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 use num_bigint::ToBigInt;
+
 #[cfg(test)]
 mod tests;
 

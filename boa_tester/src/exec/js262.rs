@@ -46,6 +46,7 @@ fn detach_array_buffer(
     args: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
+    #[inline]
     fn type_err(context: &mut Context) -> JsValue {
         context.construct_type_error("The provided object was not an ArrayBuffer")
     }

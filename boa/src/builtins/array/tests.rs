@@ -1412,7 +1412,6 @@ fn array_spread_non_iterable() {
         try {
             const array2 = [...5];
         } catch (err) {
-            console.log(err.message);
             err.name === "TypeError" && err.message === "Value is not callable"
         }
     "#;
