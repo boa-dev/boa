@@ -513,7 +513,7 @@ impl Array {
             IntegerOrInfinity::Integer(i) if i >= 0 && i < len => i,
             //5. Else, let k be len + relativeIndex
             //integer should be negative, so abs() and check if less than or equal to length of array
-            IntegerOrInfinity::Integer(i) if i.abs() <= len && i != len => len + i,
+            IntegerOrInfinity::Integer(i) if i < 0 && i.abs() <= len => len + i,
             //handle most likely impossible case of
             //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
             //by returning undefined
