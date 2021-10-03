@@ -257,10 +257,9 @@ impl Number {
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
         let this_str_num = if let Some(precision) = precision {
-            if precision < 0 || precision > 100 {
-                return Err(context.construct_range_error(
-                    "toExponential() argument must be between 0 and 100",
-                ));
+            if !(0..=100).contains(&precision) {
+                return Err(context
+                    .construct_range_error("toExponential() argument must be between 0 and 100"));
             }
             Self::num_to_exponential_with_precision(this_num, precision as usize)
         } else {
