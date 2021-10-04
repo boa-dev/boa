@@ -64,7 +64,7 @@ impl BuiltIn for Math {
             .function(Self::floor, "floor", 1)
             .function(Self::fround, "fround", 1)
             .function(Self::hypot, "hypot", 2)
-            .function(Self::imul, "imul", 1)
+            .function(Self::imul, "imul", 2)
             .function(Self::log, "log", 1)
             .function(Self::log1p, "log1p", 1)
             .function(Self::log10, "log10", 1)
