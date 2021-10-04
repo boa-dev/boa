@@ -191,6 +191,8 @@ impl<R> Lexer<R> {
             }
         };
 
+        //handle hashbang here so the below match block still throws error on
+        //# if position isn't (1, 1)
         if start.column_number() == 1 && start.line_number() == 1 && next_ch == 0x23 {
             if let Some(hashbang_peek) = self.cursor.peek()? {
                 if hashbang_peek == 0x21 {
