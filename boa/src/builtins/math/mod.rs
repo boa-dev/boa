@@ -666,10 +666,13 @@ impl Math {
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
                 f64::NAN
+            } else if (lowest - num).signum() == -1.0 {
+                // We use the sign of the difference of the numbers because it's more robust then f64::min when it comes to -0.0
+                // b. If the sign of the difference is negative,  return lowest.
+                lowest
             } else {
-                // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
-                // c. If number < lowest, set lowest to number.
-                lowest.min(num)
+                // c. If the sign of the difference is positive,  return num.
+                num
             };
         }
         // 5. Return lowest.
