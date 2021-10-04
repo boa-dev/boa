@@ -7,10 +7,13 @@
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-object
 
+use indexmap::IndexSet;
+
 use crate::{
     builtins::{
         BuiltIn,
-        Array
+        Array,
+        JsArgs
     },
     object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
     BoaProfiler, Context, JsValue, JsResult, JsString
@@ -48,14 +51,14 @@ impl BuiltIn for Intl {
 }
 
 impl Intl {
-    fn canonicalize_locale(locale: &str) -> JsResult<String> {
-        Ok(String::from(locale))
+    fn canonicalize_locale(locale: &str) -> JsString {
+        JsString::new(locale)
     }
 
-    fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult<Vec<String>> {
+    fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult<Vec<JsString>> {
         // https://tc39.es/ecma402/#sec-canonicalizelocalelist
         // 1. If locales is undefined, then
-let locales = args.get_or_undefined(0);
+        let locales = args.get_or_undefined(0);
         if locales.is_undefined() {
             // a. Return a new empty List.
             return Ok(Vec::new());
@@ -64,9 +67,10 @@ let locales = args.get_or_undefined(0);
         let locales = &args[0];
 
         // 2. Let seen be a new empty List.
-        let mut seen = Vec::new();
+        let mut seen = IndexSet::new();
 
         // 3. If Type(locales) is String or Type(locales) is Object and locales has an [[InitializedLocale]] internal slot, then
+        // TODO: check if Type(locales) is object and handle the internal slots
         let o = if locales.is_string() {
             // a. Let O be CreateArrayFromList(« locales »).
             Array::create_array_from_list([locales.clone()], context)
@@ -94,27 +98,23 @@ let locales = args.get_or_undefined(0);
                     return Err(context.throw_type_error("locale should be a String or Object").unwrap_err());
                 }
                 // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
+                // TODO: handle checks for InitializedLocale internal slot (there should be an if statement here)
                 // 1. Let tag be kValue.[[Locale]].
                 // iv. Else,
                 // 1. Let tag be ? ToString(kValue).
                 let tag = k_value.to_string(context)?;
                 // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
                 // TODO: implement `IsStructurallyValidLanguageTag`
-                
+
                 // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-                if let Ok(x) = Self::canonicalize_locale(&tag) {
-                    seen.push(x);
-                };
+                seen.insert(Self::canonicalize_locale(&tag));
                 // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
             }
             // d. Increase k by 1.
         };
 
-        seen.sort_unstable();
-        seen.dedup();
-
         // 8. Return seen.
-        Ok(seen)
+        Ok(seen.into_iter().collect::<Vec<JsString>>())
     }
 
     /// Returns an array containing the canonical locale names.
@@ -133,7 +133,7 @@ let locales = args.get_or_undefined(0);
             JsValue::Object(
                 Array::create_array_from_list(
             ll.iter()
-                        .map(|s| JsString::new(s).into())
+                        .map(|s| s.clone().into())
                         .collect::<Vec<JsValue>>(),
                     context
                 )
