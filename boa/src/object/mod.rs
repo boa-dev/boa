@@ -1195,7 +1195,7 @@ impl<'context> FunctionBuilder<'context> {
         self
     }
 
-    /// Specify the whether the object function object can be called with `new` keyword.
+    /// Specify whether the object function object can be called with `new` keyword.
     ///
     /// The default is `false`.
     #[inline]
