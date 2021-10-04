@@ -631,8 +631,14 @@ impl Math {
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
                 f64::NAN
-            } else {
+            } else if num == 0f64
+                && num.is_sign_positive()
+                && highest == 0f64
+                && highest.is_sign_negative()
+            {
                 // b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
+                0f64
+            } else {
                 // c. If number > highest, set highest to number.
                 highest.max(num)
             };
@@ -666,8 +672,14 @@ impl Math {
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
                 f64::NAN
-            } else {
+            } else if num == 0f64
+                && num.is_sign_negative()
+                && lowest == 0f64
+                && lowest.is_sign_positive()
+            {
                 // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
+                -0f64
+            } else {
                 // c. If number < lowest, set lowest to number.
                 lowest.min(num)
             };
@@ -690,6 +702,11 @@ impl Math {
 
         // 2. Set exponent to ? ToNumber(exponent).
         let y = args.get_or_undefined(1).to_number(context)?;
+
+        // Return NAN when abs(base) is 1 and the exponent is +∞𝔽 or -∞𝔽
+        if f64::abs(x) == 1f64 && y.is_infinite() {
+            return Ok(f64::NAN.into());
+        }
 
         // 3. Return ! Number::exponentiate(base, exponent).
         Ok(x.powf(y).into())
