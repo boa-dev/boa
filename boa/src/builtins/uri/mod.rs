@@ -4,51 +4,52 @@ use crate::{Context, JsValue, JsResult, JsString};
 use crate::object::function::make_builtin_fn;
 
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-use crate::builtins::string::code_point_at;
+use crate::builtins::string::{code_point_at, is_leading_surrogate, is_trailing_surrogate};
 
 /// https://url.spec.whatwg.org/#fragment-percent-encode-set
 const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
 
-fn is_uri_mark(c: &str) -> bool {
-    return match c {
-        "-" => true,
-        "_" => true,
-        "." => true,
-        "!" => true,
-        "~" => true,
-        "*" => true,
-        "'" => true,
-        "(" => true,
-        ")" => true,
-        _ => false
-    }
+fn is_uri_mark(code_point: u16) -> bool {
+    [
+        "-",
+        "_",
+        ".",
+        "!",
+        "~",
+        "*",
+        "'",
+        "(",
+        ")"
+    ]
+        .map(|glyphs| { glyphs.encode_utf16().next().unwrap() })
+        .contains(&code_point)
 }
 
-fn is_uri_reserved(c: &str) -> bool {
-    return match c {
-        ";" => true,
-        "/" => true,
-        "?" => true,
-        ":" => true,
-        "@" => true,
-        "&" => true,
-        "=" => true,
-        "+" => true,
-        "$" => true,
-        "," => true,
-        _ => false
-    }
+fn is_uri_reserved(code_point: u16) -> bool {
+    [
+        ";",
+        "/",
+        "?",
+        ":",
+        "@",
+        "&",
+        "=",
+        "+",
+        "$",
+        ","
+    ]
+        .map(|glyphs| { glyphs.encode_utf16().next().unwrap() })
+        .contains(&code_point)
 }
 
-fn is_alpha_numeric(c: &str) -> bool {
-    let first_byte = c.as_bytes()[0];
-    return (97..=122).contains(&first_byte)
-        || (65..=90).contains(&first_byte)
-        || (48..=57).contains(&first_byte);
+fn is_alpha_numeric(code_point: u16) -> bool {
+    return (97..=122).contains(&code_point)
+        || (65..=90).contains(&code_point)
+        || (48..=57).contains(&code_point);
 }
 
-fn is_unescaped_uri_component_character(c: &str) -> bool {
-    return is_alpha_numeric(&c) || is_uri_mark(&c);
+fn is_unescaped_uri_component_character(code_point: u16) -> bool {
+    return is_alpha_numeric(code_point) || is_uri_mark(code_point);
 }
 
 fn naive_decimal_to_hexadecimal(number: u32) -> String {
@@ -103,40 +104,90 @@ impl BuiltIn for Uri {
     }
 }
 
+fn utf8_encode(str: &mut Vec<u32>, code_point: u32, replace_invalid: bool) {
+    //unsigned Utf8::Encode(char* str, uchar c, int previous, bool replace_invalid) {
+    let k_mask = !(1 << 6);
+    if code_point <= 0x007F {
+        str.push(code_point);
+    } else if code_point <= 0x07FF {
+        str.push(0xC0 | (code_point >> 6));
+        str.push(0x80 | (code_point & k_mask));
+    } else if code_point <= 0xFFFF {
+        // DCHECK(!Utf16::IsLeadSurrogate(Utf16::kNoPreviousCharacter));
+        // if (Utf16::IsSurrogatePair(previous, code_point)) {
+        //     const int kUnmatchedSize = kSizeOfUnmatchedSurrogate;
+        //     return Encode(str - kUnmatchedSize,
+        //                   Utf16::CombineSurrogatePair(previous, code_point),
+        //                   Utf16::kNoPreviousCharacter, replace_invalid) -
+        //         kUnmatchedSize;
+        // } else if (replace_invalid &&
+        //     (Utf16::IsLeadSurrogate(code_point) || Utf16::IsTrailSurrogate(code_point))) {
+        //     code_point = kBadChar;
+        // }
+        str.push(0xE0 | (code_point >> 12));
+        str.push(0x80 | ((code_point >> 6) & k_mask));
+        str.push(0x80 | (code_point & k_mask));
+    } else {
+        str.push(0xF0 | (code_point >> 18));
+        str.push(0x80 | ((code_point >> 12) & k_mask));
+        str.push(0x80 | ((code_point >> 6) & k_mask));
+        str.push(0x80 | (code_point & k_mask));
+    }
+}
+
+fn add_encoded_octet_to_buffer(utf8_encoded: &u32, encoded_result: &mut String) {
+    let value1 = String::from(naive_decimal_to_hexadecimal((utf8_encoded >> 4)));
+    let value2 = String::from(naive_decimal_to_hexadecimal((utf8_encoded & 0x0F)));
+
+    encoded_result.push_str("%");
+    encoded_result.push_str(value1.as_str());
+    encoded_result.push_str(value2.as_str());
+}
+
+fn encode_single(code_point: u32, encoded_result: &mut String) {
+    let mut utf8_encoded = Vec::<u32>::new();
+    utf8_encode(&mut utf8_encoded, code_point, false);
+
+    utf8_encoded.iter()
+        .for_each(|encoded| { add_encoded_octet_to_buffer(encoded, encoded_result) });
+}
+
 impl Uri {
     fn encode(string: JsString, is_uri_component: bool) -> String {
-        let str_len = (&string).len();
-        let mut r = "".to_string();
-        let mut k: usize = 0;
+        println!("encode(): {:?}", &string);
+        let mut encoded_result = "".to_string();
 
-        loop {
-            if str_len == k {
-                return r;
-            }
+        string.encode_utf16()
+            .map(|code_point| { code_point as u32 })
+            .for_each(|code_point: u32| {
+                println!("encode(): code_point = {}", &code_point);
 
-            let c = code_point_at(string.clone(), k as i32);
-            if let Some((code_point, code_point_count, is_unpaired_surrogate)) = c {
-                let character = &String::from_utf8(vec![code_point as u8]).unwrap()[..];
+                if is_leading_surrogate(code_point as u16) {
+                    panic!("is leading surrogate");
+                    // let next_code_point = encoded.next();
+                    // if let Some(code_point_pair) = next_code_point {
+                    //     if is_trailing_surrogate(code_point_pair) {
+                    //         encode_pair(code_point, next_code_point, &mut encoded_result);
+                    //     }
+                    // }
+                } else if !is_trailing_surrogate(code_point as u16) {
+                    if is_unescaped_uri_component_character(code_point as u16)
+                        || (!is_uri_component && is_uri_reserved(code_point as u16)) {
 
-                let should_push_unencoded = is_unescaped_uri_component_character(character)
-                    || (!is_uri_component && is_uri_reserved(character));
-
-                if should_push_unencoded {
-                    k += 1;
-                    r.push_str(character);
-                } else {
-                    // TODO: return URIError if code point is IsUnpairedSurrogate
-                    if is_unpaired_surrogate {
-                        panic!("encode uri failed: unpaired surrogate found");
+                        if let Ok(value) = String::from_utf16(&[code_point as u16]) {
+                            encoded_result.push_str(&value[..]);
+                        } else {
+                            panic!("encode(): failure1");
+                        }
+                    } else {
+                        encode_single(code_point, &mut encoded_result);
                     }
-
-                    k += code_point_count as usize;
-                    let utf8_hex = naive_decimal_to_hexadecimal(code_point);
-                    r.push_str("%");
-                    r.push_str(&utf8_hex[..]);
+                } else {
+                    panic!("URIError");
                 }
-            }
-        }
+            });
+
+        encoded_result
     }
 
     pub(crate) fn encode_uri(
