@@ -698,7 +698,7 @@ impl Math {
         let y = args.get_or_undefined(1).to_number(context)?;
 
         // 3. If |x| = 1 and the exponent is infinite, return NaN.
-        if f64::abs(x) == 1.0 && y.is_infinite() {
+        if (f64::abs(x) - 1.0).abs() < f64::EPSILON && y.is_infinite() {
             return Ok(f64::NAN.into())
         }
 
@@ -728,16 +728,21 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
     pub(crate) fn round(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
+        let num = args
             .get_or_undefined(0)
             //1. Let n be ? ToNumber(x).
-            .to_number(context)?
+            .to_number(context)?;
+
             //2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.
             //3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
             //4. If n < +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
             //5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
-            .round()
-            .into())
+
+            if num.fract() == -0.5 {
+                Ok(num.ceil().into())
+            } else {
+                Ok(num.round().into())
+            }
     }
 
     /// Get the sign of a number.
