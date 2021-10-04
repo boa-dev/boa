@@ -104,7 +104,7 @@ impl<R> Tokenizer<R> for Hashbang {
             if let Some(ch) = cursor.peek()? {
                 if ch == b'\r' || ch == b'\n' {
                     //still want to consume the byte to move to next line
-                    cursor.next_byte()?.expect("No byte returned");
+                    cursor.next_byte()?;
                     break;
                 } else {
                     cursor.next_byte()?.expect("No byte returned");
