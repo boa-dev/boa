@@ -631,10 +631,13 @@ impl Math {
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
                 f64::NAN
+            } else if (highest - num).signum() == 1.0 {
+                // We use the sign of the difference of the numbers because it's more robust then f64::min when it comes to -0.0
+                // b. If the sign of the difference is negative,  return highest.
+                highest
             } else {
-                // b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
-                // c. If number > highest, set highest to number.
-                highest.max(num)
+                // c. If the sign of the difference is positive,  return num.
+                num
             };
         }
         // 5. Return highest.
