@@ -42,12 +42,12 @@ pub use hash::*;
 pub use operations::*;
 pub use r#type::Type;
 
-static BIG_INT_2_E_64: Lazy<BigInt> = Lazy::new(|| {
+static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);
     BigInt::from(TWO_E_64)
 });
 
-static BIG_INT_2_E_63: Lazy<BigInt> = Lazy::new(|| {
+static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_63: u128 = 2u128.pow(63);
     BigInt::from(TWO_E_63)
 });
@@ -803,11 +803,11 @@ impl JsValue {
         let n = self.to_bigint(context)?;
 
         // 2. Let int64bit be ℝ(n) modulo 2^64.
-        let int64_bit = n.as_inner().mod_floor(&BIG_INT_2_E_64);
+        let int64_bit = n.as_inner().mod_floor(&TWO_E_64);
 
         // 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).
-        if &int64_bit >= BIG_INT_2_E_63.deref() {
-            Ok(int64_bit.sub(BIG_INT_2_E_64.deref()))
+        if &int64_bit >= TWO_E_63.deref() {
+            Ok(int64_bit.sub(TWO_E_64.deref()))
         } else {
             Ok(int64_bit)
         }
