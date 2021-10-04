@@ -17,7 +17,7 @@ use crate::{
     object::ConstructorBuilder,
     property::Attribute,
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, PreferredType::Number},
+    value::{IntegerOrInfinity, PreferredType},
     BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 use num_bigint::ToBigInt;
@@ -83,7 +83,7 @@ impl BigInt {
         let value = args.get_or_undefined(0);
 
         // 2. Let prim be ? ToPrimitive(value, number).
-        let prim = value.to_primitive(context, Number)?;
+        let prim = value.to_primitive(context, PreferredType::Number)?;
 
         // 3. If Type(prim) is Number, return ? NumberToBigInt(prim).
         if let Some(number) = prim.as_number() {

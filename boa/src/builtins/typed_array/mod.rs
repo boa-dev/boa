@@ -1,4 +1,16 @@
-//! <https://tc39.es/ecma262/#sec-typedarray-objects>
+//! This module implements the global `TypedArray` objects.
+//!
+//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
+//! There is no global property named `TypedArray`, nor is there a directly visible `TypedArray` constructor.
+//! Instead, there are a number of different global properties,
+//! whose values are typed array constructors for specific element types.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-typedarray-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
 use crate::{
     builtins::{
@@ -610,7 +622,7 @@ impl TypedArray {
         if typed_array.is_detached() {
             Ok(0.into())
         } else {
-            Ok(typed_array.byte_length.into())
+            Ok(typed_array.byte_length().into())
         }
     }
 
@@ -1990,7 +2002,7 @@ impl TypedArray {
         // 20. If same is true, then
         let mut src_byte_index = if same {
             // a. Let srcByteLength be source.[[ByteLength]].
-            let src_byte_length = source_array.byte_length;
+            let src_byte_length = source_array.byte_length();
 
             // b. Set srcBuffer to ? CloneArrayBuffer(srcBuffer, srcByteOffset, srcByteLength, %ArrayBuffer%).
             // c. NOTE: %ArrayBuffer% is used to clone srcBuffer because is it known to not have any observable side-effects.
@@ -2887,11 +2899,11 @@ impl TypedArray {
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
-        assert!(indexed.viewed_array_buffer.is_none());
+        assert!(indexed.viewed_array_buffer().is_none());
 
         // 2. Let constructorName be the String value of O.[[TypedArrayName]].
         // 3. Let elementSize be the Element Size value specified in Table 73 for constructorName.
-        let element_size = indexed.typed_array_name.element_size();
+        let element_size = indexed.typed_array_name().element_size();
 
         // 4. Let byteLength be elementSize × length.
         let byte_length = element_size * length;
@@ -2908,13 +2920,13 @@ impl TypedArray {
         )?;
 
         // 6. Set O.[[ViewedArrayBuffer]] to data.
-        indexed.viewed_array_buffer = Some(data);
+        indexed.set_viewed_array_buffer(Some(data));
         // 7. Set O.[[ByteLength]] to byteLength.
-        indexed.byte_length = byte_length;
+        indexed.set_byte_length(byte_length);
         // 8. Set O.[[ByteOffset]] to 0.
-        indexed.byte_offset = 0;
+        indexed.set_byte_offset(0);
         // 9. Set O.[[ArrayLength]] to length.
-        indexed.array_length = length;
+        indexed.set_array_length(length);
 
         // 10. Return O.
         Ok(())
@@ -2974,21 +2986,15 @@ impl TypedArray {
         // 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).
         let proto = get_prototype_from_constructor(new_target, default_proto, context)?;
 
-        let mut indexed = IntegerIndexed {
-            // 3. Assert: obj.[[ViewedArrayBuffer]] is undefined.
-            viewed_array_buffer: None,
-            // 4. Set obj.[[TypedArrayName]] to constructorName.
-            // 5. If constructorName is "BigInt64Array" or "BigUint64Array", set obj.[[ContentType]] to BigInt.
-            // 6. Otherwise, set obj.[[ContentType]] to Number.
-            typed_array_name: constructor_name,
-            // 7. If length is not present, then
-            // a. Set obj.[[ByteLength]] to 0.
-            byte_length: 0,
-            // b. Set obj.[[ByteOffset]] to 0.
-            byte_offset: 0,
-            // c. Set obj.[[ArrayLength]] to 0.
-            array_length: 0,
-        };
+        // 3. Assert: obj.[[ViewedArrayBuffer]] is undefined.
+        // 4. Set obj.[[TypedArrayName]] to constructorName.
+        // 5. If constructorName is "BigInt64Array" or "BigUint64Array", set obj.[[ContentType]] to BigInt.
+        // 6. Otherwise, set obj.[[ContentType]] to Number.
+        // 7. If length is not present, then
+        // a. Set obj.[[ByteLength]] to 0.
+        // b. Set obj.[[ByteOffset]] to 0.
+        // c. Set obj.[[ArrayLength]] to 0.
+        let mut indexed = IntegerIndexed::new(None, constructor_name, 0, 0, 0);
 
         // 8. Else,
         if let Some(length) = length {
@@ -3139,13 +3145,13 @@ impl TypedArray {
         // 18. Set O.[[ByteOffset]] to 0.
         // 19. Set O.[[ArrayLength]] to elementLength.
         drop(o_obj);
-        o.borrow_mut().data = ObjectData::integer_indexed(IntegerIndexed {
-            viewed_array_buffer: Some(data),
-            typed_array_name: constructor_name,
-            byte_offset: 0,
+        o.borrow_mut().data = ObjectData::integer_indexed(IntegerIndexed::new(
+            Some(data),
+            constructor_name,
+            0,
             byte_length,
-            array_length: element_length,
-        });
+            element_length,
+        ));
 
         Ok(())
     }
@@ -3233,13 +3239,13 @@ impl TypedArray {
             .expect("This must be an ArrayBuffer");
 
         // 10. Set O.[[ViewedArrayBuffer]] to buffer.
-        o.viewed_array_buffer = Some(buffer);
+        o.set_viewed_array_buffer(Some(buffer));
         // 11. Set O.[[ByteLength]] to newByteLength.
-        o.byte_length = new_byte_length;
+        o.set_byte_length(new_byte_length);
         // 12. Set O.[[ByteOffset]] to offset.
-        o.byte_offset = offset;
+        o.set_byte_offset(offset);
         // 13. Set O.[[ArrayLength]] to newByteLength / elementSize.
-        o.array_length = new_byte_length / constructor_name.element_size();
+        o.set_array_length(new_byte_length / constructor_name.element_size());
 
         Ok(())
     }

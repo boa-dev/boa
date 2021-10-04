@@ -19,10 +19,12 @@ use gc::{Finalize, Trace};
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::Zero;
+use once_cell::sync::Lazy;
 use std::{
     collections::HashSet,
     convert::TryFrom,
     fmt::{self, Display},
+    ops::{Deref, Sub},
     str::FromStr,
 };
 
@@ -39,6 +41,16 @@ pub use equality::*;
 pub use hash::*;
 pub use operations::*;
 pub use r#type::Type;
+
+static BIG_INT_2_E_64: Lazy<BigInt> = Lazy::new(|| {
+    const TWO_E_64: u128 = 2u128.pow(64);
+    BigInt::from(TWO_E_64)
+});
+
+static BIG_INT_2_E_63: Lazy<BigInt> = Lazy::new(|| {
+    const TWO_E_63: u128 = 2u128.pow(63);
+    BigInt::from(TWO_E_63)
+});
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -644,11 +656,11 @@ impl JsValue {
         let int = number.floor() as i64;
 
         // 4. Let int8bit be int modulo 2^8.
-        let int_8_bit = int % 256;
+        let int_8_bit = int % 2i64.pow(8);
 
         // 5. If int8bit ≥ 2^7, return 𝔽(int8bit - 2^8); otherwise return 𝔽(int8bit).
-        if int_8_bit >= 128 {
-            Ok((int_8_bit - 256) as i8)
+        if int_8_bit >= 2i64.pow(7) {
+            Ok((int_8_bit - 2i64.pow(8)) as i8)
         } else {
             Ok(int_8_bit as i8)
         }
@@ -673,7 +685,7 @@ impl JsValue {
         let int = number.floor() as i64;
 
         // 4. Let int8bit be int modulo 2^8.
-        let int_8_bit = int % 256;
+        let int_8_bit = int % 2i64.pow(8);
 
         // 5. Return 𝔽(int8bit).
         Ok(int_8_bit as u8)
@@ -745,11 +757,11 @@ impl JsValue {
         let int = number.floor() as i64;
 
         // 4. Let int16bit be int modulo 2^16.
-        let int_16_bit = int % 65536;
+        let int_16_bit = int % 2i64.pow(16);
 
         // 5. If int16bit ≥ 2^15, return 𝔽(int16bit - 2^16); otherwise return 𝔽(int16bit).
-        if int_16_bit >= 32768 {
-            Ok((int_16_bit - 65536) as i16)
+        if int_16_bit >= 2i64.pow(15) {
+            Ok((int_16_bit - 2i64.pow(16)) as i16)
         } else {
             Ok(int_16_bit as i16)
         }
@@ -774,7 +786,7 @@ impl JsValue {
         let int = number.floor() as i64;
 
         // 4. Let int16bit be int modulo 2^16.
-        let int_16_bit = int % 65536;
+        let int_16_bit = int % 2i64.pow(16);
 
         // 5. Return 𝔽(int16bit).
         Ok(int_16_bit as u16)
@@ -787,20 +799,15 @@ impl JsValue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
     pub fn to_big_int64(&self, context: &mut Context) -> JsResult<BigInt> {
-        let two_e_64: u128 = 0x1_0000_0000_0000_0000;
-        let two_e_64 = BigInt::from(two_e_64);
-        let two_e_63: u128 = 0x8000_0000_0000_0000;
-        let two_e_63 = BigInt::from(two_e_63);
-
         // 1. Let n be ? ToBigInt(argument).
         let n = self.to_bigint(context)?;
 
         // 2. Let int64bit be ℝ(n) modulo 2^64.
-        let int64_bit = n.as_inner().mod_floor(&two_e_64);
+        let int64_bit = n.as_inner().mod_floor(&BIG_INT_2_E_64);
 
         // 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).
-        if int64_bit >= two_e_63 {
-            Ok(int64_bit - two_e_64)
+        if &int64_bit >= BIG_INT_2_E_63.deref() {
+            Ok(int64_bit.sub(BIG_INT_2_E_64.deref()))
         } else {
             Ok(int64_bit)
         }
