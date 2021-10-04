@@ -697,7 +697,12 @@ impl Math {
         // 2. Set exponent to ? ToNumber(exponent).
         let y = args.get_or_undefined(1).to_number(context)?;
 
-        // 3. Return ! Number::exponentiate(base, exponent).
+        // 3. If |x| = 1 and the exponent is infinite, return NaN.
+        if f64::abs(x) == 1.0 && y.is_infinite() {
+            return Ok(f64::NAN.into())
+        }
+
+        // 4. Return ! Number::exponentiate(base, exponent).
         Ok(x.powf(y).into())
     }
 
