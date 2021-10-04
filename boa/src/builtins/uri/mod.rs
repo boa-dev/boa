@@ -4,7 +4,7 @@ use crate::{Context, JsValue, JsResult, JsString};
 use crate::object::function::make_builtin_fn;
 
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-use crate::builtins::string::{code_point_at, is_leading_surrogate, is_trailing_surrogate};
+    use crate::builtins::string::{code_point_at, is_leading_surrogate, is_trailing_surrogate, is_surrogate_pair};
 
 /// https://url.spec.whatwg.org/#fragment-percent-encode-set
 const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
@@ -108,7 +108,7 @@ fn combine_surrogate_pair(first: u32, second: u32) -> u32 {
     0x10000 + ((first & 0x3ff) << 10) + (second & 0x3ff)
 }
 
-fn utf8_encode(str: &mut Vec<u8>, code_point: u32, code_point_pair: Option<u32>, replace_invalid: bool) {
+fn utf8_encode(str: &mut Vec<u8>, mut code_point: u32, code_point_pair: Option<u32>, replace_invalid: bool) {
     //unsigned Utf8::Encode(char* str, uchar c, int previous, bool replace_invalid) {
     println!("utf8_encode(): code_point = {}", code_point);
 
@@ -120,8 +120,18 @@ fn utf8_encode(str: &mut Vec<u8>, code_point: u32, code_point_pair: Option<u32>,
         str.push((0x80 | (code_point & k_mask)) as u8);
     } else if code_point <= 0xFFFF {
         if let Some(code_point_pair) = code_point_pair {
-            println!("utf8_encode(): found pair = {}", code_point_pair);
-            return utf8_encode(str, combine_surrogate_pair(code_point, code_point_pair), None, replace_invalid);
+            if is_surrogate_pair(code_point as u16, code_point_pair as u16) {
+                panic!("utf8_encode fn not implemented & tested for encoding surrogate pairs yet");
+                return utf8_encode(
+                    str,
+                    combine_surrogate_pair(code_point, code_point_pair),
+                    None,
+                    replace_invalid
+                );
+            } else if replace_invalid
+                && (is_leading_surrogate(code_point as u16) || is_trailing_surrogate(code_point as u16)) {
+                code_point = 0xFFFD;
+            }
         }
         // DCHECK(!Utf16::IsLeadSurrogate(Utf16::kNoPreviousCharacter));
         // if (Utf16::IsSurrogatePair(previous, code_point)) {
