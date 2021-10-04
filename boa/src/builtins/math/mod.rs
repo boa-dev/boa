@@ -631,8 +631,8 @@ impl Math {
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
                 f64::NAN
-            } else if (highest - num).signum() == 1.0 {
-                // We use the sign of the difference of the numbers because it's more robust then f64::min when it comes to -0.0
+            } else if ((highest - num).signum() - 1.0).abs() < f64::EPSILON {
+                // We use the sign of the difference of the numbers because it's more robust then f64::max when it comes to -0.0
                 // b. If the sign of the difference is negative,  return highest.
                 highest
             } else {
@@ -669,7 +669,7 @@ impl Math {
             } else if num.is_nan() {
                 // a. If number is NaN, return NaN.
                 f64::NAN
-            } else if (lowest - num).signum() == -1.0 {
+            } else if ((lowest - num).signum() - -1.0).abs() < f64::EPSILON {
                 // We use the sign of the difference of the numbers because it's more robust then f64::min when it comes to -0.0
                 // b. If the sign of the difference is negative,  return lowest.
                 lowest
