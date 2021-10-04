@@ -227,3 +227,18 @@ fn check_invalid_try_no_catch_finally() {
 fn check_invalid_catch_with_empty_paren() {
     check_invalid("try {} catch() {}");
 }
+
+#[test]
+fn check_invalid_catch_with_duplicate_params() {
+    check_invalid("try {} catch({ a, b: a }) {}");
+}
+
+#[test]
+fn check_invalid_catch_with_lexical_redeclaration() {
+    check_invalid("try {} catch(e) { let e = 'oh' }");
+}
+
+#[test]
+fn check_invalid_catch_with_var_redeclaration() {
+    check_invalid("try {} catch(e) { var e = 'oh' }");
+}
