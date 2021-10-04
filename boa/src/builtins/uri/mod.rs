@@ -52,7 +52,7 @@ fn is_unescaped_uri_component_character(code_point: u16) -> bool {
     return is_alpha_numeric(code_point) || is_uri_mark(code_point);
 }
 
-fn naive_decimal_to_hexadecimal(number: u32) -> String {
+fn naive_decimal_to_hexadecimal(number: u8) -> String {
     fn to_char(decimal_digit: usize) -> String {
         let alpha = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
         return alpha[decimal_digit].clone().to_string();
@@ -104,15 +104,25 @@ impl BuiltIn for Uri {
     }
 }
 
-fn utf8_encode(str: &mut Vec<u32>, code_point: u32, replace_invalid: bool) {
+fn combine_surrogate_pair(first: u32, second: u32) -> u32 {
+    0x10000 + ((first & 0x3ff) << 10) + (second & 0x3ff)
+}
+
+fn utf8_encode(str: &mut Vec<u8>, code_point: u32, code_point_pair: Option<u32>, replace_invalid: bool) {
     //unsigned Utf8::Encode(char* str, uchar c, int previous, bool replace_invalid) {
+    println!("utf8_encode(): code_point = {}", code_point);
+
     let k_mask = !(1 << 6);
     if code_point <= 0x007F {
-        str.push(code_point);
+        str.push(code_point as u8);
     } else if code_point <= 0x07FF {
-        str.push(0xC0 | (code_point >> 6));
-        str.push(0x80 | (code_point & k_mask));
+        str.push((0xC0 | (code_point >> 6)) as u8);
+        str.push((0x80 | (code_point & k_mask)) as u8);
     } else if code_point <= 0xFFFF {
+        if let Some(code_point_pair) = code_point_pair {
+            println!("utf8_encode(): found pair = {}", code_point_pair);
+            return utf8_encode(str, combine_surrogate_pair(code_point, code_point_pair), None, replace_invalid);
+        }
         // DCHECK(!Utf16::IsLeadSurrogate(Utf16::kNoPreviousCharacter));
         // if (Utf16::IsSurrogatePair(previous, code_point)) {
         //     const int kUnmatchedSize = kSizeOfUnmatchedSurrogate;
@@ -124,18 +134,18 @@ fn utf8_encode(str: &mut Vec<u32>, code_point: u32, replace_invalid: bool) {
         //     (Utf16::IsLeadSurrogate(code_point) || Utf16::IsTrailSurrogate(code_point))) {
         //     code_point = kBadChar;
         // }
-        str.push(0xE0 | (code_point >> 12));
-        str.push(0x80 | ((code_point >> 6) & k_mask));
-        str.push(0x80 | (code_point & k_mask));
+        str.push((0xE0 | (code_point >> 12)) as u8);
+        str.push((0x80 | ((code_point >> 6) & k_mask)) as u8);
+        str.push((0x80 | (code_point & k_mask)) as u8);
     } else {
-        str.push(0xF0 | (code_point >> 18));
-        str.push(0x80 | ((code_point >> 12) & k_mask));
-        str.push(0x80 | ((code_point >> 6) & k_mask));
-        str.push(0x80 | (code_point & k_mask));
+        str.push((0xF0 | (code_point >> 18)) as u8);
+        str.push((0x80 | ((code_point >> 12) & k_mask)) as u8);
+        str.push((0x80 | ((code_point >> 6) & k_mask)) as u8);
+        str.push((0x80 | (code_point & k_mask)) as u8);
     }
 }
 
-fn add_encoded_octet_to_buffer(utf8_encoded: &u32, encoded_result: &mut String) {
+fn add_encoded_octet_to_buffer(utf8_encoded: &u8, encoded_result: &mut String) {
     let value1 = String::from(naive_decimal_to_hexadecimal((utf8_encoded >> 4)));
     let value2 = String::from(naive_decimal_to_hexadecimal((utf8_encoded & 0x0F)));
 
@@ -145,8 +155,16 @@ fn add_encoded_octet_to_buffer(utf8_encoded: &u32, encoded_result: &mut String) 
 }
 
 fn encode_single(code_point: u32, encoded_result: &mut String) {
-    let mut utf8_encoded = Vec::<u32>::new();
-    utf8_encode(&mut utf8_encoded, code_point, false);
+    let mut utf8_encoded = Vec::<u8>::new();
+    utf8_encode(&mut utf8_encoded, code_point, None, false);
+
+    utf8_encoded.iter()
+        .for_each(|encoded| { add_encoded_octet_to_buffer(encoded, encoded_result) });
+}
+
+fn encode_pair(code_point: u32, code_point_pair: u32, encoded_result: &mut String) {
+    let mut utf8_encoded = Vec::<u8>::new();
+    utf8_encode(&mut utf8_encoded, combine_surrogate_pair(code_point, code_point_pair), None, false);
 
     utf8_encoded.iter()
         .for_each(|encoded| { add_encoded_octet_to_buffer(encoded, encoded_result) });
@@ -155,37 +173,43 @@ fn encode_single(code_point: u32, encoded_result: &mut String) {
 impl Uri {
     fn encode(string: JsString, is_uri_component: bool) -> String {
         println!("encode(): {:?}", &string);
+        let mut encoded: Vec<u16> = string.encode_utf16().collect();
         let mut encoded_result = "".to_string();
 
-        string.encode_utf16()
-            .map(|code_point| { code_point as u32 })
-            .for_each(|code_point: u32| {
-                println!("encode(): code_point = {}", &code_point);
+        let mut index = 0;
 
-                if is_leading_surrogate(code_point as u16) {
-                    panic!("is leading surrogate");
-                    // let next_code_point = encoded.next();
-                    // if let Some(code_point_pair) = next_code_point {
-                    //     if is_trailing_surrogate(code_point_pair) {
-                    //         encode_pair(code_point, next_code_point, &mut encoded_result);
-                    //     }
-                    // }
-                } else if !is_trailing_surrogate(code_point as u16) {
-                    if is_unescaped_uri_component_character(code_point as u16)
-                        || (!is_uri_component && is_uri_reserved(code_point as u16)) {
+        while index < encoded.len() - 1 {
+            let code_point = encoded[index] as u32;
+            println!("encode(): code_point = {}", &code_point);
 
-                        if let Ok(value) = String::from_utf16(&[code_point as u16]) {
-                            encoded_result.push_str(&value[..]);
-                        } else {
-                            panic!("encode(): failure1");
-                        }
+            if is_leading_surrogate(code_point as u16) {
+                index += 1;
+                // TODO: use method get instead
+                let code_point_pair = encoded[index];
+
+                if is_trailing_surrogate(code_point_pair) {
+                    encode_pair(code_point, code_point_pair as u32, &mut encoded_result);
+                } else {
+                    panic!("bad pair - false positive");
+                }
+            } else if !is_trailing_surrogate(code_point as u16) {
+                if is_unescaped_uri_component_character(code_point as u16)
+                    || (!is_uri_component && is_uri_reserved(code_point as u16)) {
+
+                    if let Ok(value) = String::from_utf16(&[code_point as u16]) {
+                        encoded_result.push_str(&value[..]);
                     } else {
-                        encode_single(code_point, &mut encoded_result);
+                        panic!("encode(): failure");
                     }
                 } else {
-                    panic!("URIError");
+                    encode_single(code_point, &mut encoded_result);
                 }
-            });
+            } else {
+                panic!("URIError");
+            }
+
+            index += 1;
+        }
 
         encoded_result
     }
