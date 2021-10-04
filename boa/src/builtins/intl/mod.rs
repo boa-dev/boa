@@ -10,13 +10,11 @@
 use indexmap::IndexSet;
 
 use crate::{
-    builtins::{
-        BuiltIn,
-        Array,
-        JsArgs
-    },
-    object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, JsResult, JsString
+    builtins::{Array, BuiltIn, JsArgs},
+    object::ObjectInitializer,
+    property::Attribute,
+    symbol::WellKnownSymbols,
+    BoaProfiler, Context, JsResult, JsString, JsValue,
 };
 
 #[cfg(test)]
@@ -55,7 +53,10 @@ impl Intl {
         JsString::new(locale)
     }
 
-    fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult<Vec<JsString>> {
+    fn canonicalize_locale_list(
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<Vec<JsString>> {
         // https://tc39.es/ecma402/#sec-canonicalizelocalelist
         // 1. If locales is undefined, then
         let locales = args.get_or_undefined(0);
@@ -79,7 +80,7 @@ impl Intl {
             // a. Let O be ? ToObject(locales).
             locales.to_object(context)?
         };
-        
+
         // 5. Let len be ? ToLength(? Get(O, "length")).
         let len = o.length_of_array_like(context)?;
 
@@ -95,7 +96,9 @@ impl Intl {
                 let k_value = o.get(k, context)?;
                 // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
                 if !(k_value.is_object() || k_value.is_string()) {
-                    return Err(context.throw_type_error("locale should be a String or Object").unwrap_err());
+                    return Err(context
+                        .throw_type_error("locale should be a String or Object")
+                        .unwrap_err());
                 }
                 // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
                 // TODO: handle checks for InitializedLocale internal slot (there should be an if statement here)
@@ -111,7 +114,7 @@ impl Intl {
                 // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
             }
             // d. Increase k by 1.
-        };
+        }
 
         // 8. Return seen.
         Ok(seen.into_iter().collect::<Vec<JsString>>())
@@ -125,19 +128,19 @@ impl Intl {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.getcanonicallocales
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/getCanonicalLocales
-    pub(crate) fn get_canonical_locales(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn get_canonical_locales(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let ll be ? CanonicalizeLocaleList(locales).
         let ll = Self::canonicalize_locale_list(args, context)?;
         // 2. Return CreateArrayFromList(ll).
-        Ok(
-            JsValue::Object(
-                Array::create_array_from_list(
+        Ok(JsValue::Object(Array::create_array_from_list(
             ll.iter()
-                        .map(|s| s.clone().into())
-                        .collect::<Vec<JsValue>>(),
-                    context
-                )
-            )
-        )
+                .map(|s| s.clone().into())
+                .collect::<Vec<JsValue>>(),
+            context,
+        )))
     }
 }
