@@ -90,3 +90,36 @@ impl<R> Tokenizer<R> for MultiLineComment {
         ))
     }
 }
+
+pub(super) struct Hashbang;
+
+impl<R> Tokenizer<R> for Hashbang {
+    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    where
+        R: Read,
+    {
+        let _timer = BoaProfiler::global().start_event("Hashbang", "Lexing");
+
+        loop {
+            if let Some(ch) = cursor.peek()? {
+                if ch == b'\r' || ch == b'\n' {
+                    //still want to consume the byte to move to next line
+                    cursor.next_byte()?.expect("No byte returned")
+                    break;
+                } else {
+                    cursor.next_byte()?.expect("No byte returned");
+                }
+            } else {
+                return Err(Error::syntax(
+                    "unterminated hashbang", 
+                    cursor.pos())
+                );
+            }
+        }
+
+        Ok(Token::new(
+            TokenKind::Comment,
+            Span::new(start_pos, cursor.pos())
+        ))
+    }
+}
