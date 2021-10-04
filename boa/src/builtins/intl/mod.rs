@@ -55,7 +55,8 @@ impl Intl {
     fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult<Vec<String>> {
         // https://tc39.es/ecma402/#sec-canonicalizelocalelist
         // 1. If locales is undefined, then
-        if (args.len() == 0) || (args[0].is_undefined()) {
+let locales = args.get_or_undefined(0);
+        if locales.is_undefined() {
             // a. Return a new empty List.
             return Ok(Vec::new());
         }
@@ -96,11 +97,12 @@ impl Intl {
                 // 1. Let tag be kValue.[[Locale]].
                 // iv. Else,
                 // 1. Let tag be ? ToString(kValue).
-                let tag_s = k_value.to_string(context)?;
-                let tag = tag_s.as_str();
+                let tag = k_value.to_string(context)?;
                 // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
+                // TODO: implement `IsStructurallyValidLanguageTag`
+                
                 // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-                if let Ok(x) = Self::canonicalize_locale(tag) {
+                if let Ok(x) = Self::canonicalize_locale(&tag) {
                     seen.push(x);
                 };
                 // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
