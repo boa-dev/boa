@@ -77,10 +77,10 @@ impl JsObject {
     /// Create a `JsObject` and automatically set its internal methods and
     /// internal slots from the `data` provided.
     #[inline]
-    pub fn from_proto_and_data(prototype: Option<JsObject>, data: ObjectData) -> Self {
+    pub fn from_proto_and_data<O: Into<Option<JsObject>>>(prototype: O, data: ObjectData) -> Self {
         Self::from_object(Object {
             data,
-            prototype: prototype.map_or(JsValue::Null, JsValue::new),
+            prototype: prototype.into().map_or(JsValue::Null, JsValue::new),
             extensible: true,
             properties: Default::default(),
         })

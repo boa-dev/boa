@@ -25,7 +25,7 @@ impl StringIterator {
 
     pub fn create_string_iterator(string: JsValue, context: &mut Context) -> JsResult<JsValue> {
         let string_iterator = JsObject::from_proto_and_data(
-            Some(context.iterator_prototypes().string_iterator()),
+            context.iterator_prototypes().string_iterator(),
             ObjectData::string_iterator(Self::new(string)),
         );
         Ok(string_iterator.into())
@@ -84,7 +84,7 @@ impl StringIterator {
 
         // Create prototype
         let array_iterator =
-            JsObject::from_proto_and_data(Some(iterator_prototype), ObjectData::ordinary());
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

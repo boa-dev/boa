@@ -263,7 +263,7 @@ impl RegExp {
     fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let proto = get_prototype_from_constructor(this, StandardObjects::regexp_object, context)?;
 
-        Ok(JsObject::from_proto_and_data(Some(proto), ObjectData::ordinary()).into())
+        Ok(JsObject::from_proto_and_data(proto, ObjectData::ordinary()).into())
     }
 
     /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`

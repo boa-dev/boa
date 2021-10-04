@@ -141,7 +141,7 @@ impl<T: Class> ClassConstructor for T {
 
         let native_instance = Self::constructor(this, args, context)?;
         let object_instance = JsObject::from_proto_and_data(
-            Some(prototype),
+            prototype,
             ObjectData::native_object(Box::new(native_instance)),
         );
         Ok(object_instance.into())

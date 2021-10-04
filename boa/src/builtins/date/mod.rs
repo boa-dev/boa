@@ -384,7 +384,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_now(prototype: JsObject) -> JsObject {
-        JsObject::from_proto_and_data(Some(prototype), ObjectData::date(Date::default()))
+        JsObject::from_proto_and_data(prototype, ObjectData::date(Date::default()))
     }
 
     /// `Date(value)`
@@ -425,7 +425,7 @@ impl Date {
 
         let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         Ok(JsObject::from_proto_and_data(
-            Some(prototype),
+            prototype,
             ObjectData::date(Date(tv)),
         ))
     }
@@ -466,7 +466,7 @@ impl Date {
         // If any of the args are infinity or NaN, return an invalid date.
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
             return Ok(JsObject::from_proto_and_data(
-                Some(prototype),
+                prototype,
                 ObjectData::date(Date(None)),
             ));
         }
@@ -494,7 +494,7 @@ impl Date {
         );
 
         Ok(JsObject::from_proto_and_data(
-            Some(prototype),
+            prototype,
             ObjectData::date(date),
         ))
     }

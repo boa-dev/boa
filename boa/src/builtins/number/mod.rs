@@ -170,7 +170,7 @@ impl Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
-        let this = JsObject::from_proto_and_data(Some(prototype), ObjectData::number(data));
+        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
         Ok(this.into())
     }
 

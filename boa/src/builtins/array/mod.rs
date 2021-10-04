@@ -223,7 +223,7 @@ impl Array {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
         };
-        let array = JsObject::from_proto_and_data(Some(prototype), ObjectData::array());
+        let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(

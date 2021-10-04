@@ -521,31 +521,29 @@ impl JsValue {
             JsValue::Boolean(boolean) => {
                 let prototype = context.standard_objects().boolean_object().prototype();
                 Ok(JsObject::from_proto_and_data(
-                    Some(prototype),
+                    prototype,
                     ObjectData::boolean(*boolean),
                 ))
             }
             JsValue::Integer(integer) => {
                 let prototype = context.standard_objects().number_object().prototype();
                 Ok(JsObject::from_proto_and_data(
-                    Some(prototype),
+                    prototype,
                     ObjectData::number(f64::from(*integer)),
                 ))
             }
             JsValue::Rational(rational) => {
                 let prototype = context.standard_objects().number_object().prototype();
                 Ok(JsObject::from_proto_and_data(
-                    Some(prototype),
+                    prototype,
                     ObjectData::number(*rational),
                 ))
             }
             JsValue::String(ref string) => {
                 let prototype = context.standard_objects().string_object().prototype();
 
-                let object = JsObject::from_proto_and_data(
-                    Some(prototype),
-                    ObjectData::string(string.clone()),
-                );
+                let object =
+                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
                     "length",
@@ -560,14 +558,14 @@ impl JsValue {
             JsValue::Symbol(ref symbol) => {
                 let prototype = context.standard_objects().symbol_object().prototype();
                 Ok(JsObject::from_proto_and_data(
-                    Some(prototype),
+                    prototype,
                     ObjectData::symbol(symbol.clone()),
                 ))
             }
             JsValue::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
                 Ok(JsObject::from_proto_and_data(
-                    Some(prototype),
+                    prototype,
                     ObjectData::big_int(bigint.clone()),
                 ))
             }

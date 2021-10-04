@@ -496,8 +496,10 @@ impl Context {
     /// Constructs an object with the `%Object.prototype%` prototype.
     #[inline]
     pub fn construct_object(&self) -> JsObject {
-        let object_prototype = self.standard_objects().object_object().prototype();
-        JsObject::from_proto_and_data(Some(object_prototype), ObjectData::ordinary())
+        JsObject::from_proto_and_data(
+            self.standard_objects().object_object().prototype(),
+            ObjectData::ordinary(),
+        )
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
@@ -715,7 +717,7 @@ impl Context {
         };
 
         let function =
-            JsObject::from_proto_and_data(Some(function_prototype), ObjectData::function(func));
+            JsObject::from_proto_and_data(function_prototype, ObjectData::function(func));
 
         // Set constructor field to the newly created Value (function object)
         let constructor = PropertyDescriptor::builder()

@@ -359,7 +359,7 @@ pub(crate) fn make_builtin_fn<N>(
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
     let function = JsObject::from_proto_and_data(
-        Some(interpreter.standard_objects().function_object().prototype()),
+        interpreter.standard_objects().function_object().prototype(),
         ObjectData::function(Function::Native {
             function,
             constructable: false,
@@ -397,7 +397,7 @@ impl BuiltInFunctionObject {
             get_prototype_from_constructor(new_target, StandardObjects::function_object, context)?;
 
         let this = JsObject::from_proto_and_data(
-            Some(prototype),
+            prototype,
             ObjectData::function(Function::Native {
                 function: |_, _, _| Ok(JsValue::undefined()),
                 constructable: true,

@@ -68,7 +68,7 @@ impl RegExpStringIterator {
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
 
         let regexp_string_iterator = JsObject::from_proto_and_data(
-            Some(context.iterator_prototypes().regexp_string_iterator()),
+            context.iterator_prototypes().regexp_string_iterator(),
             ObjectData::reg_exp_string_iterator(Self::new(
                 matcher.clone(),
                 string,
@@ -162,8 +162,7 @@ impl RegExpStringIterator {
         let _timer = BoaProfiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype
-        let result =
-            JsObject::from_proto_and_data(Some(iterator_prototype), ObjectData::ordinary());
+        let result = JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &result, 0, context);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();

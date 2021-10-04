@@ -130,8 +130,7 @@ impl Set {
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::set_object, context)?;
 
-        let obj =
-            JsObject::from_proto_and_data(Some(prototype), ObjectData::set(OrderedSet::default()));
+        let obj = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
 
         let iterable = args.get_or_undefined(0);
         // 4

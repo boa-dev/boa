@@ -8,9 +8,7 @@ use crate::{
         lexical_environment::Environment,
     },
     gc::{Finalize, Trace},
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
     vm::Opcode,
@@ -313,7 +311,7 @@ impl JsVmFunction {
         let function = Function::VmOrdinary { code, environment };
 
         let constructor =
-            JsObject::from_proto_and_data(Some(function_prototype), ObjectData::function(function));
+            JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
 
         let constructor_property = PropertyDescriptor::builder()
             .value(constructor.clone())
@@ -522,12 +520,12 @@ impl JsObject {
                     // prototype as prototype for the new object
                     // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
                     // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                    let proto = get_prototype_from_constructor(
+                    let prototype = get_prototype_from_constructor(
                         this_target,
                         StandardObjects::object_object,
                         context,
                     )?;
-                    JsObject::from_proto_and_data(Some(proto), ObjectData::ordinary()).into()
+                    JsObject::from_proto_and_data(prototype, ObjectData::ordinary()).into()
                 };
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 

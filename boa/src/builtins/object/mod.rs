@@ -107,7 +107,7 @@ impl Object {
                 StandardObjects::object_object,
                 context,
             )?;
-            let object = JsObject::from_proto_and_data(Some(prototype), ObjectData::ordinary());
+            let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
             return Ok(object.into());
         }
         if let Some(arg) = args.get(0) {

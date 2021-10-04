@@ -66,7 +66,7 @@ impl SyntaxError {
     ) -> JsResult<JsValue> {
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
-        let obj = JsObject::from_proto_and_data(Some(prototype), ObjectData::error());
+        let obj = JsObject::from_proto_and_data(prototype, ObjectData::error());
         if let Some(message) = args.get(0) {
             if !message.is_undefined() {
                 obj.set("message", message.to_string(context)?, false, context)?;

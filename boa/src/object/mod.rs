@@ -1204,12 +1204,10 @@ impl<'context> FunctionBuilder<'context> {
     #[inline]
     pub fn build(&mut self) -> JsObject {
         let function = JsObject::from_proto_and_data(
-            Some(
-                self.context
-                    .standard_objects()
-                    .function_object()
-                    .prototype(),
-            ),
+            self.context
+                .standard_objects()
+                .function_object()
+                .prototype(),
             ObjectData::function(self.function.take().unwrap()),
         );
         let property = PropertyDescriptor::builder()
