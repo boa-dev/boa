@@ -91,9 +91,16 @@ impl<R> Tokenizer<R> for MultiLineComment {
     }
 }
 
-pub(super) struct Hashbang;
+///Lexes a first line Hashbang comment
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
 
-impl<R> Tokenizer<R> for Hashbang {
+pub(super) struct HashbangComment;
+
+impl<R> Tokenizer<R> for HashbangComment {
     fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
     where
         R: Read,
