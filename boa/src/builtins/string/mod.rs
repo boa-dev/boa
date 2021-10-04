@@ -83,6 +83,10 @@ pub(crate) fn is_trailing_surrogate(value: u16) -> bool {
     (0xDC00..=0xDFFF).contains(&value)
 }
 
+pub (crate) fn is_surrogate_pair(first: u16, second: u16) -> bool {
+    is_leading_surrogate(first) && is_trailing_surrogate(second)
+}
+
 /// JavaScript `String` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct String;
