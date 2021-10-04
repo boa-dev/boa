@@ -108,6 +108,7 @@ impl BuiltIn for String {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property("length", 0, attribute)
+        .static_method(Self::from_char_code, "fromCharCode", 1)
         .method(Self::char_at, "charAt", 1)
         .method(Self::char_code_at, "charCodeAt", 1)
         .method(Self::code_point_at, "codePointAt", 1)
@@ -238,6 +239,35 @@ impl String {
         }
 
         Err(context.construct_type_error("'this' is not a string"))
+    }
+
+    /// `String.fromCharCode(...codePoints)`
+    ///
+    /// Construct a `String` from one or more code points (as numbers).
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/multipage/text-processing.html#sec-string.fromcharcode
+    pub(crate) fn from_char_code(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let length be the number of elements in codeUnits.
+        // 2. Let elements be a new empty List.
+        let mut elements = Vec::new();
+        // 3. For each element next of codeUnits, do
+        for next in args {
+            // 3a. Let nextCU be ℝ(? ToUint16(next)).
+            // 3b. Append nextCU to the end of elements.
+            elements.push(next.to_u32(context)? as u16);
+        }
+
+        // 4. Return the String value whose code units are the elements in the List elements.
+        //    If codeUnits is empty, the empty String is returned.
+
+        let s = std::string::String::from_utf16_lossy(elements.as_slice());
+        Ok(JsValue::String(JsString::new(s)))
     }
 
     /// Get the string value to a primitive string
