@@ -220,9 +220,7 @@ impl Number {
     // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
     fn num_to_exponential_with_precision(n: f64, prec: usize) -> String {
         let mut res = format!("{:.*e}", prec, n);
-        let idx = res
-            .find('e')
-            .unwrap_or_else(|| unreachable!("'e' not found in exponential string"));
+        let idx = res.find('e').expect("'e' not found in exponential string");
         if res.as_bytes()[idx + 1] != b'-' {
             res.insert(idx + 1, '+');
         }
@@ -245,18 +243,21 @@ impl Number {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
-            Some(arg) if arg.is_undefined() => None,
+            None | Some(JsValue::Undefined) => None,
+            // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => Some(n.to_integer(context)? as i32),
-            None => None,
         };
+        // 4. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
             return Ok(JsValue::new(Self::to_native_string(this_num)));
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
         let this_str_num = if let Some(precision) = precision {
+            // 5. If f < 0 or f > 100, throw a RangeError exception.
             if !(0..=100).contains(&precision) {
                 return Err(context
                     .construct_range_error("toExponential() argument must be between 0 and 100"));
@@ -284,23 +285,31 @@ impl Number {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let this_num be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
+            // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => match n.to_integer(context)? as i32 {
                 0..=100 => n.to_integer(context)? as usize,
+                // 4, 5. If f < 0 or f > 100, throw a RangeError exception.
                 _ => {
                     return Err(context.construct_range_error(
                         "toFixed() digits argument must be between 0 and 100",
                     ))
                 }
             },
+            // 3. If fractionDigits is undefined, then f is 0.
             None => 0,
         };
-        // Get rid of the '-' sign for -0.0
-        let this_num = if this_num == 0. { 0. } else { this_num };
-        if this_num >= 1.0e21 {
+        // 6. If x is not finite, return ! Number::toString(x).
+        if !this_num.is_finite() {
+            Ok(JsValue::new(Self::to_native_string(this_num)))
+        // 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).
+        } else if this_num >= 1.0e21 {
             Ok(JsValue::new(Self::num_to_exponential(this_num)))
         } else {
+            // Get rid of the '-' sign for -0.0 because of 9. If x < 0, then set s to "-".
+            let this_num = if this_num == 0. { 0. } else { this_num };
             let this_fixed_num = format!("{:.*}", precision, this_num);
             Ok(JsValue::new(this_fixed_num))
         }
