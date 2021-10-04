@@ -136,7 +136,6 @@ impl Intl {
         Ok(JsValue::Object(Array::create_array_from_list(
             ll.iter()
                 .map(|s| s.clone().into())
-                .collect::<Vec<JsValue>>(),
             context,
         )))
     }
