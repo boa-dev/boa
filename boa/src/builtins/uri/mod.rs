@@ -182,13 +182,15 @@ fn encode_pair(code_point: u32, code_point_pair: u32, encoded_result: &mut Strin
 
 impl Uri {
     fn encode(string: JsString, is_uri_component: bool) -> String {
-        println!("encode(): {:?}", &string);
         let mut encoded: Vec<u16> = string.encode_utf16().collect();
         let mut encoded_result = "".to_string();
 
+        println!("encode(): {:?}", &string);
+        println!("encode(): length = {}", encoded.len());
+
         let mut index = 0;
 
-        while index < encoded.len() - 1 {
+        while index < encoded.len() {
             let code_point = encoded[index] as u32;
             println!("encode(): code_point = {}", &code_point);
 
