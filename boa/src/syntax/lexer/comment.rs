@@ -104,22 +104,19 @@ impl<R> Tokenizer<R> for Hashbang {
             if let Some(ch) = cursor.peek()? {
                 if ch == b'\r' || ch == b'\n' {
                     //still want to consume the byte to move to next line
-                    cursor.next_byte()?.expect("No byte returned")
+                    cursor.next_byte()?.expect("No byte returned");
                     break;
                 } else {
                     cursor.next_byte()?.expect("No byte returned");
                 }
             } else {
-                return Err(Error::syntax(
-                    "unterminated hashbang", 
-                    cursor.pos())
-                );
+                return Err(Error::syntax("unterminated hashbang", cursor.pos()));
             }
         }
 
         Ok(Token::new(
             TokenKind::Comment,
-            Span::new(start_pos, cursor.pos())
+            Span::new(start_pos, cursor.pos()),
         ))
     }
 }
