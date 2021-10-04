@@ -107,9 +107,19 @@ impl<R> Lexer<R> {
     where
         R: Read,
     {
-        Self {
-            cursor: Cursor::new(reader),
-            goal_symbol: Default::default(),
+        let mut init_cursor = Cursor::new(reader);
+        match init_cursor.peek_n(2) {
+            Ok(hashbang_peek) if hashbang_peek == 0x2123 => {
+                init_cursor.next_line();
+                Self {
+                    cursor: init_cursor,
+                    goal_symbol: Default::default(),
+                }
+            }
+            _ => Self {
+                cursor: init_cursor,
+                goal_symbol: Default::default(),
+            },
         }
     }
 
