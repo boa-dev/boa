@@ -15,7 +15,8 @@ use crate::{
     BoaProfiler,
 };
 
-use std::{collections::HashSet, io::Read};
+use rustc_hash::FxHashSet;
+use std::io::Read;
 
 /// Catch parsing
 ///
@@ -67,7 +68,7 @@ where
             None
         };
 
-        let mut set = HashSet::new();
+        let mut set = FxHashSet::default();
         let idents = match &catch_param {
             Some(node::Declaration::Identifier { ident, .. }) => vec![ident.as_ref()],
             Some(node::Declaration::Pattern(p)) => p.idents(),
