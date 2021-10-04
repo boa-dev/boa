@@ -30,7 +30,7 @@ pub mod token;
 mod tests;
 
 use self::{
-    comment::{MultiLineComment, SingleLineComment},
+    comment::{Hashbang, MultiLineComment, SingleLineComment},
     cursor::Cursor,
     identifier::Identifier,
     number::NumberLiteral,
@@ -107,19 +107,9 @@ impl<R> Lexer<R> {
     where
         R: Read,
     {
-        let mut init_cursor = Cursor::new(reader);
-        match init_cursor.peek_n(2) {
-            Ok(hashbang_peek) if hashbang_peek == 0x2123 => {
-                init_cursor.next_line();
-                Self {
-                    cursor: init_cursor,
-                    goal_symbol: Default::default(),
-                }
-            }
-            _ => Self {
-                cursor: init_cursor,
-                goal_symbol: Default::default(),
-            },
+        Self {
+            cursor: Cursor::new(reader),
+            goal_symbol: Default::default(),
         }
     }
 
@@ -198,6 +188,15 @@ impl<R> Lexer<R> {
                 }
             } else {
                 return Ok(None);
+            }
+        };
+
+        if start.column_number() == 1 && start.line_number() == 1 && next_ch == 0x23 {
+            if let Some(hashbang_peek) = self.cursor.peek()? {
+                if hashbang_peek == 0x21 {
+                    let _token = Hashbang.lex(&mut self.cursor, start);
+                    return self.next();
+                }
             }
         };
 
