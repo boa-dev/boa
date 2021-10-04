@@ -509,10 +509,10 @@ impl Context {
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
 
-        let msg = if !self.vm.frame().exit_on_return {
-            " Call Frame "
-        } else {
+        let msg = if self.vm.frame().exit_on_return {
             " VM Start"
+        } else {
+            " Call Frame "
         };
 
         if self.vm.trace {
