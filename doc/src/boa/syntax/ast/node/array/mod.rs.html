@@ -102,7 +102,7 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">join_nodes</span>, <span class="ident">Node</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">iterable</span>, <span class="ident">Array</span>},
+    <span class="ident">builtins::Array</span>,
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
@@ -146,7 +146,7 @@
         <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">as_ref</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Spread</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span> <span class="ident">elem</span> {
                 <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable::get_iterator</span>(<span class="kw-2">&amp;</span><span class="ident">val</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
                 <span class="comment">// TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858</span>
                 <span class="comment">// next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation</span>
                 <span class="comment">// let mut next_index = 0;</span>

@@ -601,9 +601,6 @@
 <span id="601">601</span>
 <span id="602">602</span>
 <span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Map` object.</span>
 <span class="doccomment">//!</span>
@@ -620,10 +617,7 @@
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::mutable_key_type</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">iterable</span>::{<span class="ident">get_iterator</span>, <span class="ident">IteratorResult</span>},
-        <span class="ident">BuiltIn</span>,
-    },
+    <span class="ident">builtins</span>::{<span class="ident">iterable::IteratorResult</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">context::StandardObjects</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
@@ -1162,7 +1156,7 @@
     };
 
     <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).</span>
-    <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">get_iterator</span>(<span class="ident">iterable</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Repeat,</span>
     <span class="kw">loop</span> {

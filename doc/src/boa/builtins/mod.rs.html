@@ -157,10 +157,31 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array_buffer</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boolean</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
@@ -182,6 +203,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">set</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">typed_array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">undefined</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::{
@@ -207,9 +229,15 @@
     <span class="ident">set::Set</span>,
     <span class="ident">string::String</span>,
     <span class="ident">symbol::Symbol</span>,
+    <span class="ident">typed_array</span>::{
+        <span class="ident">BigInt64Array</span>, <span class="ident">BigUint64Array</span>, <span class="ident">Float32Array</span>, <span class="ident">Float64Array</span>, <span class="ident">Int16Array</span>, <span class="ident">Int32Array</span>,
+        <span class="ident">Int8Array</span>, <span class="ident">Uint16Array</span>, <span class="ident">Uint32Array</span>, <span class="ident">Uint8Array</span>, <span class="ident">Uint8ClampedArray</span>,
+    },
     <span class="ident">undefined::Undefined</span>,
 };
+
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">builtins::array_buffer::ArrayBuffer</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
@@ -273,6 +301,7 @@
         <span class="ident">Math</span>,
         <span class="ident">Json</span>,
         <span class="ident">Array</span>,
+        <span class="ident">ArrayBuffer</span>,
         <span class="ident">BigInt</span>,
         <span class="ident">Boolean</span>,
         <span class="ident">Date</span>,
@@ -281,6 +310,17 @@
         <span class="ident">Set</span>,
         <span class="ident">String</span>,
         <span class="ident">RegExp</span>,
+        <span class="ident">Int8Array</span>,
+        <span class="ident">Uint8Array</span>,
+        <span class="ident">Uint8ClampedArray</span>,
+        <span class="ident">Int16Array</span>,
+        <span class="ident">Uint16Array</span>,
+        <span class="ident">Int32Array</span>,
+        <span class="ident">Uint32Array</span>,
+        <span class="ident">BigInt64Array</span>,
+        <span class="ident">BigUint64Array</span>,
+        <span class="ident">Float32Array</span>,
+        <span class="ident">Float64Array</span>,
         <span class="ident">Symbol</span>,
         <span class="ident">Error</span>,
         <span class="ident">RangeError</span>,

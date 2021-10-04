@@ -744,7 +744,6 @@
 <span id="744">744</span>
 <span id="745">745</span>
 <span id="746">746</span>
-<span id="747">747</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::string::is_trimmable_whitespace</span>,
@@ -1053,6 +1052,7 @@
 <span class="doccomment">/// on the stack and a pointer to the data (this is also known as fat pointers).</span>
 <span class="doccomment">/// The `JsString` length and data is stored on the heap. and just an non-null</span>
 <span class="doccomment">/// pointer is kept, so its size is the size of a pointer.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsString</span> {
     <span class="ident">inner</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">std::rc::Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -1234,8 +1234,6 @@
         }
     }
 }
-
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">JsString</span> {}
 
 <span class="comment">// Safety: [`JsString`] does not contain any objects which recquire trace,</span>
 <span class="comment">// so this is safe.</span>

@@ -2666,6 +2666,19 @@
 <span id="2666">2666</span>
 <span id="2667">2667</span>
 <span id="2668">2668</span>
+<span id="2669">2669</span>
+<span id="2670">2670</span>
+<span id="2671">2671</span>
+<span id="2672">2672</span>
+<span id="2673">2673</span>
+<span id="2674">2674</span>
+<span id="2675">2675</span>
+<span id="2676">2676</span>
+<span id="2677">2677</span>
+<span id="2678">2678</span>
+<span id="2679">2679</span>
+<span id="2680">2680</span>
+<span id="2681">2681</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -3427,10 +3440,11 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If separator is undefined, let sep be the single-element String &quot;,&quot;.</span>
         <span class="comment">// 4. Else, let sep be ? ToString(separator).</span>
-        <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">separator</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="ident">separator</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">separator</span>.<span class="ident">is_undefined</span>() {
             <span class="ident">JsString::new</span>(<span class="string">&quot;,&quot;</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">separator</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
 
         <span class="comment">// 5. Let R be the empty String.</span>
@@ -5234,8 +5248,12 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Return CreateArrayIterator(O, value).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
-            <span class="ident">this</span>.<span class="ident">clone</span>(),
+            <span class="ident">o</span>,
             <span class="ident">PropertyNameKind::Value</span>,
             <span class="ident">context</span>,
         ))
@@ -5249,11 +5267,15 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///  - [MDN documentation][mdn]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.keys</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Return CreateArrayIterator(O, key).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
-            <span class="ident">this</span>.<span class="ident">clone</span>(),
+            <span class="ident">o</span>,
             <span class="ident">PropertyNameKind::Key</span>,
             <span class="ident">context</span>,
         ))
@@ -5267,15 +5289,19 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///  - [MDN documentation][mdn]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.entries</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entries</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Return CreateArrayIterator(O, key+value).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
-            <span class="ident">this</span>.<span class="ident">clone</span>(),
+            <span class="ident">o</span>,
             <span class="ident">PropertyNameKind::KeyAndValue</span>,
             <span class="ident">context</span>,
         ))

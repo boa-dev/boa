@@ -385,7 +385,7 @@
     <span class="ident">has_instance</span>: <span class="ident">JsSymbol</span>,
     <span class="ident">is_concat_spreadable</span>: <span class="ident">JsSymbol</span>,
     <span class="ident">iterator</span>: <span class="ident">JsSymbol</span>,
-    <span class="ident">match_</span>: <span class="ident">JsSymbol</span>,
+    <span class="ident">r#match</span>: <span class="ident">JsSymbol</span>,
     <span class="ident">match_all</span>: <span class="ident">JsSymbol</span>,
     <span class="ident">replace</span>: <span class="ident">JsSymbol</span>,
     <span class="ident">search</span>: <span class="ident">JsSymbol</span>,
@@ -449,7 +449,7 @@
             <span class="ident">has_instance</span>,
             <span class="ident">is_concat_spreadable</span>,
             <span class="ident">iterator</span>,
-            <span class="ident">match_</span>,
+            <span class="ident">r#match</span>: <span class="ident">match_</span>,
             <span class="ident">match_all</span>,
             <span class="ident">replace</span>,
             <span class="ident">search</span>,
@@ -504,8 +504,8 @@
     <span class="doccomment">/// A regular expression method that matches the regular expression</span>
     <span class="doccomment">/// against a string. Called by the `String.prototype.match` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
-        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">match_</span>.<span class="ident">clone</span>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r#match</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">r#match</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.matchAll` well known symbol.</span>

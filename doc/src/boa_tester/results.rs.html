@@ -467,6 +467,7 @@
 <span id="467">467</span>
 <span id="468">468</span>
 <span id="469">469</span>
+<span id="470">470</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::SuiteResult</span>;
 <span class="kw">use</span> <span class="ident">git2::Repository</span>;
@@ -911,6 +912,7 @@
 
             <span class="kw">match</span> (<span class="ident">base_test</span>.<span class="ident">result</span>, <span class="ident">new_test</span>.<span class="ident">result</span>) {
                 (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">if</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                (<span class="ident">TestOutcomeResult::Ignored</span>, <span class="ident">TestOutcomeResult::Failed</span>) <span class="op">=</span><span class="op">&gt;</span> {}
 
                 (<span class="kw">_</span>, <span class="ident">TestOutcomeResult::Passed</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">final_diff</span>.<span class="ident">fixed</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),
                 (<span class="ident">TestOutcomeResult::Panic</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">final_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">push</span>(<span class="ident">test_name</span>),

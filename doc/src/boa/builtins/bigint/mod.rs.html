@@ -255,6 +255,32 @@
 <span id="255">255</span>
 <span id="256">256</span>
 <span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -275,9 +301,11 @@
     <span class="ident">object::ConstructorBuilder</span>,
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value::IntegerOrInfinity</span>,
+    <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">PreferredType</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
+<span class="kw">use</span> <span class="ident">num_bigint::ToBigInt</span>;
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -336,11 +364,35 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint-objects</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt</span>
     <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsBigInt::zero</span>(),
-        };
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">data</span>))
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+
+        <span class="comment">// 2. Let prim be ? ToPrimitive(value, number).</span>
+        <span class="kw">let</span> <span class="ident">prim</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. If Type(prim) is Number, return ? NumberToBigInt(prim).</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="ident">prim</span>.<span class="ident">as_number</span>() {
+            <span class="kw">return</span> <span class="self">Self</span><span class="ident">::number_to_bigint</span>(<span class="ident">number</span>, <span class="ident">context</span>);
+        }
+
+        <span class="comment">// 4. Otherwise, return ? ToBigInt(value).</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+    }
+
+    <span class="doccomment">/// `NumberToBigInt ( number )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-numbertobigint</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">number_to_bigint</span>(<span class="ident">number</span>: <span class="ident">f64</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If IsIntegralNumber(number) is false, throw a RangeError exception.</span>
+        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">fract</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> {
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot convert {} to BigInt&quot;</span>, <span class="ident">number</span>));
+        }
+
+        <span class="comment">// 2. Return the BigInt value that represents ℝ(number).</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">JsBigInt::from</span>(<span class="ident">number</span>.<span class="ident">to_bigint</span>().<span class="ident">expect</span>(<span class="string">&quot;This conversion must be safe&quot;</span>)).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// The abstract operation thisBigIntValue takes argument value.</span>

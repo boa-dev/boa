@@ -1991,33 +1991,6 @@
 <span id="1991">1991</span>
 <span id="1992">1992</span>
 <span id="1993">1993</span>
-<span id="1994">1994</span>
-<span id="1995">1995</span>
-<span id="1996">1996</span>
-<span id="1997">1997</span>
-<span id="1998">1998</span>
-<span id="1999">1999</span>
-<span id="2000">2000</span>
-<span id="2001">2001</span>
-<span id="2002">2002</span>
-<span id="2003">2003</span>
-<span id="2004">2004</span>
-<span id="2005">2005</span>
-<span id="2006">2006</span>
-<span id="2007">2007</span>
-<span id="2008">2008</span>
-<span id="2009">2009</span>
-<span id="2010">2010</span>
-<span id="2011">2011</span>
-<span id="2012">2012</span>
-<span id="2013">2013</span>
-<span id="2014">2014</span>
-<span id="2015">2015</span>
-<span id="2016">2016</span>
-<span id="2017">2017</span>
-<span id="2018">2018</span>
-<span id="2019">2019</span>
-<span id="2020">2020</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -2779,16 +2752,13 @@
         <span class="comment">// 2. If searchValue is neither undefined nor null, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">search_value</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let replacer be ? GetMethod(searchValue, @@replace).</span>
-            <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">search_value</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">unwrap_or_default</span>()
-                .<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::replace</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::replace</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If replacer is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="op">=</span> <span class="ident">replacer</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">replacer</span>.<span class="ident">is_undefined</span>() {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).</span>
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">replacer</span>.<span class="ident">into</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">replacer</span>,
                     <span class="ident">search_value</span>,
                     <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()],
                 );
@@ -2913,15 +2883,12 @@
             }
 
             <span class="comment">// c. Let replacer be ? GetMethod(searchValue, @@replace).</span>
-            <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">search_value</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">unwrap_or_default</span>()
-                .<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::replace</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::replace</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// d. If replacer is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="op">=</span> <span class="ident">replacer</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">replacer</span>.<span class="ident">is_undefined</span>() {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).</span>
-                <span class="kw">return</span> <span class="ident">replacer</span>.<span class="ident">call</span>(<span class="ident">search_value</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">into</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replacer</span>, <span class="ident">search_value</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">into</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()]);
             }
         }
 
@@ -3154,12 +3121,11 @@
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let matcher be ? GetMethod(regexp, @@match).</span>
+            <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols</span>::<span class="ident">r#match</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If matcher is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_</span>())<span class="question-mark">?</span> {
-                    <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
-                    <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
-                }
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">is_undefined</span>() {
+                <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">matcher</span>, <span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()]);
             }
         }
 
@@ -3170,12 +3136,7 @@
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@match, « S »).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_</span>())<span class="question-mark">?</span> {
-            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp[Symbol.match] is undefined&quot;</span>)
-        }
+        <span class="ident">rx</span>.<span class="ident">invoke</span>(<span class="ident">WellKnownSymbols</span>::<span class="ident">r#match</span>(), <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// Abstract method `StringPad`.</span>
@@ -3525,14 +3486,11 @@
         <span class="comment">// 2. If separator is neither undefined nor null, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">separator</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let splitter be ? GetMethod(separator, @@split).</span>
+            <span class="kw">let</span> <span class="ident">splitter</span> <span class="op">=</span> <span class="ident">separator</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::split</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If splitter is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">splitter</span>) <span class="op">=</span> <span class="ident">separator</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">unwrap_or_default</span>()
-                .<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::split</span>())<span class="question-mark">?</span>
-            {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">splitter</span>.<span class="ident">is_undefined</span>() {
                 <span class="comment">// i. Return ? Call(splitter, separator, « O, limit »).</span>
-                <span class="kw">return</span> <span class="ident">splitter</span>.<span class="ident">call</span>(<span class="ident">separator</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">limit</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">splitter</span>, <span class="ident">separator</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">limit</span>.<span class="ident">clone</span>()]);
             }
         }
 
@@ -3715,12 +3673,11 @@
             }
 
             <span class="comment">// c. Let matcher be ? GetMethod(regexp, @@matchAll).</span>
+            <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::match_all</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// d. If matcher is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_all</span>())<span class="question-mark">?</span> {
-                    <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
-                    <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
-                }
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">is_undefined</span>() {
+                <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">matcher</span>, <span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()]);
             }
         }
 
@@ -3731,12 +3688,7 @@
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::new</span>(<span class="string">&quot;g&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@matchAll, « S »).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_all</span>())<span class="question-mark">?</span> {
-            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp[Symbol.matchAll] is undefined&quot;</span>)
-        }
+        <span class="ident">rx</span>.<span class="ident">invoke</span>(<span class="ident">WellKnownSymbols::match_all</span>(), <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `String.prototype.normalize( [ form ] )`</span>
@@ -3799,12 +3751,11 @@
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let searcher be ? GetMethod(regexp, @@search).</span>
+            <span class="kw">let</span> <span class="ident">searcher</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::search</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If searcher is not undefined, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">searcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::search</span>())<span class="question-mark">?</span> {
-                    <span class="comment">// i. Return ? Call(searcher, regexp, « O »).</span>
-                    <span class="kw">return</span> <span class="ident">searcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
-                }
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">searcher</span>.<span class="ident">is_undefined</span>() {
+                <span class="comment">// i. Return ? Call(searcher, regexp, « O »).</span>
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">searcher</span>, <span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()]);
             }
         }
 
@@ -3815,12 +3766,7 @@
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@search, « string »).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::search</span>())<span class="question-mark">?</span> {
-            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">string</span>)], <span class="ident">context</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp[Symbol.search] is undefined&quot;</span>)
-        }
+        <span class="ident">rx</span>.<span class="ident">invoke</span>(<span class="ident">WellKnownSymbols::search</span>(), <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">string</span>)], <span class="ident">context</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iterator</span>(

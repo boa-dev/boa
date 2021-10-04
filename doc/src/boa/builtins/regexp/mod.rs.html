@@ -1785,9 +1785,6 @@
 <span id="1785">1785</span>
 <span id="1786">1786</span>
 <span id="1787">1787</span>
-<span id="1788">1788</span>
-<span id="1789">1789</span>
-<span id="1790">1790</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -1927,7 +1924,7 @@
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(
             <span class="self">Self</span>::<span class="ident">r#match</span>,
-            (<span class="ident">WellKnownSymbols::match_</span>(), <span class="string">&quot;[Symbol.match]&quot;</span>),
+            (<span class="ident">WellKnownSymbols</span>::<span class="ident">r#match</span>(), <span class="string">&quot;[Symbol.match]&quot;</span>),
             <span class="number">1</span>,
         )
         .<span class="ident">method</span>(
@@ -2774,7 +2771,7 @@
         <span class="kw">let</span> <span class="ident">named_groups</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">named_groups</span>();
         <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">named_groups</span>.<span class="ident">clone</span>().<span class="ident">count</span>() <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="comment">// a. Let groups be ! OrdinaryObjectCreate(null).</span>
-            <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
+            <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">JsValue::from</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::create</span>(<span class="ident">JsValue::null</span>())));
 
             <span class="comment">// Perform 27.f here</span>
             <span class="comment">// f. If the ith capture of R was defined with a GroupName, then</span>
@@ -3002,16 +2999,17 @@
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">this</span>
             .<span class="ident">as_object</span>()
             .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">species_constructor</span>(<span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">get</span>(<span class="ident">RegExp::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            .<span class="ident">species_constructor</span>(<span class="ident">StandardObjects::regexp_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let flags be ? ToString(? Get(R, &quot;flags&quot;)).</span>
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let matcher be ? Construct(C, « R, flags »).</span>
-        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">c</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;SpeciesConstructor returned non Object&quot;</span>)
-            .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">flags</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">construct</span>(
+            <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">flags</span>.<span class="ident">clone</span>().<span class="ident">into</span>()],
+            <span class="kw-2">&amp;</span><span class="ident">c</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">context</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let lastIndex be ? ToLength(? Get(R, &quot;lastIndex&quot;)).</span>
         <span class="kw">let</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3373,8 +3371,7 @@
             .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let C be ? SpeciesConstructor(rx, %RegExp%).</span>
-        <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span>
-            <span class="ident">rx</span>.<span class="ident">species_constructor</span>(<span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">get</span>(<span class="ident">RegExp::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">species_constructor</span>(<span class="ident">StandardObjects::regexp_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let flags be ? ToString(? Get(rx, &quot;flags&quot;)).</span>
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">get</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3392,14 +3389,11 @@
         };
 
         <span class="comment">// 10. Let splitter be ? Construct(C, « rx, newFlags »).</span>
-        <span class="kw">let</span> <span class="ident">splitter</span> <span class="op">=</span> <span class="ident">constructor</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;SpeciesConstructor returned non Object&quot;</span>)
-            .<span class="ident">construct</span>(
-                <span class="kw-2">&amp;</span>[<span class="ident">JsValue::from</span>(<span class="ident">rx</span>), <span class="ident">new_flags</span>.<span class="ident">into</span>()],
-                <span class="kw-2">&amp;</span><span class="ident">constructor</span>,
-                <span class="ident">context</span>,
-            )<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">splitter</span> <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">construct</span>(
+            <span class="kw-2">&amp;</span>[<span class="ident">rx</span>.<span class="ident">into</span>(), <span class="ident">new_flags</span>.<span class="ident">into</span>()],
+            <span class="kw-2">&amp;</span><span class="ident">constructor</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">context</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Let A be ! ArrayCreate(0).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">unwrap</span>();

@@ -1123,7 +1123,6 @@
 <span id="1123">1123</span>
 <span id="1124">1124</span>
 <span id="1125">1125</span>
-<span id="1126">1126</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1737,7 +1736,6 @@
 
         <span class="kw">let</span> <span class="ident">integer_cursor</span> <span class="op">=</span> <span class="ident">int_iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">fraction_cursor</span> <span class="op">=</span> <span class="ident">fraction_cursor</span> <span class="op">+</span> <span class="ident">BUF_SIZE</span> <span class="op">/</span> <span class="number">2</span>;
-        <span class="comment">// dbg!(&quot;Number: {}, Radix: {}, Cursors: {}, {}&quot;, value, radix, integer_cursor, fraction_cursor);</span>
         <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>[<span class="ident">integer_cursor</span>..<span class="ident">fraction_cursor</span>]).<span class="ident">into</span>()
     }
 

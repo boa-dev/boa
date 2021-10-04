@@ -1690,15 +1690,120 @@
 <span id="1690">1690</span>
 <span id="1691">1691</span>
 <span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">array::array_iterator::ArrayIterator</span>, <span class="ident">map::map_iterator::MapIterator</span>,
-        <span class="ident">map::ordered_map::OrderedMap</span>, <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
-        <span class="ident">set::ordered_set::OrderedSet</span>, <span class="ident">set::set_iterator::SetIterator</span>,
-        <span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
+        <span class="ident">array::array_iterator::ArrayIterator</span>, <span class="ident">array_buffer::ArrayBuffer</span>,
+        <span class="ident">map::map_iterator::MapIterator</span>, <span class="ident">map::ordered_map::OrderedMap</span>,
+        <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>, <span class="ident">set::ordered_set::OrderedSet</span>,
+        <span class="ident">set::set_iterator::SetIterator</span>, <span class="ident">string::string_iterator::StringIterator</span>,
+        <span class="ident">typed_array::integer_indexed_object::IntegerIndexed</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
     },
     <span class="ident">context::StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
@@ -1716,20 +1821,20 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
-<span class="kw">mod</span> <span class="ident">gcobject</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
+<span class="kw">mod</span> <span class="ident">jsobject</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">property_map</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::builtins::object::for_in_iterator::ForInIterator</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gcobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
 <span class="kw">use</span> <span class="ident">internal_methods::InternalObjectMethods</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations::IntegrityLevel</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property_map</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="self">self</span><span class="ident">::internal_methods</span>::{
-    <span class="ident">array::ARRAY_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">string::STRING_EXOTIC_INTERNAL_METHODS</span>,
-    <span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+    <span class="ident">array::ARRAY_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>,
+    <span class="ident">string::STRING_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>,
 };
 
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.</span>
@@ -1782,6 +1887,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectKind</span> {
     <span class="ident">Array</span>,
     <span class="ident">ArrayIterator</span>(<span class="ident">ArrayIterator</span>),
+    <span class="ident">ArrayBuffer</span>(<span class="ident">ArrayBuffer</span>),
     <span class="ident">Map</span>(<span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>),
     <span class="ident">MapIterator</span>(<span class="ident">MapIterator</span>),
     <span class="ident">RegExp</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RegExp</span><span class="op">&gt;</span>),
@@ -1801,6 +1907,7 @@
     <span class="ident">Date</span>(<span class="ident">Date</span>),
     <span class="ident">Global</span>,
     <span class="ident">NativeObject</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>),
+    <span class="ident">IntegerIndexed</span>(<span class="ident">IntegerIndexed</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectData</span> {
@@ -1816,6 +1923,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_iterator</span>(<span class="ident">array_iterator</span>: <span class="ident">ArrayIterator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind::ArrayIterator</span>(<span class="ident">array_iterator</span>),
+            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+        }
+    }
+
+    <span class="doccomment">/// Create the `ArrayBuffer` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_buffer</span>(<span class="ident">array_buffer</span>: <span class="ident">ArrayBuffer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::ArrayBuffer</span>(<span class="ident">array_buffer</span>),
             <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
         }
     }
@@ -1971,37 +2086,43 @@
             <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
         }
     }
+
+    <span class="doccomment">/// Creates the `IntegerIndexed` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">integer_indexed</span>(<span class="ident">integer_indexed</span>: <span class="ident">IntegerIndexed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::IntegerIndexed</span>(<span class="ident">integer_indexed</span>),
+            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>,
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectKind</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="self">self</span> {
-                <span class="self">Self</span><span class="ident">::Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Array&quot;</span>,
-                <span class="self">Self</span><span class="ident">::ArrayIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ArrayIterator&quot;</span>,
-                <span class="self">Self</span><span class="ident">::ForInIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ForInIterator&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Function&quot;</span>,
-                <span class="self">Self</span><span class="ident">::RegExp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExp&quot;</span>,
-                <span class="self">Self</span><span class="ident">::RegExpStringIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExpStringIterator&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Map</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Map&quot;</span>,
-                <span class="self">Self</span><span class="ident">::MapIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;MapIterator&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Set</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Set&quot;</span>,
-                <span class="self">Self</span><span class="ident">::SetIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SetIterator&quot;</span>,
-                <span class="self">Self</span><span class="ident">::String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;String&quot;</span>,
-                <span class="self">Self</span><span class="ident">::StringIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;StringIterator&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Symbol&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Error&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Ordinary&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Boolean&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Number</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Number&quot;</span>,
-                <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigInt&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Date</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Date&quot;</span>,
-                <span class="self">Self</span><span class="ident">::Global</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Global&quot;</span>,
-                <span class="self">Self</span><span class="ident">::NativeObject</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NativeObject&quot;</span>,
-            }
-        )
+        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span><span class="ident">::Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Array&quot;</span>,
+            <span class="self">Self</span><span class="ident">::ArrayIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ArrayIterator&quot;</span>,
+            <span class="self">Self</span><span class="ident">::ArrayBuffer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ArrayBuffer&quot;</span>,
+            <span class="self">Self</span><span class="ident">::ForInIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ForInIterator&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Function&quot;</span>,
+            <span class="self">Self</span><span class="ident">::RegExp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExp&quot;</span>,
+            <span class="self">Self</span><span class="ident">::RegExpStringIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExpStringIterator&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Map</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Map&quot;</span>,
+            <span class="self">Self</span><span class="ident">::MapIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;MapIterator&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Set</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Set&quot;</span>,
+            <span class="self">Self</span><span class="ident">::SetIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SetIterator&quot;</span>,
+            <span class="self">Self</span><span class="ident">::String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;String&quot;</span>,
+            <span class="self">Self</span><span class="ident">::StringIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;StringIterator&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Symbol&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Error&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Ordinary&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Boolean&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Number</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Number&quot;</span>,
+            <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigInt&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Date</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Date&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Global</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Global&quot;</span>,
+            <span class="self">Self</span><span class="ident">::NativeObject</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NativeObject&quot;</span>,
+            <span class="self">Self</span><span class="ident">::IntegerIndexed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;TypedArray&quot;</span>,
+        })
     }
 }
 
@@ -2046,13 +2167,12 @@
         }
     }
 
-    <span class="doccomment">/// ObjectCreate is used to specify the runtime creation of new ordinary objects.</span>
+    <span class="doccomment">/// `OrdinaryObjectCreate` is used to specify the runtime creation of new ordinary objects.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-objectcreate</span>
-    <span class="comment">// TODO: proto should be a &amp;Value here</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">proto</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::new</span>();
@@ -2200,6 +2320,40 @@
                 <span class="ident">kind</span>: <span class="ident">ObjectKind::ArrayIterator</span>(<span class="kw-2">ref</span> <span class="ident">iter</span>),
                 ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">iter</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Checks if it an `ArrayBuffer` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::ArrayBuffer</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_array_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ArrayBuffer</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::ArrayBuffer</span>(<span class="ident">buffer</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">buffer</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_array_buffer_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ArrayBuffer</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::ArrayBuffer</span>(<span class="ident">buffer</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">buffer</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -2542,6 +2696,7 @@
         )
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Date</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData</span> {
@@ -2564,6 +2719,7 @@
         )
     }
 
+    <span class="doccomment">/// Gets the regexp data if the object is a regexp.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_regexp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">RegExp</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
@@ -2571,6 +2727,42 @@
                 <span class="ident">kind</span>: <span class="ident">ObjectKind::RegExp</span>(<span class="kw-2">ref</span> <span class="ident">regexp</span>),
                 ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">regexp</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Checks if it a `TypedArray` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_typed_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::IntegerIndexed</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Gets the typed array data (integer indexed object) if this is a typed array.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_typed_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">IntegerIndexed</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::IntegerIndexed</span>(<span class="kw-2">ref</span> <span class="ident">integer_indexed_object</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">integer_indexed_object</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the typed array data (integer indexed object) if this is a typed array.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_typed_array_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IntegerIndexed</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::IntegerIndexed</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">integer_indexed_object</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">integer_indexed_object</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -2587,6 +2779,7 @@
         )
     }
 
+    <span class="doccomment">/// Gets the prototype instance of this object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsValue</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prototype</span>
@@ -3050,6 +3243,7 @@
     <span class="ident">callable</span>: <span class="ident">bool</span>,
     <span class="ident">constructable</span>: <span class="ident">bool</span>,
     <span class="ident">inherit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="ident">custom_prototype</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ConstructorBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
@@ -3080,6 +3274,7 @@
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
             <span class="ident">constructable</span>: <span class="bool-val">true</span>,
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
+            <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -3099,6 +3294,7 @@
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
             <span class="ident">constructable</span>: <span class="bool-val">true</span>,
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
+            <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -3307,6 +3503,15 @@
         <span class="self">self</span>
     }
 
+    <span class="doccomment">/// Specify the __proto__ for this constructor.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Default is `Function.prototype`</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">custom_prototype</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">custom_prototype</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">prototype</span>);
+        <span class="self">self</span>
+    }
+
     <span class="doccomment">/// Return the current context.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">Context</span> {
@@ -3338,14 +3543,17 @@
             <span class="ident">constructor</span>.<span class="ident">insert</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
             <span class="ident">constructor</span>.<span class="ident">insert</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>);
 
-            <span class="ident">constructor</span>.<span class="ident">set_prototype_instance</span>(
-                <span class="self">self</span>.<span class="ident">context</span>
-                    .<span class="ident">standard_objects</span>()
-                    .<span class="ident">function_object</span>()
-                    .<span class="ident">prototype</span>()
-                    .<span class="ident">into</span>(),
-            );
-
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">custom_prototype</span> {
+                <span class="ident">constructor</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">proto</span>.<span class="ident">clone</span>());
+            } <span class="kw">else</span> {
+                <span class="ident">constructor</span>.<span class="ident">set_prototype_instance</span>(
+                    <span class="self">self</span>.<span class="ident">context</span>
+                        .<span class="ident">standard_objects</span>()
+                        .<span class="ident">function_object</span>()
+                        .<span class="ident">prototype</span>()
+                        .<span class="ident">into</span>(),
+                );
+            }
             <span class="ident">constructor</span>.<span class="ident">insert_property</span>(
                 <span class="ident">PROTOTYPE</span>,
                 <span class="ident">PropertyDescriptor::builder</span>()

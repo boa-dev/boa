@@ -457,7 +457,7 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">iterable::get_iterator</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::StandardObjects</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
@@ -598,7 +598,7 @@
         }
 
         <span class="comment">// 7</span>
-        <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">get_iterator</span>(<span class="ident">iterable</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">clone</span>().<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 8.a</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">next</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
