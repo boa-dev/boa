@@ -1,5 +1,6 @@
 use crate::{
     builtins::Array,
+    context::{StandardConstructor, StandardObjects},
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -209,35 +210,6 @@ impl JsObject {
         }
         // 5. Return success.
         Ok(success)
-    }
-
-    /// Retrieves value of specific property, when the value of the property is expected to be a function.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    #[inline]
-    pub(crate) fn get_method<K>(&self, context: &mut Context, key: K) -> JsResult<Option<JsObject>>
-    where
-        K: Into<PropertyKey>,
-    {
-        // 1. Assert: IsPropertyKey(P) is true.
-        // 2. Let func be ? GetV(V, P).
-        let value = self.get(key, context)?;
-
-        // 3. If func is either undefined or null, return undefined.
-        if value.is_null_or_undefined() {
-            return Ok(None);
-        }
-
-        // 4. If IsCallable(func) is false, throw a TypeError exception.
-        // 5. Return func.
-        match value.as_object() {
-            Some(object) if object.is_callable() => Ok(Some(object)),
-            _ => Err(context
-                .construct_type_error("value returned for property of object is not a function")),
-        }
     }
 
     /// Check if object has property.
@@ -452,11 +424,14 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
-    pub(crate) fn species_constructor(
+    pub(crate) fn species_constructor<F>(
         &self,
-        default_constructor: JsValue,
+        default_constructor: F,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject>
+    where
+        F: FnOnce(&StandardObjects) -> &StandardConstructor,
+    {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").
@@ -464,12 +439,12 @@ impl JsObject {
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
-            return Ok(default_constructor);
+            return Ok(default_constructor(context.standard_objects()).constructor());
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
         if !c.is_object() {
-            return context.throw_type_error("property 'constructor' is not an object");
+            return Err(context.construct_type_error("property 'constructor' is not an object"));
         }
 
         // 5. Let S be ? Get(C, @@species).
@@ -477,19 +452,19 @@ impl JsObject {
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {
-            return Ok(default_constructor);
+            return Ok(default_constructor(context.standard_objects()).constructor());
         }
 
         // 7. If IsConstructor(S) is true, return S.
         // 8. Throw a TypeError exception.
         if let Some(obj) = s.as_object() {
             if obj.is_constructable() {
-                Ok(s)
+                Ok(obj)
             } else {
-                context.throw_type_error("property 'constructor' is not a constructor")
+                Err(context.construct_type_error("property 'constructor' is not a constructor"))
             }
         } else {
-            context.throw_type_error("property 'constructor' is not an object")
+            Err(context.construct_type_error("property 'constructor' is not an object"))
         }
     }
 
@@ -575,9 +550,58 @@ impl JsObject {
 }
 
 impl JsValue {
-    // todo: GetV
+    /// Abstract operation `GetV ( V, P )`.
+    ///
+    /// Retrieves the value of a specific property of an ECMAScript language value. If the value is
+    /// not an object, the property lookup is performed using a wrapper object appropriate for the
+    /// type of the value.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    #[inline]
+    pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. Let O be ? ToObject(V).
+        let o = self.to_object(context)?;
 
-    // todo: GetMethod
+        // 2. Return ? O.[[Get]](P, V).
+        o.__get__(&key.into(), self.clone(), context)
+    }
+
+    /// Abstract operation `GetMethod ( V, P )`
+    ///
+    /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. Assert: IsPropertyKey(P) is true.
+        // 2. Let func be ? GetV(V, P).
+        let func = self.get_v(key, context)?;
+
+        // 3. If func is either undefined or null, return undefined.
+        if func.is_null_or_undefined() {
+            return Ok(JsValue::undefined());
+        }
+
+        // 4. If IsCallable(func) is false, throw a TypeError exception.
+        if !func.is_callable() {
+            Err(context
+                .construct_type_error("value returned for property of object is not a function"))
+        } else {
+            // 5. Return func.
+            Ok(func)
+        }
+    }
 
     /// It is used to create List value whose elements are provided by the indexed properties of
     /// self.
@@ -635,5 +659,30 @@ impl JsValue {
 
         // 7. Return list.
         Ok(list)
+    }
+
+    /// Abstract operation `( V, P [ , argumentsList ] )
+    ///
+    /// Calls a method property of an ECMAScript language value.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    pub(crate) fn invoke<K>(
+        &self,
+        key: K,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. Let func be ? GetV(V, P).
+        let func = self.get_v(key, context)?;
+
+        // 3. Return ? Call(func, V, argumentsList)
+        context.call(&func, self, args)
     }
 }

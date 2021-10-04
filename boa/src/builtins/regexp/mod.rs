@@ -136,7 +136,7 @@ impl BuiltIn for RegExp {
         .method(Self::to_string, "toString", 0)
         .method(
             Self::r#match,
-            (WellKnownSymbols::match_(), "[Symbol.match]"),
+            (WellKnownSymbols::r#match(), "[Symbol.match]"),
             1,
         )
         .method(
@@ -983,7 +983,7 @@ impl RegExp {
         let named_groups = match_value.named_groups();
         let groups = if named_groups.clone().count() > 0 {
             // a. Let groups be ! OrdinaryObjectCreate(null).
-            let groups = JsValue::new_object(context);
+            let groups = JsValue::from(JsObject::new(Object::create(JsValue::null())));
 
             // Perform 27.f here
             // f. If the ith capture of R was defined with a GroupName, then
@@ -1211,16 +1211,17 @@ impl RegExp {
         let c = this
             .as_object()
             .unwrap_or_default()
-            .species_constructor(context.global_object().get(RegExp::NAME, context)?, context)?;
+            .species_constructor(StandardObjects::regexp_object, context)?;
 
         // 5. Let flags be ? ToString(? Get(R, "flags")).
         let flags = this.get_field("flags", context)?.to_string(context)?;
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
-        let matcher = c
-            .as_object()
-            .expect("SpeciesConstructor returned non Object")
-            .construct(&[this.clone(), flags.clone().into()], &c, context)?;
+        let matcher = c.construct(
+            &[this.clone(), flags.clone().into()],
+            &c.clone().into(),
+            context,
+        )?;
 
         // 7. Let lastIndex be ? ToLength(? Get(R, "lastIndex")).
         let last_index = this.get_field("lastIndex", context)?.to_length(context)?;
@@ -1582,8 +1583,7 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let C be ? SpeciesConstructor(rx, %RegExp%).
-        let constructor =
-            rx.species_constructor(context.global_object().get(RegExp::NAME, context)?, context)?;
+        let constructor = rx.species_constructor(StandardObjects::regexp_object, context)?;
 
         // 5. Let flags be ? ToString(? Get(rx, "flags")).
         let flags = rx.get("flags", context)?.to_string(context)?;
@@ -1601,14 +1601,11 @@ impl RegExp {
         };
 
         // 10. Let splitter be ? Construct(C, « rx, newFlags »).
-        let splitter = constructor
-            .as_object()
-            .expect("SpeciesConstructor returned non Object")
-            .construct(
-                &[JsValue::from(rx), new_flags.into()],
-                &constructor,
-                context,
-            )?;
+        let splitter = constructor.construct(
+            &[rx.into(), new_flags.into()],
+            &constructor.clone().into(),
+            context,
+        )?;
 
         // 11. Let A be ! ArrayCreate(0).
         let a = Array::array_create(0, None, context).unwrap();

@@ -1,5 +1,4 @@
 use crate::{
-    builtins::iterable,
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
@@ -56,7 +55,7 @@ impl Executable for New {
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
                 let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(&val, context)?;
+                let iterator_record = val.get_iterator(context, None, None)?;
                 loop {
                     let next = iterator_record.next(context)?;
                     if next.done {

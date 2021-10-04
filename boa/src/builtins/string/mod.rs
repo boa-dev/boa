@@ -758,16 +758,13 @@ impl String {
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
             // a. Let replacer be ? GetMethod(searchValue, @@replace).
-            let replacer = search_value
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::replace())?;
+            let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
 
             // b. If replacer is not undefined, then
-            if let Some(replacer) = replacer {
+            if !replacer.is_undefined() {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
                 return context.call(
-                    &replacer.into(),
+                    &replacer,
                     search_value,
                     &[this.clone(), replace_value.clone()],
                 );
@@ -892,15 +889,12 @@ impl String {
             }
 
             // c. Let replacer be ? GetMethod(searchValue, @@replace).
-            let replacer = search_value
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::replace())?;
+            let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
 
             // d. If replacer is not undefined, then
-            if let Some(replacer) = replacer {
+            if !replacer.is_undefined() {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
+                return context.call(&replacer, search_value, &[o.into(), replace_value.clone()]);
             }
         }
 
@@ -1133,12 +1127,11 @@ impl String {
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
+            let matcher = regexp.get_method(WellKnownSymbols::r#match(), context)?;
             // b. If matcher is not undefined, then
-            if let Some(obj) = regexp.as_object() {
-                if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
-                    // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(regexp, &[o.clone()], context);
-                }
+            if !matcher.is_undefined() {
+                // i. Return ? Call(matcher, regexp, « O »).
+                return context.call(&matcher, regexp, &[o.clone()]);
             }
         }
 
@@ -1149,12 +1142,7 @@ impl String {
         let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
-        let obj = rx.as_object().expect("RegExpCreate must return Object");
-        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
-            matcher.call(&rx, &[JsValue::new(s)], context)
-        } else {
-            context.throw_type_error("RegExp[Symbol.match] is undefined")
-        }
+        rx.invoke(WellKnownSymbols::r#match(), &[JsValue::new(s)], context)
     }
 
     /// Abstract method `StringPad`.
@@ -1504,14 +1492,11 @@ impl String {
         // 2. If separator is neither undefined nor null, then
         if !separator.is_null_or_undefined() {
             // a. Let splitter be ? GetMethod(separator, @@split).
+            let splitter = separator.get_method(WellKnownSymbols::split(), context)?;
             // b. If splitter is not undefined, then
-            if let Some(splitter) = separator
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::split())?
-            {
+            if !splitter.is_undefined() {
                 // i. Return ? Call(splitter, separator, « O, limit »).
-                return splitter.call(separator, &[this.clone(), limit.clone()], context);
+                return context.call(&splitter, separator, &[this.clone(), limit.clone()]);
             }
         }
 
@@ -1694,12 +1679,11 @@ impl String {
             }
 
             // c. Let matcher be ? GetMethod(regexp, @@matchAll).
+            let matcher = regexp.get_method(WellKnownSymbols::match_all(), context)?;
             // d. If matcher is not undefined, then
-            if let Some(obj) = regexp.as_object() {
-                if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
-                    // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(regexp, &[o.clone()], context);
-                }
+            if !matcher.is_undefined() {
+                // i. Return ? Call(matcher, regexp, « O »).
+                return context.call(&matcher, regexp, &[o.clone()]);
             }
         }
 
@@ -1710,12 +1694,7 @@ impl String {
         let rx = RegExp::create(regexp.clone(), JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
-        let obj = rx.as_object().expect("RegExpCreate must return Object");
-        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
-            matcher.call(&rx, &[JsValue::new(s)], context)
-        } else {
-            context.throw_type_error("RegExp[Symbol.matchAll] is undefined")
-        }
+        rx.invoke(WellKnownSymbols::match_all(), &[JsValue::new(s)], context)
     }
 
     /// `String.prototype.normalize( [ form ] )`
@@ -1778,12 +1757,11 @@ impl String {
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
+            let searcher = regexp.get_method(WellKnownSymbols::search(), context)?;
             // b. If searcher is not undefined, then
-            if let Some(obj) = regexp.as_object() {
-                if let Some(searcher) = obj.get_method(context, WellKnownSymbols::search())? {
-                    // i. Return ? Call(searcher, regexp, « O »).
-                    return searcher.call(regexp, &[o.clone()], context);
-                }
+            if !searcher.is_undefined() {
+                // i. Return ? Call(searcher, regexp, « O »).
+                return context.call(&searcher, regexp, &[o.clone()]);
             }
         }
 
@@ -1794,12 +1772,7 @@ impl String {
         let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
-        let obj = rx.as_object().expect("RegExpCreate must return Object");
-        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::search())? {
-            matcher.call(&rx, &[JsValue::new(string)], context)
-        } else {
-            context.throw_type_error("RegExp[Symbol.search] is undefined")
-        }
+        rx.invoke(WellKnownSymbols::search(), &[JsValue::new(string)], context)
     }
 
     pub(crate) fn iterator(

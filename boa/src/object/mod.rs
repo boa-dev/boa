@@ -2,10 +2,11 @@
 
 use crate::{
     builtins::{
-        array::array_iterator::ArrayIterator, map::map_iterator::MapIterator,
-        map::ordered_map::OrderedMap, regexp::regexp_string_iterator::RegExpStringIterator,
-        set::ordered_set::OrderedSet, set::set_iterator::SetIterator,
-        string::string_iterator::StringIterator, Date, RegExp,
+        array::array_iterator::ArrayIterator, array_buffer::ArrayBuffer,
+        map::map_iterator::MapIterator, map::ordered_map::OrderedMap,
+        regexp::regexp_string_iterator::RegExpStringIterator, set::ordered_set::OrderedSet,
+        set::set_iterator::SetIterator, string::string_iterator::StringIterator,
+        typed_array::integer_indexed_object::IntegerIndexed, Date, RegExp,
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
@@ -23,20 +24,20 @@ use std::{
 mod tests;
 
 pub mod function;
-mod gcobject;
 pub(crate) mod internal_methods;
+mod jsobject;
 mod operations;
 mod property_map;
 
 use crate::builtins::object::for_in_iterator::ForInIterator;
-pub use gcobject::{JsObject, RecursionLimiter, Ref, RefMut};
 use internal_methods::InternalObjectMethods;
+pub use jsobject::{JsObject, RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
 
 use self::internal_methods::{
-    array::ARRAY_EXOTIC_INTERNAL_METHODS, string::STRING_EXOTIC_INTERNAL_METHODS,
-    ORDINARY_INTERNAL_METHODS,
+    array::ARRAY_EXOTIC_INTERNAL_METHODS, integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+    string::STRING_EXOTIC_INTERNAL_METHODS, ORDINARY_INTERNAL_METHODS,
 };
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
@@ -89,6 +90,7 @@ pub struct ObjectData {
 pub enum ObjectKind {
     Array,
     ArrayIterator(ArrayIterator),
+    ArrayBuffer(ArrayBuffer),
     Map(OrderedMap<JsValue>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
@@ -108,6 +110,7 @@ pub enum ObjectKind {
     Date(Date),
     Global,
     NativeObject(Box<dyn NativeObject>),
+    IntegerIndexed(IntegerIndexed),
 }
 
 impl ObjectData {
@@ -123,6 +126,14 @@ impl ObjectData {
     pub fn array_iterator(array_iterator: ArrayIterator) -> Self {
         Self {
             kind: ObjectKind::ArrayIterator(array_iterator),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `ArrayBuffer` object data
+    pub fn array_buffer(array_buffer: ArrayBuffer) -> Self {
+        Self {
+            kind: ObjectKind::ArrayBuffer(array_buffer),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -278,37 +289,43 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Creates the `IntegerIndexed` object data
+    pub fn integer_indexed(integer_indexed: IntegerIndexed) -> Self {
+        Self {
+            kind: ObjectKind::IntegerIndexed(integer_indexed),
+            internal_methods: &INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Display for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Array => "Array",
-                Self::ArrayIterator(_) => "ArrayIterator",
-                Self::ForInIterator(_) => "ForInIterator",
-                Self::Function(_) => "Function",
-                Self::RegExp(_) => "RegExp",
-                Self::RegExpStringIterator(_) => "RegExpStringIterator",
-                Self::Map(_) => "Map",
-                Self::MapIterator(_) => "MapIterator",
-                Self::Set(_) => "Set",
-                Self::SetIterator(_) => "SetIterator",
-                Self::String(_) => "String",
-                Self::StringIterator(_) => "StringIterator",
-                Self::Symbol(_) => "Symbol",
-                Self::Error => "Error",
-                Self::Ordinary => "Ordinary",
-                Self::Boolean(_) => "Boolean",
-                Self::Number(_) => "Number",
-                Self::BigInt(_) => "BigInt",
-                Self::Date(_) => "Date",
-                Self::Global => "Global",
-                Self::NativeObject(_) => "NativeObject",
-            }
-        )
+        f.write_str(match self {
+            Self::Array => "Array",
+            Self::ArrayIterator(_) => "ArrayIterator",
+            Self::ArrayBuffer(_) => "ArrayBuffer",
+            Self::ForInIterator(_) => "ForInIterator",
+            Self::Function(_) => "Function",
+            Self::RegExp(_) => "RegExp",
+            Self::RegExpStringIterator(_) => "RegExpStringIterator",
+            Self::Map(_) => "Map",
+            Self::MapIterator(_) => "MapIterator",
+            Self::Set(_) => "Set",
+            Self::SetIterator(_) => "SetIterator",
+            Self::String(_) => "String",
+            Self::StringIterator(_) => "StringIterator",
+            Self::Symbol(_) => "Symbol",
+            Self::Error => "Error",
+            Self::Ordinary => "Ordinary",
+            Self::Boolean(_) => "Boolean",
+            Self::Number(_) => "Number",
+            Self::BigInt(_) => "BigInt",
+            Self::Date(_) => "Date",
+            Self::Global => "Global",
+            Self::NativeObject(_) => "NativeObject",
+            Self::IntegerIndexed(_) => "TypedArray",
+        })
     }
 }
 
@@ -353,13 +370,12 @@ impl Object {
         }
     }
 
-    /// ObjectCreate is used to specify the runtime creation of new ordinary objects.
+    /// `OrdinaryObjectCreate` is used to specify the runtime creation of new ordinary objects.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-objectcreate
-    // TODO: proto should be a &Value here
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     #[inline]
     pub fn create(proto: JsValue) -> Self {
         let mut obj = Self::new();
@@ -507,6 +523,40 @@ impl Object {
                 kind: ObjectKind::ArrayIterator(ref iter),
                 ..
             } => Some(iter),
+            _ => None,
+        }
+    }
+
+    /// Checks if it an `ArrayBuffer` object.
+    #[inline]
+    pub fn is_array_buffer(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer(_),
+                ..
+            }
+        )
+    }
+
+    #[inline]
+    pub fn as_array_buffer(&self) -> Option<&ArrayBuffer> {
+        match &self.data {
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer(buffer),
+                ..
+            } => Some(buffer),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_array_buffer_mut(&mut self) -> Option<&mut ArrayBuffer> {
+        match &mut self.data {
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer(buffer),
+                ..
+            } => Some(buffer),
             _ => None,
         }
     }
@@ -849,6 +899,7 @@ impl Object {
         )
     }
 
+    #[inline]
     pub fn as_date(&self) -> Option<&Date> {
         match self.data {
             ObjectData {
@@ -871,6 +922,7 @@ impl Object {
         )
     }
 
+    /// Gets the regexp data if the object is a regexp.
     #[inline]
     pub fn as_regexp(&self) -> Option<&RegExp> {
         match self.data {
@@ -878,6 +930,42 @@ impl Object {
                 kind: ObjectKind::RegExp(ref regexp),
                 ..
             } => Some(regexp),
+            _ => None,
+        }
+    }
+
+    /// Checks if it a `TypedArray` object.
+    #[inline]
+    pub fn is_typed_array(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::IntegerIndexed(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the typed array data (integer indexed object) if this is a typed array.
+    #[inline]
+    pub fn as_typed_array(&self) -> Option<&IntegerIndexed> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::IntegerIndexed(ref integer_indexed_object),
+                ..
+            } => Some(integer_indexed_object),
+            _ => None,
+        }
+    }
+
+    /// Gets the typed array data (integer indexed object) if this is a typed array.
+    #[inline]
+    pub fn as_typed_array_mut(&mut self) -> Option<&mut IntegerIndexed> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::IntegerIndexed(ref mut integer_indexed_object),
+                ..
+            } => Some(integer_indexed_object),
             _ => None,
         }
     }
@@ -894,6 +982,7 @@ impl Object {
         )
     }
 
+    /// Gets the prototype instance of this object.
     #[inline]
     pub fn prototype_instance(&self) -> &JsValue {
         &self.prototype
@@ -1357,6 +1446,7 @@ pub struct ConstructorBuilder<'context> {
     callable: bool,
     constructable: bool,
     inherit: Option<JsValue>,
+    custom_prototype: Option<JsValue>,
 }
 
 impl Debug for ConstructorBuilder<'_> {
@@ -1387,6 +1477,7 @@ impl<'context> ConstructorBuilder<'context> {
             callable: true,
             constructable: true,
             inherit: None,
+            custom_prototype: None,
         }
     }
 
@@ -1406,6 +1497,7 @@ impl<'context> ConstructorBuilder<'context> {
             callable: true,
             constructable: true,
             inherit: None,
+            custom_prototype: None,
         }
     }
 
@@ -1614,6 +1706,15 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
+    /// Specify the __proto__ for this constructor.
+    ///
+    /// Default is `Function.prototype`
+    #[inline]
+    pub fn custom_prototype(&mut self, prototype: JsValue) -> &mut Self {
+        self.custom_prototype = Some(prototype);
+        self
+    }
+
     /// Return the current context.
     #[inline]
     pub fn context(&mut self) -> &'_ mut Context {
@@ -1645,14 +1746,17 @@ impl<'context> ConstructorBuilder<'context> {
             constructor.insert("length", length);
             constructor.insert("name", name);
 
-            constructor.set_prototype_instance(
-                self.context
-                    .standard_objects()
-                    .function_object()
-                    .prototype()
-                    .into(),
-            );
-
+            if let Some(proto) = &self.custom_prototype {
+                constructor.set_prototype_instance(proto.clone());
+            } else {
+                constructor.set_prototype_instance(
+                    self.context
+                        .standard_objects()
+                        .function_object()
+                        .prototype()
+                        .into(),
+                );
+            }
             constructor.insert_property(
                 PROTOTYPE,
                 PropertyDescriptor::builder()

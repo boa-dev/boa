@@ -1,7 +1,7 @@
 //! Javascript context.
 
 use crate::{
-    builtins::{self, iterable::IteratorPrototypes},
+    builtins::{self, iterable::IteratorPrototypes, typed_array::TypedArray},
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{
@@ -92,6 +92,19 @@ pub struct StandardObjects {
     uri_error: StandardConstructor,
     map: StandardConstructor,
     set: StandardConstructor,
+    typed_array: StandardConstructor,
+    typed_int8_array: StandardConstructor,
+    typed_uint8_array: StandardConstructor,
+    typed_uint8clamped_array: StandardConstructor,
+    typed_int16_array: StandardConstructor,
+    typed_uint16_array: StandardConstructor,
+    typed_int32_array: StandardConstructor,
+    typed_uint32_array: StandardConstructor,
+    typed_bigint64_array: StandardConstructor,
+    typed_biguint64_array: StandardConstructor,
+    typed_float32_array: StandardConstructor,
+    typed_float64_array: StandardConstructor,
+    array_buffer: StandardConstructor,
 }
 
 impl Default for StandardObjects {
@@ -115,6 +128,19 @@ impl Default for StandardObjects {
             uri_error: StandardConstructor::default(),
             map: StandardConstructor::default(),
             set: StandardConstructor::default(),
+            typed_array: StandardConstructor::default(),
+            typed_int8_array: StandardConstructor::default(),
+            typed_uint8_array: StandardConstructor::default(),
+            typed_uint8clamped_array: StandardConstructor::default(),
+            typed_int16_array: StandardConstructor::default(),
+            typed_uint16_array: StandardConstructor::default(),
+            typed_int32_array: StandardConstructor::default(),
+            typed_uint32_array: StandardConstructor::default(),
+            typed_bigint64_array: StandardConstructor::default(),
+            typed_biguint64_array: StandardConstructor::default(),
+            typed_float32_array: StandardConstructor::default(),
+            typed_float64_array: StandardConstructor::default(),
+            array_buffer: StandardConstructor::default(),
         }
     }
 }
@@ -209,6 +235,71 @@ impl StandardObjects {
     pub fn set_object(&self) -> &StandardConstructor {
         &self.set
     }
+
+    #[inline]
+    pub fn typed_array_object(&self) -> &StandardConstructor {
+        &self.typed_array
+    }
+
+    #[inline]
+    pub fn typed_int8_array_object(&self) -> &StandardConstructor {
+        &self.typed_int8_array
+    }
+
+    #[inline]
+    pub fn typed_uint8_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint8_array
+    }
+
+    #[inline]
+    pub fn typed_uint8clamped_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint8clamped_array
+    }
+
+    #[inline]
+    pub fn typed_int16_array_object(&self) -> &StandardConstructor {
+        &self.typed_int16_array
+    }
+
+    #[inline]
+    pub fn typed_uint16_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint16_array
+    }
+
+    #[inline]
+    pub fn typed_uint32_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint32_array
+    }
+
+    #[inline]
+    pub fn typed_int32_array_object(&self) -> &StandardConstructor {
+        &self.typed_int32_array
+    }
+
+    #[inline]
+    pub fn typed_bigint64_array_object(&self) -> &StandardConstructor {
+        &self.typed_bigint64_array
+    }
+
+    #[inline]
+    pub fn typed_biguint64_array_object(&self) -> &StandardConstructor {
+        &self.typed_biguint64_array
+    }
+
+    #[inline]
+    pub fn typed_float32_array_object(&self) -> &StandardConstructor {
+        &self.typed_float32_array
+    }
+
+    #[inline]
+    pub fn typed_float64_array_object(&self) -> &StandardConstructor {
+        &self.typed_float64_array
+    }
+
+    #[inline]
+    pub fn array_buffer_object(&self) -> &StandardConstructor {
+        &self.array_buffer
+    }
 }
 
 /// Internal representation of the strict mode types.
@@ -275,6 +366,9 @@ pub struct Context {
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
+    /// Cached TypedArray constructor.
+    typed_array_constructor: StandardConstructor,
+
     /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
 
@@ -295,6 +389,7 @@ impl Default for Context {
             #[cfg(feature = "console")]
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
+            typed_array_constructor: StandardConstructor::default(),
             standard_objects: Default::default(),
             strict: StrictType::Off,
             #[cfg(feature = "vm")]
@@ -309,6 +404,14 @@ impl Default for Context {
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
+        let typed_array_constructor_constructor = TypedArray::init(&mut context);
+        let typed_array_constructor_prototype = typed_array_constructor_constructor
+            .get("prototype", &mut context)
+            .expect("prototype must exist")
+            .as_object()
+            .expect("prototype must be object");
+        context.typed_array_constructor.constructor = typed_array_constructor_constructor;
+        context.typed_array_constructor.prototype = typed_array_constructor_prototype;
         context.create_intrinsics();
         context.iterator_prototypes = IteratorPrototypes::init(&mut context);
         context
@@ -378,7 +481,7 @@ impl Context {
         builtins::init(self);
     }
 
-    /// Construct an empty object.
+    /// Constructs an object with the `%Object.prototype%` prototype.
     #[inline]
     pub fn construct_object(&self) -> JsObject {
         let object_prototype: JsValue = self.standard_objects().object_object().prototype().into();
@@ -394,8 +497,8 @@ impl Context {
         args: &[JsValue],
     ) -> JsResult<JsValue> {
         match *f {
-            JsValue::Object(ref object) => object.call(this, args, self),
-            _ => self.throw_type_error("not a function"),
+            JsValue::Object(ref object) if object.is_callable() => object.call(this, args, self),
+            _ => self.throw_type_error("Value is not callable"),
         }
     }
 
@@ -929,6 +1032,12 @@ impl Context {
     #[inline]
     pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
         &self.iterator_prototypes
+    }
+
+    /// Return the cached TypedArray constructor.
+    #[inline]
+    pub(crate) fn typed_array_constructor(&self) -> &StandardConstructor {
+        &self.typed_array_constructor
     }
 
     /// Return the core standard objects.

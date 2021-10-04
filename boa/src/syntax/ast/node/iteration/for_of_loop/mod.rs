@@ -1,5 +1,4 @@
 use crate::{
-    builtins::iterable::get_iterator,
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         lexical_environment::VariableScope,
@@ -83,7 +82,7 @@ impl Executable for ForOfLoop {
     fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(context)?;
-        let iterator = get_iterator(&iterable, context)?;
+        let iterator = iterable.get_iterator(context, None, None)?;
         let mut result = JsValue::undefined();
 
         loop {

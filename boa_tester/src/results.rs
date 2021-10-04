@@ -441,6 +441,7 @@ fn compute_result_diff(
 
             match (base_test.result, new_test.result) {
                 (a, b) if a == b => {}
+                (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
 
                 (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
                 (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),

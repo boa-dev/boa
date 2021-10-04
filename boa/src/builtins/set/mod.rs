@@ -11,7 +11,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
 use crate::{
-    builtins::{iterable::get_iterator, BuiltIn},
+    builtins::BuiltIn,
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -152,7 +152,7 @@ impl Set {
         }
 
         // 7
-        let iterator_record = get_iterator(iterable, context)?;
+        let iterator_record = iterable.clone().get_iterator(context, None, None)?;
 
         // 8.a
         let mut next = iterator_record.next(context)?;

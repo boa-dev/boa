@@ -79,37 +79,34 @@ impl MapIterator {
             .as_map_iterator_mut()
             .expect("checked that obj was a map iterator");
 
-        let mut index = map_iterator.map_next_index;
         let item_kind = map_iterator.map_iteration_kind;
 
         if let Some(obj) = map_iterator.iterated_map.take() {
-            let map = obj.borrow();
-            let entries = map.as_map_ref().expect("iterator should only iterate maps");
-            let num_entries = entries.full_len();
-            while index < num_entries {
-                let e = entries.get_index(index);
-                index += 1;
-                map_iterator.map_next_index = index;
-                if let Some((key, value)) = e {
-                    let item = match item_kind {
-                        PropertyNameKind::Key => {
-                            Ok(create_iter_result_object(key.clone(), false, context))
-                        }
-                        PropertyNameKind::Value => {
-                            Ok(create_iter_result_object(value.clone(), false, context))
-                        }
-                        PropertyNameKind::KeyAndValue => {
-                            let result = Array::create_array_from_list(
-                                [key.clone(), value.clone()],
-                                context,
-                            );
-                            Ok(create_iter_result_object(result.into(), false, context))
-                        }
-                    };
-                    drop(map);
-                    map_iterator.iterated_map = Some(obj);
-                    return item;
+            let e = {
+                let map = obj.borrow();
+                let entries = map.as_map_ref().expect("iterator should only iterate maps");
+                let len = entries.full_len();
+                loop {
+                    let element = entries
+                        .get_index(map_iterator.map_next_index)
+                        .map(|(v, k)| (v.clone(), k.clone()));
+                    map_iterator.map_next_index += 1;
+                    if element.is_some() || map_iterator.map_next_index >= len {
+                        break element;
+                    }
                 }
+            };
+            if let Some((key, value)) = e {
+                let item = match item_kind {
+                    PropertyNameKind::Key => Ok(create_iter_result_object(key, false, context)),
+                    PropertyNameKind::Value => Ok(create_iter_result_object(value, false, context)),
+                    PropertyNameKind::KeyAndValue => {
+                        let result = Array::create_array_from_list([key, value], context);
+                        Ok(create_iter_result_object(result.into(), false, context))
+                    }
+                };
+                map_iterator.iterated_map = Some(obj);
+                return item;
             }
         }
 

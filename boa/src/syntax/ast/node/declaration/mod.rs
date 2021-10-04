@@ -1,6 +1,6 @@
 //! Declaration nodes
 use crate::{
-    builtins::{iterable::get_iterator, Array},
+    builtins::Array,
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
@@ -673,7 +673,7 @@ impl DeclarationPatternArray {
         }
 
         // 1. Let iteratorRecord be ? GetIterator(value).
-        let iterator = get_iterator(&value, context)?;
+        let iterator = value.get_iterator(context, None, None)?;
         let mut result = Vec::new();
 
         // 2. Let result be IteratorBindingInitialization of ArrayBindingPattern with arguments iteratorRecord and environment.
