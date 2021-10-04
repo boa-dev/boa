@@ -17,9 +17,6 @@ use crate::{
     BoaProfiler, Context, JsResult, JsString, JsValue,
 };
 
-#[cfg(test)]
-mod tests;
-
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Intl;
