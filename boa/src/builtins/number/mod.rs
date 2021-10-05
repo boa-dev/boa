@@ -205,28 +205,6 @@ impl Number {
         Err(context.construct_type_error("'this' is not a number"))
     }
 
-    /// Helper function that formats a float as a ES6-style exponential number string.
-    fn num_to_exponential(n: f64) -> String {
-        match n.abs() {
-            x if x > 1.0 => format!("{:e}", n).replace("e", "e+"),
-            x if x == 0.0 => format!("{:e}", n).replace("e", "e+"),
-            _ => format!("{:e}", n),
-        }
-    }
-
-    /// Helper function that formats a float as a ES6-style exponential number string with a given precision.
-    // We can't use the same approach as in `num_to_exponential`
-    // because in cases like (0.999).toExponential(0) the result will be 1e0.
-    // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
-    fn num_to_exponential_with_precision(n: f64, prec: usize) -> String {
-        let mut res = format!("{:.*e}", prec, n);
-        let idx = res.find('e').expect("'e' not found in exponential string");
-        if res.as_bytes()[idx + 1] != b'-' {
-            res.insert(idx + 1, '+');
-        }
-        res
-    }
-
     /// `Number.prototype.toExponential( [fractionDigits] )`
     ///
     /// The `toExponential()` method returns a string representing the Number object in exponential notation.
@@ -262,9 +240,9 @@ impl Number {
                 return Err(context
                     .construct_range_error("toExponential() argument must be between 0 and 100"));
             }
-            Self::num_to_exponential_with_precision(this_num, precision as usize)
+            f64_to_exponential_with_precision(this_num, precision as usize)
         } else {
-            Self::num_to_exponential(this_num)
+            f64_to_exponential(this_num)
         };
         Ok(JsValue::new(this_str_num))
     }
@@ -306,7 +284,7 @@ impl Number {
             Ok(JsValue::new(Self::to_native_string(this_num)))
         // 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).
         } else if this_num >= 1.0e21 {
-            Ok(JsValue::new(Self::num_to_exponential(this_num)))
+            Ok(JsValue::new(f64_to_exponential(this_num)))
         } else {
             // Get rid of the '-' sign for -0.0 because of 9. If x < 0, then set s to "-".
             let this_num = if this_num == 0. { 0. } else { this_num };
@@ -1175,4 +1153,25 @@ impl Number {
         let x = f64_to_int32(x);
         !x
     }
+}
+
+/// Helper function that formats a float as a ES6-style exponential number string.
+fn f64_to_exponential(n: f64) -> String {
+    match n.abs() {
+        x if x > 1.0 || x == 0.0 => format!("{:e}", n).replace("e", "e+"),
+        _ => format!("{:e}", n),
+    }
+}
+
+/// Helper function that formats a float as a ES6-style exponential number string with a given precision.
+// We can't use the same approach as in `num_to_exponential`
+// because in cases like (0.999).toExponential(0) the result will be 1e0.
+// Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
+fn f64_to_exponential_with_precision(n: f64, prec: usize) -> String {
+    let mut res = format!("{:.*e}", prec, n);
+    let idx = res.find('e').expect("'e' not found in exponential string");
+    if res.as_bytes()[idx + 1] != b'-' {
+        res.insert(idx + 1, '+');
+    }
+    res
 }
