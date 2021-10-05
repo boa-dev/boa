@@ -8,6 +8,7 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use core::convert::TryFrom;
 use std::io::Read;
 
 /// Lexes a single line comment.
@@ -108,11 +109,14 @@ impl<R> Tokenizer<R> for HashbangComment {
         let _timer = BoaProfiler::global().start_event("Hashbang", "Lexing");
 
         loop {
-            if let Some(ch) = cursor.peek()? {
-                if ch == b'\r' || ch == b'\n' {
-                    //still want to consume the byte to move to next line
-                    cursor.next_byte()?;
-                    break;
+            if let Some(ch) = cursor.next_char()? {
+                if let Ok(c) = char::try_from(ch) {
+                    if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' {
+                        //still want to consume the byte to move to next line
+                        println!("Found line break char: {}", c);
+                        cursor.next_byte()?;
+                        break;
+                    }
                 } else {
                     cursor.next_byte()?.expect("No byte returned");
                 }
