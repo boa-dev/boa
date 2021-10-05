@@ -42,10 +42,6 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
-<span id="45">45</span>
-<span id="46">46</span>
-<span id="47">47</span>
-<span id="48">48</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,</span>
 <span class="doccomment">//! all of the ECMAScript code that is loaded within the scope of that global environment,</span>
@@ -57,7 +53,7 @@
     <span class="ident">environment</span>::{
         <span class="ident">global_environment_record::GlobalEnvironmentRecord</span>, <span class="ident">lexical_environment::LexicalEnvironment</span>,
     },
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">BoaProfiler</span>,
 };
 <span class="kw">use</span> <span class="ident">gc::Gc</span>;
@@ -78,12 +74,8 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
         <span class="comment">// Create brand new global object</span>
         <span class="comment">// Global has no prototype to pass None to new_obj</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">Object::default</span>();
-
         <span class="comment">// Allow identification of the global object easily</span>
-        <span class="ident">global</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::global</span>();
-
-        <span class="kw">let</span> <span class="ident">gc_global</span> <span class="op">=</span> <span class="ident">JsObject::new</span>(<span class="ident">global</span>);
+        <span class="kw">let</span> <span class="ident">gc_global</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="prelude-val">None</span>, <span class="ident">ObjectData::global</span>());
 
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
         <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">GlobalEnvironmentRecord::new</span>(<span class="ident">gc_global</span>.<span class="ident">clone</span>(), <span class="ident">gc_global</span>.<span class="ident">clone</span>());

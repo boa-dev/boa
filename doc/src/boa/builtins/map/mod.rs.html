@@ -598,9 +598,6 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Map` object.</span>
 <span class="doccomment">//!</span>
@@ -737,13 +734,10 @@
         }
 
         <span class="comment">// 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Map.prototype%&quot;, « [[MapData]] »).</span>
+        <span class="comment">// 3. Set map.[[MapData]] to a new empty List.</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::map_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
-        <span class="ident">map</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-
-        <span class="comment">// 3. Set map.[[MapData]] to a new empty List.</span>
-        <span class="ident">map</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::map</span>(<span class="ident">OrderedMap::new</span>());
+        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::map</span>(<span class="ident">OrderedMap::new</span>()));
 
         <span class="comment">// 4. If iterable is either undefined or null, return map.</span>
         <span class="kw">let</span> <span class="ident">iterable</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>) {

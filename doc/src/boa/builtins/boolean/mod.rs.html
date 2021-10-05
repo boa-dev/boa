@@ -132,10 +132,6 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Boolean` object.</span>
 <span class="doccomment">//!</span>
@@ -154,7 +150,9 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::StandardObjects</span>,
-    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{
+        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+    },
     <span class="ident">property::Attribute</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
@@ -208,15 +206,9 @@
         }
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::boolean_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">boolean</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">boolean</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::boolean</span>(<span class="ident">data</span>));
 
-        <span class="ident">boolean</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;this should be an object&quot;</span>)
-            .<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-        <span class="ident">boolean</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::boolean</span>(<span class="ident">data</span>));
-
-        <span class="prelude-val">Ok</span>(<span class="ident">boolean</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">boolean</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// An Utility function used to get the internal `[[BooleanData]]`.</span>

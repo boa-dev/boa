@@ -292,15 +292,6 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
@@ -328,24 +319,15 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
-            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(
-                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident">context</span>,
-            ),
-            <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>),
-            <span class="ident">string_iterator</span>: <span class="ident">StringIterator::create_prototype</span>(
-                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident">context</span>,
-            ),
+            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
+            <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
+            <span class="ident">string_iterator</span>: <span class="ident">StringIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">regexp_string_iterator</span>: <span class="ident">RegExpStringIterator::create_prototype</span>(
-                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(),
                 <span class="ident">context</span>,
             ),
-            <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>),
-            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(
-                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident">context</span>,
-            ),
+            <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
+            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">iterator_prototype</span>,
         }
     }

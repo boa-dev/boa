@@ -1696,120 +1696,27 @@
 <span id="1696">1696</span>
 <span id="1697">1697</span>
 <span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
-<span id="1704">1704</span>
-<span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
-<span id="1712">1712</span>
-<span id="1713">1713</span>
-<span id="1714">1714</span>
-<span id="1715">1715</span>
-<span id="1716">1716</span>
-<span id="1717">1717</span>
-<span id="1718">1718</span>
-<span id="1719">1719</span>
-<span id="1720">1720</span>
-<span id="1721">1721</span>
-<span id="1722">1722</span>
-<span id="1723">1723</span>
-<span id="1724">1724</span>
-<span id="1725">1725</span>
-<span id="1726">1726</span>
-<span id="1727">1727</span>
-<span id="1728">1728</span>
-<span id="1729">1729</span>
-<span id="1730">1730</span>
-<span id="1731">1731</span>
-<span id="1732">1732</span>
-<span id="1733">1733</span>
-<span id="1734">1734</span>
-<span id="1735">1735</span>
-<span id="1736">1736</span>
-<span id="1737">1737</span>
-<span id="1738">1738</span>
-<span id="1739">1739</span>
-<span id="1740">1740</span>
-<span id="1741">1741</span>
-<span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
-<span id="1746">1746</span>
-<span id="1747">1747</span>
-<span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
-<span id="1754">1754</span>
-<span id="1755">1755</span>
-<span id="1756">1756</span>
-<span id="1757">1757</span>
-<span id="1758">1758</span>
-<span id="1759">1759</span>
-<span id="1760">1760</span>
-<span id="1761">1761</span>
-<span id="1762">1762</span>
-<span id="1763">1763</span>
-<span id="1764">1764</span>
-<span id="1765">1765</span>
-<span id="1766">1766</span>
-<span id="1767">1767</span>
-<span id="1768">1768</span>
-<span id="1769">1769</span>
-<span id="1770">1770</span>
-<span id="1771">1771</span>
-<span id="1772">1772</span>
-<span id="1773">1773</span>
-<span id="1774">1774</span>
-<span id="1775">1775</span>
-<span id="1776">1776</span>
-<span id="1777">1777</span>
-<span id="1778">1778</span>
-<span id="1779">1779</span>
-<span id="1780">1780</span>
-<span id="1781">1781</span>
-<span id="1782">1782</span>
-<span id="1783">1783</span>
-<span id="1784">1784</span>
-<span id="1785">1785</span>
-<span id="1786">1786</span>
-<span id="1787">1787</span>
-<span id="1788">1788</span>
-<span id="1789">1789</span>
-<span id="1790">1790</span>
-<span id="1791">1791</span>
-<span id="1792">1792</span>
-<span id="1793">1793</span>
-<span id="1794">1794</span>
-<span id="1795">1795</span>
-<span id="1796">1796</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">array::array_iterator::ArrayIterator</span>, <span class="ident">array_buffer::ArrayBuffer</span>,
-        <span class="ident">map::map_iterator::MapIterator</span>, <span class="ident">map::ordered_map::OrderedMap</span>,
-        <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>, <span class="ident">set::ordered_set::OrderedSet</span>,
-        <span class="ident">set::set_iterator::SetIterator</span>, <span class="ident">string::string_iterator::StringIterator</span>,
-        <span class="ident">typed_array::integer_indexed_object::IntegerIndexed</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
+        <span class="ident">array::array_iterator::ArrayIterator</span>,
+        <span class="ident">array_buffer::ArrayBuffer</span>,
+        <span class="ident">function</span>::{<span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
+        <span class="ident">map::map_iterator::MapIterator</span>,
+        <span class="ident">map::ordered_map::OrderedMap</span>,
+        <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
+        <span class="ident">set::ordered_set::OrderedSet</span>,
+        <span class="ident">set::set_iterator::SetIterator</span>,
+        <span class="ident">string::string_iterator::StringIterator</span>,
+        <span class="ident">typed_array::integer_indexed_object::IntegerIndexed</span>,
+        <span class="ident">Date</span>, <span class="ident">RegExp</span>,
     },
     <span class="ident">context::StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object::function</span>::{<span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">any::Any</span>,
@@ -1820,7 +1727,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
@@ -2149,98 +2055,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Object</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Default::default</span>()
-    }
-
-    <span class="doccomment">/// Return a new ObjectData struct, with `kind` set to Ordinary</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>(<span class="ident">function</span>: <span class="ident">Function</span>, <span class="ident">prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Object::Function&quot;</span>, <span class="string">&quot;object&quot;</span>);
-
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">ObjectData::function</span>(<span class="ident">function</span>),
-            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">prototype</span>,
-            <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-        }
-    }
-
-    <span class="doccomment">/// `OrdinaryObjectCreate` is used to specify the runtime creation of new ordinary objects.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">proto</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::new</span>();
-        <span class="ident">obj</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">proto</span>;
-        <span class="ident">obj</span>
-    }
-
-    <span class="doccomment">/// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boolean</span>(<span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">ObjectData::boolean</span>(<span class="ident">value</span>),
-            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">prototype</span>: <span class="ident">JsValue::null</span>(),
-            <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-        }
-    }
-
-    <span class="doccomment">/// Return a new `Number` object whose `[[NumberData]]` internal slot is set to argument.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number</span>(<span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">ObjectData::number</span>(<span class="ident">value</span>),
-            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">prototype</span>: <span class="ident">JsValue::null</span>(),
-            <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-        }
-    }
-
-    <span class="doccomment">/// Return a new `String` object whose `[[StringData]]` internal slot is set to argument.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
-    {
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">ObjectData::string</span>(<span class="ident">value</span>.<span class="ident">into</span>()),
-            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">prototype</span>: <span class="ident">JsValue::null</span>(),
-            <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-        }
-    }
-
-    <span class="doccomment">/// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bigint</span>(<span class="ident">value</span>: <span class="ident">JsBigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">ObjectData::big_int</span>(<span class="ident">value</span>),
-            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">prototype</span>: <span class="ident">JsValue::null</span>(),
-            <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-        }
-    }
-
-    <span class="doccomment">/// Create a new native object of type `T`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_object</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">NativeObject</span>,
-    {
-        <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">ObjectData::native_object</span>(<span class="ident">Box::new</span>(<span class="ident">value</span>)),
-            <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">prototype</span>: <span class="ident">JsValue::null</span>(),
-            <span class="ident">extensible</span>: <span class="bool-val">true</span>,
-        }
-    }
-
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ObjectKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">kind</span>
@@ -2804,15 +2618,6 @@
         }
     }
 
-    <span class="doccomment">/// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_prototype</span>(<span class="ident">proto</span>: <span class="ident">JsValue</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Object</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Object::new</span>();
-        <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
-        <span class="ident">object</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">proto</span>);
-        <span class="ident">object</span>
-    }
-
     <span class="doccomment">/// Returns `true` if it holds an Rust type that implements `NativeObject`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_native_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -3097,13 +2902,12 @@
     <span class="doccomment">/// Build the function object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Object::function</span>(
-            <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>(),
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
             <span class="self">self</span>.<span class="ident">context</span>
                 .<span class="ident">standard_objects</span>()
                 .<span class="ident">function_object</span>()
-                .<span class="ident">prototype</span>()
-                .<span class="ident">into</span>(),
+                .<span class="ident">prototype</span>(),
+            <span class="ident">ObjectData::function</span>(<span class="self">self</span>.<span class="ident">function</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()),
         );
         <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
             .<span class="ident">writable</span>(<span class="bool-val">false</span>)
@@ -3112,7 +2916,7 @@
         <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>()));
         <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
 
-        <span class="ident">JsObject::new</span>(<span class="ident">function</span>)
+        <span class="ident">function</span>
     }
 
     <span class="doccomment">/// Initializes the `Function.prototype` function object.</span>
@@ -3267,8 +3071,8 @@
         <span class="self">Self</span> {
             <span class="ident">context</span>,
             <span class="ident">constructor_function</span>: <span class="ident">constructor</span>,
-            <span class="ident">constructor_object</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
-            <span class="ident">prototype</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
+            <span class="ident">constructor_object</span>: <span class="ident">JsObject::empty</span>(),
+            <span class="ident">prototype</span>: <span class="ident">JsObject::empty</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,

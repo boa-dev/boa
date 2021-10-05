@@ -204,6 +204,10 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Object node.</span>
 
@@ -296,7 +300,7 @@
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Object</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;object&quot;</span>, <span class="string">&quot;exec&quot;</span>);
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
         <span class="comment">// TODO: Implement the rest of the property types.</span>
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
@@ -308,14 +312,16 @@
                             <span class="ident">node</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                         }
                     };
-                    <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                    <span class="ident">obj</span>.<span class="ident">__define_own_property__</span>(
                         <span class="ident">name</span>,
                         <span class="ident">PropertyDescriptor::builder</span>()
                             .<span class="ident">value</span>(<span class="ident">value</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
                             .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                             .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                    );
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">build</span>(),
+                        <span class="ident">context</span>,
+                    )<span class="question-mark">?</span>;
                 }
                 <span class="ident">PropertyDefinition::MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span> {
@@ -326,44 +332,50 @@
                     };
                     <span class="kw">match</span> <span class="ident">kind</span> {
                         <span class="ident">MethodDefinitionKind::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                            <span class="ident">obj</span>.<span class="ident">__define_own_property__</span>(
                                 <span class="ident">name</span>,
                                 <span class="ident">PropertyDescriptor::builder</span>()
                                     .<span class="ident">value</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
                                     .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                                     .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                            );
+                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">build</span>(),
+                                <span class="ident">context</span>,
+                            )<span class="question-mark">?</span>;
                         }
                         <span class="ident">MethodDefinitionKind::Get</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">obj</span>
-                                .<span class="ident">get_property</span>(<span class="ident">name</span>.<span class="ident">clone</span>())
+                                .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                                 .<span class="ident">as_ref</span>()
                                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">set</span>())
                                 .<span class="ident">cloned</span>();
-                            <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                            <span class="ident">obj</span>.<span class="ident">__define_own_property__</span>(
                                 <span class="ident">name</span>,
                                 <span class="ident">PropertyDescriptor::builder</span>()
                                     .<span class="ident">maybe_get</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
                                     .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
                                     .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                            )
+                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">build</span>(),
+                                <span class="ident">context</span>,
+                            )<span class="question-mark">?</span>;
                         }
                         <span class="ident">MethodDefinitionKind::Set</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">obj</span>
-                                .<span class="ident">get_property</span>(<span class="ident">name</span>.<span class="ident">clone</span>())
+                                .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                                 .<span class="ident">as_ref</span>()
                                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">get</span>())
                                 .<span class="ident">cloned</span>();
-                            <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                            <span class="ident">obj</span>.<span class="ident">__define_own_property__</span>(
                                 <span class="ident">name</span>,
                                 <span class="ident">PropertyDescriptor::builder</span>()
                                     .<span class="ident">maybe_get</span>(<span class="ident">get</span>)
                                     .<span class="ident">maybe_set</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
                                     .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                            )
+                                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                                    .<span class="ident">build</span>(),
+                                <span class="ident">context</span>,
+                            )<span class="question-mark">?</span>;
                         }
                     }
                 }
@@ -375,17 +387,13 @@
                         <span class="kw">continue</span>;
                     }
 
-                    <span class="ident">obj</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>().<span class="ident">copy_data_properties</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">val</span>,
-                        <span class="macro">vec!</span>[],
-                        <span class="ident">context</span>,
-                    )<span class="question-mark">?</span>;
+                    <span class="ident">obj</span>.<span class="ident">copy_data_properties</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">val</span>, <span class="macro">vec!</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">// unimplemented!(&quot;{:?} type of property&quot;, i),</span>
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
     }
 }
 

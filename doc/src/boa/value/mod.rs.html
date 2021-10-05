@@ -1174,14 +1174,6 @@
 <span id="1174">1174</span>
 <span id="1175">1175</span>
 <span id="1176">1176</span>
-<span id="1177">1177</span>
-<span id="1178">1178</span>
-<span id="1179">1179</span>
-<span id="1180">1180</span>
-<span id="1181">1181</span>
-<span id="1182">1182</span>
-<span id="1183">1183</span>
-<span id="1184">1184</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1195,7 +1187,7 @@
         <span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>},
         <span class="ident">Number</span>,
     },
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
@@ -1298,20 +1290,14 @@
 
     <span class="doccomment">/// Creates a new number with `Infinity` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positive_inifnity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positive_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">f64::INFINITY</span>)
     }
 
     <span class="doccomment">/// Creates a new number with `-Infinity` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negative_inifnity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negative_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">f64::NEG_INFINITY</span>)
-    }
-
-    <span class="doccomment">/// Returns a new empty object with the `%Object.prototype%` prototype.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;new_object&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="ident">context</span>.<span class="ident">construct_object</span>().<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// Returns true if the value is an object</span>
@@ -1711,32 +1697,30 @@
             }
             <span class="ident">JsValue::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">boolean_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
-                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                    <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::boolean</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
-                )))
+                ))
             }
             <span class="ident">JsValue::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">number_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
-                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                    <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::number</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)),
-                )))
+                ))
             }
             <span class="ident">JsValue::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">number_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
-                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                    <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::number</span>(<span class="kw-2">*</span><span class="ident">rational</span>),
-                )))
+                ))
             }
             <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">string_object</span>().<span class="ident">prototype</span>();
 
-                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
-                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
-                    <span class="ident">ObjectData::string</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-                ));
+                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span>
+                    <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::string</span>(<span class="ident">string</span>.<span class="ident">clone</span>()));
                 <span class="comment">// Make sure the correct length is set on our new string object</span>
                 <span class="ident">object</span>.<span class="ident">insert_property</span>(
                     <span class="string">&quot;length&quot;</span>,
@@ -1750,17 +1734,17 @@
             }
             <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">symbol_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
-                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                    <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::symbol</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
-                )))
+                ))
             }
             <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">bigint_object</span>().<span class="ident">prototype</span>();
-                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::new</span>(<span class="ident">Object::with_prototype</span>(
-                    <span class="ident">prototype</span>.<span class="ident">into</span>(),
+                <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                    <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::big_int</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),
-                )))
+                ))
             }
             <span class="ident">JsValue::Object</span>(<span class="ident">jsobject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">jsobject</span>.<span class="ident">clone</span>()),
         }

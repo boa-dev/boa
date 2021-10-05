@@ -1989,8 +1989,6 @@
 <span id="1989">1989</span>
 <span id="1990">1990</span>
 <span id="1991">1991</span>
-<span id="1992">1992</span>
-<span id="1993">1993</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -2199,9 +2197,7 @@
         <span class="comment">// 4. Set S.[[GetOwnProperty]] as specified in 10.4.3.1.</span>
         <span class="comment">// 5. Set S.[[DefineOwnProperty]] as specified in 10.4.3.2.</span>
         <span class="comment">// 6. Set S.[[OwnPropertyKeys]] as specified in 10.4.3.3.</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
-        <span class="ident">s</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-        <span class="ident">s</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::string</span>(<span class="ident">value</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::string</span>(<span class="ident">value</span>));
 
         <span class="comment">// 8. Perform ! DefinePropertyOrThrow(S, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length),</span>
         <span class="comment">// [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).</span>

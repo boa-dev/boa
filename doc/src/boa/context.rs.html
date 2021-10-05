@@ -1052,17 +1052,34 @@
 <span id="1052">1052</span>
 <span id="1053">1053</span>
 <span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">iterable::IteratorPrototypes</span>, <span class="ident">typed_array::TypedArray</span>},
+    <span class="ident">builtins</span>::{
+        <span class="self">self</span>,
+        <span class="ident">function</span>::{<span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>, <span class="ident">ThisMode</span>},
+        <span class="ident">iterable::IteratorPrototypes</span>,
+        <span class="ident">typed_array::TypedArray</span>,
+    },
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
     <span class="ident">exec::Interpreter</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">function</span>::{<span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>, <span class="ident">ThisMode</span>},
-        <span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">Object</span>, <span class="ident">PROTOTYPE</span>,
-    },
+    <span class="ident">object::PROTOTYPE</span>,
+    <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">realm::Realm</span>,
     <span class="ident">syntax</span>::{
@@ -1094,18 +1111,18 @@
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StandardConstructor</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">constructor</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
-            <span class="ident">prototype</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
+            <span class="ident">constructor</span>: <span class="ident">JsObject::empty</span>(),
+            <span class="ident">prototype</span>: <span class="ident">JsObject::empty</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StandardConstructor</span> {
     <span class="doccomment">/// Build a constructor with a defined prototype.</span>
-    <span class="kw">fn</span> <span class="ident">with_prototype</span>(<span class="ident">prototype</span>: <span class="ident">Object</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">with_prototype</span>(<span class="ident">prototype</span>: <span class="ident">JsObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">constructor</span>: <span class="ident">JsObject::new</span>(<span class="ident">Object::default</span>()),
-            <span class="ident">prototype</span>: <span class="ident">JsObject::new</span>(<span class="ident">prototype</span>),
+            <span class="ident">constructor</span>: <span class="ident">JsObject::empty</span>(),
+            <span class="ident">prototype</span>,
         }
     }
 
@@ -1169,9 +1186,18 @@
             <span class="ident">function</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">array</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">bigint</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">number</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">Object::number</span>(<span class="number">0.0</span>)),
-            <span class="ident">boolean</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">Object::boolean</span>(<span class="bool-val">false</span>)),
-            <span class="ident">string</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">Object::string</span>(<span class="string">&quot;&quot;</span>)),
+            <span class="ident">number</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                <span class="prelude-val">None</span>,
+                <span class="ident">ObjectData::number</span>(<span class="number">0.0</span>),
+            )),
+            <span class="ident">boolean</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                <span class="prelude-val">None</span>,
+                <span class="ident">ObjectData::boolean</span>(<span class="bool-val">false</span>),
+            )),
+            <span class="ident">string</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                <span class="prelude-val">None</span>,
+                <span class="ident">ObjectData::string</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>()),
+            )),
             <span class="ident">regexp</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">symbol</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">error</span>: <span class="ident">StandardConstructor::default</span>(),
@@ -1539,8 +1565,10 @@
     <span class="doccomment">/// Constructs an object with the `%Object.prototype%` prototype.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
-        <span class="kw">let</span> <span class="ident">object_prototype</span>: <span class="ident">JsValue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>();
-        <span class="ident">JsObject::new</span>(<span class="ident">Object::create</span>(<span class="ident">object_prototype</span>))
+        <span class="ident">JsObject::from_proto_and_data</span>(
+            <span class="self">self</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>(),
+            <span class="ident">ObjectData::ordinary</span>(),
+        )
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-call&gt;</span>
@@ -1737,8 +1765,7 @@
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">function_prototype</span>: <span class="ident">JsValue</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>();
 
         <span class="comment">// Every new function has a prototype property pre-made</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_object</span>();
@@ -1758,7 +1785,8 @@
             <span class="ident">environment</span>: <span class="self">self</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
         };
 
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">JsObject::new</span>(<span class="ident">Object::function</span>(<span class="ident">func</span>, <span class="ident">function_prototype</span>));
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span>
+            <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">function_prototype</span>, <span class="ident">ObjectData::function</span>(<span class="ident">func</span>));
 
         <span class="comment">// Set constructor field to the newly created Value (function object)</span>
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()

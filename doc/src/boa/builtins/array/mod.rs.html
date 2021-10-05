@@ -2661,24 +2661,6 @@
 <span id="2661">2661</span>
 <span id="2662">2662</span>
 <span id="2663">2663</span>
-<span id="2664">2664</span>
-<span id="2665">2665</span>
-<span id="2666">2666</span>
-<span id="2667">2667</span>
-<span id="2668">2668</span>
-<span id="2669">2669</span>
-<span id="2670">2670</span>
-<span id="2671">2671</span>
-<span id="2672">2672</span>
-<span id="2673">2673</span>
-<span id="2674">2674</span>
-<span id="2675">2675</span>
-<span id="2676">2676</span>
-<span id="2677">2677</span>
-<span id="2678">2678</span>
-<span id="2679">2679</span>
-<span id="2680">2680</span>
-<span id="2681">2681</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2905,12 +2887,7 @@
             <span class="prelude-val">Some</span>(<span class="ident">prototype</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">prototype</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">array_object</span>().<span class="ident">prototype</span>(),
         };
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
-
-        <span class="ident">array</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-        <span class="comment">// This value is used by console.log and other routines to match Object type</span>
-        <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
-        <span class="ident">array</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::array</span>();
+        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::array</span>());
 
         <span class="comment">// 6. Perform ! OrdinaryDefineOwnProperty(A, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).</span>
         <span class="kw">crate</span><span class="ident">::object::internal_methods::ordinary_define_own_property</span>(
@@ -2957,22 +2934,9 @@
 
     <span class="doccomment">/// Creates a new `Array` instance.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
-        <span class="ident">array</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::array</span>());
-        <span class="ident">array</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;&#39;array&#39; should be an object&quot;</span>)
-            .<span class="ident">set_prototype_instance</span>(<span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">array_object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>());
-        <span class="ident">array</span>.<span class="ident">set_property</span>(
-            <span class="string">&quot;length&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="number">0</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">build</span>(),
-        );
-        <span class="ident">array</span>
+        <span class="self">Self</span><span class="ident">::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;creating an empty array with the default prototype must not fail&quot;</span>)
+            .<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// Utility function for concatenating array objects.</span>

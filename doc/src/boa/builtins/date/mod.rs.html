@@ -1930,6 +1930,7 @@
 <span id="1930">1930</span>
 <span id="1931">1931</span>
 <span id="1932">1932</span>
+<span id="1933">1933</span>
 </pre><pre class="rust">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -1938,7 +1939,9 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::StandardObjects</span>,
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{
+        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+    },
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">JsValue</span>, <span class="ident">PreferredType</span>},
@@ -2279,16 +2282,14 @@
                 <span class="ident">StandardObjects::object_object</span>,
                 <span class="ident">context</span>,
             )<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
-            <span class="ident">obj</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-            <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">into</span>();
-            <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                <span class="prelude-val">Ok</span>(<span class="self">Self</span><span class="ident">::make_date_now</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>))
+            <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
+                <span class="self">Self</span><span class="ident">::make_date_now</span>(<span class="ident">prototype</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="self">Self</span><span class="ident">::make_date_single</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)
+                <span class="self">Self</span><span class="ident">::make_date_single</span>(<span class="ident">prototype</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <span class="self">Self</span><span class="ident">::make_date_multiple</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)
+                <span class="self">Self</span><span class="ident">::make_date_multiple</span>(<span class="ident">prototype</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
             }
+            .<span class="ident">into</span>())
         }
     }
 
@@ -2316,10 +2317,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_now</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
-        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date::default</span>();
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::date</span>(<span class="ident">date</span>));
-        <span class="ident">this</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_now</span>(<span class="ident">prototype</span>: <span class="ident">JsObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+        <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::date</span>(<span class="ident">Date::default</span>()))
     }
 
     <span class="doccomment">/// `Date(value)`</span>
@@ -2333,10 +2332,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_single</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">prototype</span>: <span class="ident">JsObject</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>];
         <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>, <span class="ident">context</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dt</span>.<span class="number">0</span>,
@@ -2359,9 +2358,10 @@
         };
 
         <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">tv</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="self">Self</span><span class="ident">::time_clip</span>(<span class="ident">time</span>.<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">is_some</span>());
-        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date</span>(<span class="ident">tv</span>);
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::date</span>(<span class="ident">date</span>));
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+            <span class="ident">prototype</span>,
+            <span class="ident">ObjectData::date</span>(<span class="ident">Date</span>(<span class="ident">tv</span>)),
+        ))
     }
 
     <span class="doccomment">/// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ] ] ] ])`</span>
@@ -2375,10 +2375,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date-constructor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">make_date_multiple</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">prototype</span>: <span class="ident">JsObject</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">year</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">1</span>].<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">day</span> <span class="op">=</span> <span class="ident">args</span>
@@ -2399,9 +2399,10 @@
 
         <span class="comment">// If any of the args are infinity or NaN, return an invalid date.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="macro">check_normal_opt!</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>, <span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>) {
-            <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">Date</span>(<span class="prelude-val">None</span>);
-            <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::date</span>(<span class="ident">date</span>));
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                <span class="ident">prototype</span>,
+                <span class="ident">ObjectData::date</span>(<span class="ident">Date</span>(<span class="prelude-val">None</span>)),
+            ));
         }
 
         <span class="kw">if</span> (<span class="number">0.0</span>..<span class="op">=</span><span class="number">99.0</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">year</span>) {
@@ -2426,9 +2427,10 @@
             <span class="prelude-val">Some</span>(<span class="ident">milli</span>),
         );
 
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::date</span>(<span class="ident">date</span>));
-
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+            <span class="ident">prototype</span>,
+            <span class="ident">ObjectData::date</span>(<span class="ident">date</span>),
+        ))
     }
 
     <span class="doccomment">/// `Date.prototype[@@toPrimitive]`</span>

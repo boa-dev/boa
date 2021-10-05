@@ -1116,13 +1116,6 @@
 <span id="1116">1116</span>
 <span id="1117">1117</span>
 <span id="1118">1118</span>
-<span id="1119">1119</span>
-<span id="1120">1120</span>
-<span id="1121">1121</span>
-<span id="1122">1122</span>
-<span id="1123">1123</span>
-<span id="1124">1124</span>
-<span id="1125">1125</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1142,12 +1135,10 @@
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::string::is_trimmable_whitespace</span>;
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::context::StandardObjects</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::object::JsObject</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">function::make_builtin_fn</span>, <span class="ident">internal_methods::get_prototype_from_constructor</span>,
-        <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>,
-    },
+    <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::Attribute</span>,
     <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>,
@@ -1298,13 +1289,8 @@
         }
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::number_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
-        <span class="ident">this</span>.<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;this should be an object&quot;</span>)
-            .<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::number</span>(<span class="ident">data</span>));
-
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::number</span>(<span class="ident">data</span>));
+        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// This function returns a `JsResult` of the number `Value`.</span>
