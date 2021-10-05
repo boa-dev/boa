@@ -8,7 +8,7 @@ use crate::{
     environment::{
         global_environment_record::GlobalEnvironmentRecord, lexical_environment::LexicalEnvironment,
     },
-    object::{JsObject, Object, ObjectData},
+    object::{JsObject, ObjectData},
     BoaProfiler,
 };
 use gc::Gc;
@@ -29,12 +29,8 @@ impl Realm {
         let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
-        let mut global = Object::default();
-
         // Allow identification of the global object easily
-        global.data = ObjectData::global();
-
-        let gc_global = JsObject::new(global);
+        let gc_global = JsObject::from_proto_and_data(None, ObjectData::global());
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = GlobalEnvironmentRecord::new(gc_global.clone(), gc_global.clone());

@@ -1,6 +1,6 @@
 use crate::{
-    builtins::{iterable::create_iter_result_object, Array, JsValue},
-    object::{function::make_builtin_fn, JsObject, ObjectData},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,
@@ -47,13 +47,11 @@ impl MapIterator {
                     map_iteration_kind: kind,
                     lock,
                 };
-                let map_iterator = JsValue::new_object(context);
-                map_iterator.set_data(ObjectData::map_iterator(iter));
-                map_iterator
-                    .as_object()
-                    .expect("map iterator object")
-                    .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-                return Ok(map_iterator);
+                let map_iterator = JsObject::from_proto_and_data(
+                    context.iterator_prototypes().map_iterator(),
+                    ObjectData::map_iterator(iter),
+                );
+                return Ok(map_iterator.into());
             }
         }
         context.throw_type_error("`this` is not a Map")
@@ -123,13 +121,16 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
+    pub(crate) fn create_prototype(
+        iterator_prototype: JsObject,
+        context: &mut Context,
+    ) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let map_iterator = context.construct_object();
+        let map_iterator =
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
-        map_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let to_string_tag_property = PropertyDescriptor::builder()

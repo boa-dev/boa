@@ -16,12 +16,10 @@
 use super::string::is_trimmable_whitespace;
 use super::JsArgs;
 use crate::context::StandardObjects;
+use crate::object::JsObject;
 use crate::{
-    builtins::BuiltIn,
-    object::{
-        function::make_builtin_fn, internal_methods::get_prototype_from_constructor,
-        ConstructorBuilder, ObjectData,
-    },
+    builtins::{function::make_builtin_fn, BuiltIn},
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
@@ -172,13 +170,8 @@ impl Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
-        let this = JsValue::new_object(context);
-        this.as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        this.set_data(ObjectData::number(data));
-
-        Ok(this)
+        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
+        Ok(this.into())
     }
 
     /// This function returns a `JsResult` of the number `Value`.

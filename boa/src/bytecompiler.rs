@@ -1,7 +1,7 @@
 use gc::Gc;
 
 use crate::{
-    object::function::ThisMode,
+    builtins::function::ThisMode,
     syntax::ast::{
         node::{Declaration, GetConstField, GetField, StatementList},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},

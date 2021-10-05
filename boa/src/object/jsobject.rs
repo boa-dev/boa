@@ -20,19 +20,16 @@ use std::{
 
 #[cfg(not(feature = "vm"))]
 use crate::{
+    builtins::function::{
+        create_unmapped_arguments_object, Captures, ClosureFunctionSignature, Function,
+        NativeFunctionSignature,
+    },
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
     exec::InterpreterState,
-    object::{
-        function::{
-            create_unmapped_arguments_object, Captures, ClosureFunctionSignature, Function,
-            NativeFunctionSignature,
-        },
-        PROTOTYPE,
-    },
     syntax::ast::node::RcStatementList,
     Executable,
 };
@@ -63,10 +60,30 @@ enum FunctionBody {
 }
 
 impl JsObject {
-    /// Create a new `GcObject` from a `Object`.
+    /// Create a new `JsObject` from an internal `Object`.
     #[inline]
-    pub fn new(object: Object) -> Self {
+    fn from_object(object: Object) -> Self {
         Self(Gc::new(GcCell::new(object)))
+    }
+
+    /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
+    /// and `data` set to `ObjectData::ordinary`
+    pub fn empty() -> Self {
+        Self::from_object(Object::default())
+    }
+
+    /// The more general form of `OrdinaryObjectCreate` and `MakeBasicObject`.
+    ///
+    /// Create a `JsObject` and automatically set its internal methods and
+    /// internal slots from the `data` provided.
+    #[inline]
+    pub fn from_proto_and_data<O: Into<Option<JsObject>>>(prototype: O, data: ObjectData) -> Self {
+        Self::from_object(Object {
+            data,
+            prototype: prototype.into().map_or(JsValue::Null, JsValue::new),
+            extensible: true,
+            properties: Default::default(),
+        })
     }
 
     /// Immutably borrows the `Object`.
@@ -143,6 +160,10 @@ impl JsObject {
         context: &mut Context,
         construct: bool,
     ) -> JsResult<JsValue> {
+        use crate::context::StandardObjects;
+
+        use super::internal_methods::get_prototype_from_constructor;
+
         let this_function_object = self.clone();
         let mut has_parameter_expressions = false;
 
@@ -180,21 +201,13 @@ impl JsObject {
                             // prototype as prototype for the new object
                             // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
                             // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                            let proto = this_target.as_object().unwrap().__get__(
-                                &PROTOTYPE.into(),
-                                this_target.clone(),
+                            let proto = get_prototype_from_constructor(
+                                this_target,
+                                StandardObjects::object_object,
                                 context,
                             )?;
-                            let proto = if proto.is_object() {
-                                proto
-                            } else {
-                                context
-                                    .standard_objects()
-                                    .object_object()
-                                    .prototype()
-                                    .into()
-                            };
-                            JsValue::new(Object::create(proto))
+                            JsObject::from_proto_and_data(Some(proto), ObjectData::ordinary())
+                                .into()
                         } else {
                             this_target.clone()
                         };

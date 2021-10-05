@@ -10,7 +10,7 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         Number,
     },
-    object::{JsObject, Object, ObjectData},
+    object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
     BoaProfiler, Context, JsBigInt, JsResult, JsString,
@@ -113,20 +113,14 @@ impl JsValue {
 
     /// Creates a new number with `Infinity` value.
     #[inline]
-    pub fn positive_inifnity() -> Self {
+    pub fn positive_infinity() -> Self {
         Self::Rational(f64::INFINITY)
     }
 
     /// Creates a new number with `-Infinity` value.
     #[inline]
-    pub fn negative_inifnity() -> Self {
+    pub fn negative_infinity() -> Self {
         Self::Rational(f64::NEG_INFINITY)
-    }
-
-    /// Returns a new empty object with the `%Object.prototype%` prototype.
-    pub(crate) fn new_object(context: &Context) -> Self {
-        let _timer = BoaProfiler::global().start_event("new_object", "value");
-        context.construct_object().into()
     }
 
     /// Returns true if the value is an object
@@ -526,32 +520,30 @@ impl JsValue {
             }
             JsValue::Boolean(boolean) => {
                 let prototype = context.standard_objects().boolean_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::boolean(*boolean),
-                )))
+                ))
             }
             JsValue::Integer(integer) => {
                 let prototype = context.standard_objects().number_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::number(f64::from(*integer)),
-                )))
+                ))
             }
             JsValue::Rational(rational) => {
                 let prototype = context.standard_objects().number_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::number(*rational),
-                )))
+                ))
             }
             JsValue::String(ref string) => {
                 let prototype = context.standard_objects().string_object().prototype();
 
-                let object = JsObject::new(Object::with_prototype(
-                    prototype.into(),
-                    ObjectData::string(string.clone()),
-                ));
+                let object =
+                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
                     "length",
@@ -565,17 +557,17 @@ impl JsValue {
             }
             JsValue::Symbol(ref symbol) => {
                 let prototype = context.standard_objects().symbol_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::symbol(symbol.clone()),
-                )))
+                ))
             }
             JsValue::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::big_int(bigint.clone()),
-                )))
+                ))
             }
             JsValue::Object(jsobject) => Ok(jsobject.clone()),
         }

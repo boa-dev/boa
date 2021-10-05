@@ -17,7 +17,7 @@ use crate::{
     gc::{empty_trace, Finalize, Trace},
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, Object, ObjectData,
+        JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -263,7 +263,7 @@ impl RegExp {
     fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let proto = get_prototype_from_constructor(this, StandardObjects::regexp_object, context)?;
 
-        Ok(JsObject::new(Object::create(proto.into())).into())
+        Ok(JsObject::from_proto_and_data(proto, ObjectData::ordinary()).into())
     }
 
     /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
@@ -983,7 +983,7 @@ impl RegExp {
         let named_groups = match_value.named_groups();
         let groups = if named_groups.clone().count() > 0 {
             // a. Let groups be ! OrdinaryObjectCreate(null).
-            let groups = JsValue::from(JsObject::new(Object::create(JsValue::null())));
+            let groups = JsValue::from(JsObject::empty());
 
             // Perform 27.f here
             // f. If the ith capture of R was defined with a GroupName, then

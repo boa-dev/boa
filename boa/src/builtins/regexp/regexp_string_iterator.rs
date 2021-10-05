@@ -12,9 +12,9 @@
 use regexp::{advance_string_index, RegExp};
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, regexp},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, regexp},
     gc::{Finalize, Trace},
-    object::{function::make_builtin_fn, JsObject, ObjectData},
+    object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsString, JsValue,
@@ -66,24 +66,18 @@ impl RegExpStringIterator {
         //    and fullUnicode and performs the following steps when called:
 
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
-        let regexp_string_iterator = JsValue::new_object(context);
-        regexp_string_iterator.set_data(ObjectData::reg_exp_string_iterator(Self::new(
-            matcher.clone(),
-            string,
-            global,
-            unicode,
-        )));
-        regexp_string_iterator
-            .as_object()
-            .expect("regexp string iterator object")
-            .set_prototype_instance(
-                context
-                    .iterator_prototypes()
-                    .regexp_string_iterator()
-                    .into(),
-            );
 
-        Ok(regexp_string_iterator)
+        let regexp_string_iterator = JsObject::from_proto_and_data(
+            context.iterator_prototypes().regexp_string_iterator(),
+            ObjectData::reg_exp_string_iterator(Self::new(
+                matcher.clone(),
+                string,
+                global,
+                unicode,
+            )),
+        );
+
+        Ok(regexp_string_iterator.into())
     }
 
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -161,13 +155,15 @@ impl RegExpStringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
+    pub(crate) fn create_prototype(
+        iterator_prototype: JsObject,
+        context: &mut Context,
+    ) -> JsObject {
         let _timer = BoaProfiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype
-        let result = context.construct_object();
+        let result = JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &result, 0, context);
-        result.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let to_string_tag_property = PropertyDescriptor::builder()
