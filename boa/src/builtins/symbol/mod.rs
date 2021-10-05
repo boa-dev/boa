@@ -329,14 +329,14 @@ impl Symbol {
     }
 
     /// `Symbol.prototype [ @@toPrimitive ]`
-    /// 
+    ///
     /// This function is called by ECMAScript language operators to convert a Symbol object to a primitive value.
     /// NOTE: The argument is ignored
-    /// 
+    ///
     /// More information:
     /// - [MDN documentation][mdn]
     /// - [ECMAScript reference][spec]
-    /// 
+    ///
     /// [spec]: https://tc39.es/ecma262/multipage/#sec-symbol.prototype-@@toprimitive
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/@@toPrimitive
     pub(crate) fn to_primitive(
