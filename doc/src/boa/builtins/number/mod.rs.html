@@ -1116,6 +1116,57 @@
 <span id="1116">1116</span>
 <span id="1117">1117</span>
 <span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1317,15 +1368,6 @@
         <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a number&quot;</span>))
     }
 
-    <span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.</span>
-    <span class="kw">fn</span> <span class="ident">num_to_exponential</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">abs</span>() {
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">1.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
-            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>),
-        }
-    }
-
     <span class="doccomment">/// `Number.prototype.toExponential( [fractionDigits] )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `toExponential()` method returns a string representing the Number object in exponential notation.</span>
@@ -1339,11 +1381,32 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_exponential</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let x be ? thisNumberValue(this value).</span>
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::num_to_exponential</span>(<span class="ident">this_num</span>);
+        <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="comment">// 2. Let f be ? ToIntegerOrInfinity(fractionDigits).</span>
+            <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>),
+        };
+        <span class="comment">// 4. If x is not finite, return ! Number::toString(x).</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_num</span>.<span class="ident">is_finite</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::to_native_string</span>(<span class="ident">this_num</span>)));
+        }
+        <span class="comment">// Get rid of the &#39;-&#39; sign for -0.0</span>
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">this_num</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.</span> { <span class="number">0.</span> } <span class="kw">else</span> { <span class="ident">this_num</span> };
+        <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">precision</span>) <span class="op">=</span> <span class="ident">precision</span> {
+            <span class="comment">// 5. If f &lt; 0 or f &gt; 100, throw a RangeError exception.</span>
+            <span class="kw">if</span> <span class="op">!</span>(<span class="number">0</span>..<span class="op">=</span><span class="number">100</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">precision</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
+                    .<span class="ident">construct_range_error</span>(<span class="string">&quot;toExponential() argument must be between 0 and 100&quot;</span>));
+            }
+            <span class="ident">f64_to_exponential_with_precision</span>(<span class="ident">this_num</span>, <span class="ident">precision</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">f64_to_exponential</span>(<span class="ident">this_num</span>)
+        };
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str_num</span>))
     }
 
@@ -1363,16 +1426,34 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let this_num be ? thisNumberValue(this value).</span>
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="comment">// 2. Let f be ? ToIntegerOrInfinity(fractionDigits).</span>
             <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span> {
-                <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>,
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+                <span class="number">0</span>..<span class="op">=</span><span class="number">100</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>,
+                <span class="comment">// 4, 5. If f &lt; 0 or f &gt; 100, throw a RangeError exception.</span>
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(
+                        <span class="string">&quot;toFixed() digits argument must be between 0 and 100&quot;</span>,
+                    ))
+                }
             },
+            <span class="comment">// 3. If fractionDigits is undefined, then f is 0.</span>
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         };
-        <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_fixed_num</span>))
+        <span class="comment">// 6. If x is not finite, return ! Number::toString(x).</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_num</span>.<span class="ident">is_finite</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::to_native_string</span>(<span class="ident">this_num</span>)))
+        <span class="comment">// 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">this_num</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1.0e21</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64_to_exponential</span>(<span class="ident">this_num</span>)))
+        } <span class="kw">else</span> {
+            <span class="comment">// Get rid of the &#39;-&#39; sign for -0.0 because of 9. If x &lt; 0, then set s to &quot;-&quot;.</span>
+            <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">this_num</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.</span> { <span class="number">0.</span> } <span class="kw">else</span> { <span class="ident">this_num</span> };
+            <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_fixed_num</span>))
+        }
     }
 
     <span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`</span>
@@ -2234,6 +2315,27 @@
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64_to_int32</span>(<span class="ident">x</span>);
         <span class="op">!</span><span class="ident">x</span>
     }
+}
+
+<span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.</span>
+<span class="kw">fn</span> <span class="ident">f64_to_exponential</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">abs</span>() {
+        <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&quot;e&quot;</span>, <span class="string">&quot;e+&quot;</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>),
+    }
+}
+
+<span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string with a given precision.</span>
+<span class="comment">// We can&#39;t use the same approach as in `f64_to_exponential`</span>
+<span class="comment">// because in cases like (0.999).toExponential(0) the result will be 1e0.</span>
+<span class="comment">// Instead we get the index of &#39;e&#39;, and if the next character is not &#39;-&#39; we insert the plus sign</span>
+<span class="kw">fn</span> <span class="ident">f64_to_exponential_with_precision</span>(<span class="ident">n</span>: <span class="ident">f64</span>, <span class="ident">prec</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.*e}&quot;</span>, <span class="ident">prec</span>, <span class="ident">n</span>);
+    <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">find</span>(<span class="string">&#39;e&#39;</span>).<span class="ident">expect</span>(<span class="string">&quot;&#39;e&#39; not found in exponential string&quot;</span>);
+    <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">as_bytes</span>()[<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span> {
+        <span class="ident">res</span>.<span class="ident">insert</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>, <span class="string">&#39;+&#39;</span>);
+    }
+    <span class="ident">res</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
