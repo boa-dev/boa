@@ -1164,7 +1164,7 @@ fn f64_to_exponential(n: f64) -> String {
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string with a given precision.
-// We can't use the same approach as in `num_to_exponential`
+// We can't use the same approach as in `f64_to_exponential`
 // because in cases like (0.999).toExponential(0) the result will be 1e0.
 // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
 fn f64_to_exponential_with_precision(n: f64, prec: usize) -> String {
