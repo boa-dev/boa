@@ -7,6 +7,7 @@ feature:json-modules
 feature:DataView
 feature:SharedArrayBuffer
 feature:resizable-arraybuffer
+feature:Temporal
 //feature:generators
 //feature:async-iteration
 //feature:class
