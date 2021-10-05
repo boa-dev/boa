@@ -2,12 +2,12 @@ name: EcmaScript official test suite (test262)
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - v*
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   run_test262:
@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           cd boa
-          comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/master/latest.json ../results/test262/pull/latest.json -m)"
+          comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
           comment="${comment//'%'/'%25'}"
           comment="${comment//$'\n'/'%0A'}"
           comment="${comment//$'\r'/'%0D'}"

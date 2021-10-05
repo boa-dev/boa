@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
         with:
-          ref: master
+          ref: main
       - uses: actions/checkout@v2.3.4
         with:
           ref: gh-pages
