@@ -1,0 +1,4 @@
+node_modules/*
+target
+settings.json
+tests/js
