@@ -113,7 +113,6 @@ impl<R> Tokenizer<R> for HashbangComment {
                 if let Ok(c) = char::try_from(ch) {
                     if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' {
                         //still want to consume the byte to move to next line
-                        cursor.next_byte()?;
                         break;
                     }
                 } else {
