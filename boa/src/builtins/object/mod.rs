@@ -18,7 +18,7 @@ use crate::{
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, IntegrityLevel,
-        JsObject, Object as BuiltinObject, ObjectData, ObjectInitializer, ObjectKind,
+        JsObject, ObjectData, ObjectInitializer, ObjectKind,
     },
     property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -39,11 +39,11 @@ pub struct Object;
 impl BuiltIn for Object {
     const NAME: &'static str = "Object";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let object = ConstructorBuilder::with_standard_object(
@@ -89,7 +89,7 @@ impl BuiltIn for Object {
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
         .build();
 
-        (Self::NAME, object.into(), Self::attribute())
+        object.into()
     }
 }
 
@@ -107,20 +107,15 @@ impl Object {
                 StandardObjects::object_object,
                 context,
             )?;
-            let object = JsValue::new_object(context);
-
-            object
-                .as_object()
-                .expect("this should be an object")
-                .set_prototype_instance(prototype.into());
-            return Ok(object);
+            let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+            return Ok(object.into());
         }
         if let Some(arg) = args.get(0) {
             if !arg.is_null_or_undefined() {
                 return Ok(arg.to_object(context)?.into());
             }
         }
-        Ok(JsValue::new_object(context))
+        Ok(context.construct_object().into())
     }
 
     /// `Object.create( proto, [propertiesObject] )`
@@ -138,10 +133,9 @@ impl Object {
         let properties = args.get_or_undefined(1);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::new(BuiltinObject::with_prototype(
-                prototype.clone(),
-                ObjectData::ordinary(),
-            )),
+            JsValue::Object(_) | JsValue::Null => {
+                JsObject::from_proto_and_data(prototype.as_object(), ObjectData::ordinary())
+            }
             _ => {
                 return context.throw_type_error(format!(
                     "Object prototype may only be an Object or null: {}",
@@ -477,7 +471,7 @@ impl Object {
             let o = o.borrow();
             match o.kind() {
                 ObjectKind::Array => "Array",
-                // TODO: Arguments Exotic Objects are currently not supported
+                ObjectKind::Arguments(_) => "Arguments",
                 ObjectKind::Function(_) => "Function",
                 ObjectKind::Error => "Error",
                 ObjectKind::Boolean(_) => "Boolean",

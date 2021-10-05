@@ -90,11 +90,11 @@ pub(crate) struct String;
 impl BuiltIn for String {
     const NAME: &'static str = "String";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
@@ -108,6 +108,7 @@ impl BuiltIn for String {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property("length", 0, attribute)
+        .static_method(Self::from_char_code, "fromCharCode", 1)
         .method(Self::char_at, "charAt", 1)
         .method(Self::char_code_at, "charCodeAt", 1)
         .method(Self::code_point_at, "codePointAt", 1)
@@ -141,7 +142,7 @@ impl BuiltIn for String {
         .method(Self::at, "at", 1)
         .build();
 
-        (Self::NAME, string_object.into(), Self::attribute())
+        string_object.into()
     }
 }
 
@@ -204,9 +205,7 @@ impl String {
         // 4. Set S.[[GetOwnProperty]] as specified in 10.4.3.1.
         // 5. Set S.[[DefineOwnProperty]] as specified in 10.4.3.2.
         // 6. Set S.[[OwnPropertyKeys]] as specified in 10.4.3.3.
-        let s = context.construct_object();
-        s.set_prototype_instance(prototype.into());
-        s.borrow_mut().data = ObjectData::string(value);
+        let s = JsObject::from_proto_and_data(prototype, ObjectData::string(value));
 
         // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
@@ -238,6 +237,35 @@ impl String {
         }
 
         Err(context.construct_type_error("'this' is not a string"))
+    }
+
+    /// `String.fromCharCode(...codePoints)`
+    ///
+    /// Construct a `String` from one or more code points (as numbers).
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/multipage/text-processing.html#sec-string.fromcharcode
+    pub(crate) fn from_char_code(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let length be the number of elements in codeUnits.
+        // 2. Let elements be a new empty List.
+        let mut elements = Vec::new();
+        // 3. For each element next of codeUnits, do
+        for next in args {
+            // 3a. Let nextCU be ℝ(? ToUint16(next)).
+            // 3b. Append nextCU to the end of elements.
+            elements.push(next.to_u32(context)? as u16);
+        }
+
+        // 4. Return the String value whose code units are the elements in the List elements.
+        //    If codeUnits is empty, the empty String is returned.
+
+        let s = std::string::String::from_utf16_lossy(elements.as_slice());
+        Ok(JsValue::String(JsString::new(s)))
     }
 
     /// Get the string value to a primitive string
@@ -728,16 +756,13 @@ impl String {
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
             // a. Let replacer be ? GetMethod(searchValue, @@replace).
-            let replacer = search_value
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::replace())?;
+            let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
 
             // b. If replacer is not undefined, then
-            if let Some(replacer) = replacer {
+            if !replacer.is_undefined() {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
                 return context.call(
-                    &replacer.into(),
+                    &replacer,
                     search_value,
                     &[this.clone(), replace_value.clone()],
                 );
@@ -862,15 +887,12 @@ impl String {
             }
 
             // c. Let replacer be ? GetMethod(searchValue, @@replace).
-            let replacer = search_value
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::replace())?;
+            let replacer = search_value.get_method(WellKnownSymbols::replace(), context)?;
 
             // d. If replacer is not undefined, then
-            if let Some(replacer) = replacer {
+            if !replacer.is_undefined() {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
+                return context.call(&replacer, search_value, &[o.into(), replace_value.clone()]);
             }
         }
 
@@ -1103,12 +1125,11 @@ impl String {
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
+            let matcher = regexp.get_method(WellKnownSymbols::r#match(), context)?;
             // b. If matcher is not undefined, then
-            if let Some(obj) = regexp.as_object() {
-                if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
-                    // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(regexp, &[o.clone()], context);
-                }
+            if !matcher.is_undefined() {
+                // i. Return ? Call(matcher, regexp, « O »).
+                return context.call(&matcher, regexp, &[o.clone()]);
             }
         }
 
@@ -1119,12 +1140,7 @@ impl String {
         let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
-        let obj = rx.as_object().expect("RegExpCreate must return Object");
-        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
-            matcher.call(&rx, &[JsValue::new(s)], context)
-        } else {
-            context.throw_type_error("RegExp[Symbol.match] is undefined")
-        }
+        rx.invoke(WellKnownSymbols::r#match(), &[JsValue::new(s)], context)
     }
 
     /// Abstract method `StringPad`.
@@ -1474,14 +1490,11 @@ impl String {
         // 2. If separator is neither undefined nor null, then
         if !separator.is_null_or_undefined() {
             // a. Let splitter be ? GetMethod(separator, @@split).
+            let splitter = separator.get_method(WellKnownSymbols::split(), context)?;
             // b. If splitter is not undefined, then
-            if let Some(splitter) = separator
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::split())?
-            {
+            if !splitter.is_undefined() {
                 // i. Return ? Call(splitter, separator, « O, limit »).
-                return splitter.call(separator, &[this.clone(), limit.clone()], context);
+                return context.call(&splitter, separator, &[this.clone(), limit.clone()]);
             }
         }
 
@@ -1664,12 +1677,11 @@ impl String {
             }
 
             // c. Let matcher be ? GetMethod(regexp, @@matchAll).
+            let matcher = regexp.get_method(WellKnownSymbols::match_all(), context)?;
             // d. If matcher is not undefined, then
-            if let Some(obj) = regexp.as_object() {
-                if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
-                    // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(regexp, &[o.clone()], context);
-                }
+            if !matcher.is_undefined() {
+                // i. Return ? Call(matcher, regexp, « O »).
+                return context.call(&matcher, regexp, &[o.clone()]);
             }
         }
 
@@ -1680,12 +1692,7 @@ impl String {
         let rx = RegExp::create(regexp.clone(), JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
-        let obj = rx.as_object().expect("RegExpCreate must return Object");
-        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
-            matcher.call(&rx, &[JsValue::new(s)], context)
-        } else {
-            context.throw_type_error("RegExp[Symbol.matchAll] is undefined")
-        }
+        rx.invoke(WellKnownSymbols::match_all(), &[JsValue::new(s)], context)
     }
 
     /// `String.prototype.normalize( [ form ] )`
@@ -1748,12 +1755,11 @@ impl String {
         let regexp = args.get_or_undefined(0);
         if !regexp.is_null_or_undefined() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
+            let searcher = regexp.get_method(WellKnownSymbols::search(), context)?;
             // b. If searcher is not undefined, then
-            if let Some(obj) = regexp.as_object() {
-                if let Some(searcher) = obj.get_method(context, WellKnownSymbols::search())? {
-                    // i. Return ? Call(searcher, regexp, « O »).
-                    return searcher.call(regexp, &[o.clone()], context);
-                }
+            if !searcher.is_undefined() {
+                // i. Return ? Call(searcher, regexp, « O »).
+                return context.call(&searcher, regexp, &[o.clone()]);
             }
         }
 
@@ -1764,12 +1770,7 @@ impl String {
         let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
-        let obj = rx.as_object().expect("RegExpCreate must return Object");
-        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::search())? {
-            matcher.call(&rx, &[JsValue::new(string)], context)
-        } else {
-            context.throw_type_error("RegExp[Symbol.search] is undefined")
-        }
+        rx.invoke(WellKnownSymbols::search(), &[JsValue::new(string)], context)
     }
 
     pub(crate) fn iterator(

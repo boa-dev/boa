@@ -17,9 +17,11 @@ use crate::{
     object::ConstructorBuilder,
     property::Attribute,
     symbol::WellKnownSymbols,
-    value::IntegerOrInfinity,
+    value::{IntegerOrInfinity, PreferredType},
     BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
+use num_bigint::ToBigInt;
+
 #[cfg(test)]
 mod tests;
 
@@ -30,11 +32,11 @@ pub struct BigInt;
 impl BuiltIn for BigInt {
     const NAME: &'static str = "BigInt";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
@@ -59,7 +61,7 @@ impl BuiltIn for BigInt {
         )
         .build();
 
-        (Self::NAME, bigint_object.into(), Self::attribute())
+        bigint_object.into()
     }
 }
 
@@ -78,11 +80,35 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let data = match args.get(0) {
-            Some(value) => value.to_bigint(context)?,
-            None => JsBigInt::zero(),
-        };
-        Ok(JsValue::new(data))
+        let value = args.get_or_undefined(0);
+
+        // 2. Let prim be ? ToPrimitive(value, number).
+        let prim = value.to_primitive(context, PreferredType::Number)?;
+
+        // 3. If Type(prim) is Number, return ? NumberToBigInt(prim).
+        if let Some(number) = prim.as_number() {
+            return Self::number_to_bigint(number, context);
+        }
+
+        // 4. Otherwise, return ? ToBigInt(value).
+        Ok(value.to_bigint(context)?.into())
+    }
+
+    /// `NumberToBigInt ( number )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
+    #[inline]
+    fn number_to_bigint(number: f64, context: &mut Context) -> JsResult<JsValue> {
+        // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
+        if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
+            return context.throw_range_error(format!("Cannot convert {} to BigInt", number));
+        }
+
+        // 2. Return the BigInt value that represents ℝ(number).
+        Ok(JsBigInt::from(number.to_bigint().expect("This conversion must be safe")).into())
     }
 
     /// The abstract operation thisBigIntValue takes argument value.

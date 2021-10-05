@@ -57,8 +57,11 @@ impl Executable for UnaryOp {
             op::UnaryOp::IncrementPost => {
                 let x = self.target().run(context)?;
                 let ret = x.clone();
-                let result = x.to_number(context)? + 1.0;
-                context.set_value(self.target(), result.into())?;
+                let result = match x.to_numeric(context)? {
+                    Numeric::Number(n) => (n + 1.0).into(),
+                    Numeric::BigInt(b) => (JsBigInt::add(&b, &JsBigInt::from(1))).into(),
+                };
+                context.set_value(self.target(), result)?;
                 ret
             }
             op::UnaryOp::IncrementPre => {

@@ -24,24 +24,15 @@ impl IteratorPrototypes {
     pub(crate) fn init(context: &mut Context) -> Self {
         let iterator_prototype = create_iterator_prototype(context);
         Self {
-            array_iterator: ArrayIterator::create_prototype(
-                iterator_prototype.clone().into(),
-                context,
-            ),
-            set_iterator: SetIterator::create_prototype(iterator_prototype.clone().into(), context),
-            string_iterator: StringIterator::create_prototype(
-                iterator_prototype.clone().into(),
-                context,
-            ),
+            array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
+            set_iterator: SetIterator::create_prototype(iterator_prototype.clone(), context),
+            string_iterator: StringIterator::create_prototype(iterator_prototype.clone(), context),
             regexp_string_iterator: RegExpStringIterator::create_prototype(
-                iterator_prototype.clone().into(),
+                iterator_prototype.clone(),
                 context,
             ),
-            map_iterator: MapIterator::create_prototype(iterator_prototype.clone().into(), context),
-            for_in_iterator: ForInIterator::create_prototype(
-                iterator_prototype.clone().into(),
-                context,
-            ),
+            map_iterator: MapIterator::create_prototype(iterator_prototype.clone(), context),
+            for_in_iterator: ForInIterator::create_prototype(iterator_prototype.clone(), context),
             iterator_prototype,
         }
     }
@@ -82,7 +73,7 @@ impl IteratorPrototypes {
     }
 }
 
-/// CreateIterResultObject( value, done )
+/// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the IteratorResult interface.
 pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
@@ -100,18 +91,70 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
     obj.into()
 }
 
-/// Get an iterator record
-pub fn get_iterator(iterable: &JsValue, context: &mut Context) -> JsResult<IteratorRecord> {
-    let iterator_function = iterable.get_field(WellKnownSymbols::iterator(), context)?;
-    if iterator_function.is_null_or_undefined() {
-        return Err(context.construct_type_error("Not an iterable"));
+/// Iterator hint for `GetIterator`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IteratorHint {
+    Sync,
+    Async,
+}
+
+impl JsValue {
+    /// `GetIterator ( obj [ , hint [ , method ] ] )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getiterator
+    pub fn get_iterator(
+        &self,
+        context: &mut Context,
+        hint: Option<IteratorHint>,
+        method: Option<JsValue>,
+    ) -> JsResult<IteratorRecord> {
+        // 1. If hint is not present, set hint to sync.
+        let hint = hint.unwrap_or(IteratorHint::Sync);
+
+        // 2. If method is not present, then
+        let method = if let Some(method) = method {
+            method
+        } else {
+            // a. If hint is async, then
+            if hint == IteratorHint::Async {
+                // i. Set method to ? GetMethod(obj, @@asyncIterator).
+                let method = self.get_method(WellKnownSymbols::async_iterator(), context)?;
+                // ii. If method is undefined, then
+                if method.is_undefined() {
+                    // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
+                    let sync_method = self.get_method(WellKnownSymbols::iterator(), context)?;
+                    // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
+                    let _sync_iterator_record =
+                        self.get_iterator(context, Some(IteratorHint::Sync), Some(sync_method));
+                    // 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
+                    todo!("CreateAsyncFromSyncIterator");
+                }
+
+                method
+            } else {
+                // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
+                self.get_method(WellKnownSymbols::iterator(), context)?
+            }
+        };
+
+        // 3. Let iterator be ? Call(method, obj).
+        let iterator = context.call(&method, self, &[])?;
+
+        // 4. If Type(iterator) is not Object, throw a TypeError exception.
+        if !iterator.is_object() {
+            return Err(context.construct_type_error("the iterator is not an object"));
+        }
+
+        // 5. Let nextMethod be ? GetV(iterator, "next").
+        let next_method = iterator.get_v("next", context)?;
+
+        // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
+        // 7. Return iteratorRecord.
+        Ok(IteratorRecord::new(iterator, next_method))
     }
-    let iterator_object = context.call(&iterator_function, iterable, &[])?;
-    let next_function = iterator_object.get_field("next", context)?;
-    if next_function.is_null_or_undefined() {
-        return Err(context.construct_type_error("Could not find property `next`"));
-    }
-    Ok(IteratorRecord::new(iterator_object, next_function))
 }
 
 /// Create the %IteratorPrototype% object
@@ -199,6 +242,49 @@ impl IteratorRecord {
         // 9
         Ok(completion)
     }
+}
+
+/// `IterableToList ( items [ , method ] )`
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
+pub(crate) fn iterable_to_list(
+    context: &mut Context,
+    items: JsValue,
+    method: Option<JsValue>,
+) -> JsResult<Vec<JsValue>> {
+    // 1. If method is present, then
+    let iterator_record = if let Some(method) = method {
+        // a. Let iteratorRecord be ? GetIterator(items, sync, method).
+        items.get_iterator(context, Some(IteratorHint::Sync), Some(method))?
+    } else {
+        // 2. Else,
+
+        // a. Let iteratorRecord be ? GetIterator(items, sync).
+        items.get_iterator(context, Some(IteratorHint::Sync), None)?
+    };
+    // 3. Let values be a new empty List.
+    let mut values = Vec::new();
+
+    // 4. Let next be true.
+    // 5. Repeat, while next is not false,
+    //     a. Set next to ? IteratorStep(iteratorRecord).
+    //     b. If next is not false, then
+    //         i. Let nextValue be ? IteratorValue(next).
+    //         ii. Append nextValue to the end of the List values.
+    loop {
+        let next = iterator_record.next(context)?;
+        if next.done {
+            break;
+        }
+
+        values.push(next.value)
+    }
+
+    // 6. Return values.
+    Ok(values)
 }
 
 #[derive(Debug)]

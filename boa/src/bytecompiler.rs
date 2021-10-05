@@ -1,7 +1,7 @@
 use gc::Gc;
 
 use crate::{
-    object::function::ThisMode,
+    builtins::function::ThisMode,
     syntax::ast::{
         node::{Declaration, GetConstField, GetField, StatementList},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
@@ -868,6 +868,7 @@ impl ByteCompiler {
 
         compiler.code_block.params = paramaters.to_owned().into_boxed_slice();
 
+        // TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn't
         compiler.emit(Opcode::PushUndefined, &[]);
         compiler.emit(Opcode::Return, &[]);
 

@@ -7,7 +7,7 @@ use bitflags::bitflags;
 mod tests;
 
 bitflags! {
-    /// This struct constains the property flags as describen in the ECMAScript specification.
+    /// This struct constains the property flags as described in the ECMAScript specification.
     ///
     /// It contains the following flags:
     ///  - `[[Writable]]` (`WRITABLE`) - If `false`, attempts by ECMAScript code to change the property's

@@ -120,54 +120,6 @@ impl From<bool> for JsValue {
     }
 }
 
-impl<T> From<&[T]> for JsValue
-where
-    T: Clone + Into<JsValue>,
-{
-    fn from(value: &[T]) -> Self {
-        let mut array = Object::default();
-        for (i, item) in value.iter().enumerate() {
-            array.insert(
-                i,
-                PropertyDescriptor::builder()
-                    .value(item.clone())
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true),
-            );
-        }
-        Self::from(array)
-    }
-}
-
-impl<T> From<Vec<T>> for JsValue
-where
-    T: Into<JsValue>,
-{
-    fn from(value: Vec<T>) -> Self {
-        let mut array = Object::default();
-        for (i, item) in value.into_iter().enumerate() {
-            array.insert(
-                i,
-                PropertyDescriptor::builder()
-                    .value(item)
-                    .writable(true)
-                    .enumerable(true)
-                    .configurable(true),
-            );
-        }
-        JsValue::new(array)
-    }
-}
-
-impl From<Object> for JsValue {
-    #[inline]
-    fn from(object: Object) -> Self {
-        let _timer = BoaProfiler::global().start_event("From<Object>", "value");
-        JsValue::Object(JsObject::new(object))
-    }
-}
-
 impl From<JsObject> for JsValue {
     #[inline]
     fn from(object: JsObject) -> Self {

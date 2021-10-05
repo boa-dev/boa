@@ -1,8 +1,8 @@
 use crate::{
-    builtins::iterable::create_iter_result_object,
     builtins::Array,
     builtins::JsValue,
-    object::{function::make_builtin_fn, JsObject, ObjectData},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,
@@ -47,13 +47,11 @@ impl SetIterator {
         kind: PropertyNameKind,
         context: &Context,
     ) -> JsValue {
-        let set_iterator = JsValue::new_object(context);
-        set_iterator.set_data(ObjectData::set_iterator(Self::new(set, kind)));
-        set_iterator
-            .as_object()
-            .expect("set iterator object")
-            .set_prototype_instance(context.iterator_prototypes().set_iterator().into());
-        set_iterator
+        let set_iterator = JsObject::from_proto_and_data(
+            context.iterator_prototypes().set_iterator(),
+            ObjectData::set_iterator(Self::new(set, kind)),
+        );
+        set_iterator.into()
     }
 
     /// %SetIteratorPrototype%.next( )
@@ -140,13 +138,16 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%-object
-    pub(crate) fn create_prototype(iterator_prototype: JsValue, context: &mut Context) -> JsObject {
+    pub(crate) fn create_prototype(
+        iterator_prototype: JsObject,
+        context: &mut Context,
+    ) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let set_iterator = context.construct_object();
+        let set_iterator =
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &set_iterator, 0, context);
-        set_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let to_string_tag_property = PropertyDescriptor::builder()

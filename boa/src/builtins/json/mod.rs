@@ -38,11 +38,11 @@ pub(crate) struct Json;
 impl BuiltIn for Json {
     const NAME: &'static str = "JSON";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
@@ -54,7 +54,7 @@ impl BuiltIn for Json {
             .property(to_string_tag, Self::NAME, attribute)
             .build();
 
-        (Self::NAME, json_object.into(), Self::attribute())
+        json_object.into()
     }
 }
 

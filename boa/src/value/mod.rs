@@ -10,16 +10,21 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         Number,
     },
-    object::{JsObject, Object, ObjectData},
+    object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
     BoaProfiler, Context, JsBigInt, JsResult, JsString,
 };
 use gc::{Finalize, Trace};
+use num_bigint::BigInt;
+use num_integer::Integer;
+use num_traits::Zero;
+use once_cell::sync::Lazy;
 use std::{
     collections::HashSet,
     convert::TryFrom,
     fmt::{self, Display},
+    ops::{Deref, Sub},
     str::FromStr,
 };
 
@@ -36,6 +41,16 @@ pub use equality::*;
 pub use hash::*;
 pub use operations::*;
 pub use r#type::Type;
+
+static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
+    const TWO_E_64: u128 = 2u128.pow(64);
+    BigInt::from(TWO_E_64)
+});
+
+static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
+    const TWO_E_63: u128 = 2u128.pow(63);
+    BigInt::from(TWO_E_63)
+});
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -98,20 +113,14 @@ impl JsValue {
 
     /// Creates a new number with `Infinity` value.
     #[inline]
-    pub fn positive_inifnity() -> Self {
+    pub fn positive_infinity() -> Self {
         Self::Rational(f64::INFINITY)
     }
 
     /// Creates a new number with `-Infinity` value.
     #[inline]
-    pub fn negative_inifnity() -> Self {
+    pub fn negative_infinity() -> Self {
         Self::Rational(f64::NEG_INFINITY)
-    }
-
-    /// Returns a new empty object
-    pub(crate) fn new_object(context: &Context) -> Self {
-        let _timer = BoaProfiler::global().start_event("new_object", "value");
-        context.construct_object().into()
     }
 
     /// Returns true if the value is an object
@@ -378,17 +387,28 @@ impl JsValue {
     ) -> JsResult<JsValue> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
-        if let JsValue::Object(obj) = self {
-            if let Some(exotic_to_prim) =
-                obj.get_method(context, WellKnownSymbols::to_primitive())?
-            {
+        if self.is_object() {
+            // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
+            let exotic_to_prim = self.get_method(WellKnownSymbols::to_primitive(), context)?;
+
+            // b. If exoticToPrim is not undefined, then
+            if !exotic_to_prim.is_undefined() {
+                // i. If preferredType is not present, let hint be "default".
+                // ii. Else if preferredType is string, let hint be "string".
+                // iii. Else,
+                //     1. Assert: preferredType is number.
+                //     2. Let hint be "number".
                 let hint = match preferred_type {
+                    PreferredType::Default => "default",
                     PreferredType::String => "string",
                     PreferredType::Number => "number",
-                    PreferredType::Default => "default",
                 }
                 .into();
-                let result = exotic_to_prim.call(self, &[hint], context)?;
+
+                // iv. Let result be ? Call(exoticToPrim, input, « hint »).
+                let result = context.call(&exotic_to_prim, self, &[hint])?;
+                // v. If Type(result) is not Object, return result.
+                // vi. Throw a TypeError exception.
                 return if result.is_object() {
                     Err(context.construct_type_error("Symbol.toPrimitive cannot return an object"))
                 } else {
@@ -396,23 +416,28 @@ impl JsValue {
                 };
             }
 
-            let mut hint = preferred_type;
-
-            if hint == PreferredType::Default {
-                hint = PreferredType::Number;
+            // c. If preferredType is not present, let preferredType be number.
+            let preferred_type = match preferred_type {
+                PreferredType::Default | PreferredType::Number => PreferredType::Number,
+                PreferredType::String => PreferredType::String,
             };
 
-            // g. Return ? OrdinaryToPrimitive(input, hint).
-            obj.ordinary_to_primitive(context, hint)
+            // d. Return ? OrdinaryToPrimitive(input, preferredType).
+            self.as_object()
+                .expect("self was not an object")
+                .ordinary_to_primitive(context, preferred_type)
         } else {
             // 3. Return input.
             Ok(self.clone())
         }
     }
 
-    /// Converts the value to a `BigInt`.
+    /// `7.1.13 ToBigInt ( argument )`
     ///
-    /// This function is equivelent to `BigInt(value)` in JavaScript.
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tobigint
     pub fn to_bigint(&self, context: &mut Context) -> JsResult<JsBigInt> {
         match self {
             JsValue::Null => Err(context.construct_type_error("cannot convert null to a BigInt")),
@@ -431,15 +456,8 @@ impl JsValue {
             }
             JsValue::Boolean(true) => Ok(JsBigInt::one()),
             JsValue::Boolean(false) => Ok(JsBigInt::zero()),
-            JsValue::Integer(num) => Ok(JsBigInt::new(*num)),
-            JsValue::Rational(num) => {
-                if let Ok(bigint) = JsBigInt::try_from(*num) {
-                    return Ok(bigint);
-                }
-                Err(context.construct_type_error(format!(
-                    "The number {} cannot be converted to a BigInt because it is not an integer",
-                    num
-                )))
+            JsValue::Integer(_) | JsValue::Rational(_) => {
+                Err(context.construct_type_error("cannot convert Number to a BigInt"))
             }
             JsValue::BigInt(b) => Ok(b.clone()),
             JsValue::Object(_) => {
@@ -502,32 +520,30 @@ impl JsValue {
             }
             JsValue::Boolean(boolean) => {
                 let prototype = context.standard_objects().boolean_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::boolean(*boolean),
-                )))
+                ))
             }
             JsValue::Integer(integer) => {
                 let prototype = context.standard_objects().number_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::number(f64::from(*integer)),
-                )))
+                ))
             }
             JsValue::Rational(rational) => {
                 let prototype = context.standard_objects().number_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::number(*rational),
-                )))
+                ))
             }
             JsValue::String(ref string) => {
                 let prototype = context.standard_objects().string_object().prototype();
 
-                let object = JsObject::new(Object::with_prototype(
-                    prototype.into(),
-                    ObjectData::string(string.clone()),
-                ));
+                let object =
+                    JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
                     "length",
@@ -541,17 +557,17 @@ impl JsValue {
             }
             JsValue::Symbol(ref symbol) => {
                 let prototype = context.standard_objects().symbol_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::symbol(symbol.clone()),
-                )))
+                ))
             }
             JsValue::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
-                Ok(JsObject::new(Object::with_prototype(
-                    prototype.into(),
+                Ok(JsObject::from_proto_and_data(
+                    prototype,
                     ObjectData::big_int(bigint.clone()),
-                )))
+                ))
             }
             JsValue::Object(jsobject) => Ok(jsobject.clone()),
         }
@@ -611,6 +627,200 @@ impl JsValue {
         let number = self.to_number(context)?;
 
         Ok(f64_to_int32(number))
+    }
+
+    /// `7.1.10 ToInt8 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toint8
+    pub fn to_int8(&self, context: &mut Context) -> JsResult<i8> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return Ok(0);
+        }
+
+        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        let int = number.floor() as i64;
+
+        // 4. Let int8bit be int modulo 2^8.
+        let int_8_bit = int % 2i64.pow(8);
+
+        // 5. If int8bit ≥ 2^7, return 𝔽(int8bit - 2^8); otherwise return 𝔽(int8bit).
+        if int_8_bit >= 2i64.pow(7) {
+            Ok((int_8_bit - 2i64.pow(8)) as i8)
+        } else {
+            Ok(int_8_bit as i8)
+        }
+    }
+
+    /// `7.1.11 ToUint8 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-touint8
+    pub fn to_uint8(&self, context: &mut Context) -> JsResult<u8> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return Ok(0);
+        }
+
+        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        let int = number.floor() as i64;
+
+        // 4. Let int8bit be int modulo 2^8.
+        let int_8_bit = int % 2i64.pow(8);
+
+        // 5. Return 𝔽(int8bit).
+        Ok(int_8_bit as u8)
+    }
+
+    /// `7.1.12 ToUint8Clamp ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-touint8clamp
+    pub fn to_uint8_clamp(&self, context: &mut Context) -> JsResult<u8> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        // 2. If number is NaN, return +0𝔽.
+        if number.is_nan() {
+            return Ok(0);
+        }
+
+        // 3. If ℝ(number) ≤ 0, return +0𝔽.
+        if number <= 0.0 {
+            return Ok(0);
+        }
+
+        // 4. If ℝ(number) ≥ 255, return 255𝔽.
+        if number >= 255.0 {
+            return Ok(255);
+        }
+
+        // 5. Let f be floor(ℝ(number)).
+        let f = number.floor();
+
+        // 6. If f + 0.5 < ℝ(number), return 𝔽(f + 1).
+        if f + 0.5 < number {
+            return Ok(f as u8 + 1);
+        }
+
+        // 7. If ℝ(number) < f + 0.5, return 𝔽(f).
+        if number < f + 0.5 {
+            return Ok(f as u8);
+        }
+
+        // 8. If f is odd, return 𝔽(f + 1).
+        if f as u8 % 2 != 0 {
+            return Ok(f as u8 + 1);
+        }
+
+        // 9. Return 𝔽(f).
+        Ok(f as u8)
+    }
+
+    /// `7.1.8 ToInt16 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-toint16
+    pub fn to_int16(&self, context: &mut Context) -> JsResult<i16> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return Ok(0);
+        }
+
+        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        let int = number.floor() as i64;
+
+        // 4. Let int16bit be int modulo 2^16.
+        let int_16_bit = int % 2i64.pow(16);
+
+        // 5. If int16bit ≥ 2^15, return 𝔽(int16bit - 2^16); otherwise return 𝔽(int16bit).
+        if int_16_bit >= 2i64.pow(15) {
+            Ok((int_16_bit - 2i64.pow(16)) as i16)
+        } else {
+            Ok(int_16_bit as i16)
+        }
+    }
+
+    /// `7.1.9 ToUint16 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-touint16
+    pub fn to_uint16(&self, context: &mut Context) -> JsResult<u16> {
+        // 1. Let number be ? ToNumber(argument).
+        let number = self.to_number(context)?;
+
+        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
+        if number.is_nan() || number.is_zero() || number.is_infinite() {
+            return Ok(0);
+        }
+
+        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
+        let int = number.floor() as i64;
+
+        // 4. Let int16bit be int modulo 2^16.
+        let int_16_bit = int % 2i64.pow(16);
+
+        // 5. Return 𝔽(int16bit).
+        Ok(int_16_bit as u16)
+    }
+
+    /// `7.1.15 ToBigInt64 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
+    pub fn to_big_int64(&self, context: &mut Context) -> JsResult<BigInt> {
+        // 1. Let n be ? ToBigInt(argument).
+        let n = self.to_bigint(context)?;
+
+        // 2. Let int64bit be ℝ(n) modulo 2^64.
+        let int64_bit = n.as_inner().mod_floor(&TWO_E_64);
+
+        // 3. If int64bit ≥ 2^63, return ℤ(int64bit - 2^64); otherwise return ℤ(int64bit).
+        if &int64_bit >= TWO_E_63.deref() {
+            Ok(int64_bit.sub(TWO_E_64.deref()))
+        } else {
+            Ok(int64_bit)
+        }
+    }
+
+    /// `7.1.16 ToBigUint64 ( argument )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tobiguint64
+    pub fn to_big_uint64(&self, context: &mut Context) -> JsResult<BigInt> {
+        let two_e_64: u128 = 0x1_0000_0000_0000_0000;
+        let two_e_64 = BigInt::from(two_e_64);
+
+        // 1. Let n be ? ToBigInt(argument).
+        let n = self.to_bigint(context)?;
+
+        // 2. Let int64bit be ℝ(n) modulo 2^64.
+        // 3. Return ℤ(int64bit).
+        Ok(n.as_inner().mod_floor(&two_e_64))
     }
 
     /// Converts a value to a non-negative integer if it is a valid integer index value.
@@ -821,6 +1031,39 @@ impl JsValue {
             Ok(false)
         }
     }
+
+    /// It determines if the value is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[track_caller]
+    pub(crate) fn is_callable(&self) -> bool {
+        if let Self::Object(obj) = self {
+            obj.is_callable()
+        } else {
+            false
+        }
+    }
+
+    /// Determines if `value` inherits from the instance object inheritance path.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
+    pub(crate) fn ordinary_has_instance(
+        &self,
+        context: &mut Context,
+        value: &JsValue,
+    ) -> JsResult<bool> {
+        if let Self::Object(obj) = self {
+            obj.ordinary_has_instance(context, value)
+        } else {
+            Ok(false)
+        }
+    }
 }
 
 impl Default for JsValue {
@@ -853,6 +1096,20 @@ impl From<f64> for Numeric {
     }
 }
 
+impl From<f32> for Numeric {
+    #[inline]
+    fn from(value: f32) -> Self {
+        Self::Number(value.into())
+    }
+}
+
+impl From<i64> for Numeric {
+    #[inline]
+    fn from(value: i64) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
 impl From<i32> for Numeric {
     #[inline]
     fn from(value: i32) -> Self {
@@ -871,6 +1128,13 @@ impl From<i8> for Numeric {
     #[inline]
     fn from(value: i8) -> Self {
         Self::Number(value.into())
+    }
+}
+
+impl From<u64> for Numeric {
+    #[inline]
+    fn from(value: u64) -> Self {
+        Self::BigInt(value.into())
     }
 }
 

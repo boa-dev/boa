@@ -2,18 +2,18 @@
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
 
-use crate::environment::lexical_environment::Environment;
 use crate::{
     builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
 };
 
+mod call_frame;
 mod code_block;
 mod opcode;
 
+pub use call_frame::CallFrame;
 pub use code_block::CodeBlock;
 pub use code_block::JsVmFunction;
-use gc::Gc;
 pub use opcode::Opcode;
 
 use std::{convert::TryInto, mem::size_of, time::Instant};
@@ -22,18 +22,6 @@ use self::code_block::Readable;
 
 #[cfg(test)]
 mod tests;
-
-#[derive(Debug)]
-pub struct CallFrame {
-    pub(crate) prev: Option<Box<Self>>,
-    pub(crate) code: Gc<CodeBlock>,
-    pub(crate) pc: usize,
-    pub(crate) fp: usize,
-    pub(crate) exit_on_return: bool,
-    pub(crate) this: JsValue,
-    pub(crate) environment: Environment,
-}
-
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {
@@ -155,22 +143,21 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::PushNaN => self.vm.push(JsValue::nan()),
-            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_inifnity()),
-            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_inifnity()),
+            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_infinity()),
+            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_infinity()),
             Opcode::PushLiteral => {
                 let index = self.vm.read::<u32>() as usize;
                 let value = self.vm.frame().code.literals[index].clone();
                 self.vm.push(value)
             }
-            Opcode::PushEmptyObject => self.vm.push(JsValue::new_object(self)),
+            Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
             Opcode::PushNewArray => {
                 let count = self.vm.read::<u32>();
                 let mut elements = Vec::with_capacity(count as usize);
                 for _ in 0..count {
                     elements.push(self.vm.pop());
                 }
-                let array = Array::new_array(self);
-                Array::add_to_array_object(&array, &elements, self)?;
+                let array = Array::create_array_from_list(elements, self);
                 self.vm.push(array);
             }
             Opcode::Add => bin_op!(add),
@@ -226,29 +213,24 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::InstanceOf => {
-                let y = self.vm.pop();
-                let x = self.vm.pop();
-                let value = if let Some(object) = y.as_object() {
-                    let key = WellKnownSymbols::has_instance();
-
-                    match object.get_method(self, key)? {
-                        Some(instance_of_handler) => {
-                            instance_of_handler.call(&y, &[x], self)?.to_boolean()
-                        }
-                        None if object.is_callable() => object.ordinary_has_instance(self, &x)?,
-                        None => {
-                            return Err(self.construct_type_error(
-                                "right-hand side of 'instanceof' is not callable",
-                            ));
-                        }
-                    }
-                } else {
+                let target = self.vm.pop();
+                let v = self.vm.pop();
+                if !target.is_object() {
                     return Err(self.construct_type_error(format!(
                         "right-hand side of 'instanceof' should be an object, got {}",
-                        y.type_of()
+                        target.type_of()
                     )));
                 };
-
+                let handler = target.get_method(WellKnownSymbols::has_instance(), self)?;
+                if !handler.is_undefined() {
+                    let value = self.call(&handler, &target, &[v.clone()])?.to_boolean();
+                    self.vm.push(value);
+                }
+                if !target.is_callable() {
+                    return Err(self
+                        .construct_type_error("right-hand side of 'instanceof' is not callable"));
+                }
+                let value = target.ordinary_has_instance(self, &v)?;
                 self.vm.push(value);
             }
             Opcode::Void => {
@@ -521,11 +503,17 @@ impl Context {
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
 
+        let msg = if self.vm.frame().exit_on_return {
+            " VM Start"
+        } else {
+            " Call Frame "
+        };
+
         if self.vm.trace {
             println!("{}\n", self.vm.frame().code);
             println!(
                 "{:-^width$}",
-                " Vm Start ",
+                msg,
                 width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - 10
             );
             println!(

@@ -16,12 +16,10 @@
 use super::string::is_trimmable_whitespace;
 use super::JsArgs;
 use crate::context::StandardObjects;
+use crate::object::JsObject;
 use crate::{
-    builtins::BuiltIn,
-    object::{
-        function::make_builtin_fn, internal_methods::get_prototype_from_constructor,
-        ConstructorBuilder, ObjectData,
-    },
+    builtins::{function::make_builtin_fn, BuiltIn},
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
@@ -50,11 +48,11 @@ const PARSE_FLOAT_MAX_ARG_COUNT: usize = 1;
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
@@ -103,7 +101,7 @@ impl BuiltIn for Number {
         make_builtin_fn(Self::global_is_finite, "isFinite", &global, 1, context);
         make_builtin_fn(Self::global_is_nan, "isNaN", &global, 1, context);
 
-        (Self::NAME, number_object.into(), Self::attribute())
+        number_object.into()
     }
 }
 
@@ -172,13 +170,8 @@ impl Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
-        let this = JsValue::new_object(context);
-        this.as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        this.set_data(ObjectData::number(data));
-
-        Ok(this)
+        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
+        Ok(this.into())
     }
 
     /// This function returns a `JsResult` of the number `Value`.
@@ -610,7 +603,6 @@ impl Number {
 
         let integer_cursor = int_iter.next().unwrap().0 + 1;
         let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
-        // dbg!("Number: {}, Radix: {}, Cursors: {}, {}", value, radix, integer_cursor, fraction_cursor);
         String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
     }
 

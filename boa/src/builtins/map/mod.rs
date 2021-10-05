@@ -13,10 +13,7 @@
 #![allow(clippy::mutable_key_type)]
 
 use crate::{
-    builtins::{
-        iterable::{get_iterator, IteratorResult},
-        BuiltIn,
-    },
+    builtins::{iterable::IteratorResult, BuiltIn},
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -44,11 +41,11 @@ pub(crate) struct Map(OrderedMap<JsValue>);
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -107,7 +104,7 @@ impl BuiltIn for Map {
         .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
         .build();
 
-        (Self::NAME, map_object.into(), Self::attribute())
+        map_object.into()
     }
 }
 
@@ -136,13 +133,10 @@ impl Map {
         }
 
         // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%Map.prototype%", « [[MapData]] »).
+        // 3. Set map.[[MapData]] to a new empty List.
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::map_object, context)?;
-        let map = context.construct_object();
-        map.set_prototype_instance(prototype.into());
-
-        // 3. Set map.[[MapData]] to a new empty List.
-        map.borrow_mut().data = ObjectData::map(OrderedMap::new());
+        let map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
 
         // 4. If iterable is either undefined or null, return map.
         let iterable = match args.get_or_undefined(0) {
@@ -555,7 +549,7 @@ pub(crate) fn add_entries_from_iterable(
     };
 
     // 2. Let iteratorRecord be ? GetIterator(iterable).
-    let iterator_record = get_iterator(iterable, context)?;
+    let iterator_record = iterable.get_iterator(context, None, None)?;
 
     // 3. Repeat,
     loop {

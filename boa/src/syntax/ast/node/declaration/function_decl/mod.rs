@@ -1,8 +1,8 @@
 use crate::{
+    builtins::function::ThisMode,
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
-    object::function::ThisMode,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };

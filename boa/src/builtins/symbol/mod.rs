@@ -76,18 +76,18 @@ pub struct Symbol;
 impl BuiltIn for Symbol {
     const NAME: &'static str = "Symbol";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let symbol_async_iterator = WellKnownSymbols::async_iterator();
         let symbol_has_instance = WellKnownSymbols::has_instance();
         let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
         let symbol_iterator = WellKnownSymbols::iterator();
-        let symbol_match = WellKnownSymbols::match_();
+        let symbol_match = WellKnownSymbols::r#match();
         let symbol_match_all = WellKnownSymbols::match_all();
         let symbol_replace = WellKnownSymbols::replace();
         let symbol_search = WellKnownSymbols::search();
@@ -98,6 +98,12 @@ impl BuiltIn for Symbol {
         let symbol_unscopables = WellKnownSymbols::unscopables();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+
+        let to_primitive = FunctionBuilder::native(context, Self::to_primitive)
+            .name("[Symbol.toPrimitive]")
+            .length(1)
+            .constructable(false)
+            .build();
 
         let get_description = FunctionBuilder::native(context, Self::get_description)
             .name("get description")
@@ -123,10 +129,11 @@ impl BuiltIn for Symbol {
         .static_property("search", symbol_search, attribute)
         .static_property("species", symbol_species, attribute)
         .static_property("split", symbol_split, attribute)
-        .static_property("toPrimitive", symbol_to_primitive, attribute)
+        .static_property("toPrimitive", symbol_to_primitive.clone(), attribute)
         .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
         .static_property("unscopables", symbol_unscopables, attribute)
         .method(Self::to_string, "toString", 0)
+        .method(Self::value_of, "valueOf", 0)
         .accessor(
             "description",
             Some(get_description),
@@ -140,9 +147,14 @@ impl BuiltIn for Symbol {
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .property(
+            symbol_to_primitive,
+            to_primitive,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .build();
 
-        (Self::NAME, symbol_object.into(), Self::attribute())
+        symbol_object.into()
     }
 }
 
@@ -210,6 +222,26 @@ impl Symbol {
     ) -> JsResult<JsValue> {
         let symbol = Self::this_symbol_value(this, context)?;
         Ok(symbol.to_string().into())
+    }
+
+    /// `Symbol.prototype.valueOf()`
+    ///
+    /// This method returns a `Symbol` that is the primitive value of the specified `Symbol` object.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof
+    pub(crate) fn value_of(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Return ? thisSymbolValue(this value).
+        let symbol = Self::this_symbol_value(this, context)?;
+        Ok(JsValue::Symbol(symbol))
     }
 
     /// `get Symbol.prototype.description`
@@ -294,5 +326,26 @@ impl Symbol {
         } else {
             context.throw_type_error("Symbol.keyFor: sym is not a symbol")
         }
+    }
+
+    /// `Symbol.prototype [ @@toPrimitive ]`
+    ///
+    /// This function is called by ECMAScript language operators to convert a Symbol object to a primitive value.
+    /// NOTE: The argument is ignored
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/multipage/#sec-symbol.prototype-@@toprimitive
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/@@toPrimitive
+    pub(crate) fn to_primitive(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let sym = Self::this_symbol_value(this, context)?;
+        // 1. Return ? thisSymbolValue(this value).
+        Ok(sym.into())
     }
 }

@@ -15,7 +15,9 @@ mod tests;
 use crate::{
     builtins::BuiltIn,
     context::StandardObjects,
-    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    },
     property::Attribute,
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -28,11 +30,11 @@ impl BuiltIn for Boolean {
     /// The name of the object.
     const NAME: &'static str = "Boolean";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let boolean_object = ConstructorBuilder::with_standard_object(
@@ -46,7 +48,7 @@ impl BuiltIn for Boolean {
         .method(Self::value_of, "valueOf", 0)
         .build();
 
-        (Self::NAME, boolean_object.into(), Self::attribute())
+        boolean_object.into()
     }
 }
 
@@ -69,15 +71,9 @@ impl Boolean {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::boolean_object, context)?;
-        let boolean = JsValue::new_object(context);
+        let boolean = JsObject::from_proto_and_data(prototype, ObjectData::boolean(data));
 
-        boolean
-            .as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        boolean.set_data(ObjectData::boolean(data));
-
-        Ok(boolean)
+        Ok(boolean.into())
     }
 
     /// An Utility function used to get the internal `[[BooleanData]]`.

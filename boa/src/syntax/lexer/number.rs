@@ -398,13 +398,8 @@ impl<R> Tokenizer<R> for NumberLiteral {
                 if let Ok(num) = i32::from_str_radix(num_str, base) {
                     Numeric::Integer(num)
                 } else {
-                    let b = f64::from(base);
-                    let mut result = 0.0_f64;
-                    for c in num_str.chars() {
-                        let digit = f64::from(c.to_digit(base).expect("could not parse digit after already checking validity"));
-                        result = result * b + digit;
-                    }
-                    Numeric::Rational(result)
+                    let num = JsBigInt::from_string_radix(num_str, base).expect("Failed to parse integer after checks");
+                    Numeric::Rational(num.to_f64())
                 }
             }
         };

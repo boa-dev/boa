@@ -20,19 +20,12 @@ use std::{
 
 #[cfg(not(feature = "vm"))]
 use crate::{
+    builtins::function::{Captures, ClosureFunctionSignature, Function, NativeFunctionSignature},
     environment::{
-        environment_record_trait::EnvironmentRecordTrait,
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
     exec::InterpreterState,
-    object::{
-        function::{
-            create_unmapped_arguments_object, Captures, ClosureFunctionSignature, Function,
-            NativeFunctionSignature,
-        },
-        PROTOTYPE,
-    },
     syntax::ast::node::RcStatementList,
     Executable,
 };
@@ -63,10 +56,30 @@ enum FunctionBody {
 }
 
 impl JsObject {
-    /// Create a new `GcObject` from a `Object`.
+    /// Create a new `JsObject` from an internal `Object`.
     #[inline]
-    pub fn new(object: Object) -> Self {
+    fn from_object(object: Object) -> Self {
         Self(Gc::new(GcCell::new(object)))
+    }
+
+    /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
+    /// and `data` set to `ObjectData::ordinary`
+    pub fn empty() -> Self {
+        Self::from_object(Object::default())
+    }
+
+    /// The more general form of `OrdinaryObjectCreate` and `MakeBasicObject`.
+    ///
+    /// Create a `JsObject` and automatically set its internal methods and
+    /// internal slots from the `data` provided.
+    #[inline]
+    pub fn from_proto_and_data<O: Into<Option<JsObject>>>(prototype: O, data: ObjectData) -> Self {
+        Self::from_object(Object {
+            data,
+            prototype: prototype.into().map_or(JsValue::Null, JsValue::new),
+            extensible: true,
+            properties: Default::default(),
+        })
     }
 
     /// Immutably borrows the `Object`.
@@ -143,6 +156,10 @@ impl JsObject {
         context: &mut Context,
         construct: bool,
     ) -> JsResult<JsValue> {
+        use crate::{builtins::function::arguments::Arguments, context::StandardObjects};
+
+        use super::internal_methods::get_prototype_from_constructor;
+
         let this_function_object = self.clone();
         let mut has_parameter_expressions = false;
 
@@ -180,21 +197,13 @@ impl JsObject {
                             // prototype as prototype for the new object
                             // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
                             // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                            let proto = this_target.as_object().unwrap().__get__(
-                                &PROTOTYPE.into(),
-                                this_target.clone(),
+                            let proto = get_prototype_from_constructor(
+                                this_target,
+                                StandardObjects::object_object,
                                 context,
                             )?;
-                            let proto = if proto.is_object() {
-                                proto
-                            } else {
-                                context
-                                    .standard_objects()
-                                    .object_object()
-                                    .prototype()
-                                    .into()
-                            };
-                            JsValue::new(Object::create(proto))
+                            JsObject::from_proto_and_data(Some(proto), ObjectData::ordinary())
+                                .into()
                         } else {
                             this_target.clone()
                         };
@@ -220,13 +229,20 @@ impl JsObject {
                         )?;
 
                         let mut arguments_in_parameter_names = false;
+                        let mut is_simple_parameter_list = true;
 
                         for param in params.iter() {
                             has_parameter_expressions =
                                 has_parameter_expressions || param.init().is_some();
                             arguments_in_parameter_names =
                                 arguments_in_parameter_names || param.name() == "arguments";
+                            is_simple_parameter_list = is_simple_parameter_list
+                                && !param.is_rest_param()
+                                && param.init().is_none()
                         }
+
+                        // Turn local_env into Environment so it can be cloned
+                        let local_env: Environment = local_env.into();
 
                         // An arguments object is added when all of the following conditions are met
                         // - If not in an arrow function (10.2.11.16)
@@ -241,13 +257,21 @@ impl JsObject {
                                     && !body.function_declared_names().contains("arguments")))
                         {
                             // Add arguments object
-                            let arguments_obj = create_unmapped_arguments_object(args, context)?;
+                            let arguments_obj =
+                                if context.strict() || body.strict() || !is_simple_parameter_list {
+                                    Arguments::create_unmapped_arguments_object(args, context)
+                                } else {
+                                    Arguments::create_mapped_arguments_object(
+                                        self, params, args, &local_env, context,
+                                    )
+                                };
                             local_env.create_mutable_binding("arguments", false, true, context)?;
-                            local_env.initialize_binding("arguments", arguments_obj, context)?;
+                            local_env.initialize_binding(
+                                "arguments",
+                                arguments_obj.into(),
+                                context,
+                            )?;
                         }
-
-                        // Turn local_env into Environment so it can be cloned
-                        let local_env: Environment = local_env.into();
 
                         // Push the environment first so that it will be used by default parameters
                         context.push_environment(local_env.clone());
@@ -507,7 +531,7 @@ impl JsObject {
         self.borrow_mut().set_prototype_instance(prototype)
     }
 
-    /// Checks if it an `Array` object.
+    /// Checks if it's an `Array` object.
     ///
     /// # Panics
     ///
@@ -529,6 +553,17 @@ impl JsObject {
         self.borrow().is_array_iterator()
     }
 
+    /// Checks if it's an `ArrayBuffer` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_array_buffer(&self) -> bool {
+        self.borrow().is_array_buffer()
+    }
+
     /// Checks if it is a `Map` object.pub
     ///
     /// # Panics
@@ -540,7 +575,7 @@ impl JsObject {
         self.borrow().is_map()
     }
 
-    /// Checks if it a `String` object.
+    /// Checks if it's a `String` object.
     ///
     /// # Panics
     ///
@@ -551,7 +586,7 @@ impl JsObject {
         self.borrow().is_string()
     }
 
-    /// Checks if it a `Function` object.
+    /// Checks if it's a `Function` object.
     ///
     /// # Panics
     ///
@@ -562,7 +597,7 @@ impl JsObject {
         self.borrow().is_function()
     }
 
-    /// Checks if it a Symbol object.
+    /// Checks if it's a `Symbol` object.
     ///
     /// # Panics
     ///
@@ -573,7 +608,7 @@ impl JsObject {
         self.borrow().is_symbol()
     }
 
-    /// Checks if it an Error object.
+    /// Checks if it's an `Error` object.
     ///
     /// # Panics
     ///
@@ -584,7 +619,7 @@ impl JsObject {
         self.borrow().is_error()
     }
 
-    /// Checks if it a Boolean object.
+    /// Checks if it's a `Boolean` object.
     ///
     /// # Panics
     ///
@@ -595,7 +630,7 @@ impl JsObject {
         self.borrow().is_boolean()
     }
 
-    /// Checks if it a `Number` object.
+    /// Checks if it's a `Number` object.
     ///
     /// # Panics
     ///
@@ -606,7 +641,7 @@ impl JsObject {
         self.borrow().is_number()
     }
 
-    /// Checks if it a `BigInt` object.
+    /// Checks if it's a `BigInt` object.
     ///
     /// # Panics
     ///
@@ -617,7 +652,7 @@ impl JsObject {
         self.borrow().is_bigint()
     }
 
-    /// Checks if it a `RegExp` object.
+    /// Checks if it's a `RegExp` object.
     ///
     /// # Panics
     ///
@@ -628,7 +663,18 @@ impl JsObject {
         self.borrow().is_regexp()
     }
 
-    /// Checks if it an ordinary object.
+    /// Checks if it's a `TypedArray` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_array(&self) -> bool {
+        self.borrow().is_typed_array()
+    }
+
+    /// Checks if it's an ordinary object.
     ///
     /// # Panics
     ///

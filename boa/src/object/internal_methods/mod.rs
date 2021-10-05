@@ -15,7 +15,9 @@ use crate::{
 
 use super::PROTOTYPE;
 
+pub(super) mod arguments;
 pub(super) mod array;
+pub(super) mod integer_indexed;
 pub(super) mod string;
 
 impl JsObject {

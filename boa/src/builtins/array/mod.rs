@@ -38,11 +38,11 @@ pub(crate) struct Array;
 impl BuiltIn for Array {
     const NAME: &'static str = "Array";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
@@ -52,11 +52,7 @@ impl BuiltIn for Array {
             .constructable(false)
             .build();
 
-        let values_function = FunctionBuilder::native(context, Self::values)
-            .name("values")
-            .length(0)
-            .constructable(false)
-            .build();
+        let values_function = Self::values_intrinsic(context);
 
         let array = ConstructorBuilder::with_standard_object(
             context,
@@ -86,6 +82,7 @@ impl BuiltIn for Array {
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .method(Self::at, "at", 1)
         .method(Self::concat, "concat", 1)
         .method(Self::push, "push", 1)
         .method(Self::index_of, "indexOf", 1)
@@ -120,7 +117,7 @@ impl BuiltIn for Array {
         .static_method(Self::of, "of", 0)
         .build();
 
-        (Self::NAME, array.into(), Self::attribute())
+        array.into()
     }
 }
 
@@ -222,12 +219,7 @@ impl Array {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
         };
-        let array = context.construct_object();
-
-        array.set_prototype_instance(prototype.into());
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
-        array.borrow_mut().data = ObjectData::array();
+        let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(
@@ -274,22 +266,9 @@ impl Array {
 
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(context: &mut Context) -> JsValue {
-        let array = JsValue::new_object(context);
-        array.set_data(ObjectData::array());
-        array
-            .as_object()
-            .expect("'array' should be an object")
-            .set_prototype_instance(context.standard_objects().array_object().prototype().into());
-        array.set_property(
-            "length",
-            PropertyDescriptor::builder()
-                .value(0)
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
-        array
+        Self::array_create(0, None, context)
+            .expect("creating an empty array with the default prototype must not fail")
+            .into()
     }
 
     /// Utility function for concatenating array objects.
@@ -485,6 +464,43 @@ impl Array {
 
         // 9. Return A.
         Ok(a.into())
+    }
+
+    ///'Array.prototype.at(index)'
+    ///
+    /// The at() method takes an integer value and returns the item at that
+    /// index, allowing for positive and negative integers. Negative integers
+    /// count back from the last item in the array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.at
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at
+    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        //1. let O be ? ToObject(this value)
+        let obj = this.to_object(context)?;
+        //2. let len be ? LengthOfArrayLike(O)
+        let len = obj.length_of_array_like(context)? as i64;
+        //3. let relativeIndex be ? ToIntegerOrInfinity(index)
+        let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+        let k = match relative_index {
+            //4. if relativeIndex >= 0, then let k be relativeIndex
+            //check if positive and if below length of array
+            IntegerOrInfinity::Integer(i) if i >= 0 && i < len => i,
+            //5. Else, let k be len + relativeIndex
+            //integer should be negative, so abs() and check if less than or equal to length of array
+            IntegerOrInfinity::Integer(i) if i < 0 && i.abs() <= len => len + i,
+            //handle most likely impossible case of
+            //IntegerOrInfinity::NegativeInfinity || IntegerOrInfinity::PositiveInfinity
+            //by returning undefined
+            _ => return Ok(JsValue::undefined()),
+        };
+        //6. if k < 0  or k >= len,
+        //handled by the above match guards
+        //7. Return ? Get(O, !ToString(𝔽(k)))
+        obj.get(k, context)
     }
 
     /// `Array.prototype.concat(...arguments)`
@@ -720,10 +736,11 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If separator is undefined, let sep be the single-element String ",".
         // 4. Else, let sep be ? ToString(separator).
-        let separator = if let Some(separator) = args.get(0) {
-            separator.to_string(context)?
-        } else {
+        let separator = args.get_or_undefined(0);
+        let separator = if separator.is_undefined() {
             JsString::new(",")
+        } else {
+            separator.to_string(context)?
         };
 
         // 5. Let R be the empty String.
@@ -2527,8 +2544,12 @@ impl Array {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, value).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::Value,
             context,
         ))
@@ -2542,11 +2563,15 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, key).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::Key,
             context,
         ))
@@ -2560,15 +2585,19 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn entries(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, key+value).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::KeyAndValue,
             context,
         ))
@@ -2626,5 +2655,13 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
             }
         }
+    }
+
+    pub(crate) fn values_intrinsic(context: &mut Context) -> JsObject {
+        FunctionBuilder::native(context, Self::values)
+            .name("values")
+            .length(0)
+            .constructable(false)
+            .build()
     }
 }

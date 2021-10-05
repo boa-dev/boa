@@ -1,15 +1,14 @@
 use crate::{
+    builtins::function::{
+        Captures, ClosureFunctionSignature, Function, NativeFunctionSignature, ThisMode,
+    },
+    context::StandardObjects,
     environment::{
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
     gc::{Finalize, Trace},
-    object::{
-        function::{
-            Captures, ClosureFunctionSignature, Function, NativeFunctionSignature, ThisMode,
-        },
-        JsObject, Object, PROTOTYPE,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameter,
     vm::Opcode,
@@ -219,7 +218,7 @@ impl CodeBlock {
 
 impl std::fmt::Display for CodeBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
+        writeln!(
             f,
             "----------------- name '{}' (length: {}) ------------------",
             self.name, self.length
@@ -311,7 +310,8 @@ impl JsVmFunction {
 
         let function = Function::VmOrdinary { code, environment };
 
-        let constructor = JsObject::new(Object::function(function, function_prototype.into()));
+        let constructor =
+            JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
 
         let constructor_property = PropertyDescriptor::builder()
             .value(constructor.clone())
@@ -515,26 +515,17 @@ impl JsObject {
                 (function)(this_target, args, captures, context)
             }
             FunctionBody::Ordinary { code, environment } => {
-                let this = {
+                let this: JsValue = {
                     // If the prototype of the constructor is not an object, then use the default object
                     // prototype as prototype for the new object
                     // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
                     // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                    let proto = this_target.as_object().unwrap().__get__(
-                        &PROTOTYPE.into(),
-                        this_target.clone(),
+                    let prototype = get_prototype_from_constructor(
+                        this_target,
+                        StandardObjects::object_object,
                         context,
                     )?;
-                    let proto = if proto.is_object() {
-                        proto
-                    } else {
-                        context
-                            .standard_objects()
-                            .object_object()
-                            .prototype()
-                            .into()
-                    };
-                    JsValue::from(Object::create(proto))
+                    JsObject::from_proto_and_data(prototype, ObjectData::ordinary()).into()
                 };
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
