@@ -2,16 +2,20 @@ use crate::{
     syntax::{
         ast::{
             node::{self, Identifier},
-            Keyword, Punctuator,
+            Keyword, Position, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
-            statement::{block::Block, BindingIdentifier},
+            statement::{
+                block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern,
+            },
             AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
 };
 
+use rustc_hash::FxHashSet;
 use std::io::Read;
 
 /// Catch parsing
@@ -57,17 +61,63 @@ where
         let catch_param = if cursor.next_if(Punctuator::OpenParen)?.is_some() {
             let catch_param =
                 CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
             cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
             Some(catch_param)
         } else {
             None
         };
 
+        let mut set = FxHashSet::default();
+        let idents = match &catch_param {
+            Some(node::Declaration::Identifier { ident, .. }) => vec![ident.as_ref()],
+            Some(node::Declaration::Pattern(p)) => p.idents(),
+            _ => vec![],
+        };
+
+        // It is a Syntax Error if BoundNames of CatchParameter contains any duplicate elements.
+        // https://tc39.es/ecma262/#sec-variablestatements-in-catch-blocks
+        for ident in idents {
+            if !set.insert(ident) {
+                // FIXME: pass correct position once #1295 lands
+                return Err(ParseError::general(
+                    "duplicate identifier",
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
         // Catch block
-        Ok(node::Catch::new::<_, Identifier, _>(
-            catch_param,
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?,
-        ))
+        let catch_block =
+            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+
+        // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the LexicallyDeclaredNames of Block.
+        // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the VarDeclaredNames of Block.
+        // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
+
+        // FIXME: `lexically_declared_names` only holds part of LexicallyDeclaredNames of the
+        // Block e.g. function names are *not* included but should be.
+        let lexically_declared_names = catch_block.lexically_declared_names();
+        let var_declared_names = catch_block.var_declared_named();
+
+        for ident in set {
+            // FIXME: pass correct position once #1295 lands
+            if lexically_declared_names.contains(ident) {
+                return Err(ParseError::general(
+                    "identifier redeclared",
+                    Position::new(1, 1),
+                ));
+            }
+            if var_declared_names.contains(ident) {
+                return Err(ParseError::general(
+                    "identifier redeclared",
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        let catch_node = node::Catch::new::<_, node::Declaration, _>(catch_param, catch_block);
+        Ok(catch_node)
     }
 }
 
@@ -103,12 +153,30 @@ impl<R> TokenParser<R> for CatchParameter
 where
     R: Read,
 {
-    type Output = Identifier;
+    type Output = node::Declaration;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Identifier, ParseError> {
-        // TODO: should accept BindingPattern
-        BindingIdentifier::new(self.allow_yield, self.allow_await)
-            .parse(cursor)
-            .map(Identifier::from)
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
+        match token.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                let pat = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor)?;
+
+                Ok(node::Declaration::new_with_object_pattern(pat, None))
+            }
+            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                let pat = ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor)?;
+                Ok(node::Declaration::new_with_array_pattern(pat, None))
+            }
+            TokenKind::Identifier(_) => {
+                let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor)
+                    .map(Identifier::from)?;
+                Ok(node::Declaration::new_with_identifier(ident, None))
+            }
+            _ => Err(ParseError::unexpected(token.clone(), None)),
+        }
     }
 }
