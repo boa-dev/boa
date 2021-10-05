@@ -871,6 +871,24 @@
 <span id="871">871</span>
 <span id="872">872</span>
 <span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
@@ -938,7 +956,7 @@
             .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::floor</span>, <span class="string">&quot;floor&quot;</span>, <span class="number">1</span>)
             .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::fround</span>, <span class="string">&quot;fround&quot;</span>, <span class="number">1</span>)
             .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::hypot</span>, <span class="string">&quot;hypot&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::imul</span>, <span class="string">&quot;imul&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::imul</span>, <span class="string">&quot;imul&quot;</span>, <span class="number">2</span>)
             .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log</span>, <span class="string">&quot;log&quot;</span>, <span class="number">1</span>)
             .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log1p</span>, <span class="string">&quot;log1p&quot;</span>, <span class="number">1</span>)
             .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log10</span>, <span class="string">&quot;log10&quot;</span>, <span class="number">1</span>)
@@ -1506,9 +1524,12 @@
                 <span class="comment">// a. If number is NaN, return NaN.</span>
                 <span class="ident">f64::NAN</span>
             } <span class="kw">else</span> {
-                <span class="comment">// b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.</span>
-                <span class="comment">// c. If number &gt; highest, set highest to number.</span>
-                <span class="ident">highest</span>.<span class="ident">max</span>(<span class="ident">num</span>)
+                <span class="kw">match</span> (<span class="ident">highest</span>, <span class="ident">num</span>) {
+                    <span class="comment">// b. When x and y are +0𝔽 -0𝔽, return +0𝔽.</span>
+                    (<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">signum</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">signum</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="number">0f64</span>,
+                    <span class="comment">// c. Otherwise, return the maximum value.</span>
+                    (<span class="ident">x</span>, <span class="ident">y</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">max</span>(<span class="ident">y</span>),
+                }
             };
         }
         <span class="comment">// 5. Return highest.</span>
@@ -1541,9 +1562,12 @@
                 <span class="comment">// a. If number is NaN, return NaN.</span>
                 <span class="ident">f64::NAN</span>
             } <span class="kw">else</span> {
-                <span class="comment">// b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.</span>
-                <span class="comment">// c. If number &lt; lowest, set lowest to number.</span>
-                <span class="ident">lowest</span>.<span class="ident">min</span>(<span class="ident">num</span>)
+                <span class="kw">match</span> (<span class="ident">lowest</span>, <span class="ident">num</span>) {
+                    <span class="comment">// b. When x and y are +0𝔽 -0𝔽, return -0𝔽.</span>
+                    (<span class="ident">x</span>, <span class="ident">y</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">signum</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">signum</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">0f64</span>,
+                    <span class="comment">// c. Otherwise, return the minimum value.</span>
+                    (<span class="ident">x</span>, <span class="ident">y</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">min</span>(<span class="ident">y</span>),
+                }
             };
         }
         <span class="comment">// 5. Return lowest.</span>
@@ -1558,6 +1582,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.pow</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Set base to ? ToNumber(base).</span>
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -1565,7 +1590,12 @@
         <span class="comment">// 2. Set exponent to ? ToNumber(exponent).</span>
         <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Return ! Number::exponentiate(base, exponent).</span>
+        <span class="comment">// 3. If |x| = 1 and the exponent is infinite, return NaN.</span>
+        <span class="kw">if</span> <span class="ident">f64::abs</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1f64</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span>.<span class="ident">is_infinite</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f64::NAN</span>.<span class="ident">into</span>());
+        }
+
+        <span class="comment">// 4. Return ! Number::exponentiate(base, exponent).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">x</span>.<span class="ident">powf</span>(<span class="ident">y</span>).<span class="ident">into</span>())
     }
 
@@ -1590,17 +1620,23 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-math.round</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">round</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
             <span class="comment">//1. Let n be ? ToNumber(x).</span>
-            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            <span class="comment">//2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.</span>
-            <span class="comment">//3. If n &lt; 0.5𝔽 and n &gt; +0𝔽, return +0𝔽.</span>
-            <span class="comment">//4. If n &lt; +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.</span>
-            <span class="comment">//5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.</span>
-            .<span class="ident">round</span>()
-            .<span class="ident">into</span>())
+            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">//2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.</span>
+        <span class="comment">//3. If n &lt; 0.5𝔽 and n &gt; +0𝔽, return +0𝔽.</span>
+        <span class="comment">//4. If n &lt; +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.</span>
+        <span class="comment">//5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.</span>
+
+        <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">fract</span>() <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.5</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">num</span>.<span class="ident">ceil</span>().<span class="ident">into</span>())
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">num</span>.<span class="ident">round</span>().<span class="ident">into</span>())
+        }
     }
 
     <span class="doccomment">/// Get the sign of a number.</span>
@@ -1616,7 +1652,7 @@
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.</span>
-        <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0f64</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">n</span>.<span class="ident">into</span>());
         }
         <span class="comment">// 3. If n &lt; +0𝔽, return -1𝔽.</span>
