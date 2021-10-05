@@ -1,33 +1,33 @@
 "use strict";
 (function () {
   let latest = {};
-  let masterData = [];
+  let mainData = [];
   let formatter = new Intl.NumberFormat("en-GB");
 
-  // Load latest complete data from master:
-  fetch("./refs/heads/master/latest.json")
+  // Load latest complete data from main:
+  fetch("./refs/heads/main/latest.json")
     .then((response) => response.json())
     .then((data) => {
-      latest.master = data;
+      latest.main = data;
 
-      let container = $("#master-latest .card-body");
-      container.append(infoLink("master"));
+      let container = $("#main-latest .card-body");
+      container.append(infoLink("main"));
     });
 
-  // Load master branch information over time:
-  fetch("./refs/heads/master/results.json")
+  // Load main branch information over time:
+  fetch("./refs/heads/main/results.json")
     .then((response) => response.json())
     .then((data) => {
-      masterData = data;
+      mainData = data;
       let innerContainer = $('<div class="card-body"></div>')
-        .append($("<h2><code>master</code> branch results:</h2>"))
+        .append($("<h2><code>main</code> branch results:</h2>"))
         .append(createGeneralInfo(data));
 
-      if (typeof latest.master !== "undefined") {
-        innerContainer.append(infoLink("master"));
+      if (typeof latest.main !== "undefined") {
+        innerContainer.append(infoLink("main"));
       }
 
-      $("#master-latest")
+      $("#main-latest")
         .append($('<div class="card"></div>').append(innerContainer))
         .show();
     });
@@ -82,7 +82,7 @@
   function infoLink(tag, data) {
     let container = $('<div class="info-link"></div>');
 
-    if (tag === "master") {
+    if (tag === "main") {
       container.append(createHistoricalGraph());
     }
 
@@ -317,25 +317,25 @@
 
   function createHistoricalGraph() {
     $("#graph-modal .modal-body").append(
-      $('<canvas id="master-graph"></canvas>')
+      $('<canvas id="main-graph"></canvas>')
     );
 
     $("#graph-modal").on("hidden.bs.modal", () => {
       $("#graph-modal .modal-body").empty();
       $("#graph-modal .modal-body").append(
-        $('<canvas id="master-graph"></canvas>')
+        $('<canvas id="main-graph"></canvas>')
       );
     });
 
     $("#graph-modal").on("shown.bs.modal", () => {
-      new Chart($("#master-graph"), {
+      new Chart($("#main-graph"), {
         type: "line",
         data: {
-          labels: masterData.map((data) => data.c),
+          labels: mainData.map((data) => data.c),
           datasets: [
             {
               label: "Passed",
-              data: masterData.map((data) => data.o),
+              data: mainData.map((data) => data.o),
               backgroundColor: "#1fcb4a",
               borderColor: "#0f6524",
               borderWidth: 1,
@@ -343,7 +343,7 @@
             },
             {
               label: "Ignored",
-              data: masterData.map((data) => data.i),
+              data: mainData.map((data) => data.i),
               backgroundColor: "#dfa800",
               borderColor: "#6f5400",
               borderWidth: 1,
@@ -351,7 +351,7 @@
             },
             {
               label: "Panics",
-              data: masterData.map((data) => data.p),
+              data: mainData.map((data) => data.p),
               backgroundColor: "#a30000",
               borderColor: "#510000",
               borderWidth: 1,
@@ -359,7 +359,7 @@
             },
             {
               label: "Failed",
-              data: masterData.map((data) => data.t - data.i - data.o - data.p),
+              data: mainData.map((data) => data.t - data.i - data.o - data.p),
               backgroundColor: "#ff4848",
               borderColor: "#a30000",
               borderWidth: 1,
