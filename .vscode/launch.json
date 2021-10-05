@@ -28,7 +28,7 @@
           "vm"
         ]
       },
-      "args": ["${workspaceFolder}/tests/js/test.js"],
+      "args": ["-t", "${workspaceFolder}/tests/js/test.js"],
       "sourceLanguages": ["rust"]
     }
   ]
