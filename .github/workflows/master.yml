@@ -1,8 +1,8 @@
-name: Master workflows
+name: Main workflows
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   benchmark:

@@ -12,7 +12,7 @@ This is an experimental Javascript lexer, parser and interpreter written in Rust
 Currently, it has support for some of the language.
 
 [![Build Status][build_badge]][build_link]
-[![codecov](https://codecov.io/gh/boa-dev/boa/branch/master/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
+[![codecov](https://codecov.io/gh/boa-dev/boa/branch/main/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
 ![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)

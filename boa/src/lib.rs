@@ -9,8 +9,8 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 **/
 
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![deny(
     clippy::all,
