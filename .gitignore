@@ -28,3 +28,6 @@ chrome_profiler.json
 
 # Logs
 *.log
+
+#testing
+test.js
