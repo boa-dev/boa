@@ -1158,7 +1158,7 @@ impl Number {
 /// Helper function that formats a float as a ES6-style exponential number string.
 fn f64_to_exponential(n: f64) -> String {
     match n.abs() {
-        x if x > 1.0 || x == 0.0 => format!("{:e}", n).replace("e", "e+"),
+        x if x >= 1.0 || x == 0.0 => format!("{:e}", n).replace("e", "e+"),
         _ => format!("{:e}", n),
     }
 }
