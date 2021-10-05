@@ -2661,6 +2661,10 @@
 <span id="2661">2661</span>
 <span id="2662">2662</span>
 <span id="2663">2663</span>
+<span id="2664">2664</span>
+<span id="2665">2665</span>
+<span id="2666">2666</span>
+<span id="2667">2667</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2716,11 +2720,7 @@
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::values</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;values&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::values_intrinsic</span>(<span class="ident">context</span>);
 
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
             <span class="ident">context</span>,
@@ -5323,6 +5323,14 @@
                 <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">len</span>),
             }
         }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values_intrinsic</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
+        <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::values</span>)
+            .<span class="ident">name</span>(<span class="string">&quot;values&quot;</span>)
+            .<span class="ident">length</span>(<span class="number">0</span>)
+            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">build</span>()
     }
 }
 </pre></div>

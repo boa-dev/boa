@@ -1696,6 +1696,46 @@
 <span id="1696">1696</span>
 <span id="1697">1697</span>
 <span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1703,6 +1743,7 @@
     <span class="ident">builtins</span>::{
         <span class="ident">array::array_iterator::ArrayIterator</span>,
         <span class="ident">array_buffer::ArrayBuffer</span>,
+        <span class="ident">function::arguments</span>::{<span class="ident">Arguments</span>, <span class="ident">MappedArguments</span>},
         <span class="ident">function</span>::{<span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
@@ -1715,6 +1756,7 @@
     },
     <span class="ident">context::StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
+    <span class="ident">object::internal_methods::arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
@@ -1812,6 +1854,7 @@
     <span class="ident">Ordinary</span>,
     <span class="ident">Date</span>(<span class="ident">Date</span>),
     <span class="ident">Global</span>,
+    <span class="ident">Arguments</span>(<span class="ident">Arguments</span>),
     <span class="ident">NativeObject</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>),
     <span class="ident">IntegerIndexed</span>(<span class="ident">IntegerIndexed</span>),
 }
@@ -1985,6 +2028,18 @@
         }
     }
 
+    <span class="doccomment">/// Create the `Arguments` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arguments</span>(<span class="ident">arguments</span>: <span class="ident">Arguments</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">internal_methods</span>: <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">arguments</span>, <span class="ident">Arguments::Unmapped</span>) {
+                <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>
+            } <span class="kw">else</span> {
+                <span class="kw-2">&amp;</span><span class="ident">ARGUMENTS_EXOTIC_INTERNAL_METHODS</span>
+            },
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::Arguments</span>(<span class="ident">arguments</span>),
+        }
+    }
+
     <span class="doccomment">/// Create the `NativeObject` object data</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_object</span>(<span class="ident">native_object</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -2026,6 +2081,7 @@
             <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigInt&quot;</span>,
             <span class="self">Self</span><span class="ident">::Date</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Date&quot;</span>,
             <span class="self">Self</span><span class="ident">::Global</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Global&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Arguments</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Arguments&quot;</span>,
             <span class="self">Self</span><span class="ident">::NativeObject</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NativeObject&quot;</span>,
             <span class="self">Self</span><span class="ident">::IntegerIndexed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;TypedArray&quot;</span>,
         })
@@ -2555,6 +2611,30 @@
                 ..
             }
         )
+    }
+
+    <span class="doccomment">/// Checks if it is an `Arguments` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Arguments</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Gets the mapped arguments data if this is a mapped arguments object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapped_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MappedArguments</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Arguments</span>(<span class="ident">Arguments::Mapped</span>(<span class="kw-2">ref</span> <span class="ident">args</span>)),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">args</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// Gets the typed array data (integer indexed object) if this is a typed array.</span>

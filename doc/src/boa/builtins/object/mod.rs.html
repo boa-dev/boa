@@ -1424,7 +1424,7 @@
             <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow</span>();
             <span class="kw">match</span> <span class="ident">o</span>.<span class="ident">kind</span>() {
                 <span class="ident">ObjectKind::Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Array&quot;</span>,
-                <span class="comment">// TODO: Arguments Exotic Objects are currently not supported</span>
+                <span class="ident">ObjectKind::Arguments</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Arguments&quot;</span>,
                 <span class="ident">ObjectKind::Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Function&quot;</span>,
                 <span class="ident">ObjectKind::Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Error&quot;</span>,
                 <span class="ident">ObjectKind::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Boolean&quot;</span>,
