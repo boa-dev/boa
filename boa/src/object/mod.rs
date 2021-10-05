@@ -4,6 +4,7 @@ use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
         array_buffer::ArrayBuffer,
+        function::arguments::{Arguments, MappedArguments},
         function::{Captures, Function, NativeFunctionSignature},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
@@ -16,6 +17,7 @@ use crate::{
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
+    object::internal_methods::arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -113,6 +115,7 @@ pub enum ObjectKind {
     Ordinary,
     Date(Date),
     Global,
+    Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
 }
@@ -286,6 +289,18 @@ impl ObjectData {
         }
     }
 
+    /// Create the `Arguments` object data
+    pub fn arguments(arguments: Arguments) -> Self {
+        Self {
+            internal_methods: if matches!(arguments, Arguments::Unmapped) {
+                &ORDINARY_INTERNAL_METHODS
+            } else {
+                &ARGUMENTS_EXOTIC_INTERNAL_METHODS
+            },
+            kind: ObjectKind::Arguments(arguments),
+        }
+    }
+
     /// Create the `NativeObject` object data
     pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
         Self {
@@ -327,6 +342,7 @@ impl Display for ObjectKind {
             Self::BigInt(_) => "BigInt",
             Self::Date(_) => "Date",
             Self::Global => "Global",
+            Self::Arguments(_) => "Arguments",
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
         })
@@ -856,6 +872,30 @@ impl Object {
                 ..
             }
         )
+    }
+
+    /// Checks if it is an `Arguments` object.
+    #[inline]
+    pub fn is_arguments(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Arguments(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the mapped arguments data if this is a mapped arguments object.
+    #[inline]
+    pub fn as_mapped_arguments(&self) -> Option<&MappedArguments> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Arguments(Arguments::Mapped(ref args)),
+                ..
+            } => Some(args),
+            _ => None,
+        }
     }
 
     /// Gets the typed array data (integer indexed object) if this is a typed array.

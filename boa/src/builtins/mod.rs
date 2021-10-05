@@ -11,6 +11,7 @@ pub mod error;
 pub mod function;
 pub mod global_this;
 pub mod infinity;
+pub mod intrinsics;
 pub mod iterable;
 pub mod json;
 pub mod map;

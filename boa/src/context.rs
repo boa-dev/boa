@@ -4,6 +4,7 @@ use crate::{
     builtins::{
         self,
         function::{Function, NativeFunctionSignature, ThisMode},
+        intrinsics::IntrinsicObjects,
         iterable::IteratorPrototypes,
         typed_array::TypedArray,
     },
@@ -88,7 +89,7 @@ pub struct StandardObjects {
     symbol: StandardConstructor,
     error: StandardConstructor,
     type_error: StandardConstructor,
-    referece_error: StandardConstructor,
+    reference_error: StandardConstructor,
     range_error: StandardConstructor,
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
@@ -133,7 +134,7 @@ impl Default for StandardObjects {
             symbol: StandardConstructor::default(),
             error: StandardConstructor::default(),
             type_error: StandardConstructor::default(),
-            referece_error: StandardConstructor::default(),
+            reference_error: StandardConstructor::default(),
             range_error: StandardConstructor::default(),
             syntax_error: StandardConstructor::default(),
             eval_error: StandardConstructor::default(),
@@ -210,7 +211,7 @@ impl StandardObjects {
 
     #[inline]
     pub fn reference_error_object(&self) -> &StandardConstructor {
-        &self.referece_error
+        &self.reference_error
     }
 
     #[inline]
@@ -384,6 +385,9 @@ pub struct Context {
     /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
 
+    /// Cached intrinsic objects
+    intrinsic_objects: IntrinsicObjects,
+
     /// Whether or not strict mode is active.
     strict: StrictType,
 
@@ -403,6 +407,7 @@ impl Default for Context {
             iterator_prototypes: IteratorPrototypes::default(),
             typed_array_constructor: StandardConstructor::default(),
             standard_objects: Default::default(),
+            intrinsic_objects: IntrinsicObjects::default(),
             strict: StrictType::Off,
             #[cfg(feature = "vm")]
             vm: Vm {
@@ -426,6 +431,7 @@ impl Default for Context {
         context.typed_array_constructor.prototype = typed_array_constructor_prototype;
         context.create_intrinsics();
         context.iterator_prototypes = IteratorPrototypes::init(&mut context);
+        context.intrinsic_objects = IntrinsicObjects::init(&mut context);
         context
     }
 }
@@ -1058,6 +1064,12 @@ impl Context {
     #[inline]
     pub fn standard_objects(&self) -> &StandardObjects {
         &self.standard_objects
+    }
+
+    /// Return the intrinsic objects.
+    #[inline]
+    pub fn intrinsics(&self) -> &IntrinsicObjects {
+        &self.intrinsic_objects
     }
 
     /// Set the value of trace on the context

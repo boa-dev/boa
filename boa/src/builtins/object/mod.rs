@@ -471,7 +471,7 @@ impl Object {
             let o = o.borrow();
             match o.kind() {
                 ObjectKind::Array => "Array",
-                // TODO: Arguments Exotic Objects are currently not supported
+                ObjectKind::Arguments(_) => "Arguments",
                 ObjectKind::Function(_) => "Function",
                 ObjectKind::Error => "Error",
                 ObjectKind::Boolean(_) => "Boolean",

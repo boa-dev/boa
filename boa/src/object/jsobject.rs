@@ -20,12 +20,8 @@ use std::{
 
 #[cfg(not(feature = "vm"))]
 use crate::{
-    builtins::function::{
-        create_unmapped_arguments_object, Captures, ClosureFunctionSignature, Function,
-        NativeFunctionSignature,
-    },
+    builtins::function::{Captures, ClosureFunctionSignature, Function, NativeFunctionSignature},
     environment::{
-        environment_record_trait::EnvironmentRecordTrait,
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
@@ -160,7 +156,7 @@ impl JsObject {
         context: &mut Context,
         construct: bool,
     ) -> JsResult<JsValue> {
-        use crate::context::StandardObjects;
+        use crate::{builtins::function::arguments::Arguments, context::StandardObjects};
 
         use super::internal_methods::get_prototype_from_constructor;
 
@@ -233,13 +229,20 @@ impl JsObject {
                         )?;
 
                         let mut arguments_in_parameter_names = false;
+                        let mut is_simple_parameter_list = true;
 
                         for param in params.iter() {
                             has_parameter_expressions =
                                 has_parameter_expressions || param.init().is_some();
                             arguments_in_parameter_names =
                                 arguments_in_parameter_names || param.name() == "arguments";
+                            is_simple_parameter_list = is_simple_parameter_list
+                                && !param.is_rest_param()
+                                && param.init().is_none()
                         }
+
+                        // Turn local_env into Environment so it can be cloned
+                        let local_env: Environment = local_env.into();
 
                         // An arguments object is added when all of the following conditions are met
                         // - If not in an arrow function (10.2.11.16)
@@ -254,13 +257,21 @@ impl JsObject {
                                     && !body.function_declared_names().contains("arguments")))
                         {
                             // Add arguments object
-                            let arguments_obj = create_unmapped_arguments_object(args, context)?;
+                            let arguments_obj =
+                                if context.strict() || body.strict() || !is_simple_parameter_list {
+                                    Arguments::create_unmapped_arguments_object(args, context)
+                                } else {
+                                    Arguments::create_mapped_arguments_object(
+                                        self, params, args, &local_env, context,
+                                    )
+                                };
                             local_env.create_mutable_binding("arguments", false, true, context)?;
-                            local_env.initialize_binding("arguments", arguments_obj, context)?;
+                            local_env.initialize_binding(
+                                "arguments",
+                                arguments_obj.into(),
+                                context,
+                            )?;
                         }
-
-                        // Turn local_env into Environment so it can be cloned
-                        let local_env: Environment = local_env.into();
 
                         // Push the environment first so that it will be used by default parameters
                         context.push_environment(local_env.clone());
