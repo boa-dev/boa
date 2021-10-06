@@ -168,14 +168,16 @@ impl Executable for Object {
                         }
                         &MethodDefinitionKind::Generator => {
                             // TODO: Implement generator method definition execution.
-                            obj.set_property(
+                            obj.__define_own_property__(
                                 name,
                                 PropertyDescriptor::builder()
                                     .value(JsValue::undefined())
                                     .writable(true)
                                     .enumerable(true)
-                                    .configurable(true),
-                            );
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
                         }
                     }
                 }
