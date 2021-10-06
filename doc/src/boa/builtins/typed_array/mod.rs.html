@@ -3453,8 +3453,8 @@
                     <span class="ident">TypedArrayName</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>.<span class="ident">element_size</span>(),
                     <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>,
                 )
-                .<span class="ident">custom_prototype</span>(<span class="ident">typed_array_constructor</span>.<span class="ident">into</span>())
-                .<span class="ident">inherit</span>(<span class="ident">typed_array_constructor_proto</span>.<span class="ident">into</span>())
+                .<span class="ident">custom_prototype</span>(<span class="ident">typed_array_constructor</span>)
+                .<span class="ident">inherit</span>(<span class="ident">typed_array_constructor_proto</span>)
                 .<span class="ident">build</span>()
                 .<span class="ident">into</span>()
             }

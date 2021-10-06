@@ -262,7 +262,7 @@
         <span class="ident">a</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::integer_indexed</span>(<span class="ident">data</span>);
 
         <span class="comment">// 10. Set A.[[Prototype]] to prototype.</span>
-        <span class="ident">a</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
+        <span class="ident">a</span>.<span class="ident">set_prototype</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
 
         <span class="comment">// 11. Return A.</span>
         <span class="ident">a</span>

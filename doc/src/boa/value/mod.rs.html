@@ -1174,6 +1174,10 @@
 <span id="1174">1174</span>
 <span id="1175">1175</span>
 <span id="1176">1176</span>
+<span id="1177">1177</span>
+<span id="1178">1178</span>
+<span id="1179">1179</span>
+<span id="1180">1180</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1467,7 +1471,11 @@
                     <span class="kw">return</span> <span class="ident">property</span>;
                 }
 
-                <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">prototype_instance</span>().<span class="ident">get_property</span>(<span class="ident">key</span>)
+                <span class="ident">object</span>
+                    .<span class="ident">prototype</span>()
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map_or</span>(<span class="ident">JsValue::Null</span>, <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
+                    .<span class="ident">get_property</span>(<span class="ident">key</span>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }

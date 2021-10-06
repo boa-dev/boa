@@ -950,6 +950,8 @@
 <span id="950">950</span>
 <span id="951">951</span>
 <span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -975,7 +977,7 @@
     },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DescriptorKind</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value</span>::{<span class="ident">JsValue</span>, <span class="ident">Type</span>},
+    <span class="ident">value::JsValue</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 
@@ -1006,7 +1008,7 @@
         )
         .<span class="ident">name</span>(<span class="self">Self</span><span class="ident">::NAME</span>)
         .<span class="ident">length</span>(<span class="self">Self</span><span class="ident">::LENGTH</span>)
-        .<span class="ident">inherit</span>(<span class="ident">JsValue::null</span>())
+        .<span class="ident">inherit</span>(<span class="prelude-val">None</span>)
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::has_own_property</span>, <span class="string">&quot;hasOwnProperty&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::property_is_enumerable</span>, <span class="string">&quot;propertyIsEnumerable&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
@@ -1237,7 +1239,9 @@
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>().<span class="ident">to_object</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Return ? obj.[[GetPrototypeOf]]().</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">prototype_instance</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>
+            .<span class="ident">__get_prototype_of__</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>
+            .<span class="ident">map_or</span>(<span class="ident">JsValue::Null</span>, <span class="ident">JsValue::new</span>))
     }
 
     <span class="doccomment">/// Set the `prototype` of an object.</span>
@@ -1254,32 +1258,32 @@
         }
 
         <span class="comment">// 1. Set O to ? RequireObjectCoercible(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_default</span>()
             .<span class="ident">require_object_coercible</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>
             .<span class="ident">clone</span>();
 
-        <span class="comment">// 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">proto</span>.<span class="ident">get_type</span>(), <span class="ident">Type::Object</span> <span class="op">|</span> <span class="ident">Type::Null</span>) {
-            <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;expected an object or null, got {}&quot;</span>,
-                <span class="ident">proto</span>.<span class="ident">type_of</span>()
-            ));
-        }
+        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>) {
+            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
+            <span class="ident">JsValue::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="comment">// 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.</span>
+            <span class="ident">val</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="ident">ctx</span>
+                    .<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;expected an object or null, got {}&quot;</span>, <span class="ident">val</span>.<span class="ident">type_of</span>()))
+            }
+        };
 
-        <span class="comment">// 3. If Type(O) is not Object, return O.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">is_object</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">obj</span>);
-        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_object</span>() {
+            <span class="ident">obj</span>
+        } <span class="kw">else</span> {
+            <span class="comment">// 3. If Type(O) is not Object, return O.</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">o</span>);
+        };
 
         <span class="comment">// 4. Let status be ? O.[[SetPrototypeOf]](proto).</span>
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">obj</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;obj was not an object&quot;</span>)
-            .<span class="ident">__set_prototype_of__</span>(<span class="ident">proto</span>.<span class="ident">clone</span>(), <span class="ident">ctx</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__set_prototype_of__</span>(<span class="ident">proto</span>, <span class="ident">ctx</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. If status is false, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">status</span> {
@@ -1287,7 +1291,7 @@
         }
 
         <span class="comment">// 6. Return O.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">o</span>)
     }
 
     <span class="doccomment">/// `Object.prototype.isPrototypeOf( proto )`</span>

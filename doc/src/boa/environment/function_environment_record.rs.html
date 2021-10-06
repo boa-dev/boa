@@ -284,6 +284,8 @@
 <span id="284">284</span>
 <span id="285">285</span>
 <span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust">
 <span class="doccomment">//! # Function Environment Records</span>
 <span class="doccomment">//!</span>
@@ -304,7 +306,7 @@
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>, <span class="ident">VariableScope</span>},
     },
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object::JsObject</span>,
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">JsPrototype</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
@@ -401,21 +403,23 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getsuperbase</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_super_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_super_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let home be envRec.[[FunctionObject]].[[HomeObject]].</span>
         <span class="kw">let</span> <span class="ident">home</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">home_object</span>;
 
         <span class="comment">// 2. If home has the value undefined, return undefined.</span>
         <span class="kw">if</span> <span class="ident">home</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsValue::undefined</span>()
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
             <span class="comment">// 3. Assert: Type(home) is Object.</span>
             <span class="macro">assert!</span>(<span class="ident">home</span>.<span class="ident">is_object</span>());
 
             <span class="comment">// 4. Return ? home.[[GetPrototypeOf]]().</span>
-            <span class="ident">home</span>.<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;home_object must be an Object&quot;</span>)
-                .<span class="ident">prototype_instance</span>()
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
+                <span class="ident">home</span>.<span class="ident">as_object</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;home_object must be an Object&quot;</span>)
+                    .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+            ))
         }
     }
 }

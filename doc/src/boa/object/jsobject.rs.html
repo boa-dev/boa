@@ -1097,12 +1097,27 @@
 <span id="1097">1097</span>
 <span id="1098">1098</span>
 <span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JsObject` is a garbage collected Object.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">NativeObject</span>, <span class="ident">Object</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsPrototype</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">ObjectKind</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
@@ -1140,21 +1155,6 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsObject</span>(<span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span><span class="op">&gt;</span>);
 
-<span class="doccomment">/// The body of a JavaScript function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is needed for the call method since we cannot mutate the function itself since we</span>
-<span class="doccomment">/// already borrow it so we get the function body clone it then drop the borrow and run the body</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
-<span class="kw">enum</span> <span class="ident">FunctionBody</span> {
-    <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunctionSignature</span>),
-    <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunctionSignature</span>),
-    <span class="ident">Closure</span> {
-        <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunctionSignature</span><span class="op">&gt;</span>,
-        <span class="ident">captures</span>: <span class="ident">Captures</span>,
-    },
-    <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
-}
-
 <span class="kw">impl</span> <span class="ident">JsObject</span> {
     <span class="doccomment">/// Create a new `JsObject` from an internal `Object`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1176,7 +1176,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_proto_and_data</span><span class="op">&lt;</span><span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">prototype</span>: <span class="ident">O</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::from_object</span>(<span class="ident">Object</span> {
             <span class="ident">data</span>,
-            <span class="ident">prototype</span>: <span class="ident">prototype</span>.<span class="ident">into</span>().<span class="ident">map_or</span>(<span class="ident">JsValue::Null</span>, <span class="ident">JsValue::new</span>),
+            <span class="ident">prototype</span>: <span class="ident">prototype</span>.<span class="ident">into</span>(),
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
             <span class="ident">properties</span>: <span class="ident">Default::default</span>(),
         })
@@ -1259,6 +1259,21 @@
         <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::function::arguments::Arguments</span>, <span class="ident">context::StandardObjects</span>};
 
         <span class="kw">use</span> <span class="kw">super</span><span class="ident">::internal_methods::get_prototype_from_constructor</span>;
+
+        <span class="doccomment">/// The body of a JavaScript function.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// This is needed for the call method since we cannot mutate the function itself since we</span>
+        <span class="doccomment">/// already borrow it so we get the function body clone it then drop the borrow and run the body</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
+        <span class="kw">enum</span> <span class="ident">FunctionBody</span> {
+            <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunctionSignature</span>),
+            <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunctionSignature</span>),
+            <span class="ident">Closure</span> {
+                <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunctionSignature</span><span class="op">&gt;</span>,
+                <span class="ident">captures</span>: <span class="ident">Captures</span>,
+            },
+            <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
+        }
 
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1615,8 +1630,18 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
-        <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">prototype_instance</span>().<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">JsPrototype</span><span class="op">&gt;</span> {
+        <span class="ident">Ref::map</span>(<span class="self">self</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">prototype</span>())
+    }
+
+    <span class="doccomment">/// Get the extensibility of the object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">extensible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">extensible</span>
     }
 
     <span class="doccomment">/// Set the prototype of the object.</span>
@@ -1624,11 +1649,10 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the object is currently mutably borrowed</span>
-    <span class="doccomment">/// or if th prototype is not an object or undefined.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">JsPrototype</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">set_prototype</span>(<span class="ident">prototype</span>)
     }
 
     <span class="doccomment">/// Checks if it&#39;s an `Array` object.</span>
@@ -1826,9 +1850,9 @@
                 <span class="comment">//      a. Set O to ? O.[[GetPrototypeOf]]().</span>
                 <span class="comment">//      b. If O is null, return false.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object_prototype</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object_prototype</span>) <span class="op">=</span> <span class="ident">object</span> {
                     <span class="comment">//     c. If SameValue(P, O) is true, return true.</span>
-                    <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="ident">object_prototype</span>) {
+                    <span class="kw">if</span> <span class="ident">prototype</span> <span class="op">=</span><span class="op">=</span> <span class="ident">object_prototype</span> {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
                     }
                     <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().</span>
@@ -2069,6 +2093,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Object</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">JsObject</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">JsObject::equals</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 }
 

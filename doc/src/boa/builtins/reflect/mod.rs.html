@@ -384,6 +384,9 @@
 <span id="384">384</span>
 <span id="385">385</span>
 <span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Reflect` object.</span>
 <span class="doccomment">//!</span>
@@ -631,7 +634,9 @@
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_object</span>())
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="ident">target</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">target</span>
+            .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+            .<span class="ident">map_or</span>(<span class="ident">JsValue::Null</span>, <span class="ident">JsValue::new</span>))
     }
 
     <span class="doccomment">/// Returns `true` if the object has the property, `false` otherwise.</span>
@@ -764,11 +769,12 @@
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_object</span>())
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">proto</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">proto</span>.<span class="ident">is_object</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;proto must be an object or null&quot;</span>);
-        }
-        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__set_prototype_of__</span>(<span class="ident">proto</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>) {
+            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
+            <span class="ident">JsValue::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;proto must be an object or null&quot;</span>),
+        };
+        <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__set_prototype_of__</span>(<span class="ident">proto</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
 }
 </pre></div>
