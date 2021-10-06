@@ -1032,6 +1032,20 @@
 <span id="1032">1032</span>
 <span id="1033">1033</span>
 <span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -1555,24 +1569,38 @@
 
         <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
             <span class="ident">TokenKind::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>.<span class="ident">clone</span>()),
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">k</span> @ <span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;Unexpected identifier&quot;</span>,
+                    <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                ))
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;yield keyword in binding identifier not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
+                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;yield keyword in binding identifier not allowed in strict mode&quot;</span>,
                         <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
-                    )))
+                    ))
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">k</span>.<span class="ident">as_str</span>().<span class="ident">into</span>())
+                    <span class="prelude-val">Ok</span>(<span class="string">&quot;yield&quot;</span>.<span class="ident">into</span>())
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">k</span> @ <span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;Unexpected identifier&quot;</span>,
+                    <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                ))
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;await keyword in binding identifier not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
+                    <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;await keyword in binding identifier not allowed in strict mode&quot;</span>,
                         <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
-                    )))
+                    ))
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">k</span>.<span class="ident">as_str</span>().<span class="ident">into</span>())
+                    <span class="prelude-val">Ok</span>(<span class="string">&quot;await&quot;</span>.<span class="ident">into</span>())
                 }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(

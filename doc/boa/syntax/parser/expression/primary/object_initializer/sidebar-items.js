@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Initializer","Initializer parsing."],["MethodDefinition","Parses a method definition."],["ObjectLiteral","Parses an object literal."],["PropertyDefinition","Parses a property definition."]]});
+initSidebarItems({"struct":[["Initializer","Initializer parsing."],["ObjectLiteral","Parses an object literal."],["PropertyDefinition","Parses a property definition."],["PropertyName","Parses a property name."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["GeneratorExpression","Generator expression parsing."]]});

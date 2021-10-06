@@ -154,6 +154,45 @@
 <span id="154">154</span>
 <span id="155">155</span>
 <span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Primary expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -167,6 +206,7 @@
 <span class="kw">mod</span> <span class="ident">array_initializer</span>;
 <span class="kw">mod</span> <span class="ident">async_function_expression</span>;
 <span class="kw">mod</span> <span class="ident">function_expression</span>;
+<span class="kw">mod</span> <span class="ident">generator_expression</span>;
 <span class="kw">mod</span> <span class="ident">object_initializer</span>;
 <span class="kw">mod</span> <span class="ident">template</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -174,7 +214,8 @@
 
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array_initializer::ArrayLiteral</span>, <span class="ident">async_function_expression::AsyncFunctionExpression</span>,
-    <span class="ident">function_expression::FunctionExpression</span>, <span class="ident">object_initializer::ObjectLiteral</span>,
+    <span class="ident">function_expression::FunctionExpression</span>, <span class="ident">generator_expression::GeneratorExpression</span>,
+    <span class="ident">object_initializer::ObjectLiteral</span>,
 };
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::Expression</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -237,7 +278,12 @@
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::This</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Node::This</span>),
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">FunctionExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) {
+                    <span class="ident">GeneratorExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">FunctionExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                }
             }
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AsyncFunctionExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>)
@@ -263,7 +309,39 @@
             }
             <span class="ident">TokenKind::BooleanLiteral</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">boolean</span>).<span class="ident">into</span>()),
             <span class="ident">TokenKind::NullLiteral</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const::Null</span>.<span class="ident">into</span>()),
-            <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()), <span class="comment">// TODO: IdentifierReference</span>
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()),
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;Unexpected identifier&quot;</span>,
+                    <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                ))
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;Unexpected strict mode reserved word&quot;</span>,
+                        <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                    ));
+                }
+                <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="string">&quot;yield&quot;</span>).<span class="ident">into</span>())
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;Unexpected identifier&quot;</span>,
+                    <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                ))
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;Unexpected strict mode reserved word&quot;</span>,
+                        <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                    ));
+                }
+                <span class="prelude-val">Ok</span>(<span class="ident">Identifier::from</span>(<span class="string">&quot;await&quot;</span>).<span class="ident">into</span>())
+            }
             <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()),
             <span class="ident">TokenKind::TemplateNoSubstitution</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Const::from</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">map_err</span>(<span class="ident">ParseError::lex</span>)<span class="question-mark">?</span>).<span class="ident">into</span>())

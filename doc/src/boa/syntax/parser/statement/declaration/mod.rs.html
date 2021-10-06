@@ -89,7 +89,7 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#Declarations</span>
 <span class="doccomment">//! [spec]:https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement</span>
 
-<span class="kw">mod</span> <span class="ident">hoistable</span>;
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="kw">crate</span><span class="ident">::syntax::parser</span>) <span class="kw">mod</span> <span class="ident">hoistable</span>;
 <span class="kw">mod</span> <span class="ident">lexical</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
