@@ -93,30 +93,36 @@ where
     }
 }
 
-// This is a helper function to not duplicate code in the individual hoistable deceleration parser functions.
+trait CallableDeclaration {
+    fn error_context(&self) -> &'static str;
+    fn is_default(&self) -> bool;
+    fn name_allow_yield(&self) -> bool;
+    fn name_allow_await(&self) -> bool;
+    fn parameters_allow_yield(&self) -> bool;
+    fn parameters_allow_await(&self) -> bool;
+    fn body_allow_yield(&self) -> bool;
+    fn body_allow_await(&self) -> bool;
+}
+
+// This is a helper function to not duplicate code in the individual callable deceleration parsers.
 #[inline]
-#[allow(clippy::too_many_arguments, clippy::type_complexity)]
-fn parse_function_like_declaration<R: Read>(
-    error_context: &'static str,
-    is_default: bool,
-    name_allow_yield: bool,
-    name_allow_await: bool,
-    parameters_allow_yield: bool,
-    parameters_allow_await: bool,
-    body_allow_yield: bool,
-    body_allow_await: bool,
+#[allow(clippy::type_complexity)]
+fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
+    c: &C,
     cursor: &mut Cursor<R>,
 ) -> Result<(Box<str>, Box<[FormalParameter]>, StatementList), ParseError> {
     let next_token = cursor.peek(0)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if !is_default {
-                    return Err(ParseError::unexpected(token.clone(), error_context));
+                if !c.is_default() {
+                    return Err(ParseError::unexpected(token.clone(), c.error_context()));
                 }
                 "default".into()
             }
-            _ => BindingIdentifier::new(name_allow_yield, name_allow_await).parse(cursor)?,
+            _ => {
+                BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await()).parse(cursor)?
+            }
         }
     } else {
         return Err(ParseError::AbruptEnd);
@@ -135,19 +141,19 @@ fn parse_function_like_declaration<R: Read>(
     }
 
     let params_start_position = cursor
-        .expect(Punctuator::OpenParen, error_context)?
+        .expect(Punctuator::OpenParen, c.error_context())?
         .span()
         .end();
 
-    let params =
-        FormalParameters::new(parameters_allow_yield, parameters_allow_await).parse(cursor)?;
+    let params = FormalParameters::new(c.parameters_allow_yield(), c.parameters_allow_await())
+        .parse(cursor)?;
 
-    cursor.expect(Punctuator::CloseParen, error_context)?;
-    cursor.expect(Punctuator::OpenBlock, error_context)?;
+    cursor.expect(Punctuator::CloseParen, c.error_context())?;
+    cursor.expect(Punctuator::OpenBlock, c.error_context())?;
 
-    let body = FunctionBody::new(body_allow_yield, body_allow_await).parse(cursor)?;
+    let body = FunctionBody::new(c.body_allow_yield(), c.body_allow_await()).parse(cursor)?;
 
-    cursor.expect(Punctuator::CloseBlock, error_context)?;
+    cursor.expect(Punctuator::CloseBlock, c.error_context())?;
 
     // Early Error: If the source code matching FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

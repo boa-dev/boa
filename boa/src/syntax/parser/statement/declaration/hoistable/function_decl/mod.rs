@@ -4,8 +4,8 @@ mod tests;
 use crate::syntax::{
     ast::{node::FunctionDecl, Keyword},
     parser::{
-        statement::declaration::hoistable::parse_function_like_declaration, AllowAwait,
-        AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 use std::io::Read;
@@ -46,6 +46,33 @@ impl FunctionDeclaration {
     }
 }
 
+impl CallableDeclaration for FunctionDeclaration {
+    fn error_context(&self) -> &'static str {
+        "function declaration"
+    }
+    fn is_default(&self) -> bool {
+        self.is_default.0
+    }
+    fn name_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn name_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+    fn parameters_allow_yield(&self) -> bool {
+        false
+    }
+    fn parameters_allow_await(&self) -> bool {
+        false
+    }
+    fn body_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn body_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+}
+
 impl<R> TokenParser<R> for FunctionDeclaration
 where
     R: Read,
@@ -55,17 +82,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
-        let result = parse_function_like_declaration(
-            "function declaration",
-            self.is_default.0,
-            self.allow_yield.0,
-            self.allow_await.0,
-            false,
-            false,
-            self.allow_yield.0,
-            self.allow_await.0,
-            cursor,
-        )?;
+        let result = parse_callable_declaration(&self, cursor)?;
 
         Ok(FunctionDecl::new(result.0, result.1, result.2))
     }

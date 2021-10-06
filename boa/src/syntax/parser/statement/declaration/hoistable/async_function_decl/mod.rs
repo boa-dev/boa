@@ -4,8 +4,8 @@ mod tests;
 use crate::syntax::{
     ast::{node::AsyncFunctionDecl, Keyword},
     parser::{
-        statement::declaration::hoistable::parse_function_like_declaration, AllowAwait,
-        AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 use std::io::Read;
@@ -41,6 +41,33 @@ impl AsyncFunctionDeclaration {
     }
 }
 
+impl CallableDeclaration for AsyncFunctionDeclaration {
+    fn error_context(&self) -> &'static str {
+        "async function declaration"
+    }
+    fn is_default(&self) -> bool {
+        self.is_default.0
+    }
+    fn name_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn name_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+    fn parameters_allow_yield(&self) -> bool {
+        false
+    }
+    fn parameters_allow_await(&self) -> bool {
+        true
+    }
+    fn body_allow_yield(&self) -> bool {
+        false
+    }
+    fn body_allow_await(&self) -> bool {
+        true
+    }
+}
+
 impl<R> TokenParser<R> for AsyncFunctionDeclaration
 where
     R: Read,
@@ -52,17 +79,7 @@ where
         cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
         cursor.expect(Keyword::Function, "async function declaration")?;
 
-        let result = parse_function_like_declaration(
-            "async function declaration",
-            self.is_default.0,
-            self.allow_yield.0,
-            self.allow_await.0,
-            false,
-            true,
-            false,
-            true,
-            cursor,
-        )?;
+        let result = parse_callable_declaration(&self, cursor)?;
 
         Ok(AsyncFunctionDecl::new(result.0, result.1, result.2))
     }

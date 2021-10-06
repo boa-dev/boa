@@ -4,8 +4,8 @@ mod tests;
 use crate::syntax::{
     ast::{node::declaration::generator_decl::GeneratorDecl, Keyword, Punctuator},
     parser::{
-        statement::declaration::hoistable::parse_function_like_declaration, AllowAwait,
-        AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 use std::io::Read;
@@ -41,6 +41,33 @@ impl GeneratorDeclaration {
     }
 }
 
+impl CallableDeclaration for GeneratorDeclaration {
+    fn error_context(&self) -> &'static str {
+        "generator declaration"
+    }
+    fn is_default(&self) -> bool {
+        self.is_default.0
+    }
+    fn name_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn name_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+    fn parameters_allow_yield(&self) -> bool {
+        true
+    }
+    fn parameters_allow_await(&self) -> bool {
+        false
+    }
+    fn body_allow_yield(&self) -> bool {
+        true
+    }
+    fn body_allow_await(&self) -> bool {
+        false
+    }
+}
+
 impl<R> TokenParser<R> for GeneratorDeclaration
 where
     R: Read,
@@ -51,17 +78,7 @@ where
         cursor.expect(Keyword::Function, "generator declaration")?;
         cursor.expect(Punctuator::Mul, "generator declaration")?;
 
-        let result = parse_function_like_declaration(
-            "generator declaration",
-            self.is_default.0,
-            self.allow_yield.0,
-            self.allow_await.0,
-            true,
-            false,
-            true,
-            false,
-            cursor,
-        )?;
+        let result = parse_callable_declaration(&self, cursor)?;
 
         Ok(GeneratorDecl::new(result.0, result.1, result.2))
     }
