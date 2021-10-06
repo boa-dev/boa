@@ -372,3 +372,39 @@ fn empty_statement() {
         ],
     );
 }
+
+#[test]
+fn hashbang_use_strict_no_with() {
+    check_parser(
+        r#"#!\"use strict"
+        "#, 
+        vec![]
+    );
+}
+
+#[test]
+fn hashbang_use_strict_with_with_statement() {
+    check_parser(
+        r#"#!\"use strict"
+        
+        with({}) {}
+        "#, 
+        vec![]
+    );
+}
+
+#[test]
+fn hashbang_comment() {
+    check_parser(
+        r"#!Comment Here", 
+        vec![]
+    );
+}
+
+#[test]
+fn hashbang_line_separator_test() {
+    check_parser(
+        r"#!This contains a line separator ",
+        vec![]
+    );
+}
