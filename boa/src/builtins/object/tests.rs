@@ -93,6 +93,7 @@ fn object_is() {
     assert_eq!(forward(&mut context, "Object.is(undefined)"), "true");
     assert!(context.global_object().is_global());
 }
+
 #[test]
 fn object_has_own_property() {
     let mut context = Context::new();
@@ -117,6 +118,33 @@ fn object_has_own_property() {
         forward(&mut context, "x.hasOwnProperty('hasOwnProperty')"),
         "false"
     );
+}
+
+#[test]
+fn object_has_own() {
+    let scenario = r#"
+        let sym = Symbol('a');
+
+        let x = {
+            undefinedProp: undefined,
+            nullProp: null,
+            someProp: 1,
+            [sym]: 2,
+        };
+
+        let y = [1, 2, 3];
+    "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("Object.hasOwn(x, 'hasOwnProperty')", "false"),
+        TestAction::TestEq("Object.hasOwn(x, 'undefinedProp')", "true"),
+        TestAction::TestEq("Object.hasOwn(x, 'nullProp')", "true"),
+        TestAction::TestEq("Object.hasOwn(x, 'someProp')", "true"),
+        TestAction::TestEq("Object.hasOwn(x, sym)", "true"),
+        TestAction::TestEq("Object.hasOwn(y, 3)", "false"),
+        TestAction::TestEq("Object.hasOwn(y, 1)", "true"),
+    ]);
 }
 
 #[test]
