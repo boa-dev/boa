@@ -307,7 +307,7 @@ impl ArrayBuffer {
             context,
         )?;
         let obj = context.construct_object();
-        obj.set_prototype_instance(prototype.into());
+        obj.set_prototype(prototype.into());
 
         // 2. Let block be ? CreateByteDataBlock(byteLength).
         // TODO: for now just a arbitrary limit to not OOM.

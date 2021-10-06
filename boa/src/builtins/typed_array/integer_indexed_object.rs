@@ -77,7 +77,7 @@ impl IntegerIndexed {
         a.borrow_mut().data = ObjectData::integer_indexed(data);
 
         // 10. Set A.[[Prototype]] to prototype.
-        a.set_prototype_instance(prototype.into());
+        a.set_prototype(prototype.into());
 
         // 11. Return A.
         a

@@ -22,7 +22,7 @@ use crate::{
     },
     property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::{JsValue, Type},
+    value::JsValue,
     BoaProfiler, Context, JsResult,
 };
 
@@ -53,7 +53,7 @@ impl BuiltIn for Object {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .inherit(JsValue::null())
+        .inherit(None)
         .method(Self::has_own_property, "hasOwnProperty", 0)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
         .method(Self::to_string, "toString", 0)
@@ -284,7 +284,9 @@ impl Object {
         let obj = args[0].clone().to_object(ctx)?;
 
         // 2. Return ? obj.[[GetPrototypeOf]]().
-        Ok(obj.prototype_instance())
+        Ok(obj
+            .__get_prototype_of__(ctx)?
+            .map_or(JsValue::Null, JsValue::new))
     }
 
     /// Set the `prototype` of an object.
@@ -301,32 +303,32 @@ impl Object {
         }
 
         // 1. Set O to ? RequireObjectCoercible(O).
-        let obj = args
+        let o = args
             .get(0)
             .cloned()
             .unwrap_or_default()
             .require_object_coercible(ctx)?
             .clone();
 
-        // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
-        let proto = args.get_or_undefined(1);
-        if !matches!(proto.get_type(), Type::Object | Type::Null) {
-            return ctx.throw_type_error(format!(
-                "expected an object or null, got {}",
-                proto.type_of()
-            ));
-        }
+        let proto = match args.get_or_undefined(1) {
+            JsValue::Object(obj) => Some(obj.clone()),
+            JsValue::Null => None,
+            // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
+            val => {
+                return ctx
+                    .throw_type_error(format!("expected an object or null, got {}", val.type_of()))
+            }
+        };
 
-        // 3. If Type(O) is not Object, return O.
-        if !obj.is_object() {
-            return Ok(obj);
-        }
+        let mut obj = if let Some(obj) = o.as_object() {
+            obj
+        } else {
+            // 3. If Type(O) is not Object, return O.
+            return Ok(o);
+        };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj
-            .as_object()
-            .expect("obj was not an object")
-            .__set_prototype_of__(proto.clone(), ctx)?;
+        let status = obj.__set_prototype_of__(proto, ctx)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -334,7 +336,7 @@ impl Object {
         }
 
         // 6. Return O.
-        Ok(obj)
+        Ok(o)
     }
 
     /// `Object.prototype.isPrototypeOf( proto )`

@@ -244,7 +244,9 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        target.__get_prototype_of__(context)
+        Ok(target
+            .__get_prototype_of__(context)?
+            .map_or(JsValue::Null, JsValue::new))
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -377,10 +379,11 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let proto = args.get_or_undefined(1);
-        if !proto.is_null() && !proto.is_object() {
-            return context.throw_type_error("proto must be an object or null");
-        }
-        Ok(target.__set_prototype_of__(proto.clone(), context)?.into())
+        let proto = match args.get_or_undefined(1) {
+            JsValue::Object(obj) => Some(obj.clone()),
+            JsValue::Null => None,
+            _ => return context.throw_type_error("proto must be an object or null"),
+        };
+        Ok(target.__set_prototype_of__(proto, context)?.into())
     }
 }
