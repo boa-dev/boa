@@ -54,7 +54,7 @@ impl BuiltIn for Object {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .inherit(JsValue::null())
-        .method(Self::has_own_property, "hasOwnProperty", 0)
+        .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
         .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
@@ -87,7 +87,7 @@ impl BuiltIn for Object {
         )
         .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
-        .static_method(Self::has_own, "hasOwn", 1)
+        .static_method(Self::has_own, "hasOwn", 2)
         .build();
 
         object.into()
