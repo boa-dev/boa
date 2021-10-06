@@ -400,11 +400,3 @@ fn hashbang_comment() {
         vec![]
     );
 }
-
-#[test]
-fn hashbang_line_separator_test() {
-    check_parser(
-        r"#!This contains a line separator ",
-        vec![]
-    );
-}
