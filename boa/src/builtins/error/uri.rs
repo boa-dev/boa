@@ -44,7 +44,7 @@ impl BuiltIn for UriError {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .inherit(error_prototype.into())
+        .inherit(error_prototype)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
         .build();

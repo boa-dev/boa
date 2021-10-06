@@ -17,7 +17,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType, VariableScope},
     },
     gc::{empty_trace, Finalize, Trace},
-    object::JsObject,
+    object::{JsObject, JsPrototype},
     Context, JsResult, JsValue,
 };
 
@@ -114,21 +114,23 @@ impl FunctionEnvironmentRecord {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getsuperbase
-    pub fn get_super_base(&self) -> JsValue {
+    pub fn get_super_base(&self, context: &mut Context) -> JsResult<Option<JsPrototype>> {
         // 1. Let home be envRec.[[FunctionObject]].[[HomeObject]].
         let home = &self.home_object;
 
         // 2. If home has the value undefined, return undefined.
         if home.is_undefined() {
-            JsValue::undefined()
+            Ok(None)
         } else {
             // 3. Assert: Type(home) is Object.
             assert!(home.is_object());
 
             // 4. Return ? home.[[GetPrototypeOf]]().
-            home.as_object()
-                .expect("home_object must be an Object")
-                .prototype_instance()
+            Ok(Some(
+                home.as_object()
+                    .expect("home_object must be an Object")
+                    .__get_prototype_of__(context)?,
+            ))
         }
     }
 }

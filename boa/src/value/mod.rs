@@ -290,7 +290,11 @@ impl JsValue {
                     return property;
                 }
 
-                object.borrow().prototype_instance().get_property(key)
+                object
+                    .prototype()
+                    .as_ref()
+                    .map_or(JsValue::Null, |obj| obj.clone().into())
+                    .get_property(key)
             }
             _ => None,
         }

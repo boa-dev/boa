@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, Context, JsValue};
+use crate::{forward, forward_val, Context};
 
 #[test]
 fn json_sanity() {
@@ -413,27 +413,22 @@ fn json_parse_sets_prototypes() {
         .unwrap()
         .as_object()
         .unwrap()
-        .prototype_instance();
+        .prototype()
+        .clone();
     let array_prototype = forward_val(&mut context, r#"jsonObj.arr"#)
         .unwrap()
         .as_object()
         .unwrap()
-        .prototype_instance();
-    let global_object_prototype: JsValue = context
+        .prototype()
+        .clone();
+    let global_object_prototype = context
         .standard_objects()
         .object_object()
         .prototype()
         .into();
-    let global_array_prototype: JsValue =
-        context.standard_objects().array_object().prototype().into();
-    assert!(JsValue::same_value(
-        &object_prototype,
-        &global_object_prototype
-    ));
-    assert!(JsValue::same_value(
-        &array_prototype,
-        &global_array_prototype
-    ));
+    let global_array_prototype = context.standard_objects().array_object().prototype().into();
+    assert_eq!(object_prototype, global_object_prototype);
+    assert_eq!(array_prototype, global_array_prototype);
 }
 
 #[test]

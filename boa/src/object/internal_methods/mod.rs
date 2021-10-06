@@ -13,7 +13,7 @@ use crate::{
     BoaProfiler, Context, JsResult,
 };
 
-use super::PROTOTYPE;
+use super::{JsPrototype, PROTOTYPE};
 
 pub(super) mod arguments;
 pub(super) mod array;
@@ -31,7 +31,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[inline]
     #[track_caller]
-    pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsPrototype> {
         let func = self.borrow().data.internal_methods.__get_prototype_of__;
         func(self, context)
     }
@@ -47,7 +47,7 @@ impl JsObject {
     #[inline]
     pub(crate) fn __set_prototype_of__(
         &mut self,
-        val: JsValue,
+        val: JsPrototype,
         context: &mut Context,
     ) -> JsResult<bool> {
         let func = self.borrow().data.internal_methods.__set_prototype_of__;
@@ -245,8 +245,8 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
 /// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.
 #[derive(Clone, Copy)]
 pub(crate) struct InternalObjectMethods {
-    pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsValue>,
-    pub(crate) __set_prototype_of__: fn(&JsObject, JsValue, &mut Context) -> JsResult<bool>,
+    pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsPrototype>,
+    pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &mut Context) -> JsResult<bool>,
     pub(crate) __is_extensible__: fn(&JsObject, &mut Context) -> JsResult<bool>,
     pub(crate) __prevent_extensions__: fn(&JsObject, &mut Context) -> JsResult<bool>,
     pub(crate) __get_own_property__:
@@ -271,9 +271,9 @@ pub(crate) struct InternalObjectMethods {
 pub(crate) fn ordinary_get_prototype_of(
     obj: &JsObject,
     _context: &mut Context,
-) -> JsResult<JsValue> {
+) -> JsResult<JsPrototype> {
     // 1. Return O.[[Prototype]].
-    Ok(obj.borrow().prototype.clone())
+    Ok(obj.prototype().as_ref().cloned())
 }
 
 /// Abstract operation `OrdinarySetPrototypeOf`.
@@ -285,23 +285,23 @@ pub(crate) fn ordinary_get_prototype_of(
 #[inline]
 pub(crate) fn ordinary_set_prototype_of(
     obj: &JsObject,
-    val: JsValue,
-    context: &mut Context,
+    val: JsPrototype,
+    _: &mut Context,
 ) -> JsResult<bool> {
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
-    debug_assert!(val.is_object() || val.is_null());
+    {
+        // 2. Let current be O.[[Prototype]].
+        let current = obj.prototype();
 
-    // 2. Let current be O.[[Prototype]].
-    let current = obj.__get_prototype_of__(context)?;
-
-    // 3. If SameValue(V, current) is true, return true.
-    if JsValue::same_value(&current, &val) {
-        return Ok(true);
+        // 3. If SameValue(V, current) is true, return true.
+        if val == *current {
+            return Ok(true);
+        }
     }
 
     // 4. Let extensible be O.[[Extensible]].
     // 5. If extensible is false, return false.
-    if !obj.__is_extensible__(context)? {
+    if !obj.extensible() {
         return Ok(false);
     }
 
@@ -309,37 +309,29 @@ pub(crate) fn ordinary_set_prototype_of(
     let mut p = val.clone();
 
     // 7. Let done be false.
-    let mut done = false;
-
     // 8. Repeat, while done is false,
-    while !done {
-        match p {
-            // a. If p is null, set done to true.
-            JsValue::Null => done = true,
-            JsValue::Object(ref proto) => {
-                // b. Else if SameValue(p, O) is true, return false.
-                if JsObject::equals(proto, obj) {
-                    return Ok(false);
-                }
-                // c. Else,
-                // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
-                // in 10.1.1, set done to true.
-                else if proto.borrow().data.internal_methods.__get_prototype_of__ as usize
-                    != ordinary_get_prototype_of as usize
-                {
-                    done = true;
-                }
-                // ii. Else, set p to p.[[Prototype]].
-                else {
-                    p = proto.__get_prototype_of__(context)?;
-                }
-            }
-            _ => unreachable!(),
+    // a. If p is null, set done to true.
+    while let Some(proto) = p {
+        // b. Else if SameValue(p, O) is true, return false.
+        if &proto == obj {
+            return Ok(false);
+        }
+        // c. Else,
+        // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
+        // in 10.1.1, set done to true.
+        else if proto.borrow().data.internal_methods.__get_prototype_of__ as usize
+            != ordinary_get_prototype_of as usize
+        {
+            break;
+        }
+        // ii. Else, set p to p.[[Prototype]].
+        else {
+            p = proto.prototype().clone();
         }
     }
 
     // 9. Set O.[[Prototype]] to V.
-    obj.borrow_mut().prototype = val;
+    obj.set_prototype(val);
 
     // 10. Return true.
     Ok(true)
@@ -454,7 +446,7 @@ pub(crate) fn ordinary_has_property(
         let parent = obj.__get_prototype_of__(context)?;
 
         // 5. If parent is not null, then
-        if let JsValue::Object(ref object) = parent {
+        if let Some(object) = parent {
             // a. Return ? parent.[[HasProperty]](P).
             object.__has_property__(key, context)
         } else {
@@ -483,7 +475,7 @@ pub(crate) fn ordinary_get(
         // If desc is undefined, then
         None => {
             // a. Let parent be ? O.[[GetPrototypeOf]]().
-            if let Some(parent) = obj.__get_prototype_of__(context)?.as_object() {
+            if let Some(parent) = obj.__get_prototype_of__(context)? {
                 // c. Return ? parent.[[Get]](P, Receiver).
                 parent.__get__(key, receiver, context)
             }
@@ -537,7 +529,7 @@ pub(crate) fn ordinary_set(
     // 2. If ownDesc is undefined, then
     // a. Let parent be ? O.[[GetPrototypeOf]]().
     // b. If parent is not null, then
-    else if let Some(ref mut parent) = obj.__get_prototype_of__(context)?.as_object() {
+    else if let Some(parent) = obj.__get_prototype_of__(context)? {
         // i. Return ? parent.[[Set]](P, V, Receiver).
         return parent.__set__(key, value, receiver, context);
     }

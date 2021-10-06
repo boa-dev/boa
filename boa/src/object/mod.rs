@@ -49,6 +49,8 @@ use self::internal_methods::{
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
+pub type JsPrototype = Option<JsObject>;
+
 /// This trait allows Rust types to be passed around as objects.
 ///
 /// This is automatically implemented, when a type implements `Debug`, `Any` and `Trace`.
@@ -72,14 +74,15 @@ impl<T: Any + Debug + Trace> NativeObject for T {
     }
 }
 
-/// The internal representation of an JavaScript object.
+/// The internal representation of a JavaScript object.
 #[derive(Debug, Trace, Finalize)]
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
+    /// The collection of properties contained in the object
     properties: PropertyMap,
     /// Instance prototype `__proto__`.
-    prototype: JsValue,
+    prototype: JsPrototype,
     /// Whether it can have new properties added to it.
     extensible: bool,
 }
@@ -365,7 +368,7 @@ impl Default for Object {
         Self {
             data: ObjectData::ordinary(),
             properties: PropertyMap::default(),
-            prototype: JsValue::null(),
+            prototype: None,
             extensible: true,
         }
     }
@@ -936,7 +939,7 @@ impl Object {
 
     /// Gets the prototype instance of this object.
     #[inline]
-    pub fn prototype_instance(&self) -> &JsValue {
+    pub fn prototype(&self) -> &JsPrototype {
         &self.prototype
     }
 
@@ -947,15 +950,15 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&mut self, prototype: JsValue) -> bool {
-        assert!(prototype.is_null() || prototype.is_object());
+    pub fn set_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> bool {
+        let prototype = prototype.into();
         if self.extensible {
             self.prototype = prototype;
             true
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            JsValue::same_value(&prototype, &self.prototype)
+            self.prototype == prototype
         }
     }
 
@@ -1264,13 +1267,7 @@ impl<'context> FunctionBuilder<'context> {
     pub(crate) fn build_function_prototype(&mut self, object: &JsObject) {
         let mut object = object.borrow_mut();
         object.data = ObjectData::function(self.function.take().unwrap());
-        object.set_prototype_instance(
-            self.context
-                .standard_objects()
-                .object_object()
-                .prototype()
-                .into(),
-        );
+        object.set_prototype(self.context.standard_objects().object_object().prototype());
 
         let property = PropertyDescriptor::builder()
             .writable(false)
@@ -1387,8 +1384,8 @@ pub struct ConstructorBuilder<'context> {
     length: usize,
     callable: bool,
     constructable: bool,
-    inherit: Option<JsValue>,
-    custom_prototype: Option<JsValue>,
+    inherit: Option<JsPrototype>,
+    custom_prototype: Option<JsPrototype>,
 }
 
 impl Debug for ConstructorBuilder<'_> {
@@ -1642,9 +1639,8 @@ impl<'context> ConstructorBuilder<'context> {
     ///
     /// Default is `Object.prototype`
     #[inline]
-    pub fn inherit(&mut self, prototype: JsValue) -> &mut Self {
-        assert!(prototype.is_object() || prototype.is_null());
-        self.inherit = Some(prototype);
+    pub fn inherit<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
+        self.inherit = Some(prototype.into());
         self
     }
 
@@ -1652,8 +1648,8 @@ impl<'context> ConstructorBuilder<'context> {
     ///
     /// Default is `Function.prototype`
     #[inline]
-    pub fn custom_prototype(&mut self, prototype: JsValue) -> &mut Self {
-        self.custom_prototype = Some(prototype);
+    pub fn custom_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
+        self.custom_prototype = Some(prototype.into());
         self
     }
 
@@ -1688,15 +1684,14 @@ impl<'context> ConstructorBuilder<'context> {
             constructor.insert("length", length);
             constructor.insert("name", name);
 
-            if let Some(proto) = &self.custom_prototype {
-                constructor.set_prototype_instance(proto.clone());
+            if let Some(proto) = self.custom_prototype.take() {
+                constructor.set_prototype(proto);
             } else {
-                constructor.set_prototype_instance(
+                constructor.set_prototype(
                     self.context
                         .standard_objects()
                         .function_object()
-                        .prototype()
-                        .into(),
+                        .prototype(),
                 );
             }
             constructor.insert_property(
@@ -1721,15 +1716,10 @@ impl<'context> ConstructorBuilder<'context> {
             );
 
             if let Some(proto) = self.inherit.take() {
-                prototype.set_prototype_instance(proto);
+                prototype.set_prototype(proto);
             } else {
-                prototype.set_prototype_instance(
-                    self.context
-                        .standard_objects()
-                        .object_object()
-                        .prototype()
-                        .into(),
-                );
+                prototype
+                    .set_prototype(self.context.standard_objects().object_object().prototype());
             }
         }
 
