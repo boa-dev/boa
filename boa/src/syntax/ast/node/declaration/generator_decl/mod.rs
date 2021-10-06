@@ -1,34 +1,33 @@
-//! Async Function Declaration.
-
 use crate::{
     exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-/// An async function is used to specify an action (or series of actions) to perform asynchronously.
+/// The `function*` declaration (`function` keyword followed by an asterisk) defines a generator function,
+/// which returns a `Generator` object.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-async-function-prototype-properties
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+/// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-pub struct AsyncFunctionDecl {
+pub struct GeneratorDecl {
     name: Box<str>,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
 
-impl AsyncFunctionDecl {
-    /// Creates a new async function declaration.
+impl GeneratorDecl {
+    /// Creates a new generator declaration.
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
         N: Into<Box<str>>,
@@ -42,17 +41,17 @@ impl AsyncFunctionDecl {
         }
     }
 
-    /// Gets the name of the async function declaration.
+    /// Gets the name of the generator declaration.
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    /// Gets the list of parameters of the async function declaration.
+    /// Gets the list of parameters of the generator declaration.
     pub fn parameters(&self) -> &[FormalParameter] {
         &self.parameters
     }
 
-    /// Gets the body of the async function declaration.
+    /// Gets the body of the generator declaration.
     pub fn body(&self) -> &[Node] {
         self.body.items()
     }
@@ -63,7 +62,7 @@ impl AsyncFunctionDecl {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        write!(f, "async function {}(", self.name())?;
+        write!(f, "function* {}(", self.name)?;
         join_nodes(f, &self.parameters)?;
         if self.body().is_empty() {
             f.write_str(") {}")
@@ -75,21 +74,22 @@ impl AsyncFunctionDecl {
     }
 }
 
-impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
-        // TODO: Implement AsyncFunctionDecl
+impl Executable for GeneratorDecl {
+    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
+        let _timer = BoaProfiler::global().start_event("GeneratorDecl", "exec");
+        // TODO: Implement GeneratorFunction
+        // https://tc39.es/ecma262/#sec-generatorfunction-objects
         Ok(JsValue::undefined())
     }
 }
 
-impl From<AsyncFunctionDecl> for Node {
-    fn from(decl: AsyncFunctionDecl) -> Self {
-        Self::AsyncFunctionDecl(decl)
+impl From<GeneratorDecl> for Node {
+    fn from(decl: GeneratorDecl) -> Self {
+        Self::GeneratorDecl(decl)
     }
 }
 
-impl fmt::Display for AsyncFunctionDecl {
+impl fmt::Display for GeneratorDecl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
     }

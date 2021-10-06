@@ -9,14 +9,13 @@
 
 #[cfg(test)]
 mod tests;
-use crate::syntax::ast::node::{Identifier, PropertyName};
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
-            Punctuator,
+            node::{self, FunctionExpr, Identifier, MethodDefinitionKind, Node, Object},
+            Keyword, Punctuator,
         },
+        lexer::{Error as LexError, Position, TokenKind},
         parser::{
             expression::AssignmentExpression,
             function::{FormalParameters, FunctionBody},
@@ -129,226 +128,331 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("PropertyDefinition", "Parsing");
 
+        // IdentifierReference[?Yield, ?Await]
+        if let Some(next_token) = cursor.peek(1)? {
+            match next_token.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBlock)
+                | TokenKind::Punctuator(Punctuator::Comma) => {
+                    let token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+                    let ident = match token.kind() {
+                        TokenKind::Identifier(ident) => Identifier::from(ident.as_ref()),
+                        TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                            // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
+                            return Err(ParseError::general(
+                                "Unexpected identifier",
+                                token.span().start(),
+                            ));
+                        }
+                        TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+                            if cursor.strict_mode() {
+                                // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
+                                return Err(ParseError::general(
+                                    "Unexpected strict mode reserved word",
+                                    token.span().start(),
+                                ));
+                            }
+                            Identifier::from("yield")
+                        }
+                        TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+                            // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
+                            return Err(ParseError::general(
+                                "Unexpected identifier",
+                                token.span().start(),
+                            ));
+                        }
+                        TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+                            if cursor.strict_mode() {
+                                // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
+                                return Err(ParseError::general(
+                                    "Unexpected strict mode reserved word",
+                                    token.span().start(),
+                                ));
+                            }
+                            Identifier::from("yield")
+                        }
+                        _ => {
+                            return Err(ParseError::unexpected(
+                                token.clone(),
+                                "expected IdentifierReference",
+                            ));
+                        }
+                    };
+                    return Ok(node::PropertyDefinition::property(
+                        ident.clone().as_ref(),
+                        ident,
+                    ));
+                }
+                _ => {}
+            }
+        }
+
+        //  ... AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Spread)?.is_some() {
             let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
-        // ComputedPropertyName
-        // https://tc39.es/ecma262/#prod-ComputedPropertyName
-        if cursor.next_if(Punctuator::OpenBracket)?.is_some() {
-            let node = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
-            cursor.expect(Punctuator::CloseBracket, "expected token ']'")?;
-            let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
-            match next_token.kind() {
-                TokenKind::Punctuator(Punctuator::Colon) => {
-                    let val = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
-                    return Ok(node::PropertyDefinition::property(node, val));
-                }
-                TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    return MethodDefinition::new(self.allow_yield, self.allow_await, node)
-                        .parse(cursor);
-                }
-                _ => {
-                    return Err(ParseError::unexpected(
-                        next_token,
-                        "expected AssignmentExpression or MethodDefinition",
-                    ))
-                }
-            }
-        }
+        // MethodDefinition[?Yield, ?Await] -> GeneratorMethod[?Yield, ?Await]
+        if cursor.next_if(Punctuator::Mul)?.is_some() {
+            let property_name =
+                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        // Peek for '}' or ',' to indicate shorthand property name
-        if let Some(next_token) = cursor.peek(1)? {
-            match next_token.kind() {
-                TokenKind::Punctuator(Punctuator::CloseBlock)
-                | TokenKind::Punctuator(Punctuator::Comma) => {
-                    let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
-                    if let TokenKind::Identifier(ident) = token.kind() {
-                        // ident is both the name and value in a shorthand property
-                        let name = ident.to_string();
-                        let value = Identifier::from(ident.to_owned());
-                        cursor.next()?.expect("token vanished"); // Consume the token.
-                        return Ok(node::PropertyDefinition::property(name, value));
-                    } else {
-                        // Anything besides an identifier is a syntax error
-                        return Err(ParseError::unexpected(token.clone(), "object literal"));
+            let params_start_position = cursor
+                .expect(Punctuator::OpenParen, "generator method definition")?
+                .span()
+                .start();
+            let params = FormalParameters::new(false, false).parse(cursor)?;
+            cursor.expect(Punctuator::CloseParen, "generator method definition")?;
+
+            // Early Error: UniqueFormalParameters : FormalParameters
+            if params.has_duplicates {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Duplicate parameter name not allowed in this context".into(),
+                    params_start_position,
+                )));
+            }
+
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "generator method definition",
+            )?;
+            let body = FunctionBody::new(true, false).parse(cursor)?;
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::CloseBlock),
+                "generator method definition",
+            )?;
+
+            // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+            // and IsSimpleParameterList of UniqueFormalParameters is false.
+            if body.strict() && !params.is_simple {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Illegal 'use strict' directive in function with non-simple parameter list"
+                        .into(),
+                    params_start_position,
+                )));
+            }
+
+            // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+            // occurs in the LexicallyDeclaredNames of GeneratorBody.
+            {
+                let lexically_declared_names = body.lexically_declared_names();
+                for param in params.parameters.as_ref() {
+                    if lexically_declared_names.contains(param.name()) {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            format!("Redeclaration of formal parameter `{}`", param.name()).into(),
+                            match cursor.peek(0)? {
+                                Some(token) => token.span().end(),
+                                None => Position::new(1, 1),
+                            },
+                        )));
                     }
                 }
-                _ => {}
+            }
+
+            return Ok(node::PropertyDefinition::method_definition(
+                MethodDefinitionKind::Generator,
+                property_name,
+                FunctionExpr::new(None, params.parameters, body),
+            ));
+        }
+
+        let mut property_name =
+            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+        //  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]
+        if cursor.next_if(Punctuator::Colon)?.is_some() {
+            let value = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                .parse(cursor)?;
+            return Ok(node::PropertyDefinition::property(property_name, value));
+        }
+
+        let ordinary_method = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
+            == &TokenKind::Punctuator(Punctuator::OpenParen);
+
+        match property_name {
+            // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
+            node::PropertyName::Literal(str) if str.as_ref() == "get" && !ordinary_method => {
+                property_name =
+                    PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenParen),
+                    "get method definition",
+                )?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "get method definition",
+                )?;
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenBlock),
+                    "get method definition",
+                )?;
+                let body = FunctionBody::new(false, false).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseBlock),
+                    "get method definition",
+                )?;
+
+                Ok(node::PropertyDefinition::method_definition(
+                    MethodDefinitionKind::Get,
+                    property_name,
+                    FunctionExpr::new(None, [], body),
+                ))
+            }
+            // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
+            node::PropertyName::Literal(str) if str.as_ref() == "set" && !ordinary_method => {
+                property_name =
+                    PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+                let params_start_position = cursor
+                    .expect(
+                        TokenKind::Punctuator(Punctuator::OpenParen),
+                        "set method definition",
+                    )?
+                    .span()
+                    .end();
+                let params = FormalParameters::new(false, false).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "set method definition",
+                )?;
+                if params.parameters.len() != 1 {
+                    return Err(ParseError::general(
+                        "set method definition must have one parameter",
+                        params_start_position,
+                    ));
+                }
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenBlock),
+                    "set method definition",
+                )?;
+                let body = FunctionBody::new(false, false).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseBlock),
+                    "set method definition",
+                )?;
+
+                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+                // and IsSimpleParameterList of PropertySetParameterList is false.
+                if body.strict() && !params.is_simple {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Illegal 'use strict' directive in function with non-simple parameter list"
+                            .into(),
+                        params_start_position,
+                    )));
+                }
+
+                Ok(node::PropertyDefinition::method_definition(
+                    MethodDefinitionKind::Set,
+                    property_name,
+                    FunctionExpr::new(None, params.parameters, body),
+                ))
+            }
+            // MethodDefinition[?Yield, ?Await] -> ClassElementName[?Yield, ?Await] ( UniqueFormalParameters[~Yield, ~Await] ) { FunctionBody[~Yield, ~Await] }
+            _ => {
+                let params_start_position = cursor
+                    .expect(
+                        TokenKind::Punctuator(Punctuator::OpenParen),
+                        "method definition",
+                    )?
+                    .span()
+                    .end();
+                let params = FormalParameters::new(false, false).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "method definition",
+                )?;
+
+                // Early Error: UniqueFormalParameters : FormalParameters
+                if params.has_duplicates {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Duplicate parameter name not allowed in this context".into(),
+                        params_start_position,
+                    )));
+                }
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenBlock),
+                    "method definition",
+                )?;
+                let body = FunctionBody::new(false, false).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseBlock),
+                    "method definition",
+                )?;
+
+                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+                // and IsSimpleParameterList of UniqueFormalParameters is false.
+                if body.strict() && !params.is_simple {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Illegal 'use strict' directive in function with non-simple parameter list"
+                            .into(),
+                        params_start_position,
+                    )));
+                }
+
+                Ok(node::PropertyDefinition::method_definition(
+                    MethodDefinitionKind::Ordinary,
+                    property_name,
+                    FunctionExpr::new(None, params.parameters, body),
+                ))
             }
         }
-
-        let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
-        if cursor.next_if(Punctuator::Colon)?.is_some() {
-            let val = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
-            return Ok(node::PropertyDefinition::property(prop_name, val));
-        }
-
-        // TODO GeneratorMethod
-        // https://tc39.es/ecma262/#prod-GeneratorMethod
-
-        if prop_name.as_str() == "async" {
-            // TODO - AsyncMethod.
-            // https://tc39.es/ecma262/#prod-AsyncMethod
-
-            // TODO - AsyncGeneratorMethod
-            // https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
-        }
-
-        if cursor
-            .next_if(TokenKind::Punctuator(Punctuator::OpenParen))?
-            .is_some()
-            || ["get", "set"].contains(&prop_name.as_str())
-        {
-            return MethodDefinition::new(self.allow_yield, self.allow_await, prop_name)
-                .parse(cursor);
-        }
-
-        let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
-        Err(ParseError::general("expected property definition", pos))
     }
 }
 
-/// Parses a method definition.
+/// Parses a property name.
 ///
 /// More information:
 ///  - [ECMAScript specification][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
+/// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[derive(Debug, Clone)]
-struct MethodDefinition {
+struct PropertyName {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    identifier: PropertyName,
 }
 
-impl MethodDefinition {
-    /// Creates a new `MethodDefinition` parser.
-    fn new<Y, A, I>(allow_yield: Y, allow_await: A, identifier: I) -> Self
+impl PropertyName {
+    /// Creates a new `PropertyName` parser.
+    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
-        I: Into<PropertyName>,
     {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
-            identifier: identifier.into(),
         }
     }
 }
 
-impl<R> TokenParser<R> for MethodDefinition
+impl<R> TokenParser<R> for PropertyName
 where
     R: Read,
 {
-    type Output = node::PropertyDefinition;
+    type Output = node::PropertyName;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        let _timer = BoaProfiler::global().start_event("MethodDefinition", "Parsing");
+        let _timer = BoaProfiler::global().start_event("PropertyName", "Parsing");
 
-        let (method_kind, prop_name, params) = match self.identifier {
-            PropertyName::Literal(ident)
-                if ["get", "set"].contains(&ident.as_ref())
-                    && matches!(
-                        cursor.peek(0)?.map(|t| t.kind()),
-                        Some(&TokenKind::Identifier(_))
-                            | Some(&TokenKind::Keyword(_))
-                            | Some(&TokenKind::BooleanLiteral(_))
-                            | Some(&TokenKind::NullLiteral)
-                            | Some(&TokenKind::NumericLiteral(_))
-                    ) =>
-            {
-                let prop_name = cursor.next()?.ok_or(ParseError::AbruptEnd)?.to_string();
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenParen),
-                    "property method definition",
-                )?;
-                let first_param = cursor.peek(0)?.expect("current token disappeared").clone();
-                let params = FormalParameters::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "method definition")?;
-                if ident.as_ref() == "get" {
-                    if !params.is_empty() {
-                        return Err(ParseError::unexpected(
-                            first_param,
-                            "getter functions must have no arguments",
-                        ));
-                    }
-                    (MethodDefinitionKind::Get, prop_name.into(), params)
-                } else {
-                    if params.len() != 1 {
-                        return Err(ParseError::unexpected(
-                            first_param,
-                            "setter functions must have one argument",
-                        ));
-                    }
-                    (MethodDefinitionKind::Set, prop_name.into(), params)
-                }
-            }
-            PropertyName::Literal(ident)
-                if ["get", "set"].contains(&ident.as_ref())
-                    && matches!(
-                        cursor.peek(0)?.map(|t| t.kind()),
-                        Some(&TokenKind::Punctuator(Punctuator::OpenBracket))
-                    ) =>
-            {
-                cursor.expect(Punctuator::OpenBracket, "token vanished")?;
-                let prop_name =
-                    AssignmentExpression::new(false, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
-                cursor.expect(Punctuator::CloseBracket, "expected token ']'")?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenParen),
-                    "property method definition",
-                )?;
-                let first_param = cursor.peek(0)?.expect("current token disappeared").clone();
-                let params = FormalParameters::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "method definition")?;
-                if ident.as_ref() == "get" {
-                    if !params.is_empty() {
-                        return Err(ParseError::unexpected(
-                            first_param,
-                            "getter functions must have no arguments",
-                        ));
-                    }
-                    (MethodDefinitionKind::Get, prop_name.into(), params)
-                } else {
-                    if params.len() != 1 {
-                        return Err(ParseError::unexpected(
-                            first_param,
-                            "setter functions must have one argument",
-                        ));
-                    }
-                    (MethodDefinitionKind::Set, prop_name.into(), params)
-                }
-            }
-            prop_name => {
-                let params = FormalParameters::new(false, false).parse(cursor)?;
-                cursor.expect(Punctuator::CloseParen, "method definition")?;
-                (MethodDefinitionKind::Ordinary, prop_name, params)
-            }
-        };
+        // ComputedPropertyName[?Yield, ?Await] -> [ AssignmentExpression[+In, ?Yield, ?Await] ]
+        if cursor.next_if(Punctuator::OpenBracket)?.is_some() {
+            let node = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
+                .parse(cursor)?;
+            cursor.expect(Punctuator::CloseBracket, "expected token ']'")?;
+            return Ok(node.into());
+        }
 
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::OpenBlock),
-            "property method definition",
-        )?;
-        let body = FunctionBody::new(false, false).parse(cursor)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "property method definition",
-        )?;
-
-        Ok(node::PropertyDefinition::method_definition(
-            method_kind,
-            prop_name,
-            FunctionExpr::new(None, params, body),
-        ))
+        // LiteralPropertyName
+        Ok(cursor
+            .next()?
+            .ok_or(ParseError::AbruptEnd)?
+            .to_string()
+            .into())
     }
 }
 
