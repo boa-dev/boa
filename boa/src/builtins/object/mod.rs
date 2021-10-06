@@ -87,6 +87,7 @@ impl BuiltIn for Object {
         )
         .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
+        .static_method(Self::has_own, "hasOwn", 1)
         .build();
 
         object.into()
@@ -493,7 +494,7 @@ impl Object {
         Ok(format!("[object {}]", tag_str).into())
     }
 
-    /// `Object.prototype.hasOwnPrototype( property )`
+    /// `Object.prototype.hasOwnProperty( property )`
     ///
     /// The method returns a boolean indicating whether the object has the specified property
     /// as its own property (as opposed to inheriting it).
@@ -509,12 +510,16 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let P be ? ToPropertyKey(V).
         let key = args
             .get(0)
             .unwrap_or(&JsValue::undefined())
             .to_property_key(context)?;
+
+        // 2. Let O be ? ToObject(this value).
         let object = this.to_object(context)?;
 
+        // 3. Return ? HasOwnProperty(O, P).
         Ok(object.has_own_property(key, context)?.into())
     }
 
@@ -855,6 +860,25 @@ impl Object {
         // 1. Return ? GetOwnPropertyKeys(O, symbol).
         let o = args.get_or_undefined(0);
         get_own_property_keys(o, PropertyKeyType::Symbol, context)
+    }
+
+    /// `Object.hasOwn( object, property )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.hasown
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn
+    pub fn has_own(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let obj be ? ToObject(O).
+        let obj = args.get_or_undefined(0).to_object(context)?;
+
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(1).to_property_key(context)?;
+
+        // 3. Return ? HasOwnProperty(obj, key).
+        Ok(obj.has_own_property(key, context)?.into())
     }
 }
 
