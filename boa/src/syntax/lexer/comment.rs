@@ -67,11 +67,13 @@ impl<R> Tokenizer<R> for MultiLineComment {
 
         let mut new_line = false;
         while let Some(ch) = cursor.next_char()? {
-            let tried_ch = char::try_from(ch); 
+            let tried_ch = char::try_from(ch);
             match tried_ch {
                 Ok(c) if c == '*' && cursor.next_is(b'/')? => break,
-                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => new_line = true,
-                _ => {},
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
+                    new_line = true
+                }
+                _ => {}
             };
         }
 
@@ -106,7 +108,7 @@ impl<R> Tokenizer<R> for HashbangComment {
             let tried_ch = char::try_from(ch);
             match tried_ch {
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => break,
-                _ => {},
+                _ => {}
             };
         }
 
