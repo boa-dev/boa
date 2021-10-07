@@ -108,17 +108,13 @@ impl<R> Tokenizer<R> for HashbangComment {
     {
         let _timer = BoaProfiler::global().start_event("Hashbang", "Lexing");
 
-        loop {
-            if let Some(ch) = cursor.next_char()? {
-                if let Ok(c) = char::try_from(ch) {
-                    if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' {
-                        break;
-                    }
-                } else {
-                    cursor.next_byte()?.expect("No byte returned");
+        while let Some(ch) = cursor.next_char()? {
+            if let Ok(c) = char::try_from(ch) {
+                if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' {
+                    break;
                 }
             } else {
-                return Err(Error::syntax("unterminated hashbang", cursor.pos()));
+                cursor.next_byte()?.expect("No byte returned");
             }
         }
 
