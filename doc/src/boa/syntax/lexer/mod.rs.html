@@ -308,6 +308,17 @@
 <span id="308">308</span>
 <span id="309">309</span>
 <span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -341,7 +352,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">comment</span>::{<span class="ident">MultiLineComment</span>, <span class="ident">SingleLineComment</span>},
+    <span class="ident">comment</span>::{<span class="ident">HashbangComment</span>, <span class="ident">MultiLineComment</span>, <span class="ident">SingleLineComment</span>},
     <span class="ident">cursor::Cursor</span>,
     <span class="ident">identifier::Identifier</span>,
     <span class="ident">number::NumberLiteral</span>,
@@ -499,6 +510,17 @@
                 }
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+        };
+
+        <span class="comment">//handle hashbang here so the below match block still throws error on</span>
+        <span class="comment">//# if position isn&#39;t (1, 1)</span>
+        <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">column_number</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">start</span>.<span class="ident">line_number</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">next_ch</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x23</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hashbang_peek</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
+                <span class="kw">if</span> <span class="ident">hashbang_peek</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x21</span> {
+                    <span class="kw">let</span> <span class="ident">_token</span> <span class="op">=</span> <span class="ident">HashbangComment</span>.<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>);
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">next</span>();
+                }
             }
         };
 
