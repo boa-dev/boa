@@ -93,30 +93,61 @@ fn object_is() {
     assert_eq!(forward(&mut context, "Object.is(undefined)"), "true");
     assert!(context.global_object().is_global());
 }
+
 #[test]
 fn object_has_own_property() {
-    let mut context = Context::new();
-    let init = r#"
-        let x = { someProp: 1, undefinedProp: undefined, nullProp: null };
+    let scenario = r#"
+        let symA = Symbol('a');
+        let symB = Symbol('b');
+
+        let x = {
+            undefinedProp: undefined,
+            nullProp: null,
+            someProp: 1,
+            [symA]: 2,
+            100: 3,
+        };
     "#;
 
-    eprintln!("{}", forward(&mut context, init));
-    assert_eq!(
-        forward(&mut context, "x.hasOwnProperty('someProp')"),
-        "true"
-    );
-    assert_eq!(
-        forward(&mut context, "x.hasOwnProperty('undefinedProp')"),
-        "true"
-    );
-    assert_eq!(
-        forward(&mut context, "x.hasOwnProperty('nullProp')"),
-        "true"
-    );
-    assert_eq!(
-        forward(&mut context, "x.hasOwnProperty('hasOwnProperty')"),
-        "false"
-    );
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("x.hasOwnProperty('hasOwnProperty')", "false"),
+        TestAction::TestEq("x.hasOwnProperty('undefinedProp')", "true"),
+        TestAction::TestEq("x.hasOwnProperty('nullProp')", "true"),
+        TestAction::TestEq("x.hasOwnProperty('someProp')", "true"),
+        TestAction::TestEq("x.hasOwnProperty(symB)", "false"),
+        TestAction::TestEq("x.hasOwnProperty(symA)", "true"),
+        TestAction::TestEq("x.hasOwnProperty(1000)", "false"),
+        TestAction::TestEq("x.hasOwnProperty(100)", "true"),
+    ]);
+}
+
+#[test]
+fn object_has_own() {
+    let scenario = r#"
+        let symA = Symbol('a');
+        let symB = Symbol('b');
+
+        let x = {
+            undefinedProp: undefined,
+            nullProp: null,
+            someProp: 1,
+            [symA]: 2,
+            100: 3,
+        };
+    "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("Object.hasOwn(x, 'hasOwnProperty')", "false"),
+        TestAction::TestEq("Object.hasOwn(x, 'undefinedProp')", "true"),
+        TestAction::TestEq("Object.hasOwn(x, 'nullProp')", "true"),
+        TestAction::TestEq("Object.hasOwn(x, 'someProp')", "true"),
+        TestAction::TestEq("Object.hasOwn(x, symB)", "false"),
+        TestAction::TestEq("Object.hasOwn(x, symA)", "true"),
+        TestAction::TestEq("Object.hasOwn(x, 1000)", "false"),
+        TestAction::TestEq("Object.hasOwn(x, 100)", "true"),
+    ]);
 }
 
 #[test]
