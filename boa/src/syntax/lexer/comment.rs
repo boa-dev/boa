@@ -66,19 +66,13 @@ impl<R> Tokenizer<R> for MultiLineComment {
         let _timer = BoaProfiler::global().start_event("MultiLineComment", "Lexing");
 
         let mut new_line = false;
-        loop {
-            if let Some(ch) = cursor.next_byte()? {
-                if ch == b'*' && cursor.next_is(b'/')? {
-                    break;
-                } else if ch == b'\n' {
-                    new_line = true;
-                }
-            } else {
-                return Err(Error::syntax(
-                    "unterminated multiline comment",
-                    cursor.pos(),
-                ));
-            }
+        while let Some(ch) = cursor.next_char()? {
+            let tried_ch = char::try_from(ch); 
+            match tried_ch {
+                Ok(c) if c == '*' && cursor.next_is(b'/')? => break,
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => new_line = true,
+                _ => {},
+            };
         }
 
         Ok(Token::new(
@@ -109,13 +103,11 @@ impl<R> Tokenizer<R> for HashbangComment {
         let _timer = BoaProfiler::global().start_event("Hashbang", "Lexing");
 
         while let Some(ch) = cursor.next_char()? {
-            if let Ok(c) = char::try_from(ch) {
-                if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' {
-                    break;
-                }
-            } else {
-                cursor.next_byte()?.expect("No byte returned");
-            }
+            let tried_ch = char::try_from(ch);
+            match tried_ch {
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => break,
+                _ => {},
+            };
         }
 
         Ok(Token::new(
