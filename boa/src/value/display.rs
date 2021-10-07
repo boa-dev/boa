@@ -31,18 +31,18 @@ macro_rules! print_obj_value {
     (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
         {
             let object = $obj.borrow();
-            if object.prototype_instance().is_object() {
+            if let Some(object) = object.prototype() {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    $display_fn(object.prototype_instance(), $encounters, $indent.wrapping_add(4), true),
+                    $display_fn(&object.clone().into(), $encounters, $indent.wrapping_add(4), true),
                     width = $indent,
                 )]
             } else {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    object.prototype_instance().display(),
+                    JsValue::Null.display(),
                     width = $indent,
                 )]
             }

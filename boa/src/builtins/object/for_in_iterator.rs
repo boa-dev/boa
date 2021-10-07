@@ -98,8 +98,9 @@ impl ForInIterator {
                             }
                         }
                     }
-                    match object.prototype_instance().to_object(context) {
-                        Ok(o) => {
+                    let proto = object.prototype().clone();
+                    match proto {
+                        Some(o) => {
                             object = o;
                         }
                         _ => {

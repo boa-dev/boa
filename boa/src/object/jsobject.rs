@@ -2,7 +2,7 @@
 //!
 //! The `JsObject` is a garbage collected Object.
 
-use super::{NativeObject, Object};
+use super::{JsPrototype, NativeObject, Object};
 use crate::{
     object::{ObjectData, ObjectKind},
     property::{PropertyDescriptor, PropertyKey},
@@ -40,21 +40,6 @@ pub type RefMut<'a, T, U> = GcCellRefMut<'a, T, U>;
 #[derive(Trace, Finalize, Clone, Default)]
 pub struct JsObject(Gc<GcCell<Object>>);
 
-/// The body of a JavaScript function.
-///
-/// This is needed for the call method since we cannot mutate the function itself since we
-/// already borrow it so we get the function body clone it then drop the borrow and run the body
-#[cfg(not(feature = "vm"))]
-enum FunctionBody {
-    BuiltInFunction(NativeFunctionSignature),
-    BuiltInConstructor(NativeFunctionSignature),
-    Closure {
-        function: Box<dyn ClosureFunctionSignature>,
-        captures: Captures,
-    },
-    Ordinary(RcStatementList),
-}
-
 impl JsObject {
     /// Create a new `JsObject` from an internal `Object`.
     #[inline]
@@ -76,7 +61,7 @@ impl JsObject {
     pub fn from_proto_and_data<O: Into<Option<JsObject>>>(prototype: O, data: ObjectData) -> Self {
         Self::from_object(Object {
             data,
-            prototype: prototype.into().map_or(JsValue::Null, JsValue::new),
+            prototype: prototype.into(),
             extensible: true,
             properties: Default::default(),
         })
@@ -159,6 +144,21 @@ impl JsObject {
         use crate::{builtins::function::arguments::Arguments, context::StandardObjects};
 
         use super::internal_methods::get_prototype_from_constructor;
+
+        /// The body of a JavaScript function.
+        ///
+        /// This is needed for the call method since we cannot mutate the function itself since we
+        /// already borrow it so we get the function body clone it then drop the borrow and run the body
+        #[cfg(not(feature = "vm"))]
+        enum FunctionBody {
+            BuiltInFunction(NativeFunctionSignature),
+            BuiltInConstructor(NativeFunctionSignature),
+            Closure {
+                function: Box<dyn ClosureFunctionSignature>,
+                captures: Captures,
+            },
+            Ordinary(RcStatementList),
+        }
 
         let this_function_object = self.clone();
         let mut has_parameter_expressions = false;
@@ -515,8 +515,18 @@ impl JsObject {
     /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[track_caller]
-    pub fn prototype_instance(&self) -> JsValue {
-        self.borrow().prototype_instance().clone()
+    pub fn prototype(&self) -> Ref<'_, JsPrototype> {
+        Ref::map(self.borrow(), |obj| obj.prototype())
+    }
+
+    /// Get the extensibility of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    pub(crate) fn extensible(&self) -> bool {
+        self.borrow().extensible
     }
 
     /// Set the prototype of the object.
@@ -524,11 +534,10 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed
-    /// or if th prototype is not an object or undefined.
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&self, prototype: JsValue) -> bool {
-        self.borrow_mut().set_prototype_instance(prototype)
+    pub fn set_prototype(&self, prototype: JsPrototype) -> bool {
+        self.borrow_mut().set_prototype(prototype)
     }
 
     /// Checks if it's an `Array` object.
@@ -726,9 +735,9 @@ impl JsObject {
                 //      a. Set O to ? O.[[GetPrototypeOf]]().
                 //      b. If O is null, return false.
                 let mut object = object.__get_prototype_of__(context)?;
-                while let Some(object_prototype) = object.as_object() {
+                while let Some(object_prototype) = object {
                     //     c. If SameValue(P, O) is true, return true.
-                    if JsObject::equals(&prototype, &object_prototype) {
+                    if prototype == object_prototype {
                         return Ok(true);
                     }
                     // a. Set O to ? O.[[GetPrototypeOf]]().
@@ -969,6 +978,12 @@ impl AsRef<GcCell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &GcCell<Object> {
         &*self.0
+    }
+}
+
+impl PartialEq for JsObject {
+    fn eq(&self, other: &Self) -> bool {
+        JsObject::equals(self, other)
     }
 }
 

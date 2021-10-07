@@ -82,8 +82,8 @@ macro_rules! typed_array {
                     TypedArrayName::$ty.element_size(),
                     Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
                 )
-                .custom_prototype(typed_array_constructor.into())
-                .inherit(typed_array_constructor_proto.into())
+                .custom_prototype(typed_array_constructor)
+                .inherit(typed_array_constructor_proto)
                 .build()
                 .into()
             }
