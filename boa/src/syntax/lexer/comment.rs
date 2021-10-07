@@ -69,7 +69,16 @@ impl<R> Tokenizer<R> for MultiLineComment {
         while let Some(ch) = cursor.next_char()? {
             let tried_ch = char::try_from(ch);
             match tried_ch {
-                Ok(c) if c == '*' && cursor.next_is(b'/')? => break,
+                Ok(c) if c == '*' && cursor.next_is(b'/')? => {
+                    return Ok(Token::new(
+                        if new_line {
+                            TokenKind::LineTerminator
+                        } else {
+                            TokenKind::Comment
+                        },
+                        Span::new(start_pos, cursor.pos()),
+                    ))
+                }
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
                     new_line = true
                 }
@@ -77,13 +86,9 @@ impl<R> Tokenizer<R> for MultiLineComment {
             };
         }
 
-        Ok(Token::new(
-            if new_line {
-                TokenKind::LineTerminator
-            } else {
-                TokenKind::Comment
-            },
-            Span::new(start_pos, cursor.pos()),
+        Err(Error::syntax(
+            "unterminated multiline comment",
+            cursor.pos(),
         ))
     }
 }
