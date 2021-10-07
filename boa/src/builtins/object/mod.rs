@@ -511,10 +511,7 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let P be ? ToPropertyKey(V).
-        let key = args
-            .get(0)
-            .unwrap_or(&JsValue::undefined())
-            .to_property_key(context)?;
+        let key = args.get_or_undefined(0).to_property_key(context)?;
 
         // 2. Let O be ? ToObject(this value).
         let object = this.to_object(context)?;
