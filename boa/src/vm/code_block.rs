@@ -207,6 +207,7 @@ impl CodeBlock {
             | Opcode::Neg
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
+            | Opcode::DeletePropertyByValue
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::This

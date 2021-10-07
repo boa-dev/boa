@@ -442,6 +442,15 @@ pub enum Opcode {
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
 
+    /// Deletes a property by value of an object.
+    ///
+    /// Like `delete object[key]`
+    ///
+    /// Operands:
+    ///
+    /// Stack: key, object **=>**
+    DeletePropertyByValue,
+
     /// Unconditional jump to address.
     ///
     /// Operands: address: `u32`
@@ -605,6 +614,7 @@ impl Opcode {
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
+            Opcode::DeletePropertyByValue => "DeletePropertyByValue",
             Opcode::Jump => "Jump",
             Opcode::JumpIfFalse => "JumpIfFalse",
             Opcode::JumpIfTrue => "JumpIfTrue",
