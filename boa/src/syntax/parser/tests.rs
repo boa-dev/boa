@@ -382,9 +382,8 @@ fn hashbang_use_strict_no_with() {
     );
 }
 
-//commenting out this test for when with is enabled.
-/*
 #[test]
+#[ignore]
 fn hashbang_use_strict_with_with_statement() {
     check_parser(
         r#"#!\"use strict"
@@ -394,7 +393,6 @@ fn hashbang_use_strict_with_with_statement() {
         vec![]
     );
 }
-*/
 
 #[test]
 fn hashbang_comment() {
