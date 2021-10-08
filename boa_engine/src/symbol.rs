@@ -15,11 +15,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-symbol-value
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
-use crate::JsString;
+use crate::{js_string, string::utf16, JsString};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use std::{
     cell::Cell,
-    fmt::{self, Display},
     hash::{Hash, Hasher},
     rc::Rc,
 };
@@ -31,7 +30,7 @@ use std::{
 ///# use boa_engine::symbol::WellKnownSymbols;
 ///
 /// let iterator = WellKnownSymbols::iterator();
-/// assert_eq!(iterator.description().as_deref(), Some("Symbol.iterator"));
+/// assert_eq!(iterator.description().unwrap().as_std_string_lossy(), "Symbol.iterator");
 /// ```
 /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
 #[derive(Debug, Clone)]
@@ -303,15 +302,18 @@ impl JsSymbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
     pub fn descriptive_string(&self) -> JsString {
-        self.to_string().into()
+        match &self.inner.description {
+            Some(desc) => js_string!(utf16!("Symbol("), desc, utf16!(")")),
+            None => js_string!("Symbol()"),
+        }
     }
 }
 
-impl Display for JsSymbol {
+impl std::fmt::Display for JsSymbol {
     #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.inner.description {
-            Some(desc) => write!(f, "Symbol({desc})"),
+            Some(desc) => write!(f, "Symbol({})", desc.as_std_string_lossy()),
             None => write!(f, "Symbol()"),
         }
     }

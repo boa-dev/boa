@@ -96,11 +96,7 @@ impl ForInIterator {
                     {
                         iterator.visited_keys.insert(r.clone());
                         if desc.expect_enumerable() {
-                            return Ok(create_iter_result_object(
-                                JsValue::new(r.to_string()),
-                                false,
-                                context,
-                            ));
+                            return Ok(create_iter_result_object(JsValue::new(r), false, context));
                         }
                     }
                 }

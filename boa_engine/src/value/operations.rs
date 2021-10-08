@@ -1,8 +1,12 @@
-use super::{
-    Context, FromStr, JsBigInt, JsResult, JsString, JsValue, Numeric, PreferredType,
-    WellKnownSymbols,
+use crate::{
+    builtins::{
+        number::{f64_to_int32, f64_to_uint32},
+        Number,
+    },
+    js_string,
 };
-use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
+
+use super::{Context, JsBigInt, JsResult, JsValue, Numeric, PreferredType, WellKnownSymbols};
 
 impl JsValue {
     #[inline]
@@ -19,21 +23,17 @@ impl JsValue {
             (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::add(x, y)),
 
             // String concat
-            (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
-            (Self::String(ref x), y) => Self::from(JsString::concat(x, y.to_string(context)?)),
-            (x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
+            (Self::String(ref x), Self::String(ref y)) => Self::from(js_string!(x, y)),
+            (Self::String(ref x), y) => Self::from(js_string!(x, &y.to_string(context)?)),
+            (x, Self::String(ref y)) => Self::from(js_string!(&x.to_string(context)?, y)),
 
             // Slow path:
             (_, _) => match (
                 self.to_primitive(context, PreferredType::Default)?,
                 other.to_primitive(context, PreferredType::Default)?,
             ) {
-                (Self::String(ref x), ref y) => {
-                    Self::from(JsString::concat(x, y.to_string(context)?))
-                }
-                (ref x, Self::String(ref y)) => {
-                    Self::from(JsString::concat(x.to_string(context)?, y))
-                }
+                (Self::String(ref x), ref y) => Self::from(js_string!(x, &y.to_string(context)?)),
+                (ref x, Self::String(ref y)) => Self::from(js_string!(&x.to_string(context)?, y)),
                 (x, y) => match (x.to_numeric(context)?, y.to_numeric(context)?) {
                     (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
                     (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
@@ -417,7 +417,7 @@ impl JsValue {
         if !target.is_object() {
             return context.throw_type_error(format!(
                 "right-hand side of 'instanceof' should be an object, got {}",
-                target.type_of()
+                target.type_of().as_std_string_lossy()
             ));
         }
 
@@ -449,10 +449,7 @@ impl JsValue {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
-            Self::String(ref str) => Self::new(match f64::from_str(str) {
-                Ok(num) => -num,
-                Err(_) => f64::NAN,
-            }),
+            Self::String(ref str) => Self::new(-str.to_number()),
             Self::Rational(num) => Self::new(-num),
             Self::Integer(num) if num == 0 => Self::new(-f64::from(0)),
             Self::Integer(num) => Self::new(-num),
@@ -512,29 +509,16 @@ impl JsValue {
                 };
 
                 match (px, py) {
-                    (Self::String(ref x), Self::String(ref y)) => {
-                        if x.starts_with(y.as_str()) {
-                            return Ok(AbstractRelation::False);
-                        }
-                        if y.starts_with(x.as_str()) {
-                            return Ok(AbstractRelation::True);
-                        }
-                        for (x, y) in x.chars().zip(y.chars()) {
-                            if x != y {
-                                return Ok((x < y).into());
-                            }
-                        }
-                        unreachable!()
-                    }
+                    (Self::String(ref x), Self::String(ref y)) => (x < y).into(),
                     (Self::BigInt(ref x), Self::String(ref y)) => {
-                        if let Some(y) = JsBigInt::from_string(y) {
+                        if let Some(y) = y.to_big_int() {
                             (*x < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
                     (Self::String(ref x), Self::BigInt(ref y)) => {
-                        if let Some(x) = JsBigInt::from_string(x) {
+                        if let Some(x) = x.to_big_int() {
                             (x < *y).into()
                         } else {
                             AbstractRelation::Undefined

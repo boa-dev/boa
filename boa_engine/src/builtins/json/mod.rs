@@ -14,18 +14,20 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
 use super::JsArgs;
+use std::{borrow::Cow, iter::once};
+
 use crate::{
-    builtins::{
-        string::{is_leading_surrogate, is_trailing_surrogate},
-        BuiltIn,
-    },
+    builtins::BuiltIn,
+    js_string,
     object::{JsObject, ObjectInitializer, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
+    string::{utf16, CodePoint},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
+use itertools::Itertools;
 use serde_json::{self, Value as JSONValue};
 use tap::{Conv, Pipe};
 
@@ -74,7 +76,9 @@ impl Json {
             .get(0)
             .cloned()
             .unwrap_or_default()
-            .to_string(context)?;
+            .to_string(context)?
+            .as_std_string()
+            .map_err(|e| context.construct_syntax_error(e.to_string()))?;
 
         // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
         //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
@@ -83,7 +87,8 @@ impl Json {
         }
 
         // 3. Let scriptString be the string-concatenation of "(", jsonString, and ");".
-        let script_string = JsString::concat_array(&["(", json_string.as_str(), ");"]);
+        // TODO: fix script read for eval
+        let script_string = format!("({json_string});");
 
         // 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).
         // 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
@@ -169,7 +174,8 @@ impl Json {
                     // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
                     let p = p
                         .as_string()
-                        .expect("EnumerableOwnPropertyNames only returns strings");
+                        .expect("EnumerableOwnPropertyNames only returns strings")
+                        .clone();
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element =
@@ -178,12 +184,12 @@ impl Json {
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
                         // a. Perform ? val.[[Delete]](P).
-                        obj.__delete__(&p.clone().into(), context)?;
+                        obj.__delete__(&p.into(), context)?;
                     }
                     // 3. Else,
                     else {
                         // a. Perform ? CreateDataProperty(val, P, newElement).
-                        obj.create_data_property(p.as_str(), new_element, context)?;
+                        obj.create_data_property(p, new_element, context)?;
                     }
                 }
             }
@@ -218,7 +224,7 @@ impl Json {
         let stack = Vec::new();
 
         // 2. Let indent be the empty String.
-        let indent = JsString::new("");
+        let indent = js_string!();
 
         // 3. Let PropertyList and ReplacerFunction be undefined.
         let mut property_list = None;
@@ -305,9 +311,9 @@ impl Json {
                 .to_integer_or_infinity(context)
                 .expect("ToIntegerOrInfinity cannot fail on number")
             {
-                IntegerOrInfinity::PositiveInfinity => JsString::new("          "),
-                IntegerOrInfinity::NegativeInfinity => JsString::new(""),
-                IntegerOrInfinity::Integer(i) if i < 1 => JsString::new(""),
+                IntegerOrInfinity::PositiveInfinity => js_string!("          "),
+                IntegerOrInfinity::NegativeInfinity => js_string!(),
+                IntegerOrInfinity::Integer(i) if i < 1 => js_string!(),
                 IntegerOrInfinity::Integer(i) => {
                     let mut s = String::new();
                     let i = std::cmp::min(10, i);
@@ -320,11 +326,11 @@ impl Json {
         // 7. Else if Type(space) is String, then
         } else if let Some(s) = space.as_string() {
             // a. If the length of space is 10 or less, let gap be space; otherwise let gap be the substring of space from 0 to 10.
-            String::from_utf16_lossy(&s.encode_utf16().take(10).collect::<Vec<u16>>()).into()
+            js_string!(s.get(..10).unwrap_or(s))
         // 8. Else,
         } else {
             // a. Let gap be the empty String.
-            JsString::new("")
+            js_string!()
         };
 
         // 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).
@@ -346,7 +352,7 @@ impl Json {
 
         // 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).
         Ok(
-            Self::serialize_json_property(&mut state, JsString::new(""), &wrapper, context)?
+            Self::serialize_json_property(&mut state, js_string!(), &wrapper, context)?
                 .map(Into::into)
                 .unwrap_or_default(),
         )
@@ -413,13 +419,13 @@ impl Json {
 
         // 5. If value is null, return "null".
         if value.is_null() {
-            return Ok(Some(JsString::new("null")));
+            return Ok(Some(js_string!("null")));
         }
 
         // 6. If value is true, return "true".
         // 7. If value is false, return "false".
         if value.is_boolean() {
-            return Ok(Some(JsString::new(if value.to_boolean() {
+            return Ok(Some(js_string!(if value.to_boolean() {
                 "true"
             } else {
                 "false"
@@ -443,7 +449,7 @@ impl Json {
             }
 
             // b. Return "null".
-            return Ok(Some(JsString::new("null")));
+            return Ok(Some(js_string!("null")));
         }
 
         // 10. If Type(value) is BigInt, throw a TypeError exception.
@@ -476,45 +482,50 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-quotejsonstring
     fn quote_json_string(value: &JsString) -> JsString {
+        let mut buf = [0; 2];
         // 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).
-        let mut product = String::from('"');
+        let mut product = vec!['"' as u16];
 
         // 2. For each code point C of ! StringToCodePoints(value), do
-        for code_point in value.encode_utf16() {
+        for code_point in value.to_code_points() {
             match code_point {
                 // a. If C is listed in the “Code Point” column of Table 73, then
-                // i. Set product to the string-concatenation of product and the escape sequence for C as specified in the “Escape Sequence” column of the corresponding row.
-                0x8 => product.push_str("\\b"),
-                0x9 => product.push_str("\\t"),
-                0xA => product.push_str("\\n"),
-                0xC => product.push_str("\\f"),
-                0xD => product.push_str("\\r"),
-                0x22 => product.push_str("\\\""),
-                0x5C => product.push_str("\\\\"),
-                // b. Else if C has a numeric value less than 0x0020 (SPACE), or if C has the same numeric value as a leading surrogate or trailing surrogate, then
-                code_point
-                    if is_leading_surrogate(code_point) || is_trailing_surrogate(code_point) =>
-                {
-                    // i. Let unit be the code unit whose numeric value is that of C.
-                    // ii. Set product to the string-concatenation of product and UnicodeEscape(unit).
-                    product.push_str(&format!("\\\\uAA{code_point:x}"));
+                // i. Set product to the string-concatenation of product and the
+                // escape sequence for C as specified in the “Escape Sequence”
+                // column of the corresponding row.
+                CodePoint::Unicode('\u{0008}') => product.extend_from_slice(utf16!(r"\b")),
+                CodePoint::Unicode('\u{0009}') => product.extend_from_slice(utf16!(r"\t")),
+                CodePoint::Unicode('\u{000A}') => product.extend_from_slice(utf16!(r"\n")),
+                CodePoint::Unicode('\u{000C}') => product.extend_from_slice(utf16!(r"\f")),
+                CodePoint::Unicode('\u{000D}') => product.extend_from_slice(utf16!(r"\r")),
+                CodePoint::Unicode('\u{0022}') => product.extend_from_slice(utf16!(r#"\""#)),
+                CodePoint::Unicode('\u{005C}') => product.extend_from_slice(utf16!(r"\\")),
+                // b. Else if C has a numeric value less than 0x0020 (SPACE), or
+                // if C has the same numeric value as a leading surrogate or
+                // trailing surrogate, then
+                //     i. Let unit be the code unit whose numeric value is that
+                //     of C.
+                //     ii. Set product to the string-concatenation of product
+                //     and UnicodeEscape(unit).
+                CodePoint::Unicode(c) if c < '\u{0020}' => {
+                    product.extend(format!("\\u{:04x}", c as u32).encode_utf16());
+                }
+                CodePoint::UnpairedSurrogate(surr) => {
+                    product.extend(format!("\\u{surr:04x}").encode_utf16());
                 }
                 // c. Else,
-                code_point => {
+                CodePoint::Unicode(c) => {
                     // i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).
-                    product.push(
-                        char::from_u32(u32::from(code_point))
-                            .expect("char from code point cannot fail here"),
-                    );
+                    product.extend_from_slice(c.encode_utf16(&mut buf));
                 }
             }
         }
 
         // 3. Set product to the string-concatenation of product and the code unit 0x0022 (QUOTATION MARK).
-        product.push('"');
+        product.push('"' as u16);
 
         // 4. Return product.
-        product.into()
+        js_string!(&product[..])
     }
 
     /// `25.5.2.4 SerializeJSONObject ( state, value )`
@@ -541,7 +552,7 @@ impl Json {
         let stepback = state.indent.clone();
 
         // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
-        state.indent = JsString::concat(&state.indent, &state.gap);
+        state.indent = js_string!(&state.indent, &state.gap);
 
         // 5. If state.[[PropertyList]] is not undefined, then
         let k = if let Some(p) = &state.property_list {
@@ -571,19 +582,19 @@ impl Json {
             // b. If strP is not undefined, then
             if let Some(str_p) = str_p {
                 // i. Let member be QuoteJSONString(P).
+                let mut member = Self::quote_json_string(p).to_vec();
+
                 // ii. Set member to the string-concatenation of member and ":".
+                member.push(':' as u16);
+
                 // iii. If state.[[Gap]] is not the empty String, then
-                // 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).
+                if !state.gap.is_empty() {
+                    // 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).
+                    member.push(' ' as u16);
+                }
+
                 // iv. Set member to the string-concatenation of member and strP.
-                let member = if state.gap.is_empty() {
-                    format!("{}:{}", Self::quote_json_string(p).as_str(), str_p.as_str())
-                } else {
-                    format!(
-                        "{}: {}",
-                        Self::quote_json_string(p).as_str(),
-                        str_p.as_str()
-                    )
-                };
+                member.extend_from_slice(&str_p);
 
                 // v. Append member to partial.
                 partial.push(member);
@@ -593,7 +604,7 @@ impl Json {
         // 9. If partial is empty, then
         let r#final = if partial.is_empty() {
             // a. Let final be "{}".
-            JsString::new("{}")
+            js_string!("{}")
         // 10. Else,
         } else {
             // a. If state.[[Gap]] is the empty String, then
@@ -602,23 +613,40 @@ impl Json {
                 //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
                 //    A comma is not inserted either before the first String or after the last String.
                 // ii. Let final be the string-concatenation of "{", properties, and "}".
-                format!("{{{}}}", partial.join(",")).into()
+                let separator = utf16!(",");
+                let result = once(&utf16!("{")[..])
+                    .chain(itertools::Itertools::intersperse(
+                        partial.iter().map(|v| &v[..]),
+                        separator,
+                    ))
+                    .chain(once(&utf16!("}")[..]))
+                    .flatten()
+                    .copied()
+                    .collect_vec();
+                js_string!(&result[..])
             // b. Else,
             } else {
                 // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                let separator = format!(",\n{}", state.indent.as_str());
+                let mut separator = utf16!(",\n").to_vec();
+                separator.extend_from_slice(&state.indent);
                 // ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
-                let properties = partial.join(&separator);
-                // iii. Let final be the string-concatenation of "{", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "}".
-                format!(
-                    "{{\n{}{properties}\n{}}}",
-                    state.indent.as_str(),
-                    stepback.as_str()
-                )
-                .into()
+                // iii. Let final be the string-concatenation of "{", the code
+                //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
+                //      the code unit 0x000A (LINE FEED), stepback, and "}".
+                let result = [&utf16!("{\n")[..], &state.indent[..]]
+                    .into_iter()
+                    .chain(itertools::Itertools::intersperse(
+                        partial.iter().map(|v| &v[..]),
+                        &separator,
+                    ))
+                    .chain([&utf16!("\n")[..], &stepback[..], &utf16!("}")[..]].into_iter())
+                    .flatten()
+                    .copied()
+                    .collect_vec();
+                js_string!(&result[..])
             }
         };
 
@@ -656,7 +684,7 @@ impl Json {
         let stepback = state.indent.clone();
 
         // 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].
-        state.indent = JsString::concat(&state.indent, &state.gap);
+        state.indent = js_string!(&state.indent, &state.gap);
 
         // 5. Let partial be a new empty List.
         let mut partial = Vec::new();
@@ -676,11 +704,11 @@ impl Json {
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {
                 // i. Append strP to partial.
-                partial.push(str_p);
+                partial.push(Cow::Owned(str_p.to_vec()));
             // c. Else,
             } else {
                 // i. Append "null" to partial.
-                partial.push("null".into());
+                partial.push(Cow::Borrowed(&utf16!("null")[..]));
             }
 
             // d. Set index to index + 1.
@@ -690,7 +718,7 @@ impl Json {
         // 9. If partial is empty, then
         let r#final = if partial.is_empty() {
             // a. Let final be "[]".
-            JsString::from("[]")
+            js_string!("[]")
         // 10. Else,
         } else {
             // a. If state.[[Gap]] is the empty String, then
@@ -699,23 +727,38 @@ impl Json {
                 //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
                 //    A comma is not inserted either before the first String or after the last String.
                 // ii. Let final be the string-concatenation of "[", properties, and "]".
-                format!("[{}]", partial.join(",")).into()
+                let separator = utf16!(",");
+                let result = once(&utf16!("[")[..])
+                    .chain(itertools::Itertools::intersperse(
+                        partial.iter().map(|v| &v[..]),
+                        separator,
+                    ))
+                    .chain(once(&utf16!("]")[..]))
+                    .flatten()
+                    .copied()
+                    .collect_vec();
+                js_string!(&result[..])
             // b. Else,
             } else {
                 // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                let separator = format!(",\n{}", state.indent.as_str());
+                let mut separator = utf16!(",\n").to_vec();
+                separator.extend_from_slice(&state.indent);
                 // ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
-                let properties = partial.join(&separator);
                 // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
-                format!(
-                    "[\n{}{properties}\n{}]",
-                    state.indent.as_str(),
-                    stepback.as_str()
-                )
-                .into()
+                let result = [&utf16!("[\n")[..], &state.indent[..]]
+                    .into_iter()
+                    .chain(itertools::Itertools::intersperse(
+                        partial.iter().map(|v| &v[..]),
+                        &separator,
+                    ))
+                    .chain([&utf16!("\n")[..], &stepback[..], &utf16!("]")[..]].into_iter())
+                    .flatten()
+                    .copied()
+                    .collect_vec();
+                js_string!(&result[..])
             }
         };
 

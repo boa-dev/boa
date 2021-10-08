@@ -26,6 +26,7 @@ use crate::{
     Context,
 };
 use boa_interner::{Interner, Sym};
+use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
@@ -316,7 +317,7 @@ impl Script {
                             .realm
                             .global_property_map
                             .string_property_map()
-                            .get(name_str);
+                            .get(name_str.encode_utf16().collect_vec().as_slice());
                         let non_configurable_binding_exists = match desc {
                             Some(desc) => !matches!(desc.configurable(), Some(true)),
                             None => false,

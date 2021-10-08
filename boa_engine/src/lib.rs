@@ -75,6 +75,8 @@
     rustdoc::missing_doc_code_examples
 )]
 
+extern crate static_assertions as sa;
+
 pub mod bigint;
 pub mod builtins;
 pub mod bytecompiler;

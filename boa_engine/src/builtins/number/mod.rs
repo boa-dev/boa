@@ -21,6 +21,8 @@ use crate::{
         JsObject, ObjectData,
     },
     property::Attribute,
+    string::utf16,
+    string::Utf16Trim,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsResult,
 };
@@ -130,7 +132,7 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
     pub(crate) const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991_f64;
 
-    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(253 - 1)`).
+    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(2^53 - 1)`).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -761,12 +763,12 @@ impl Number {
             let input_string = val.to_string(context)?;
 
             // 2. Let S be ! TrimString(inputString, start).
-            let mut var_s = input_string.trim_start_matches(is_trimmable_whitespace);
+            let mut var_s = input_string.trim_start();
 
             // 3. Let sign be 1.
             // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
             //    set sign to -1.
-            let sign = if !var_s.is_empty() && var_s.starts_with('\u{002D}') {
+            let sign = if !var_s.is_empty() && var_s.starts_with(utf16!("-")) {
                 -1
             } else {
                 1
@@ -774,10 +776,10 @@ impl Number {
 
             // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
             //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
-            if !var_s.is_empty() {
-                var_s = var_s
-                    .strip_prefix(&['\u{002B}', '\u{002D}'][..])
-                    .unwrap_or(var_s);
+            if !var_s.is_empty()
+                && (var_s.starts_with(utf16!("+")) || var_s.starts_with(utf16!("-")))
+            {
+                var_s = &var_s[1..];
             }
 
             // 6. Let R be ℝ(? ToInt32(radix)).
@@ -810,23 +812,21 @@ impl Number {
             //         ii. Set R to 16.
             if strip_prefix
                 && var_s.len() >= 2
-                && (var_s.starts_with("0x") || var_s.starts_with("0X"))
+                && (var_s.starts_with(utf16!("0x")) || var_s.starts_with(utf16!("0X")))
             {
-                var_s = var_s.split_at(2).1;
+                var_s = &var_s[2..];
 
                 var_r = 16;
             }
 
             // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
             //     first such code unit; otherwise, let end be the length of S.
-            let end = if let Some(index) = var_s.find(|c: char| !c.is_digit(var_r as u32)) {
-                index
-            } else {
-                var_s.len()
-            };
+            let end = char::decode_utf16(var_s.iter().copied())
+                .position(|code| !code.map(|c| c.is_digit(var_r as u32)).unwrap_or_default())
+                .unwrap_or(var_s.len());
 
             // 12. Let Z be the substring of S from 0 to end.
-            let var_z = var_s.split_at(end).0;
+            let var_z = String::from_utf16_lossy(&var_s[..end]);
 
             // 13. If Z is empty, return NaN.
             if var_z.is_empty() {
@@ -839,8 +839,8 @@ impl Number {
             //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
             //     mathInt may be an implementation-approximated value representing the integer value that is
             //     represented by Z in radix-R notation.)
-            let math_int = u64::from_str_radix(var_z, var_r as u32).map_or_else(
-                |_| f64::from_str_radix(var_z, var_r as u32).expect("invalid_float_conversion"),
+            let math_int = u64::from_str_radix(&var_z, var_r as u32).map_or_else(
+                |_| f64::from_str_radix(&var_z, var_r as u32).expect("invalid_float_conversion"),
                 |i| i as f64,
             );
 
@@ -884,7 +884,8 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
-            let input_string = val.to_string(context)?;
+            // TODO: parse float with optimal utf16 algorithm
+            let input_string = val.to_string(context)?.as_std_string_lossy();
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
             let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
 

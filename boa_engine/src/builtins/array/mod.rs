@@ -23,6 +23,7 @@ use crate::{
     builtins::BuiltIn,
     builtins::Number,
     context::intrinsics::StandardConstructors,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsFunction, JsObject, ObjectData,
@@ -30,7 +31,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 use std::cmp::{max, min, Ordering};
 
@@ -412,7 +413,12 @@ impl Array {
         let mapping = match mapfn {
             JsValue::Undefined => None,
             JsValue::Object(o) if o.is_callable() => Some(o),
-            _ => return context.throw_type_error(format!("{} is not a function", mapfn.type_of())),
+            _ => {
+                return context.throw_type_error(format!(
+                    "{} is not a function",
+                    mapfn.type_of().as_std_string_lossy()
+                ))
+            }
         };
 
         // 4. Let usingIterator be ? GetMethod(items, @@iterator).
@@ -864,34 +870,34 @@ impl Array {
         // 4. Else, let sep be ? ToString(separator).
         let separator = args.get_or_undefined(0);
         let separator = if separator.is_undefined() {
-            JsString::new(",")
+            js_string!(",")
         } else {
             separator.to_string(context)?
         };
 
         // 5. Let R be the empty String.
-        let mut r = String::new();
+        let mut r = vec![];
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
-                r.push_str(&separator);
+                r.extend_from_slice(&separator);
             }
             // b. Let element be ? Get(O, ! ToString(𝔽(k))).
             let element = o.get(k, context)?;
             // c. If element is undefined or null, let next be the empty String; otherwise, let next be ? ToString(element).
             let next = if element.is_null_or_undefined() {
-                JsString::new("")
+                js_string!()
             } else {
                 element.to_string(context)?
             };
             // d. Set R to the string-concatenation of R and next.
-            r.push_str(&next);
+            r.extend_from_slice(&next);
             // e. Set k to k + 1.
         }
         // 8. Return R.
-        Ok(r.into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `Array.prototype.toString( separator )`

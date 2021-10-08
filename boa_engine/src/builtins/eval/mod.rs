@@ -78,9 +78,10 @@ impl Eval {
         };
 
         // Because of implementation details the following code differs from the spec.
+        // TODO: rework parser to take an iterator of `u32` unicode codepoints
 
         // Parse the script body and handle early errors (6 - 11)
-        let body = match context.parse_eval(x.as_bytes(), direct, strict) {
+        let body = match context.parse_eval(x.as_std_string_lossy().as_bytes(), direct, strict) {
             Ok(body) => body,
             Err(e) => return context.throw_syntax_error(e.to_string()),
         };

@@ -417,7 +417,7 @@ impl ToInternedString for CodeBlock {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: <{}> {}\n",
-                    value.type_of(),
+                    value.type_of().as_std_string_lossy(),
                     value.display()
                 ));
             }

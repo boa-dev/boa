@@ -2,8 +2,10 @@
 // inside Rust and call them from Javascript.
 
 use boa_engine::{
+    js_string,
     object::{FunctionBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
+    string::utf16,
     Context, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -67,17 +69,17 @@ fn main() -> Result<(), JsValue> {
             let name = captures.object.get("name", context)?;
 
             // We create a new message from our captured variable.
-            let message = JsString::concat_array(&[
-                "message from `",
-                name.to_string(context)?.as_str(),
-                "`: ",
-                captures.greeting.as_str(),
-            ]);
+            let message = js_string!(
+                utf16!("message from `"),
+                &name.to_string(context)?,
+                utf16!("`: "),
+                &captures.greeting
+            );
 
             // We can also mutate the moved data inside the closure.
-            captures.greeting = format!("{} Hello!", captures.greeting).into();
+            captures.greeting = js_string!(&captures.greeting, utf16!(" Hello!"));
 
-            println!("{message}");
+            println!("{}", message.as_std_string_lossy());
             println!();
 
             // We convert `message` into `JsValue` to be able to return it.

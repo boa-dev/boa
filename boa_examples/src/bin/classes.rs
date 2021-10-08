@@ -1,8 +1,9 @@
 // NOTE: this example requires the `console` feature to run correctly.
 use boa_engine::{
+    builtins::JsArgs,
     class::{Class, ClassBuilder},
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -17,8 +18,8 @@ use boa_gc::{Finalize, Trace};
 #[derive(Debug, Trace, Finalize)]
 struct Person {
     /// The name of the person.
-    name: String,
-    /// The age of the person.
+    name: JsString,
+    /// The age of the preson.
     age: u32,
 }
 
@@ -36,7 +37,7 @@ impl Person {
                 // and print a message to stdout.
                 println!(
                     "Hello my name is {}, I'm {} years old",
-                    person.name,
+                    person.name.as_std_string_lossy(),
                     person.age // Here we can access the native rust fields of the struct.
                 );
                 return Ok(JsValue::undefined());
@@ -64,11 +65,7 @@ impl Class for Person {
         // and then we call `to_string()`.
         //
         // This is equivalent to `String(arg)`.
-        let name = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let name = args.get_or_undefined(0).to_string(context)?;
         // We get the second argument. If it is unavailable we default to `undefined`,
         // and then we call `to_u32`.
         //
@@ -76,10 +73,7 @@ impl Class for Person {
         let age = args.get(1).cloned().unwrap_or_default().to_u32(context)?;
 
         // We construct a new native struct `Person`
-        let person = Person {
-            name: name.to_string(),
-            age,
-        };
+        let person = Person { name, age };
 
         Ok(person) // and we return it.
     }

@@ -10,6 +10,7 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         Number,
     },
+    js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
@@ -25,7 +26,6 @@ use std::{
     collections::HashSet,
     fmt::{self, Display},
     ops::Sub,
-    str::FromStr,
 };
 
 mod conversions;
@@ -64,7 +64,7 @@ pub enum JsValue {
     Undefined,
     /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
-    /// `String` - A UTF-8 string, such as `"Hello, world"`.
+    /// `String` - A UTF-16 string, such as `"Hello, world"`.
     String(JsString),
     /// `Number` - A 64-bit floating point number, such as `3.1415`
     Rational(f64),
@@ -406,11 +406,12 @@ impl JsValue {
             Self::Null => context.throw_type_error("cannot convert null to a BigInt"),
             Self::Undefined => context.throw_type_error("cannot convert undefined to a BigInt"),
             Self::String(ref string) => {
-                if let Some(value) = JsBigInt::from_string(string) {
+                if let Some(value) = string.to_big_int() {
                     Ok(value)
                 } else {
                     context.throw_syntax_error(format!(
-                        "cannot convert string '{string}' to bigint primitive",
+                        "cannot convert string '{}' to bigint primitive",
+                        string.as_std_string_lossy()
                     ))
                 }
             }
@@ -508,9 +509,9 @@ impl JsValue {
                     JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
-                    "length",
+                    js_string!("length"),
                     PropertyDescriptor::builder()
-                        .value(string.encode_utf16().count())
+                        .value(string.len())
                         .writable(false)
                         .enumerable(false)
                         .configurable(false),
@@ -880,7 +881,7 @@ impl JsValue {
             Self::Null => Ok(0.0),
             Self::Undefined => Ok(f64::NAN),
             Self::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            Self::String(ref string) => Ok(string.string_to_number()),
+            Self::String(ref string) => Ok(string.to_number()),
             Self::Rational(number) => Ok(number),
             Self::Integer(integer) => Ok(f64::from(integer)),
             Self::Symbol(_) => context.throw_type_error("argument must not be a symbol"),

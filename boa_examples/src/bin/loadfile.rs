@@ -15,7 +15,10 @@ fn main() {
             // Parse the source code
             match context.eval(src) {
                 Ok(res) => {
-                    println!("{}", res.to_string(&mut context).unwrap());
+                    println!(
+                        "{}",
+                        res.to_string(&mut context).unwrap().as_std_string_lossy()
+                    );
                 }
                 Err(e) => {
                     // Pretty print the error

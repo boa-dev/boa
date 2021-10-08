@@ -64,13 +64,13 @@ impl JsValue {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (Self::BigInt(ref a), Self::String(ref b)) => match JsBigInt::from_string(b) {
+            (Self::BigInt(ref a), Self::String(ref b)) => match b.to_big_int() {
                 Some(ref b) => a == b,
                 None => false,
             },
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (Self::String(ref a), Self::BigInt(ref b)) => match JsBigInt::from_string(a) {
+            (Self::String(ref a), Self::BigInt(ref b)) => match a.to_big_int() {
                 Some(ref a) => a == b,
                 None => false,
             },

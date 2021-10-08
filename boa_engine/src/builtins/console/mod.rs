@@ -60,10 +60,11 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 
     match data.len() {
         0 => Ok(String::new()),
-        1 => Ok(target.to_string()),
+        1 => Ok(target.as_std_string_lossy()),
         _ => {
             let mut formatted = String::new();
             let mut arg_index = 1;
+            let target = target.as_std_string_lossy();
             let mut chars = target.chars();
             while let Some(c) = chars.next() {
                 if c == '%' {
@@ -96,7 +97,8 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                                 .get(arg_index)
                                 .cloned()
                                 .unwrap_or_default()
-                                .to_string(context)?;
+                                .to_string(context)?
+                                .as_std_string_lossy();
                             formatted.push_str(&arg);
                             arg_index += 1;
                         }
@@ -114,7 +116,10 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 
             /* unformatted data */
             for rest in data.iter().skip(arg_index) {
-                formatted.push_str(&format!(" {}", rest.to_string(context)?));
+                formatted.push_str(&format!(
+                    " {}",
+                    rest.to_string(context)?.as_std_string_lossy()
+                ));
             }
 
             Ok(formatted)
@@ -365,7 +370,7 @@ impl Console {
             None => "default".into(),
         };
 
-        let msg = format!("count {label}:");
+        let msg = format!("count {}:", label.as_std_string_lossy());
         let c = context.console_mut().count_map.entry(label).or_insert(0);
         *c += 1;
 
@@ -396,7 +401,7 @@ impl Console {
         context.console_mut().count_map.remove(&label);
 
         logger(
-            LogMessage::Warn(format!("countReset {label}")),
+            LogMessage::Warn(format!("countReset {}", label.as_std_string_lossy())),
             context.console(),
         );
 
@@ -429,7 +434,10 @@ impl Console {
 
         if context.console().timer_map.get(&label).is_some() {
             logger(
-                LogMessage::Warn(format!("Timer '{label}' already exist")),
+                LogMessage::Warn(format!(
+                    "Timer '{}' already exist",
+                    label.as_std_string_lossy()
+                )),
                 context.console(),
             );
         } else {
@@ -462,14 +470,17 @@ impl Console {
 
         if let Some(t) = context.console().timer_map.get(&label) {
             let time = Self::system_time_in_ms();
-            let mut concat = format!("{label}: {} ms", time - t);
+            let mut concat = format!("{}: {} ms", label.as_std_string_lossy(), time - t);
             for msg in args.iter().skip(1) {
                 concat = concat + " " + &msg.display().to_string();
             }
             logger(LogMessage::Log(concat), context.console());
         } else {
             logger(
-                LogMessage::Warn(format!("Timer '{label}' doesn't exist")),
+                LogMessage::Warn(format!(
+                    "Timer '{}' doesn't exist",
+                    label.as_std_string_lossy()
+                )),
                 context.console(),
             );
         }
@@ -497,15 +508,22 @@ impl Console {
             None => "default".into(),
         };
 
-        if let Some(t) = context.console_mut().timer_map.remove(label.as_str()) {
+        if let Some(t) = context.console_mut().timer_map.remove(&label) {
             let time = Self::system_time_in_ms();
             logger(
-                LogMessage::Info(format!("{label}: {} ms - timer removed", time - t)),
+                LogMessage::Info(format!(
+                    "{}: {} ms - timer removed",
+                    label.as_std_string_lossy(),
+                    time - t
+                )),
                 context.console(),
             );
         } else {
             logger(
-                LogMessage::Warn(format!("Timer '{label}' doesn't exist")),
+                LogMessage::Warn(format!(
+                    "Timer '{}' doesn't exist",
+                    label.as_std_string_lossy()
+                )),
                 context.console(),
             );
         }

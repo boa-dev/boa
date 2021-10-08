@@ -30,7 +30,7 @@
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
-//!         let animal = match kind.as_str() {
+//!         let animal = match kind.as_std_string_lossy().as_str() {
 //!             "cat" => Self::Cat,
 //!             "dog" => Self::Dog,
 //!             _ => Self::Other,

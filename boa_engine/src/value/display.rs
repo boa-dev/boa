@@ -1,4 +1,4 @@
-use crate::{object::ObjectKind, property::PropertyDescriptor};
+use crate::{js_string, object::ObjectKind, property::PropertyDescriptor};
 
 use super::{fmt, Display, HashSet, JsValue, PropertyKey};
 
@@ -102,7 +102,9 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             match v.borrow().kind() {
-                ObjectKind::String(ref string) => format!("String {{ \"{string}\" }}"),
+                ObjectKind::String(ref string) => {
+                    format!("String {{ \"{}\" }}", string.as_std_string_lossy())
+                }
                 ObjectKind::Boolean(boolean) => format!("Boolean {{ {boolean} }}"),
                 ObjectKind::Number(rational) => {
                     if rational.is_sign_negative() && *rational == 0.0 {
@@ -116,7 +118,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     let len = v
                         .borrow()
                         .properties()
-                        .get(&PropertyKey::from("length"))
+                        .get(&PropertyKey::from(js_string!("length")))
                         .expect("array object must have 'length' property")
                         // FIXME: handle accessor descriptors
                         .expect_value()
@@ -196,7 +198,6 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 _ => display_obj(x, print_internals),
             }
         }
-        JsValue::Symbol(ref symbol) => symbol.to_string(),
         _ => x.display().to_string(),
     }
 }
@@ -283,11 +284,10 @@ impl Display for ValueDisplay<'_> {
             JsValue::Null => write!(f, "null"),
             JsValue::Undefined => write!(f, "undefined"),
             JsValue::Boolean(v) => write!(f, "{v}"),
-            JsValue::Symbol(ref symbol) => match symbol.description() {
-                Some(description) => write!(f, "Symbol({description})"),
-                None => write!(f, "Symbol()"),
-            },
-            JsValue::String(ref v) => write!(f, "\"{v}\""),
+            JsValue::Symbol(ref symbol) => {
+                write!(f, "{}", symbol.descriptive_string().as_std_string_lossy())
+            }
+            JsValue::String(ref v) => write!(f, "\"{}\"", v.as_std_string_lossy()),
             JsValue::Rational(v) => format_rational(*v, f),
             JsValue::Object(_) => {
                 write!(f, "{}", log_string_from(self.value, self.internals, true))

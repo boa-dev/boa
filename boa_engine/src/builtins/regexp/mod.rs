@@ -16,14 +16,16 @@ use super::JsArgs;
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     context::intrinsics::StandardConstructors,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptorBuilder},
+    string::{utf16, CodePoint},
     symbol::WellKnownSymbols,
     syntax::lexer::regex::RegExpFlags,
-    value::{IntegerOrInfinity, JsValue},
+    value::JsValue,
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
@@ -266,7 +268,7 @@ impl RegExp {
         // 1. If pattern is undefined, let P be the empty String.
         // 2. Else, let P be ? ToString(pattern).
         let p = if pattern.is_undefined() {
-            JsString::new("")
+            js_string!()
         } else {
             pattern.to_string(context)?
         };
@@ -274,14 +276,15 @@ impl RegExp {
         // 3. If flags is undefined, let F be the empty String.
         // 4. Else, let F be ? ToString(flags).
         let f = if flags.is_undefined() {
-            JsString::new("")
+            js_string!()
         } else {
             flags.to_string(context)?
         };
 
         // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
-        let flags = match RegExpFlags::from_str(&f) {
+        // TODO: Should directly parse the JsString instead of converting to String
+        let flags = match RegExpFlags::from_str(&f.as_std_string_lossy()) {
             Err(msg) => return context.throw_syntax_error(msg),
             Ok(result) => result,
         };
@@ -295,7 +298,10 @@ impl RegExp {
         // 13. Set obj.[[OriginalFlags]] to F.
         // 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].
         // 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.
-        let matcher = match Regex::with_flags(&p, f.as_ref()) {
+        // TODO: add support for utf16 regex to remove this conversions.
+        let ps = p.as_std_string_lossy();
+        let fs = f.as_std_string_lossy();
+        let matcher = match Regex::with_flags(&ps, fs.as_ref()) {
             Err(error) => {
                 return context
                     .throw_syntax_error(format!("failed to create matcher: {}", error.text));
@@ -644,22 +650,23 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern
-    fn escape_pattern(src: &str, _flags: &str) -> JsValue {
+    fn escape_pattern(src: &JsString, _flags: &JsString) -> JsValue {
         if src.is_empty() {
-            JsValue::new("(?:)")
+            js_string!("(?:)").into()
         } else {
-            let mut s = String::from("");
-
-            for c in src.chars() {
+            let mut s = Vec::with_capacity(src.len());
+            let mut buf = [0; 2];
+            for c in src.to_code_points() {
                 match c {
-                    '/' => s.push_str("\\/"),
-                    '\n' => s.push_str("\\\\n"),
-                    '\r' => s.push_str("\\\\r"),
-                    _ => s.push(c),
+                    CodePoint::Unicode('/') => s.extend_from_slice(utf16!(r"\/")),
+                    CodePoint::Unicode('\n') => s.extend_from_slice(utf16!(r"\\n")),
+                    CodePoint::Unicode('\r') => s.extend_from_slice(utf16!(r"\\r")),
+                    CodePoint::Unicode(c) => s.extend_from_slice(c.encode_utf16(&mut buf)),
+                    CodePoint::UnpairedSurrogate(surr) => s.push(surr),
                 }
             }
 
-            JsValue::new(s)
+            JsValue::new(js_string!(&s[..]))
         }
     }
 
@@ -806,7 +813,7 @@ impl RegExp {
         // 2. Assert: Type(S) is String.
 
         // 3. Let length be the number of code units in S.
-        let length = input.encode_utf16().count() as u64;
+        let length = input.len() as u64;
 
         // 4. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
         let mut last_index = this.get("lastIndex", context)?.to_length(context)?;
@@ -815,10 +822,10 @@ impl RegExp {
         let flags = &rx.original_flags;
 
         // 6. If flags contains "g", let global be true; else let global be false.
-        let global = flags.contains('g');
+        let global = flags.contains(&('g' as u16));
 
         // 7. If flags contains "y", let sticky be true; else let sticky be false.
-        let sticky = flags.contains('y');
+        let sticky = flags.contains(&('y' as u16));
 
         // 8. If global is false and sticky is false, set lastIndex to 0.
         if !global && !sticky {
@@ -829,7 +836,7 @@ impl RegExp {
         let matcher = &rx.matcher;
 
         // 10. If flags contains "u", let fullUnicode be true; else let fullUnicode be false.
-        let unicode = flags.contains('u');
+        let unicode = flags.contains(&('u' as u16));
 
         // 11. Let matchSucceeded be false.
         // 12. Repeat, while matchSucceeded is false,
@@ -848,19 +855,17 @@ impl RegExp {
 
             // b. Let r be matcher(S, lastIndex).
             // Check if last_index is a valid utf8 index into input.
-            let last_byte_index = match String::from_utf16(
-                &input
-                    .encode_utf16()
-                    .take(last_index as usize)
-                    .collect::<Vec<u16>>(),
-            ) {
+            // TODO: avoid converting to String
+            let last_byte_index = match String::from_utf16(&input[..last_index as usize]) {
                 Ok(s) => s.len(),
                 Err(_) => {
                     return context
                         .throw_type_error("Failed to get byte index from utf16 encoded string")
                 }
             };
-            let r = matcher.find_from(input, last_byte_index).next();
+            let r = matcher
+                .find_from(input.as_std_string_lossy().as_str(), last_byte_index)
+                .next();
 
             match r {
                 // c. If r is failure, then
@@ -905,20 +910,27 @@ impl RegExp {
 
         // 13. Let e be r's endIndex value.
         let mut e = match_value.end();
+        let lossy_input = input.as_std_string_lossy();
 
         // 14. If fullUnicode is true, then
-        if unicode {
+        // TODO: disabled for now until we have UTF-16 support
+        if false {
             // e is an index into the Input character list, derived from S, matched by matcher.
             // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
             // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
             // b. Set e to eUTF.
-            e = input.split_at(e).0.encode_utf16().count();
+            e = input.get(..e).map_or_else(|| input.len(), <[u16]>::len);
         }
 
         // 15. If global is true or sticky is true, then
         if global || sticky {
             // a. Perform ? Set(R, "lastIndex", 𝔽(e), true).
-            this.set("lastIndex", e, true, context)?;
+            this.set(
+                "lastIndex",
+                lossy_input[..e].encode_utf16().count(),
+                true,
+                context,
+            )?;
         }
 
         // 16. Let n be the number of elements in r's captures List. (This is the same value as 22.2.2.1's NcapturingParens.)
@@ -939,11 +951,7 @@ impl RegExp {
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 22. Let matchedSubstr be the substring of S from lastIndex to e.
-        let matched_substr = if let Some(s) = input.get(match_value.range()) {
-            s
-        } else {
-            ""
-        };
+        let matched_substr = js_string!(&lossy_input[last_index as usize..e]);
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
         a.create_data_property_or_throw(0, matched_substr, context)
@@ -954,7 +962,7 @@ impl RegExp {
         let named_groups = match_value.named_groups();
         let groups = if named_groups.clone().count() > 0 {
             // a. Let groups be ! OrdinaryObjectCreate(null).
-            let groups = JsValue::from(JsObject::empty());
+            let groups = JsObject::empty();
 
             // Perform 27.f here
             // f. If the ith capture of R was defined with a GroupName, then
@@ -962,19 +970,15 @@ impl RegExp {
             // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
             for (name, range) in named_groups {
                 if let Some(range) = range {
-                    let value = if let Some(s) = input.get(range.clone()) {
-                        s
-                    } else {
-                        ""
-                    };
+                    // TODO: Full UTF-16 regex support
+                    let value = js_string!(&lossy_input[range.clone()]);
 
                     groups
-                        .to_object(context)?
                         .create_data_property_or_throw(name, value, context)
                         .expect("this CreateDataPropertyOrThrow call must not fail");
                 }
             }
-            groups
+            groups.into()
         } else {
             // a. Let groups be undefined.
             JsValue::undefined()
@@ -994,13 +998,8 @@ impl RegExp {
                 None => JsValue::undefined(),
                 // c. Else if fullUnicode is true, then
                 // d. Else,
-                Some(range) => {
-                    if let Some(s) = input.get(range) {
-                        s.into()
-                    } else {
-                        "".into()
-                    }
-                }
+                // TODO: Full UTF-16 regex support
+                Some(range) => js_string!(&lossy_input[range]).into(),
             };
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
@@ -1037,11 +1036,7 @@ impl RegExp {
         };
 
         // 3. Let S be ? ToString(string).
-        let arg_str = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let global be ! ToBoolean(? Get(rx, "global")).
         let global = rx.get("global", context)?.to_boolean();
@@ -1144,7 +1139,7 @@ impl RegExp {
                 this.display()
             ));
         };
-        Ok(format!("/{body}/{flags}").into())
+        Ok(js_string!(utf16!("/"), &body, utf16!("/"), &flags).into())
     }
 
     /// `RegExp.prototype[ @@matchAll ]( string )`
@@ -1190,11 +1185,11 @@ impl RegExp {
 
         // 9. If flags contains "g", let global be true.
         // 10. Else, let global be false.
-        let global = flags.contains('g');
+        let global = flags.contains(&('g' as u16));
 
         // 11. If flags contains "u", let fullUnicode be true.
         // 12. Else, let fullUnicode be false.
-        let unicode = flags.contains('u');
+        let unicode = flags.contains(&('u' as u16));
 
         // 13. Return ! CreateRegExpStringIterator(matcher, S, global, fullUnicode).
         Ok(RegExpStringIterator::create_regexp_string_iterator(
@@ -1234,14 +1229,10 @@ impl RegExp {
         };
 
         // 3. Let S be ? ToString(string).
-        let arg_str = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let lengthS be the number of code unit elements in S.
-        let length_arg_str = arg_str.encode_utf16().count();
+        let length_arg_str = arg_str.len();
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
         let mut replace_value = args.get_or_undefined(1).clone();
@@ -1310,7 +1301,7 @@ impl RegExp {
         }
 
         // 12. Let accumulatedResult be the empty String.
-        let mut accumulated_result = JsString::new("");
+        let mut accumulated_result = vec![];
 
         // 13. Let nextSourcePosition be 0.
         let mut next_source_position = 0;
@@ -1327,7 +1318,7 @@ impl RegExp {
             let matched = result.get("0", context)?.to_string(context)?;
 
             // d. Let matchLength be the number of code units in matched.
-            let match_length = matched.encode_utf16().count();
+            let match_length = matched.len();
 
             // e. Let position be ? ToIntegerOrInfinity(? Get(result, "index")).
             let position = result
@@ -1336,19 +1327,7 @@ impl RegExp {
 
             // f. Set position to the result of clamping position between 0 and lengthS.
             //position = position.
-            let position = match position {
-                IntegerOrInfinity::Integer(i) => {
-                    if i < 0 {
-                        0
-                    } else if i as usize > length_arg_str {
-                        length_arg_str
-                    } else {
-                        i as usize
-                    }
-                }
-                IntegerOrInfinity::PositiveInfinity => length_arg_str,
-                IntegerOrInfinity::NegativeInfinity => 0,
-            };
+            let position = position.clamp_finite(0, length_arg_str as i64) as usize;
 
             // h. Let captures be a new empty List.
             let mut captures = Vec::new();
@@ -1357,7 +1336,7 @@ impl RegExp {
             // i. Repeat, while n ≤ nCaptures,
             for n in 1..=n_captures {
                 // i. Let capN be ? Get(result, ! ToString(𝔽(n))).
-                let mut cap_n = result.get(n.to_string(), context)?;
+                let mut cap_n = result.get(n, context)?;
 
                 // ii. If capN is not undefined, then
                 if !cap_n.is_undefined() {
@@ -1409,8 +1388,8 @@ impl RegExp {
 
                 // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
                 replacement = string::get_substitution(
-                    matched.as_str(),
-                    arg_str.as_str(),
+                    &matched,
+                    &arg_str,
                     position,
                     &captures,
                     &named_captures,
@@ -1427,13 +1406,8 @@ impl RegExp {
                 //    In such cases, the corresponding substitution is ignored.
                 // ii. Set accumulatedResult to the string-concatenation of accumulatedResult,
                 //     the substring of S from nextSourcePosition to position, and replacement.
-                accumulated_result = format!(
-                    "{accumulated_result}{}{replacement}",
-                    arg_str
-                        .get(next_source_position..position)
-                        .expect("index of a regexp match cannot be greater than the input string"),
-                )
-                .into();
+                accumulated_result.extend_from_slice(&arg_str[next_source_position..position]);
+                accumulated_result.extend_from_slice(&replacement);
 
                 // iii. Set nextSourcePosition to position + matchLength.
                 next_source_position = position + match_length;
@@ -1442,18 +1416,11 @@ impl RegExp {
 
         // 15. If nextSourcePosition ≥ lengthS, return accumulatedResult.
         if next_source_position >= length_arg_str {
-            return Ok(accumulated_result.into());
+            return Ok(js_string!(accumulated_result).into());
         }
 
         // 16. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
-        Ok(format!(
-            "{}{}",
-            accumulated_result,
-            arg_str
-                .get(next_source_position..)
-                .expect("next_source_position cannot be greater than the input string")
-        )
-        .into())
+        Ok(js_string!(&accumulated_result[..], &arg_str[next_source_position..]).into())
     }
 
     /// `RegExp.prototype[ @@search ]( string )`
@@ -1482,11 +1449,7 @@ impl RegExp {
         };
 
         // 3. Let S be ? ToString(string).
-        let arg_str = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
         let previous_last_index = rx.get("lastIndex", context)?;
@@ -1543,11 +1506,7 @@ impl RegExp {
         };
 
         // 3. Let S be ? ToString(string).
-        let arg_str = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let C be ? SpeciesConstructor(rx, %RegExp%).
         let constructor = rx.species_constructor(StandardConstructors::regexp, context)?;
@@ -1557,14 +1516,14 @@ impl RegExp {
 
         // 6. If flags contains "u", let unicodeMatching be true.
         // 7. Else, let unicodeMatching be false.
-        let unicode = flags.contains('u');
+        let unicode = flags.contains(&('u' as u16));
 
         // 8. If flags contains "y", let newFlags be flags.
         // 9. Else, let newFlags be the string-concatenation of flags and "y".
-        let new_flags = if flags.contains('y') {
-            flags.to_string()
+        let new_flags = if flags.contains(&('y' as u16)) {
+            flags
         } else {
-            format!("{flags}y")
+            js_string!(&flags, utf16!("y"))
         };
 
         // 10. Let splitter be ? Construct(C, « rx, newFlags »).
@@ -1594,7 +1553,7 @@ impl RegExp {
         }
 
         // 15. Let size be the length of S.
-        let size = arg_str.encode_utf16().count() as u64;
+        let size = arg_str.len() as u64;
 
         // 16. If size is 0, then
         if size == 0 {
@@ -1642,13 +1601,7 @@ impl RegExp {
                     q = advance_string_index(&arg_str, q, unicode);
                 } else {
                     // 1. Let T be the substring of S from p to q.
-                    let arg_str_substring = String::from_utf16_lossy(
-                        &arg_str
-                            .encode_utf16()
-                            .skip(p as usize)
-                            .take((q - p) as usize)
-                            .collect::<Vec<u16>>(),
-                    );
+                    let arg_str_substring = js_string!(&arg_str[p as usize..q as usize]);
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
                     a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -1669,17 +1622,13 @@ impl RegExp {
                     let mut number_of_captures = result.length_of_array_like(context)? as isize;
 
                     // 7. Set numberOfCaptures to max(numberOfCaptures - 1, 0).
-                    number_of_captures = if number_of_captures == 0 {
-                        0
-                    } else {
-                        std::cmp::max(number_of_captures - 1, 0)
-                    };
+                    number_of_captures = std::cmp::max(number_of_captures - 1, 0);
 
                     // 8. Let i be 1.
                     // 9. Repeat, while i ≤ numberOfCaptures,
                     for i in 1..=number_of_captures {
                         // a. Let nextCapture be ? Get(z, ! ToString(𝔽(i))).
-                        let next_capture = result.get(i.to_string(), context)?;
+                        let next_capture = result.get(i, context)?;
 
                         // b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).
                         a.create_data_property_or_throw(length_a, next_capture, context)
@@ -1703,13 +1652,7 @@ impl RegExp {
         }
 
         // 20. Let T be the substring of S from p to size.
-        let arg_str_substring = String::from_utf16_lossy(
-            &arg_str
-                .encode_utf16()
-                .skip(p as usize)
-                .take((size - p) as usize)
-                .collect::<Vec<u16>>(),
-        );
+        let arg_str_substring = js_string!(&arg_str[p as usize..size as usize]);
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
         a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -1737,7 +1680,7 @@ fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
     }
 
     // 3. Let length be the number of code units in S.
-    let length = s.encode_utf16().count() as u64;
+    let length = s.len() as u64;
 
     // 4. If index + 1 ≥ length, return index + 1.
     if index + 1 > length {
@@ -1745,8 +1688,7 @@ fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
     }
 
     // 5. Let cp be ! CodePointAt(S, index).
-    let cp = crate::builtins::string::code_point_at(s, index);
+    let code_point = s.code_point_at(index as usize);
 
-    // 6. Return index + cp.[[CodeUnitCount]].
-    index + u64::from(cp.code_unit_count)
+    index + code_point.code_unit_count() as u64
 }
