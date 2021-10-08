@@ -89,9 +89,9 @@
     container.append(
       $('<a class="card-link" href="#"></a>')
         .append($('<i class="bi-info-square"></i>'))
-        .click(() => {
+        .click((e) => {
           let data = latest[tag];
-          showData(data);
+          showData(data, e.target);
         })
     );
 
@@ -99,8 +99,10 @@
   }
 
   // Shows the full test data.
-  function showData(data) {
+  function showData(data, infoIcon) {
     let infoContainer = $("#info");
+    $(infoIcon).attr("class", "spinner-border text-primary small")
+    
     setTimeout(
       function () {
         infoContainer.empty();
@@ -156,6 +158,7 @@
           addSuite(infoContainer, suite, "info", "test/" + suite.n, data.u);
         }
         infoContainer.collapse("show");
+        $(infoIcon).attr("class", "bi-info-square")
       },
       infoContainer.hasClass("show") ? 500 : 0
     );
