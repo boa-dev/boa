@@ -4,7 +4,6 @@ flag:async
 
 // Non-implemented features:
 feature:json-modules
-feature:DataView
 feature:SharedArrayBuffer
 feature:resizable-arraybuffer
 feature:Temporal

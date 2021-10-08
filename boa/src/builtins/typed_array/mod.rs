@@ -3353,6 +3353,13 @@ impl TypedArrayName {
             TypedArrayName::Float64Array => "Float64Array",
         }
     }
+
+    pub(crate) fn is_big_int_element_type(&self) -> bool {
+        matches!(
+            self,
+            TypedArrayName::BigUint64Array | TypedArrayName::BigInt64Array
+        )
+    }
 }
 
 typed_array!(Int8Array, "Int8Array", typed_int8_array_object);

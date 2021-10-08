@@ -110,6 +110,7 @@ pub struct StandardObjects {
     typed_float32_array: StandardConstructor,
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
+    data_view: StandardConstructor,
 }
 
 impl Default for StandardObjects {
@@ -156,6 +157,7 @@ impl Default for StandardObjects {
             typed_float32_array: StandardConstructor::default(),
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
+            data_view: StandardConstructor::default(),
         }
     }
 }
@@ -319,6 +321,11 @@ impl StandardObjects {
     #[inline]
     pub fn array_buffer_object(&self) -> &StandardConstructor {
         &self.array_buffer
+    }
+
+    #[inline]
+    pub fn data_view_object(&self) -> &StandardConstructor {
+        &self.data_view
     }
 }
 
