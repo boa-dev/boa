@@ -29,7 +29,7 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationPattern,  DeclarationList,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
         FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
@@ -401,84 +401,38 @@ where
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
-    // name: Box<str>,
-    // init: Option<Node>,
-    declaration: Declaration,
+    name: Box<str>,
+    init: Option<Node>,
     is_rest_param: bool,
-
 }
 
 impl FormalParameter {
     /// Creates a new formal parameter.
-    pub(in crate::syntax) fn new<D>(declaration: D, is_rest_param: bool) -> Self
+    pub(in crate::syntax) fn new<N>(name: N, init: Option<Node>, is_rest_param: bool) -> Self
     where
-        D: Into<Declaration>,
+        N: Into<Box<str>>,
     {
         Self {
-            declaration: declaration.into(),
+            name: name.into(),
+            init,
             is_rest_param,
         }
     }
 
     /// Gets the name of the formal parameter.
-    pub fn name(&self) -> Vec<&str> {
-        match &self.declaration
-        {
-            Declaration::Identifier{ident, ..} => vec![ident.as_ref()],
-            Declaration::Pattern(pattern) => {
-                match pattern {
-                    DeclarationPattern::Object(object_pattern) => object_pattern.idents(),
-                    
-                    DeclarationPattern::Array(array_pattern) => array_pattern.idents(),
-                    
-                }
-            }
-        }
-    }
-    
-    /// Get the declaration of the formal parameter
-    pub fn declaration(&self) -> Declaration {
-        self.declaration.clone()
-        // recieved as reference, check if needs to be returned as reference or was it recieved in the preffered format
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     /// Gets the initialization node of the formal parameter, if any.
     pub fn init(&self) -> Option<&Node> {
-        self.declaration.init()
-        // recieved as reference, check if needs to be returned as reference or was it recieved in the preffered format
+        self.init.as_ref()
     }
 
     /// Gets wether the parameter is a rest parameter.
     pub fn is_rest_param(&self) -> bool {
         self.is_rest_param
     }
-
-    pub fn run(
-        &self,
-        init: Option<JsValue>,
-        context: &mut Context,
-    ) -> JsResult<Vec<(Box<str>, JsValue)>> {
-        match &self.declaration {
-            Declaration::Identifier{ident, ..} => {
-                
-                Ok(vec![(ident.as_ref().to_string().into_boxed_str(), init.unwrap())])
-            }
-
-            Declaration::Pattern(pattern) => {
-                match &pattern {
-                    DeclarationPattern::Object(object_pattern) => {
-                        object_pattern.run(init, context)
-                    }
-
-                    DeclarationPattern::Array(array_pattern) => {
-                        array_pattern.run(init, context)
-                    }
-                }
-            }
-        }
-    }
-
-
 }
 
 impl Display for FormalParameter {
@@ -486,7 +440,10 @@ impl Display for FormalParameter {
         if self.is_rest_param {
             write!(f, "...")?;
         }
-        write!(f, "{:?}", self.declaration)?;
+        write!(f, "{}", self.name)?;
+        if let Some(n) = self.init.as_ref() {
+            write!(f, " = {}", n)?;
+        }
         Ok(())
     }
 }

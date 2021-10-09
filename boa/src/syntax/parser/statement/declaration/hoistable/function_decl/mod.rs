@@ -73,17 +73,14 @@ where
         {
             let lexically_declared_names = body.lexically_declared_names();
             for param in params.as_ref() {
-                
-                for param_name in param.name().iter() {
-                    if lexically_declared_names.contains(param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                            match cursor.peek(0)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
+                if lexically_declared_names.contains(param.name()) {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        format!("Redeclaration of formal parameter `{}`", param.name()).into(),
+                        match cursor.peek(0)? {
+                            Some(token) => token.span().end(),
+                            None => Position::new(1, 1),
+                        },
+                    )));
                 }
             }
         }

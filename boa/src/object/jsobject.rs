@@ -232,19 +232,13 @@ impl JsObject {
                         let mut is_simple_parameter_list = true;
 
                         for param in params.iter() {
-                            
                             has_parameter_expressions =
                                 has_parameter_expressions || param.init().is_some();
-                        
-                            for param_name in param.name().iter(){
-                                arguments_in_parameter_names =
-                                   arguments_in_parameter_names || param_name.clone() == "arguments";
-                            }
-                        
+                            arguments_in_parameter_names =
+                                arguments_in_parameter_names || param.name() == "arguments";
                             is_simple_parameter_list = is_simple_parameter_list
                                 && !param.is_rest_param()
                                 && param.init().is_none()
-                            
                         }
 
                         // Turn local_env into Environment so it can be cloned
@@ -265,12 +259,10 @@ impl JsObject {
                             // Add arguments object
                             let arguments_obj =
                                 if context.strict() || body.strict() || !is_simple_parameter_list {
-                                    println!("this is runninh 1");
                                     Arguments::create_unmapped_arguments_object(args, context)
                                 } else {
-                                    println!("this is runninh");
                                     Arguments::create_mapped_arguments_object(
-                                        self, params.iter().cloned().collect(), args, &local_env, context,
+                                        self, params, args, &local_env, context,
                                     )
                                 };
                             local_env.create_mutable_binding("arguments", false, true, context)?;

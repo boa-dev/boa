@@ -339,7 +339,7 @@ fn spread_in_arrow_function() {
         s,
         vec![
             ArrowFunctionDecl::new::<Box<[FormalParameter]>, StatementList>(
-                Box::new([FormalParameter::new(Declaration::new_with_identifier("b", None), true)]),
+                Box::new([FormalParameter::new("b", None, true)]),
                 vec![Identifier::from("b").into()].into(),
             )
             .into(),

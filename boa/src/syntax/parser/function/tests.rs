@@ -14,7 +14,7 @@ fn check_basic() {
         "function foo(a) { return a; }",
         vec![FunctionDecl::new(
             Box::from("foo"),
-            vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+            vec![FormalParameter::new("a", None, false)],
             vec![Return::new(Identifier::from("a"), None).into()],
         )
         .into()],
@@ -38,7 +38,7 @@ fn check_basic_semicolon_insertion() {
         "function foo(a) { return a }",
         vec![FunctionDecl::new(
             Box::from("foo"),
-            vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+            vec![FormalParameter::new("a", None, false)],
             vec![Return::new(Identifier::from("a"), None).into()],
         )
         .into()],
@@ -52,7 +52,7 @@ fn check_empty_return() {
         "function foo(a) { return; }",
         vec![FunctionDecl::new(
             Box::from("foo"),
-            vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+            vec![FormalParameter::new("a", None, false)],
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
         )
         .into()],
@@ -66,7 +66,7 @@ fn check_empty_return_semicolon_insertion() {
         "function foo(a) { return }",
         vec![FunctionDecl::new(
             Box::from("foo"),
-            vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+            vec![FormalParameter::new("a", None, false)],
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
         )
         .into()],
@@ -81,8 +81,8 @@ fn check_rest_operator() {
         vec![FunctionDecl::new(
             Box::from("foo"),
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), true),
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("b", None, true),
             ],
             vec![],
         )
@@ -95,7 +95,7 @@ fn check_rest_operator() {
 fn check_arrow_only_rest() {
     check_parser(
         "(...a) => {}",
-        vec![ArrowFunctionDecl::new(vec![FormalParameter::new(Declaration::new_with_identifier("a", None), true)], vec![]).into()],
+        vec![ArrowFunctionDecl::new(vec![FormalParameter::new("a", None, true)], vec![]).into()],
     );
 }
 
@@ -106,9 +106,9 @@ fn check_arrow_rest() {
         "(a, b, ...c) => {}",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("c", None), true),
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("b", None, false),
+                FormalParameter::new("c", None, true),
             ],
             vec![],
         )
@@ -123,8 +123,8 @@ fn check_arrow() {
         "(a, b) => { return a + b; }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("b", None, false),
             ],
             vec![Return::new(
                 BinOp::new(NumOp::Add, Identifier::from("a"), Identifier::from("b")),
@@ -143,8 +143,8 @@ fn check_arrow_semicolon_insertion() {
         "(a, b) => { return a + b }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("b", None, false),
             ],
             vec![Return::new(
                 BinOp::new(NumOp::Add, Identifier::from("a"), Identifier::from("b")),
@@ -163,8 +163,8 @@ fn check_arrow_epty_return() {
         "(a, b) => { return; }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("b", None, false),
             ],
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
@@ -179,8 +179,8 @@ fn check_arrow_empty_return_semicolon_insertion() {
         "(a, b) => { return }",
         vec![ArrowFunctionDecl::new(
             vec![
-                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("b", None, false),
             ],
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
@@ -197,7 +197,7 @@ fn check_arrow_assignment() {
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
-                        vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+                        vec![FormalParameter::new("a", None, false)],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
                             None,
@@ -222,7 +222,7 @@ fn check_arrow_assignment_nobrackets() {
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
-                        vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+                        vec![FormalParameter::new("a", None, false)],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
                             None,
@@ -247,7 +247,7 @@ fn check_arrow_assignment_noparenthesis() {
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
-                        vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+                        vec![FormalParameter::new("a", None, false)],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
                             None,
@@ -272,7 +272,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
-                        vec![FormalParameter::new(Declaration::new_with_identifier("a", None), false)],
+                        vec![FormalParameter::new("a", None, false)],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
                             None,
@@ -298,8 +298,8 @@ fn check_arrow_assignment_2arg() {
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
-                            FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                            FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
@@ -326,8 +326,8 @@ fn check_arrow_assignment_2arg_nobrackets() {
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
-                            FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                            FormalParameter::new(Declaration::new_with_identifier("b", None), false),
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
@@ -354,9 +354,9 @@ fn check_arrow_assignment_3arg() {
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
-                            FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                            FormalParameter::new(Declaration::new_with_identifier("b", None), false),
-                            FormalParameter::new(Declaration::new_with_identifier("c", None), false),
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
+                            FormalParameter::new("c", None, false),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
@@ -383,9 +383,9 @@ fn check_arrow_assignment_3arg_nobrackets() {
                 Some(
                     ArrowFunctionDecl::new(
                         vec![
-                            FormalParameter::new(Declaration::new_with_identifier("a", None), false),
-                            FormalParameter::new(Declaration::new_with_identifier("b", None), false),
-                            FormalParameter::new(Declaration::new_with_identifier("c", None), false),
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
+                            FormalParameter::new("c", None, false),
                         ],
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::from("a").into()),
