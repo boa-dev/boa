@@ -372,9 +372,9 @@ impl ByteCompiler {
                     UnaryOp::DecrementPost => todo!(),
                     UnaryOp::Delete => match unary.target() {
                         Node::GetConstField(ref get_const_field) => {
-                            self.emit_push_literal(Literal::String(get_const_field.field().into()));
+                            let index = self.get_or_insert_name(get_const_field.field());
                             self.compile_expr(get_const_field.obj(), true);
-                            self.emit(Opcode::DeletePropertyByValue, &[]);
+                            self.emit(Opcode::DeletePropertyByName, &[index]);
                             None
                         }
                         Node::GetField(ref get_field) => {

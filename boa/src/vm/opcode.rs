@@ -442,6 +442,15 @@ pub enum Opcode {
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
 
+    /// Deletes a property by name of an object.
+    ///
+    /// Like `delete object.key.`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object **=>**
+    DeletePropertyByName,
+
     /// Deletes a property by value of an object.
     ///
     /// Like `delete object[key]`
@@ -614,6 +623,7 @@ impl Opcode {
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
+            Opcode::DeletePropertyByName => "DeletePropertyByName",
             Opcode::DeletePropertyByValue => "DeletePropertyByValue",
             Opcode::Jump => "Jump",
             Opcode::JumpIfFalse => "JumpIfFalse",
