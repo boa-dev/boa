@@ -17,7 +17,7 @@ use crate::{
         parser::{
             expression::Initializer,
             statement::{BindingIdentifier, StatementList},
-            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -41,26 +41,9 @@ pub(in crate::syntax::parser) struct FormalParameterList {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameters
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct FormalParameters {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct FormalParameters<const YIELD: bool, const AWAIT: bool>;
 
-impl FormalParameters {
-    /// Creates a new `FormalParameters` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for FormalParameters
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for FormalParameters<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -92,9 +75,9 @@ where
             let next_param = match cursor.peek(0)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
-                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+                    BindingRestElement::<YIELD, AWAIT>.parse(cursor)?
                 }
-                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                _ => FormalParameter::<YIELD, AWAIT>.parse(cursor)?,
             };
 
             if next_param.is_rest_param() || next_param.init().is_some() {
@@ -142,43 +125,20 @@ where
 
 /// Rest parameter parsing.
 ///
-/// More information:
-///  - [MDN documentation][mdn]
-///  - [ECMAScript specification][spec]
-///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
-/// [spec]: https://tc39.es/ecma262/#prod-FunctionRestParameter
-type FunctionRestParameter = BindingRestElement;
-
-/// Rest parameter parsing.
+/// It is equivalent to a `FunctionRestParameter`.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
-///  - [ECMAScript specification][spec]
+///  - [ECMAScript specification][spec_bind]
+/// - [ECMAScript specification][spec_func]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
-/// [spec]: https://tc39.es/ecma262/#prod-BindingRestElement
+/// [spec_bind]: https://tc39.es/ecma262/#prod-BindingRestElement
+/// [spec_func]: https://tc39.es/ecma262/#prod-FunctionRestParameter
 #[derive(Debug, Clone, Copy)]
-struct BindingRestElement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+struct BindingRestElement<const YIELD: bool, const AWAIT: bool>;
 
-impl BindingRestElement {
-    /// Creates a new `BindingRestElement` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for BindingRestElement
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for BindingRestElement<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -188,7 +148,7 @@ where
         let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
         cursor.expect(Punctuator::Spread, "rest parameter")?;
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let param = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
         // TODO: BindingPattern
 
         Ok(Self::Output::new(param, None, true))
@@ -204,26 +164,9 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct FormalParameter {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct FormalParameter<const YIELD: bool, const AWAIT: bool>;
 
-impl FormalParameter {
-    /// Creates a new `FormalParameter` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for FormalParameter
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for FormalParameter<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -234,12 +177,12 @@ where
 
         // TODO: BindingPattern
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let param = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             // Check that this is an initilizer before attempting parse.
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(Initializer::<true, YIELD, AWAIT>.parse(cursor)?)
             } else {
                 None
             }
@@ -251,44 +194,23 @@ where
     }
 }
 
-/// A `FunctionBody` is equivalent to a `FunctionStatementList`.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
-pub(in crate::syntax::parser) type FunctionBody = FunctionStatementList;
-
 /// The possible TokenKind which indicate the end of a function statement.
 const FUNCTION_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
 
-/// A function statement list
+/// A function statement list.
+///
+/// A `FunctionStatementList` is equivalent to a `FunctionBody`.
 ///
 /// More information:
-///  - [ECMAScript specification][spec]
+///  - [ECMAScript specification][spec_list]
+/// - [ECMAScript specification][spec_body]
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-FunctionStatementList
+/// [spec_list]: https://tc39.es/ecma262/#prod-FunctionStatementList
+/// [spec_body]: https://tc39.es/ecma262/#prod-FunctionBody
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct FunctionStatementList {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct FunctionStatementList<const YIELD: bool, const AWAIT: bool>;
 
-impl FunctionStatementList {
-    /// Creates a new `FunctionStatementList` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for FunctionStatementList
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for FunctionStatementList<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -313,14 +235,8 @@ where
             }
         }
 
-        let statement_list = StatementList::new(
-            self.allow_yield,
-            self.allow_await,
-            true,
-            true,
-            &FUNCTION_BREAK_TOKENS,
-        )
-        .parse(cursor);
+        let statement_list =
+            StatementList::<YIELD, AWAIT, true, true>::new(&FUNCTION_BREAK_TOKENS).parse(cursor);
 
         // Reset strict mode back to the global scope.
         cursor.set_strict_mode(global_strict_mode);

@@ -12,7 +12,7 @@ use super::unary::UnaryExpression;
 use crate::syntax::{
     ast::{node::AwaitExpr, Keyword},
     lexer::TokenKind,
-    parser::{AllowYield, Cursor, ParseError, TokenParser},
+    parser::{Cursor, ParseError, TokenParser},
 };
 use std::io::Read;
 
@@ -25,23 +25,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct AwaitExpression {
-    allow_yield: AllowYield,
-}
+pub(in crate::syntax::parser) struct AwaitExpression<const YIELD: bool>;
 
-impl AwaitExpression {
-    /// Creates a new `AwaitExpression` parser.
-    pub(in crate::syntax::parser) fn new<Y>(allow_yield: Y) -> Self
-    where
-        Y: Into<AllowYield>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for AwaitExpression
+impl<R, const YIELD: bool> TokenParser<R> for AwaitExpression<YIELD>
 where
     R: Read,
 {
@@ -52,7 +38,7 @@ where
             TokenKind::Keyword(Keyword::Await),
             "Await expression parsing",
         )?;
-        let expr = UnaryExpression::new(self.allow_yield, true).parse(cursor)?;
+        let expr = UnaryExpression::<YIELD, true>.parse(cursor)?;
         Ok(expr.into())
     }
 }

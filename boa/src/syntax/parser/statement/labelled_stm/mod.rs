@@ -7,15 +7,14 @@ use crate::{
         parser::{
             cursor::Cursor,
             error::ParseError,
-            statement::{
-                declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn,
-                LabelIdentifier, Statement,
-            },
-            AllowYield, TokenParser,
+            statement::{declaration::hoistable::FunctionDeclaration, Statement},
+            TokenParser,
         },
     },
     BoaProfiler,
 };
+
+use super::BindingIdentifier;
 /// Labelled Statement Parsing
 ///
 /// More information
@@ -25,28 +24,10 @@ use crate::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label
 /// [spec]: https://tc39.es/ecma262/#sec-labelled-statements
 #[derive(Debug, Clone, Copy)]
-pub(super) struct LabelledStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct LabelledStatement<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl LabelledStatement {
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for LabelledStatement
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for LabelledStatement<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -55,7 +36,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Label", "Parsing");
 
-        let name = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
 
         cursor.expect(Punctuator::Colon, "Labelled Statement")?;
 
@@ -72,11 +53,11 @@ where
                 ))
             }
             TokenKind::Keyword(Keyword::Function) => {
-                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                FunctionDeclaration::<YIELD, AWAIT, false>
                 .parse(cursor)?
                 .into()
             }
-            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?
+            _ => Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?
         };
 
         set_label_for_node(&mut node, name);

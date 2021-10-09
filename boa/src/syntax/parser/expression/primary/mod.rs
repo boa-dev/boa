@@ -31,8 +31,8 @@ use crate::{
         },
         lexer::{token::Numeric, InputElement, TokenKind},
         parser::{
-            expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor,
-            ParseError, ParseResult, TokenParser,
+            expression::primary::template::TemplateLiteral, Cursor, ParseError, ParseResult,
+            TokenParser,
         },
     },
 };
@@ -49,26 +49,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Primary_expressions
 /// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct PrimaryExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct PrimaryExpression<const YIELD: bool, const AWAIT: bool>;
 
-impl PrimaryExpression {
-    /// Creates a new `PrimaryExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for PrimaryExpression
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for PrimaryExpression<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -89,39 +72,36 @@ where
                     FunctionExpression.parse(cursor).map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
+            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::<YIELD>
                 .parse(cursor)
                 .map(Node::from),
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
-                let expr =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                let expr = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.set_goal(InputElement::RegExp);
-                ArrayLiteral::new(self.allow_yield, self.allow_await)
+                ArrayLiteral::<YIELD, AWAIT>
                     .parse(cursor)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 cursor.set_goal(InputElement::RegExp);
-                Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)?
-                    .into())
+                Ok(ObjectLiteral::<YIELD, AWAIT>.parse(cursor)?.into())
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()),
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+            TokenKind::Keyword(Keyword::Yield) if YIELD => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     tok.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+            TokenKind::Keyword(Keyword::Yield) if !YIELD => {
                 if cursor.strict_mode() {
                     return Err(ParseError::general(
                         "Unexpected strict mode reserved word",
@@ -130,14 +110,14 @@ where
                 }
                 Ok(Identifier::from("yield").into())
             }
-            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+            TokenKind::Keyword(Keyword::Await) if AWAIT => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     tok.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+            TokenKind::Keyword(Keyword::Await) if !AWAIT => {
                 if cursor.strict_mode() {
                     return Err(ParseError::general(
                         "Unexpected strict mode reserved word",
@@ -178,9 +158,7 @@ where
                     Err(ParseError::unexpected(tok, "regular expression literal"))
                 }
             }
-            TokenKind::TemplateMiddle(template_string) => TemplateLiteral::new(
-                self.allow_yield,
-                self.allow_await,
+            TokenKind::TemplateMiddle(template_string) => TemplateLiteral::<YIELD, AWAIT>::new(
                 tok.span().start(),
                 template_string
                     .to_owned_cooked()

@@ -9,7 +9,7 @@ use crate::{
             statement::{
                 block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern,
             },
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -27,29 +27,10 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 /// [spec]: https://tc39.es/ecma262/#prod-Catch
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Catch {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct Catch<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl Catch {
-    /// Creates a new `Catch` block parser.
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for Catch
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for Catch<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -59,8 +40,7 @@ where
         let _timer = BoaProfiler::global().start_event("Catch", "Parsing");
         cursor.expect(Keyword::Catch, "try statement")?;
         let catch_param = if cursor.next_if(Punctuator::OpenParen)?.is_some() {
-            let catch_param =
-                CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let catch_param = CatchParameter::<YIELD, AWAIT>.parse(cursor)?;
 
             cursor.expect(Punctuator::CloseParen, "catch in try statement")?;
             Some(catch_param)
@@ -88,8 +68,7 @@ where
         }
 
         // Catch block
-        let catch_block =
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let catch_block = Block::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
         // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the LexicallyDeclaredNames of Block.
         // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the VarDeclaredNames of Block.
@@ -130,26 +109,9 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 /// [spec]: https://tc39.es/ecma262/#prod-CatchParameter
 #[derive(Debug, Clone, Copy)]
-pub(super) struct CatchParameter {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct CatchParameter<const YIELD: bool, const AWAIT: bool>;
 
-impl CatchParameter {
-    /// Creates a new `CatchParameter` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for CatchParameter
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for CatchParameter<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -160,18 +122,16 @@ where
 
         match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let pat = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                let pat = ObjectBindingPattern::<true, YIELD, AWAIT>.parse(cursor)?;
 
                 Ok(node::Declaration::new_with_object_pattern(pat, None))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                let pat = ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                let pat = ArrayBindingPattern::<true, YIELD, AWAIT>.parse(cursor)?;
                 Ok(node::Declaration::new_with_array_pattern(pat, None))
             }
             TokenKind::Identifier(_) => {
-                let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                let ident = BindingIdentifier::<YIELD, AWAIT>
                     .parse(cursor)
                     .map(Identifier::from)?;
                 Ok(node::Declaration::new_with_identifier(ident, None))

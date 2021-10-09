@@ -16,7 +16,7 @@ use crate::{
         lexer::TokenKind,
         parser::cursor::Cursor,
         parser::expression::Expression,
-        parser::{AllowAwait, AllowYield, ParseError, TokenParser},
+        parser::{ParseError, TokenParser},
     },
 };
 use std::io::Read;
@@ -30,30 +30,22 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#prod-TemplateLiteral
 #[derive(Debug, Clone)]
-pub(super) struct TemplateLiteral {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
+pub(super) struct TemplateLiteral<const YIELD: bool, const AWAIT: bool> {
     start: Position,
     first: String,
 }
 
-impl TemplateLiteral {
+impl<const YIELD: bool, const AWAIT: bool> TemplateLiteral<YIELD, AWAIT> {
     /// Creates a new `TemplateLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, first: &str) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
+    pub(super) fn new(start: Position, first: &str) -> Self {
         Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
             start,
             first: first.to_owned(),
         }
     }
 }
 
-impl<R> TokenParser<R> for TemplateLiteral
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for TemplateLiteral<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -64,9 +56,7 @@ where
 
         let mut elements = vec![
             TemplateElement::String(self.first.into_boxed_str()),
-            TemplateElement::Expr(
-                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
-            ),
+            TemplateElement::Expr(Expression::<true, YIELD, AWAIT>.parse(cursor)?),
         ];
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
@@ -80,7 +70,7 @@ where
 
                     elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+                        Expression::<true, YIELD, AWAIT>.parse(cursor)?,
                     ));
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),

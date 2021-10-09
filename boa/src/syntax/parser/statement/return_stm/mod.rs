@@ -8,7 +8,7 @@ use crate::{
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Expression,
-            AllowAwait, AllowYield, ParseError, TokenParser,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -25,26 +25,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ReturnStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct ReturnStatement<const YIELD: bool, const AWAIT: bool>;
 
-impl ReturnStatement {
-    /// Creates a new `ReturnStatement` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ReturnStatement
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for ReturnStatement<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -65,7 +48,7 @@ where
             return Ok(Return::new::<Node, Option<_>, Option<_>>(None, None));
         }
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
         cursor.expect_semicolon("return statement")?;
 

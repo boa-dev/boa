@@ -1,10 +1,7 @@
 use crate::{
     syntax::{
         ast::{node, Keyword},
-        parser::{
-            statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-            TokenParser,
-        },
+        parser::{statement::block::Block, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -20,29 +17,10 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 /// [spec]: https://tc39.es/ecma262/#prod-Finally
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Finally {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct Finally<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl Finally {
-    /// Creates a new `Finally` block parser.
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for Finally
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for Finally<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -51,10 +29,6 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Finally", "Parsing");
         cursor.expect(Keyword::Finally, "try statement")?;
-        Ok(
-            Block::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor)?
-                .into(),
-        )
+        Ok(Block::<YIELD, AWAIT, RETURN>.parse(cursor)?.into())
     }
 }

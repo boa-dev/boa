@@ -10,21 +10,21 @@
 #[cfg(test)]
 mod tests;
 
-use super::LabelIdentifier;
-
 use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Break, Keyword, Punctuator},
         parser::{
             cursor::{Cursor, SemicolonResult},
-            AllowAwait, AllowYield, ParseError, TokenParser,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
 };
 
 use std::io::Read;
+
+use super::BindingIdentifier;
 
 /// Break statement parsing
 ///
@@ -35,26 +35,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct BreakStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct BreakStatement<const YIELD: bool, const AWAIT: bool>;
 
-impl BreakStatement {
-    /// Creates a new `BreakStatement` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for BreakStatement
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for BreakStatement<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -74,7 +57,7 @@ where
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let label = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
             cursor.expect_semicolon("break statement")?;
 
             Some(label)

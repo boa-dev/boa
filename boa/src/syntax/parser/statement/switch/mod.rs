@@ -6,8 +6,7 @@ use crate::{
         ast::{node, node::Switch, Keyword, Punctuator},
         lexer::TokenKind,
         parser::{
-            expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            expression::Expression, statement::StatementList, Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -31,29 +30,10 @@ const CASE_BREAK_TOKENS: [TokenKind; 3] = [
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct SwitchStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct SwitchStatement<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl SwitchStatement {
-    /// Creates a new `SwitchStatement` parser.
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for SwitchStatement
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for SwitchStatement<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -64,12 +44,11 @@ where
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
-        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let condition = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "switch statement")?;
 
-        let (cases, default) =
-            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let (cases, default) = CaseBlock::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
         Ok(Switch::new(condition, cases, default))
     }
@@ -82,29 +61,10 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CaseBlock
 #[derive(Debug, Clone, Copy)]
-struct CaseBlock {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+struct CaseBlock<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl CaseBlock {
-    /// Creates a new `CaseBlock` parser.
-    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for CaseBlock
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for CaseBlock<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -120,19 +80,13 @@ where
             match cursor.next()? {
                 Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
                     // Case statement.
-                    let cond =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let cond = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
                     cursor.expect(Punctuator::Colon, "switch case block")?;
 
-                    let statement_list = StatementList::new(
-                        self.allow_yield,
-                        self.allow_await,
-                        self.allow_return,
-                        false,
-                        &CASE_BREAK_TOKENS,
-                    )
-                    .parse(cursor)?;
+                    let statement_list =
+                        StatementList::<YIELD, AWAIT, RETURN, false>::new(&CASE_BREAK_TOKENS)
+                            .parse(cursor)?;
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
@@ -147,14 +101,9 @@ where
 
                     cursor.expect(Punctuator::Colon, "switch default block")?;
 
-                    let statement_list = StatementList::new(
-                        self.allow_yield,
-                        self.allow_await,
-                        self.allow_return,
-                        false,
-                        &CASE_BREAK_TOKENS,
-                    )
-                    .parse(cursor)?;
+                    let statement_list =
+                        StatementList::<YIELD, AWAIT, RETURN, false>::new(&CASE_BREAK_TOKENS)
+                            .parse(cursor)?;
 
                     default = Some(statement_list);
                 }

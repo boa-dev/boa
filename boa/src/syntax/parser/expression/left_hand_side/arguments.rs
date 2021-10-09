@@ -12,10 +12,7 @@ use crate::{
     syntax::{
         ast::{node::Spread, Node, Punctuator},
         lexer::InputElement,
-        parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            TokenParser,
-        },
+        parser::{expression::AssignmentExpression, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -31,26 +28,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 /// [spec]: https://tc39.es/ecma262/#prod-Arguments
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::expression) struct Arguments {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser::expression) struct Arguments<const YIELD: bool, const AWAIT: bool>;
 
-impl Arguments {
-    /// Creates a new `Arguments` parser.
-    pub(in crate::syntax::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for Arguments
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for Arguments<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -96,18 +76,11 @@ where
 
             if cursor.next_if(Punctuator::Spread)?.is_some() {
                 args.push(
-                    Spread::new(
-                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor)?,
-                    )
-                    .into(),
+                    Spread::new(AssignmentExpression::<true, YIELD, AWAIT>.parse(cursor)?).into(),
                 );
             } else {
                 cursor.set_goal(InputElement::RegExp);
-                args.push(
-                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
-                );
+                args.push(AssignmentExpression::<true, YIELD, AWAIT>.parse(cursor)?);
             }
         }
         Ok(args.into_boxed_slice())

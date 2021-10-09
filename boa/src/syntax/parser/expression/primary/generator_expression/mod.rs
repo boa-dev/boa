@@ -15,7 +15,7 @@ use crate::{
         ast::{node::GeneratorExpr, Keyword, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
-            function::{FormalParameters, FunctionBody},
+            function::{FormalParameters, FunctionStatementList},
             statement::BindingIdentifier,
             Cursor, ParseError, TokenParser,
         },
@@ -55,7 +55,7 @@ where
                 TokenKind::Identifier(_)
                 | TokenKind::Keyword(Keyword::Yield)
                 | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(true, false).parse(cursor)?)
+                    Some(BindingIdentifier::<true, false>.parse(cursor)?)
                 }
                 _ => None,
             }
@@ -82,12 +82,12 @@ where
             .span()
             .end();
 
-        let params = FormalParameters::new(true, false).parse(cursor)?;
+        let params = FormalParameters::<true, false>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "generator expression")?;
         cursor.expect(Punctuator::OpenBlock, "generator expression")?;
 
-        let body = FunctionBody::new(true, false).parse(cursor)?;
+        let body = FunctionStatementList::<true, false>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "generator expression")?;
 

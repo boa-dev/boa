@@ -21,7 +21,7 @@ use crate::{
             node::{Assign, BinOp, Node},
             Keyword, Punctuator,
         },
-        parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+        parser::{Cursor, ParseError, ParseResult, TokenParser},
     },
     BoaProfiler,
 };
@@ -48,33 +48,14 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 /// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct AssignmentExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct AssignmentExpression<
+    const IN: bool,
+    const YIELD: bool,
+    const AWAIT: bool,
+>;
 
-impl AssignmentExpression {
-    /// Creates a new `AssignmentExpression` parser.
-    pub(in crate::syntax::parser) fn new<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for AssignmentExpression
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for AssignmentExpression<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -86,8 +67,8 @@ where
 
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // [+Yield]YieldExpression[?In, ?Await]
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
-                return YieldExpression::new(self.allow_in, self.allow_await).parse(cursor)
+            TokenKind::Keyword(Keyword::Yield) if YIELD => {
+                return YieldExpression::<IN, AWAIT>.parse(cursor)
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::Identifier(_)
@@ -95,13 +76,9 @@ where
             | TokenKind::Keyword(Keyword::Await) => {
                 if let Ok(tok) = cursor.peek_expect_no_lineterminator(1, "assignment expression") {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                        return ArrowFunction::new(
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor)
-                        .map(Node::ArrowFunctionDecl);
+                        return ArrowFunction::<IN, YIELD, AWAIT>
+                            .parse(cursor)
+                            .map(Node::ArrowFunctionDecl);
                     }
                 }
             }
@@ -114,37 +91,25 @@ where
                             // otherwise it is an expression of the form (b).
                             if let Some(t) = cursor.peek(2)? {
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                                    return ArrowFunction::new(
-                                        self.allow_in,
-                                        self.allow_yield,
-                                        self.allow_await,
-                                    )
-                                    .parse(cursor)
-                                    .map(Node::ArrowFunctionDecl);
+                                    return ArrowFunction::<IN, YIELD, AWAIT>
+                                        .parse(cursor)
+                                        .map(Node::ArrowFunctionDecl);
                                 }
                             }
                         }
                         TokenKind::Punctuator(Punctuator::Spread) => {
-                            return ArrowFunction::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)
-                            .map(Node::ArrowFunctionDecl);
+                            return ArrowFunction::<IN, YIELD, AWAIT>
+                                .parse(cursor)
+                                .map(Node::ArrowFunctionDecl);
                         }
                         TokenKind::Identifier(_) => {
                             if let Some(t) = cursor.peek(2)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
-                                        return ArrowFunction::new(
-                                            self.allow_in,
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor)
-                                        .map(Node::ArrowFunctionDecl);
+                                        return ArrowFunction::<IN, YIELD, AWAIT>
+                                            .parse(cursor)
+                                            .map(Node::ArrowFunctionDecl);
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                                         // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
@@ -152,13 +117,9 @@ where
                                         if let Some(t) = cursor.peek(3)? {
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
-                                                return ArrowFunction::new(
-                                                    self.allow_in,
-                                                    self.allow_yield,
-                                                    self.allow_await,
-                                                )
-                                                .parse(cursor)
-                                                .map(Node::ArrowFunctionDecl);
+                                                return ArrowFunction::<IN, YIELD, AWAIT>
+                                                    .parse(cursor)
+                                                    .map(Node::ArrowFunctionDecl);
                                             }
                                         }
                                     }
@@ -176,8 +137,7 @@ where
 
         cursor.set_goal(InputElement::Div);
 
-        let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+        let mut lhs = ConditionalExpression::<IN, YIELD, AWAIT>.parse(cursor)?;
 
         // Review if we are trying to assign to an invalid left hand side expression.
         // TODO: can we avoid cloning?

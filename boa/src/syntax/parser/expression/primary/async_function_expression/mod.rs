@@ -6,9 +6,9 @@ use crate::{
         ast::{node::AsyncFunctionExpr, Keyword, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
-            function::{FormalParameters, FunctionBody},
+            function::{FormalParameters, FunctionStatementList},
             statement::BindingIdentifier,
-            AllowYield, Cursor, ParseError, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -25,23 +25,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncFunctionExpression {
-    allow_yield: AllowYield,
-}
+pub(super) struct AsyncFunctionExpression<const YIELD: bool>;
 
-impl AsyncFunctionExpression {
-    /// Creates a new `AsyncFunctionExpression` parser.
-    pub(super) fn new<Y>(allow_yield: Y) -> Self
-    where
-        Y: Into<AllowYield>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for AsyncFunctionExpression
+impl<R, const YIELD: bool> TokenParser<R> for AsyncFunctionExpression<YIELD>
 where
     R: Read,
 {
@@ -57,7 +43,7 @@ where
         let name = if let Some(token) = tok {
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor)?),
+                _ => Some(BindingIdentifier::<YIELD, true>.parse(cursor)?),
             }
         } else {
             return Err(ParseError::AbruptEnd);
@@ -82,12 +68,12 @@ where
             .span()
             .end();
 
-        let params = FormalParameters::new(false, true).parse(cursor)?;
+        let params = FormalParameters::<false, true>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "async function expression")?;
         cursor.expect(Punctuator::OpenBlock, "async function expression")?;
 
-        let body = FunctionBody::new(false, true).parse(cursor)?;
+        let body = FunctionStatementList::<false, true>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "async function expression")?;
 

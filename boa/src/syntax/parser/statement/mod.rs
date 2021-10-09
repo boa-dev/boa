@@ -22,7 +22,7 @@ mod try_stm;
 mod variable;
 
 use self::{
-    block::BlockStatement,
+    block::Block,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
     declaration::Declaration,
@@ -42,7 +42,7 @@ use crate::syntax::{
     parser::expression::Initializer,
 };
 
-use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
+use super::{Cursor, ParseError, TokenParser};
 
 use crate::{
     syntax::{
@@ -90,29 +90,10 @@ use std::{collections::HashSet, vec};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements
 /// [spec]: https://tc39.es/ecma262/#prod-Statement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Statement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct Statement<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl Statement {
-    /// Creates a new `Statement` parser.
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for Statement
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for Statement<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -124,37 +105,27 @@ where
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Await) => AwaitExpression::new(self.allow_yield)
+            TokenKind::Keyword(Keyword::Await) => {
+                AwaitExpression::<YIELD>.parse(cursor).map(Node::from)
+            }
+            TokenKind::Keyword(Keyword::If) => IfStatement::<YIELD, AWAIT, RETURN>
                 .parse(cursor)
                 .map(Node::from),
-            TokenKind::Keyword(Keyword::If) => {
-                IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
-            TokenKind::Keyword(Keyword::Var) => {
-                VariableStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
-            TokenKind::Keyword(Keyword::While) => {
-                WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
-            TokenKind::Keyword(Keyword::Do) => {
-                DoWhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
-            TokenKind::Keyword(Keyword::For) => {
-                ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
+            TokenKind::Keyword(Keyword::Var) => VariableStatement::<YIELD, AWAIT>
+                .parse(cursor)
+                .map(Node::from),
+            TokenKind::Keyword(Keyword::While) => WhileStatement::<YIELD, AWAIT, RETURN>
+                .parse(cursor)
+                .map(Node::from),
+            TokenKind::Keyword(Keyword::Do) => DoWhileStatement::<YIELD, AWAIT, RETURN>
+                .parse(cursor)
+                .map(Node::from),
+            TokenKind::Keyword(Keyword::For) => ForStatement::<YIELD, AWAIT, RETURN>
+                .parse(cursor)
+                .map(Node::from),
             TokenKind::Keyword(Keyword::Return) => {
-                if self.allow_return.0 {
-                    ReturnStatement::new(self.allow_yield, self.allow_await)
+                if RETURN {
+                    ReturnStatement::<YIELD, AWAIT>
                         .parse(cursor)
                         .map(Node::from)
                 } else {
@@ -162,34 +133,22 @@ where
                 }
             }
             TokenKind::Keyword(Keyword::Break) => {
-                BreakStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::from)
+                BreakStatement::<YIELD, AWAIT>.parse(cursor).map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Continue) => {
-                ContinueStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
-            TokenKind::Keyword(Keyword::Try) => {
-                TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
+            TokenKind::Keyword(Keyword::Continue) => ContinueStatement::<YIELD, AWAIT>
+                .parse(cursor)
+                .map(Node::from),
+            TokenKind::Keyword(Keyword::Try) => TryStatement::<YIELD, AWAIT, RETURN>
+                .parse(cursor)
+                .map(Node::from),
             TokenKind::Keyword(Keyword::Throw) => {
-                ThrowStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::from)
+                ThrowStatement::<YIELD, AWAIT>.parse(cursor).map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Switch) => {
-                SwitchStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
+            TokenKind::Keyword(Keyword::Switch) => SwitchStatement::<YIELD, AWAIT, RETURN>
+                .parse(cursor)
+                .map(Node::from),
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                BlockStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
-                    .map(Node::from)
+                Block::<YIELD, AWAIT, RETURN>.parse(cursor).map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => {
                 // parse the EmptyStatement
@@ -206,19 +165,15 @@ where
                         TokenKind::Punctuator(Punctuator::Colon)
                     )
                 {
-                    return LabelledStatement::new(
-                        self.allow_yield,
-                        self.allow_await,
-                        self.allow_return,
-                    )
-                    .parse(cursor)
-                    .map(Node::from);
+                    return LabelledStatement::<YIELD, AWAIT, RETURN>
+                        .parse(cursor)
+                        .map(Node::from);
                 }
 
-                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor)
+                ExpressionStatement::<YIELD, AWAIT>.parse(cursor)
             }
 
-            _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
+            _ => ExpressionStatement::<YIELD, AWAIT>.parse(cursor),
         }
     }
 }
@@ -230,39 +185,26 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[derive(Debug, Clone, Copy)]
-pub(super) struct StatementList {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-    in_block: bool,
+pub(super) struct StatementList<
+    const YIELD: bool,
+    const AWAIT: bool,
+    const RETURN: bool,
+    const IN_BLOCK: bool,
+> {
     break_nodes: &'static [TokenKind],
 }
 
-impl StatementList {
+impl<const YIELD: bool, const AWAIT: bool, const RETURN: bool, const IN_BLOCK: bool>
+    StatementList<YIELD, AWAIT, RETURN, IN_BLOCK>
+{
     /// Creates a new `StatementList` parser.
-    pub(super) fn new<Y, A, R>(
-        allow_yield: Y,
-        allow_await: A,
-        allow_return: R,
-        in_block: bool,
-        break_nodes: &'static [TokenKind],
-    ) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-            in_block,
-            break_nodes,
-        }
+    pub(super) fn new(break_nodes: &'static [TokenKind]) -> Self {
+        Self { break_nodes }
     }
 }
 
-impl<R> TokenParser<R> for StatementList
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool, const IN_BLOCK: bool>
+    TokenParser<R> for StatementList<YIELD, AWAIT, RETURN, IN_BLOCK>
 where
     R: Read,
 {
@@ -289,13 +231,7 @@ where
                 _ => {}
             }
 
-            let item = StatementListItem::new(
-                self.allow_yield,
-                self.allow_await,
-                self.allow_return,
-                self.in_block,
-            )
-            .parse(cursor)?;
+            let item = StatementListItem::<YIELD, AWAIT, RETURN, IN_BLOCK>.parse(cursor)?;
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
@@ -415,31 +351,15 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements
 /// [spec]: https://tc39.es/ecma262/#prod-StatementListItem
 #[derive(Debug, Clone, Copy)]
-struct StatementListItem {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-    in_block: bool,
-}
+struct StatementListItem<
+    const YIELD: bool,
+    const AWAIT: bool,
+    const RETURN: bool,
+    const IN_BLOCK: bool,
+>;
 
-impl StatementListItem {
-    /// Creates a new `StatementListItem` parser.
-    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R, in_block: bool) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-            in_block,
-        }
-    }
-}
-
-impl<R> TokenParser<R> for StatementListItem
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool, const IN_BLOCK: bool>
+    TokenParser<R> for StatementListItem<YIELD, AWAIT, RETURN, IN_BLOCK>
 where
     R: Read,
 {
@@ -452,61 +372,36 @@ where
 
         match *tok.kind() {
             TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
-                if strict_mode && self.in_block {
+                if strict_mode && IN_BLOCK {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Function declaration in blocks not allowed in strict mode".into(),
                         tok.span().start(),
                     )));
                 }
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
+                Declaration::<YIELD, AWAIT, true>.parse(cursor)
             }
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
+                Declaration::<YIELD, AWAIT, true>.parse(cursor)
             }
-            _ => {
-                Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)
-            }
+            _ => Statement::<YIELD, AWAIT, RETURN>.parse(cursor),
         }
     }
 }
-
-/// Label identifier parsing.
-///
-/// This seems to be the same as a `BindingIdentifier`.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
-pub(super) type LabelIdentifier = BindingIdentifier;
 
 /// Binding identifier parsing.
 ///
+/// This seems to be the same as a `LabelIdentifier`.
+///
 /// More information:
-///  - [ECMAScript specification][spec]
+///  - [ECMAScript specification][spec_binding]
+/// - [ECMAScript specification][spec_label]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-BindingIdentifier
+/// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
 #[derive(Debug, Clone, Copy)]
-pub(super) struct BindingIdentifier {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct BindingIdentifier<const YIELD: bool, const AWAIT: bool>;
 
-impl BindingIdentifier {
-    /// Creates a new `BindingIdentifier` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for BindingIdentifier
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for BindingIdentifier<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -520,14 +415,14 @@ where
 
         match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+            TokenKind::Keyword(Keyword::Yield) if YIELD => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     next_token.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+            TokenKind::Keyword(Keyword::Yield) if !YIELD => {
                 if cursor.strict_mode() {
                     Err(ParseError::general(
                         "yield keyword in binding identifier not allowed in strict mode",
@@ -537,14 +432,14 @@ where
                     Ok("yield".into())
                 }
             }
-            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+            TokenKind::Keyword(Keyword::Await) if AWAIT => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     next_token.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+            TokenKind::Keyword(Keyword::Await) if !AWAIT => {
                 if cursor.strict_mode() {
                     Err(ParseError::general(
                         "await keyword in binding identifier not allowed in strict mode",
@@ -570,29 +465,10 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ObjectBindingPattern {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct ObjectBindingPattern<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
-impl ObjectBindingPattern {
-    /// Creates a new `ObjectBindingPattern` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ObjectBindingPattern
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for ObjectBindingPattern<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -624,16 +500,14 @@ where
                         TokenKind::Punctuator(Punctuator::Spread),
                         "object binding pattern",
                     )?;
-                    rest_property_name = Some(
-                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?,
-                    );
+                    rest_property_name = Some(BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?);
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                         "object binding pattern",
                     )?;
                     break;
                 }
-                _ => BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                _ => BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?,
             };
 
             property_names.push(property_name.clone());
@@ -641,9 +515,7 @@ where
             if let Some(peek_token) = cursor.peek(0)? {
                 match peek_token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
-                        let init =
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor)?;
+                        let init = Initializer::<IN, YIELD, AWAIT>.parse(cursor)?;
                         patterns.push(BindingPatternTypeObject::SingleName {
                             ident: property_name.clone(),
                             property_name,
@@ -659,22 +531,14 @@ where
                         if let Some(peek_token) = cursor.peek(0)? {
                             match peek_token.kind() {
                                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                                    let bindings = ObjectBindingPattern::new(
-                                        self.allow_in,
-                                        self.allow_yield,
-                                        self.allow_await,
-                                    )
-                                    .parse(cursor)?;
+                                    let bindings =
+                                        ObjectBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                                     if let Some(peek_token) = cursor.peek(0)? {
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
-                                                let init = Initializer::new(
-                                                    self.allow_in,
-                                                    self.allow_yield,
-                                                    self.allow_await,
-                                                )
-                                                .parse(cursor)?;
+                                                let init = Initializer::<IN, YIELD, AWAIT>
+                                                    .parse(cursor)?;
                                                 patterns.push(
                                                     BindingPatternTypeObject::BindingPattern {
                                                         ident: property_name,
@@ -704,22 +568,14 @@ where
                                     }
                                 }
                                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                                    let bindings = ArrayBindingPattern::new(
-                                        self.allow_in,
-                                        self.allow_yield,
-                                        self.allow_await,
-                                    )
-                                    .parse(cursor)?;
+                                    let bindings =
+                                        ArrayBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                                     if let Some(peek_token) = cursor.peek(0)? {
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
-                                                let init = Initializer::new(
-                                                    self.allow_in,
-                                                    self.allow_yield,
-                                                    self.allow_await,
-                                                )
-                                                .parse(cursor)?;
+                                                let init = Initializer::<IN, YIELD, AWAIT>
+                                                    .parse(cursor)?;
                                                 patterns.push(
                                                     BindingPatternTypeObject::BindingPattern {
                                                         ident: property_name,
@@ -751,19 +607,13 @@ where
                                 _ => {
                                     // TODO: Currently parses only BindingIdentifier.
                                     //       Should parse https://tc39.es/ecma262/#prod-PropertyName
-                                    let ident =
-                                        BindingIdentifier::new(self.allow_yield, self.allow_await)
-                                            .parse(cursor)?;
+                                    let ident = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
 
                                     if let Some(peek_token) = cursor.peek(0)? {
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
-                                                let init = Initializer::new(
-                                                    self.allow_in,
-                                                    self.allow_yield,
-                                                    self.allow_await,
-                                                )
-                                                .parse(cursor)?;
+                                                let init = Initializer::<IN, YIELD, AWAIT>
+                                                    .parse(cursor)?;
                                                 patterns.push(
                                                     BindingPatternTypeObject::SingleName {
                                                         ident,
@@ -835,29 +685,10 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ArrayBindingPattern {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct ArrayBindingPattern<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
-impl ArrayBindingPattern {
-    /// Creates a new `ArrayBindingPattern` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ArrayBindingPattern
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for ArrayBindingPattern<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -903,12 +734,8 @@ where
 
                     match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                            let bindings = ObjectBindingPattern::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)?;
+                            let bindings =
+                                ObjectBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
                             patterns.push(BindingPatternTypeArray::BindingPatternRest {
                                 pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
                                     bindings, None,
@@ -916,12 +743,7 @@ where
                             });
                         }
                         TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                            let bindings = ArrayBindingPattern::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor)?;
+                            let bindings = ArrayBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
                             patterns.push(BindingPatternTypeArray::BindingPatternRest {
                                 pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
                                     bindings, None,
@@ -930,8 +752,7 @@ where
                         }
                         _ => {
                             let rest_property_name =
-                                BindingIdentifier::new(self.allow_yield, self.allow_await)
-                                    .parse(cursor)?;
+                                BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
                             patterns.push(BindingPatternTypeArray::SingleNameRest {
                                 ident: rest_property_name,
                             });
@@ -947,18 +768,11 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     last_elision_or_first = false;
 
-                    let bindings = ObjectBindingPattern::new(
-                        self.allow_in,
-                        self.allow_yield,
-                        self.allow_await,
-                    )
-                    .parse(cursor)?;
+                    let bindings = ObjectBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                     match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init =
-                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?;
+                            let default_init = Initializer::<IN, YIELD, AWAIT>.parse(cursor)?;
                             patterns.push(BindingPatternTypeArray::BindingPattern {
                                 pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
                                     bindings,
@@ -978,15 +792,11 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     last_elision_or_first = false;
 
-                    let bindings =
-                        ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor)?;
+                    let bindings = ArrayBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                     match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init =
-                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?;
+                            let default_init = Initializer::<IN, YIELD, AWAIT>.parse(cursor)?;
                             patterns.push(BindingPatternTypeArray::BindingPattern {
                                 pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
                                     bindings,
@@ -1006,13 +816,10 @@ where
                 _ => {
                     last_elision_or_first = false;
 
-                    let ident =
-                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let ident = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
                     match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init =
-                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?;
+                            let default_init = Initializer::<IN, YIELD, AWAIT>.parse(cursor)?;
                             patterns.push(BindingPatternTypeArray::SingleName {
                                 ident,
                                 default_init: Some(default_init),

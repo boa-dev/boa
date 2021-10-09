@@ -11,10 +11,7 @@ use crate::{
     syntax::{
         ast::{node::DoWhileLoop, Keyword, Node, Punctuator},
         lexer::TokenKind,
-        parser::{
-            expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
-        },
+        parser::{expression::Expression, statement::Statement, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -29,33 +26,14 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/do...while
 /// [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::statement) struct DoWhileStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(in crate::syntax::parser::statement) struct DoWhileStatement<
+    const YIELD: bool,
+    const AWAIT: bool,
+    const RETURN: bool,
+>;
 
-impl DoWhileStatement {
-    /// Creates a new `DoWhileStatement` parser.
-    pub(in crate::syntax::parser::statement) fn new<Y, A, R>(
-        allow_yield: Y,
-        allow_await: A,
-        allow_return: R,
-    ) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for DoWhileStatement
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for DoWhileStatement<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -69,8 +47,7 @@ where
             .span()
             .end();
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
         // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
         if let Node::FunctionDecl(_) = body {
@@ -91,7 +68,7 @@ where
 
         cursor.expect(Punctuator::OpenParen, "do while statement")?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let cond = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "do while statement")?;
 

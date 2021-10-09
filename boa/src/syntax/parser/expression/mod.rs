@@ -19,7 +19,7 @@ pub(in crate::syntax::parser) mod await_expr;
 
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
-use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
+use super::{Cursor, ParseResult, TokenParser};
 
 use crate::{
     profiler::BoaProfiler,
@@ -66,7 +66,7 @@ impl PartialEq<Punctuator> for Keyword {
 ///
 /// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
 macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
-    impl<R> TokenParser<R> for $name
+    impl<R, $( const $low_param: bool ),*> TokenParser<R> for $name< $( $low_param ),* >
     where
         R: Read
     {
@@ -79,7 +79,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                 cursor.set_goal($goal.unwrap());
             }
 
-            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor)?;
+            let mut lhs = $lower::<$( $low_param ),*>.parse(cursor)?;
             while let Some(tok) = cursor.peek(0)? {
                 match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
@@ -87,7 +87,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                            $lower::<$( $low_param ),*>.parse(cursor)?
                         ).into();
                     }
                     TokenKind::Keyword(op) if $( op == $op )||* => {
@@ -95,7 +95,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
                             lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor)?
+                            $lower::<$( $low_param ),*>.parse(cursor)?
                         ).into();
                     }
                     _ => break
@@ -116,33 +116,13 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators
 /// [spec]: https://tc39.es/ecma262/#prod-Expression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Expression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl Expression {
-    /// Creates a new `Expression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+pub(super) struct Expression<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     Expression,
     AssignmentExpression,
     [Punctuator::Comma],
-    [allow_in, allow_yield, allow_await],
+    [IN, YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -155,10 +135,7 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators
 /// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression
 #[derive(Debug, Clone, Copy)]
-struct ShortCircuitExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
+struct ShortCircuitExpression<const IN: bool, const YIELD: bool, const AWAIT: bool> {
     previous: PreviousExpr,
 }
 
@@ -169,43 +146,23 @@ enum PreviousExpr {
     Coalesce,
 }
 
-impl ShortCircuitExpression {
+impl<const IN: bool, const YIELD: bool, const AWAIT: bool>
+    ShortCircuitExpression<IN, YIELD, AWAIT>
+{
     /// Creates a new `ShortCircuitExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
+    pub(super) fn new() -> Self {
         Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
             previous: PreviousExpr::None,
         }
     }
 
-    fn with_previous<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-        previous: PreviousExpr,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            previous,
-        }
+    fn with_previous(previous: PreviousExpr) -> Self {
+        Self { previous }
     }
 }
 
-impl<R> TokenParser<R> for ShortCircuitExpression
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for ShortCircuitExpression<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -214,9 +171,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ShortCircuitExpression", "Parsing");
 
-        let mut current_node =
-            BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+        let mut current_node = BitwiseORExpression::<IN, YIELD, AWAIT>.parse(cursor)?;
         let mut previous = self.previous;
 
         while let Some(tok) = cursor.peek(0)? {
@@ -231,9 +186,7 @@ where
                     }
                     let _ = cursor.next()?.expect("'&&' expected");
                     previous = PreviousExpr::Logical;
-                    let rhs =
-                        BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor)?;
+                    let rhs = BitwiseORExpression::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                     current_node = BinOp::new(LogOp::And, current_node, rhs).into();
                 }
@@ -247,10 +200,7 @@ where
                     }
                     let _ = cursor.next()?.expect("'||' expected");
                     previous = PreviousExpr::Logical;
-                    let rhs = ShortCircuitExpression::with_previous(
-                        self.allow_in,
-                        self.allow_yield,
-                        self.allow_await,
+                    let rhs = ShortCircuitExpression::<IN, YIELD, AWAIT>::with_previous(
                         PreviousExpr::Logical,
                     )
                     .parse(cursor)?;
@@ -269,9 +219,7 @@ where
                     }
                     let _ = cursor.next()?.expect("'??' expected");
                     previous = PreviousExpr::Coalesce;
-                    let rhs =
-                        BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor)?;
+                    let rhs = BitwiseORExpression::<IN, YIELD, AWAIT>.parse(cursor)?;
                     current_node = BinOp::new(LogOp::Coalesce, current_node, rhs).into();
                 }
                 _ => break,
@@ -290,33 +238,13 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_OR
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
 #[derive(Debug, Clone, Copy)]
-struct BitwiseORExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl BitwiseORExpression {
-    /// Creates a new `BitwiseORExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct BitwiseORExpression<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     BitwiseORExpression,
     BitwiseXORExpression,
     [Punctuator::Or],
-    [allow_in, allow_yield, allow_await],
+    [IN, YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -329,33 +257,13 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_XOR
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
 #[derive(Debug, Clone, Copy)]
-struct BitwiseXORExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl BitwiseXORExpression {
-    /// Creates a new `BitwiseXORExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct BitwiseXORExpression<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     BitwiseXORExpression,
     BitwiseANDExpression,
     [Punctuator::Xor],
-    [allow_in, allow_yield, allow_await],
+    [IN, YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -368,33 +276,13 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_AND
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
 #[derive(Debug, Clone, Copy)]
-struct BitwiseANDExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl BitwiseANDExpression {
-    /// Creates a new `BitwiseANDExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct BitwiseANDExpression<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     BitwiseANDExpression,
     EqualityExpression,
     [Punctuator::And],
-    [allow_in, allow_yield, allow_await],
+    [IN, YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -407,27 +295,7 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality_operators
 /// [spec]: https://tc39.es/ecma262/#sec-equality-operators
 #[derive(Debug, Clone, Copy)]
-struct EqualityExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl EqualityExpression {
-    /// Creates a new `EqualityExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct EqualityExpression<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     EqualityExpression,
@@ -438,7 +306,7 @@ expression!(
         Punctuator::StrictEq,
         Punctuator::StrictNotEq
     ],
-    [allow_in, allow_yield, allow_await],
+    [IN, YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -451,29 +319,10 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Relational_operators
 /// [spec]: https://tc39.es/ecma262/#sec-relational-operators
 #[derive(Debug, Clone, Copy)]
-struct RelationalExpression {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+struct RelationalExpression<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
-impl RelationalExpression {
-    /// Creates a new `RelationalExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for RelationalExpression
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for RelationalExpression<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -486,7 +335,7 @@ where
             cursor.set_goal(None::<InputElement>.unwrap());
         }
 
-        let mut lhs = ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let mut lhs = ShiftExpression::<YIELD, AWAIT>.parse(cursor)?;
         while let Some(tok) = cursor.peek(0)? {
             match *tok.kind() {
                 TokenKind::Punctuator(op)
@@ -499,19 +348,18 @@ where
                     lhs = BinOp::new(
                         op.as_binop().expect("Could not get binary operation."),
                         lhs,
-                        ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                        ShiftExpression::<YIELD, AWAIT>.parse(cursor)?,
                     )
                     .into();
                 }
                 TokenKind::Keyword(op)
-                    if op == Keyword::InstanceOf
-                        || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
+                    if op == Keyword::InstanceOf || (op == Keyword::In && IN) =>
                 {
                     let _ = cursor.next().expect("token disappeared");
                     lhs = BinOp::new(
                         op.as_binop().expect("Could not get binary operation."),
                         lhs,
-                        ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                        ShiftExpression::<YIELD, AWAIT>.parse(cursor)?,
                     )
                     .into();
                 }
@@ -532,24 +380,7 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_Operators#Bitwise_shift_operators
 /// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators
 #[derive(Debug, Clone, Copy)]
-struct ShiftExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl ShiftExpression {
-    /// Creates a new `ShiftExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct ShiftExpression<const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     ShiftExpression,
@@ -559,7 +390,7 @@ expression!(
         Punctuator::RightSh,
         Punctuator::URightSh
     ],
-    [allow_yield, allow_await],
+    [YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -574,30 +405,13 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators
 /// [spec]: https://tc39.es/ecma262/#sec-additive-operators
 #[derive(Debug, Clone, Copy)]
-struct AdditiveExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl AdditiveExpression {
-    /// Creates a new `AdditiveExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct AdditiveExpression<const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     AdditiveExpression,
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
-    [allow_yield, allow_await],
+    [YIELD, AWAIT],
     None::<InputElement>
 );
 
@@ -612,29 +426,12 @@ expression!(
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Division
 /// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators
 #[derive(Debug, Clone, Copy)]
-struct MultiplicativeExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl MultiplicativeExpression {
-    /// Creates a new `MultiplicativeExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
+struct MultiplicativeExpression<const YIELD: bool, const AWAIT: bool>;
 
 expression!(
     MultiplicativeExpression,
     ExponentiationExpression,
     [Punctuator::Mul, Punctuator::Div, Punctuator::Mod],
-    [allow_yield, allow_await],
+    [YIELD, AWAIT],
     Some(InputElement::Div)
 );

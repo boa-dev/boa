@@ -31,51 +31,51 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
 }
 
-/// Boolean representing if the parser should allow a `yield` keyword.
+/// Boolean representing if a production has the attribute `Yield`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct AllowYield(bool);
+struct IsYield(bool);
 
-impl From<bool> for AllowYield {
+impl From<bool> for IsYield {
     fn from(allow: bool) -> Self {
         Self(allow)
     }
 }
 
-/// Boolean representing if the parser should allow a `await` keyword.
+/// Boolean representing if a production has the attribute `Await`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct AllowAwait(bool);
+struct IsAwait(bool);
 
-impl From<bool> for AllowAwait {
+impl From<bool> for IsAwait {
     fn from(allow: bool) -> Self {
         Self(allow)
     }
 }
 
-/// Boolean representing if the parser should allow a `in` keyword.
+/// Boolean representing if a production has the attribute `In`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct AllowIn(bool);
+struct IsIn(bool);
 
-impl From<bool> for AllowIn {
+impl From<bool> for IsIn {
     fn from(allow: bool) -> Self {
         Self(allow)
     }
 }
 
-/// Boolean representing if the parser should allow a `return` keyword.
+/// Boolean representing if a production has the attribute `Return`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct AllowReturn(bool);
+struct IsReturn(bool);
 
-impl From<bool> for AllowReturn {
+impl From<bool> for IsReturn {
     fn from(allow: bool) -> Self {
         Self(allow)
     }
 }
 
-/// Boolean representing if the parser should allow a `default` keyword.
+/// Boolean representing if a production has the attribute `Default`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct AllowDefault(bool);
+struct IsDefault(bool);
 
-impl From<bool> for AllowDefault {
+impl From<bool> for IsDefault {
     fn from(allow: bool) -> Self {
         Self(allow)
     }
@@ -157,6 +157,6 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false, &[]).parse(cursor)
+        self::statement::StatementList::<false, false, false, false>::new(&[]).parse(cursor)
     }
 }

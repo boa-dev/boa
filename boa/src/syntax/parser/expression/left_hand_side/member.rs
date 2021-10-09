@@ -21,7 +21,7 @@ use crate::{
                 left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
                 Expression,
             },
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -36,26 +36,9 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct MemberExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct MemberExpression<const YIELD: bool, const AWAIT: bool>;
 
-impl MemberExpression {
-    /// Creates a new `MemberExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for MemberExpression
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for MemberExpression<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -71,7 +54,7 @@ where
             let lhs = self.parse(cursor)?;
             let args = match cursor.peek(0)? {
                 Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?
+                    Arguments::<YIELD, AWAIT>.parse(cursor)?
                 }
                 _ => Box::new([]),
             };
@@ -79,7 +62,7 @@ where
 
             Node::from(New::from(call_node))
         } else {
-            PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
+            PrimaryExpression::<YIELD, AWAIT>.parse(cursor)?
         };
         while let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
@@ -108,19 +91,13 @@ where
                     cursor
                         .next()?
                         .expect("open bracket punctuator token disappeared"); // We move the parser forward.
-                    let idx =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let idx = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
-                    lhs = TaggedTemplateLiteral::new(
-                        self.allow_yield,
-                        self.allow_await,
-                        tok.span().start(),
-                        lhs,
-                    )
-                    .parse(cursor)?;
+                    lhs = TaggedTemplateLiteral::<YIELD, AWAIT>::new(tok.span().start(), lhs)
+                        .parse(cursor)?;
                 }
                 _ => break,
             }

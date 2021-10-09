@@ -12,8 +12,7 @@ use crate::{
         ast::{node, op::UnaryOp, Node, Punctuator},
         lexer::TokenKind,
         parser::{
-            expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            ParseResult, TokenParser,
+            expression::unary::UnaryExpression, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
 };
@@ -27,26 +26,9 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct UpdateExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct UpdateExpression<const YIELD: bool, const AWAIT: bool>;
 
-impl UpdateExpression {
-    /// Creates a new `UpdateExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for UpdateExpression
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for UpdateExpression<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -61,7 +43,7 @@ where
                 cursor.next()?.expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    UnaryExpression::<YIELD, AWAIT>.parse(cursor)?,
                 )
                 .into());
             }
@@ -69,14 +51,14 @@ where
                 cursor.next()?.expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    UnaryExpression::<YIELD, AWAIT>.parse(cursor)?,
                 )
                 .into());
             }
             _ => {}
         }
 
-        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs = LeftHandSideExpression::<YIELD, AWAIT>.parse(cursor)?;
         if let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {

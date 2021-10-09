@@ -18,7 +18,7 @@ use crate::{
             expression::Expression,
             statement::declaration::Declaration,
             statement::{variable::VariableDeclarationList, Statement},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -35,33 +35,14 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 /// [spec]: https://tc39.es/ecma262/#sec-for-statement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::statement) struct ForStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(in crate::syntax::parser::statement) struct ForStatement<
+    const YIELD: bool,
+    const AWAIT: bool,
+    const RETURN: bool,
+>;
 
-impl ForStatement {
-    /// Creates a new `ForStatement` parser.
-    pub(in crate::syntax::parser::statement) fn new<Y, A, R>(
-        allow_yield: Y,
-        allow_await: A,
-        allow_return: R,
-    ) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ForStatement
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for ForStatement<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -76,31 +57,29 @@ where
             TokenKind::Keyword(Keyword::Var) => {
                 let _ = cursor.next()?;
                 Some(
-                    VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
+                    VariableDeclarationList::<false, YIELD, AWAIT>
                         .parse(cursor)
                         .map(Node::from)?,
                 )
             }
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor)?)
+                Some(Declaration::<YIELD, AWAIT, false>.parse(cursor)?)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
-            _ => Some(Expression::new(false, self.allow_yield, self.allow_await).parse(cursor)?),
+            _ => Some(Expression::<false, YIELD, AWAIT>.parse(cursor)?),
         };
 
         match cursor.peek(0)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
                 let _ = cursor.next();
-                let expr =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                let expr = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
                 let position = cursor
                     .expect(Punctuator::CloseParen, "for in statement")?
                     .span()
                     .end();
 
-                let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                let body = Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
                 if let Node::FunctionDecl(_) = body {
@@ -111,16 +90,14 @@ where
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();
-                let iterable =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                let iterable = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
                 let position = cursor
                     .expect(Punctuator::CloseParen, "for of statement")?
                     .span()
                     .end();
 
-                let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                let body = Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
                 if let Node::FunctionDecl(_) = body {
@@ -137,7 +114,7 @@ where
         let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
             Const::from(true).into()
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
             cursor.expect(Punctuator::Semicolon, "for statement")?;
             step
         };
@@ -145,7 +122,7 @@ where
         let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
             None
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
@@ -155,8 +132,7 @@ where
 
         let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
         // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
         if let Node::FunctionDecl(_) = body {

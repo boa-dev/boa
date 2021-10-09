@@ -22,9 +22,9 @@ use crate::{
         ast::{Keyword, Node, Punctuator},
         lexer::{Position, TokenKind},
         parser::{
-            function::{FormalParameters, FunctionBody},
+            function::{FormalParameters, FunctionStatementList},
             statement::{BindingIdentifier, LexError},
-            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -38,29 +38,10 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct HoistableDeclaration {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    is_default: AllowDefault,
-}
+pub(super) struct HoistableDeclaration<const YIELD: bool, const AWAIT: bool, const DEFAULT: bool>;
 
-impl HoistableDeclaration {
-    /// Creates a new `HoistableDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        D: Into<AllowDefault>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            is_default: is_default.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for HoistableDeclaration
+impl<R, const YIELD: bool, const AWAIT: bool, const DEFAULT: bool> TokenParser<R>
+    for HoistableDeclaration<YIELD, AWAIT, DEFAULT>
 where
     R: Read,
 {
@@ -74,55 +55,47 @@ where
             TokenKind::Keyword(Keyword::Function) => {
                 let next_token = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
-                    GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
+                    GeneratorDeclaration::<YIELD, AWAIT, DEFAULT>
                         .parse(cursor)
                         .map(Node::from)
                 } else {
-                    FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
+                    FunctionDeclaration::<YIELD, AWAIT, DEFAULT>
                         .parse(cursor)
                         .map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => {
-                AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                    .parse(cursor)
-                    .map(Node::from)
-            }
+            TokenKind::Keyword(Keyword::Async) => AsyncFunctionDeclaration::<YIELD, AWAIT, false>
+                .parse(cursor)
+                .map(Node::from),
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
 }
 
-trait CallableDeclaration {
-    fn error_context(&self) -> &'static str;
-    fn is_default(&self) -> bool;
-    fn name_allow_yield(&self) -> bool;
-    fn name_allow_await(&self) -> bool;
-    fn parameters_allow_yield(&self) -> bool;
-    fn parameters_allow_await(&self) -> bool;
-    fn body_allow_yield(&self) -> bool;
-    fn body_allow_await(&self) -> bool;
-}
-
 // This is a helper function to not duplicate code in the individual callable deceleration parsers.
 #[inline]
 #[allow(clippy::type_complexity)]
-fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
-    c: &C,
+fn parse_callable_declaration<
+    R: Read,
+    const IDENT_YIELD: bool,
+    const IDENT_AWAIT: bool,
+    const DEFAULT: bool,
+    const BODY_YIELD: bool,
+    const BODY_AWAIT: bool,
+>(
+    error_context: &'static str,
     cursor: &mut Cursor<R>,
 ) -> Result<(Box<str>, Box<[FormalParameter]>, StatementList), ParseError> {
     let next_token = cursor.peek(0)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if !c.is_default() {
-                    return Err(ParseError::unexpected(token.clone(), c.error_context()));
+                if !DEFAULT {
+                    return Err(ParseError::unexpected(token.clone(), error_context));
                 }
                 "default".into()
             }
-            _ => {
-                BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await()).parse(cursor)?
-            }
+            _ => BindingIdentifier::<IDENT_YIELD, IDENT_AWAIT>.parse(cursor)?,
         }
     } else {
         return Err(ParseError::AbruptEnd);
@@ -141,19 +114,18 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     }
 
     let params_start_position = cursor
-        .expect(Punctuator::OpenParen, c.error_context())?
+        .expect(Punctuator::OpenParen, error_context)?
         .span()
         .end();
 
-    let params = FormalParameters::new(c.parameters_allow_yield(), c.parameters_allow_await())
-        .parse(cursor)?;
+    let params = FormalParameters::<BODY_YIELD, BODY_AWAIT>.parse(cursor)?;
 
-    cursor.expect(Punctuator::CloseParen, c.error_context())?;
-    cursor.expect(Punctuator::OpenBlock, c.error_context())?;
+    cursor.expect(Punctuator::CloseParen, error_context)?;
+    cursor.expect(Punctuator::OpenBlock, error_context)?;
 
-    let body = FunctionBody::new(c.body_allow_yield(), c.body_allow_await()).parse(cursor)?;
+    let body = FunctionStatementList::<BODY_YIELD, BODY_AWAIT>.parse(cursor)?;
 
-    cursor.expect(Punctuator::CloseBlock, c.error_context())?;
+    cursor.expect(Punctuator::CloseBlock, error_context)?;
 
     // Early Error: If the source code matching FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

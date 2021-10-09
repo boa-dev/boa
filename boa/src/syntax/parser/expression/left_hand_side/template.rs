@@ -4,10 +4,7 @@ use crate::{
         ast::node::TaggedTemplate,
         ast::{Node, Position, Punctuator},
         lexer::TokenKind,
-        parser::{
-            cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError,
-            ParseResult, TokenParser,
-        },
+        parser::{cursor::Cursor, expression::Expression, ParseError, ParseResult, TokenParser},
     },
 };
 use std::io::Read;
@@ -19,30 +16,19 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-TemplateLiteral
 #[derive(Debug, Clone)]
-pub(super) struct TaggedTemplateLiteral {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
+pub(super) struct TaggedTemplateLiteral<const YIELD: bool, const AWAIT: bool> {
     start: Position,
     tag: Node,
 }
 
-impl TaggedTemplateLiteral {
+impl<const YIELD: bool, const AWAIT: bool> TaggedTemplateLiteral<YIELD, AWAIT> {
     /// Creates a new `TaggedTemplateLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, tag: Node) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            start,
-            tag,
-        }
+    pub(super) fn new(start: Position, tag: Node) -> Self {
+        Self { start, tag }
     }
 }
 
-impl<R> TokenParser<R> for TaggedTemplateLiteral
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for TaggedTemplateLiteral<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -62,9 +48,7 @@ where
                 TokenKind::TemplateMiddle(template_string) => {
                     raws.push(template_string.as_raw().to_owned().into_boxed_str());
                     cookeds.push(template_string.to_owned_cooked().ok());
-                    exprs.push(
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
-                    );
+                    exprs.push(Expression::<true, YIELD, AWAIT>.parse(cursor)?);
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                         "template literal",

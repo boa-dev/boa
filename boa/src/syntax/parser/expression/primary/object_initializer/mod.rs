@@ -18,8 +18,8 @@ use crate::{
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             expression::AssignmentExpression,
-            function::{FormalParameters, FunctionBody},
-            AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            function::{FormalParameters, FunctionStatementList},
+            Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -35,26 +35,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer
 /// [spec]: https://tc39.es/ecma262/#prod-ObjectLiteral
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ObjectLiteral {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct ObjectLiteral<const YIELD: bool, const AWAIT: bool>;
 
-impl ObjectLiteral {
-    /// Creates a new `ObjectLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ObjectLiteral
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for ObjectLiteral<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -69,8 +52,7 @@ where
                 break;
             }
 
-            elements
-                .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
+            elements.push(PropertyDefinition::<YIELD, AWAIT>.parse(cursor)?);
 
             if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
                 break;
@@ -100,26 +82,9 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[derive(Debug, Clone, Copy)]
-struct PropertyDefinition {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+struct PropertyDefinition<const YIELD: bool, const AWAIT: bool>;
 
-impl PropertyDefinition {
-    /// Creates a new `PropertyDefinition` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for PropertyDefinition
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for PropertyDefinition<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -136,14 +101,14 @@ where
                     let token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
                     let ident = match token.kind() {
                         TokenKind::Identifier(ident) => Identifier::from(ident.as_ref()),
-                        TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                        TokenKind::Keyword(Keyword::Yield) if YIELD => {
                             // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                             return Err(ParseError::general(
                                 "Unexpected identifier",
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+                        TokenKind::Keyword(Keyword::Yield) if !YIELD => {
                             if cursor.strict_mode() {
                                 // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
                                 return Err(ParseError::general(
@@ -153,14 +118,14 @@ where
                             }
                             Identifier::from("yield")
                         }
-                        TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+                        TokenKind::Keyword(Keyword::Await) if AWAIT => {
                             // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                             return Err(ParseError::general(
                                 "Unexpected identifier",
                                 token.span().start(),
                             ));
                         }
-                        TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+                        TokenKind::Keyword(Keyword::Await) if !AWAIT => {
                             if cursor.strict_mode() {
                                 // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
                                 return Err(ParseError::general(
@@ -188,21 +153,19 @@ where
 
         //  ... AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Spread)?.is_some() {
-            let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+            let node = AssignmentExpression::<true, YIELD, AWAIT>.parse(cursor)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
         // MethodDefinition[?Yield, ?Await] -> GeneratorMethod[?Yield, ?Await]
         if cursor.next_if(Punctuator::Mul)?.is_some() {
-            let property_name =
-                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let property_name = PropertyName::<YIELD, AWAIT>.parse(cursor)?;
 
             let params_start_position = cursor
                 .expect(Punctuator::OpenParen, "generator method definition")?
                 .span()
                 .start();
-            let params = FormalParameters::new(false, false).parse(cursor)?;
+            let params = FormalParameters::<false, false>.parse(cursor)?;
             cursor.expect(Punctuator::CloseParen, "generator method definition")?;
 
             // Early Error: UniqueFormalParameters : FormalParameters
@@ -217,7 +180,7 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBlock),
                 "generator method definition",
             )?;
-            let body = FunctionBody::new(true, false).parse(cursor)?;
+            let body = FunctionStatementList::<true, false>.parse(cursor)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseBlock),
                 "generator method definition",
@@ -257,13 +220,11 @@ where
             ));
         }
 
-        let mut property_name =
-            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let mut property_name = PropertyName::<YIELD, AWAIT>.parse(cursor)?;
 
         //  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Colon)?.is_some() {
-            let value = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+            let value = AssignmentExpression::<true, YIELD, AWAIT>.parse(cursor)?;
             return Ok(node::PropertyDefinition::property(property_name, value));
         }
 
@@ -273,8 +234,7 @@ where
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
             node::PropertyName::Literal(str) if str.as_ref() == "get" && !ordinary_method => {
-                property_name =
-                    PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                property_name = PropertyName::<YIELD, AWAIT>.parse(cursor)?;
 
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
@@ -289,7 +249,7 @@ where
                     TokenKind::Punctuator(Punctuator::OpenBlock),
                     "get method definition",
                 )?;
-                let body = FunctionBody::new(false, false).parse(cursor)?;
+                let body = FunctionStatementList::<false, false>.parse(cursor)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
                     "get method definition",
@@ -303,8 +263,7 @@ where
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
             node::PropertyName::Literal(str) if str.as_ref() == "set" && !ordinary_method => {
-                property_name =
-                    PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                property_name = PropertyName::<YIELD, AWAIT>.parse(cursor)?;
 
                 let params_start_position = cursor
                     .expect(
@@ -313,7 +272,7 @@ where
                     )?
                     .span()
                     .end();
-                let params = FormalParameters::new(false, false).parse(cursor)?;
+                let params = FormalParameters::<false, false>.parse(cursor)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseParen),
                     "set method definition",
@@ -329,7 +288,7 @@ where
                     TokenKind::Punctuator(Punctuator::OpenBlock),
                     "set method definition",
                 )?;
-                let body = FunctionBody::new(false, false).parse(cursor)?;
+                let body = FunctionStatementList::<false, false>.parse(cursor)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
                     "set method definition",
@@ -360,7 +319,7 @@ where
                     )?
                     .span()
                     .end();
-                let params = FormalParameters::new(false, false).parse(cursor)?;
+                let params = FormalParameters::<false, false>.parse(cursor)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseParen),
                     "method definition",
@@ -378,7 +337,7 @@ where
                     TokenKind::Punctuator(Punctuator::OpenBlock),
                     "method definition",
                 )?;
-                let body = FunctionBody::new(false, false).parse(cursor)?;
+                let body = FunctionStatementList::<false, false>.parse(cursor)?;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
                     "method definition",
@@ -411,26 +370,9 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[derive(Debug, Clone)]
-struct PropertyName {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+struct PropertyName<const YIELD: bool, const AWAIT: bool>;
 
-impl PropertyName {
-    /// Creates a new `PropertyName` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for PropertyName
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for PropertyName<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -441,8 +383,7 @@ where
 
         // ComputedPropertyName[?Yield, ?Await] -> [ AssignmentExpression[+In, ?Yield, ?Await] ]
         if cursor.next_if(Punctuator::OpenBracket)?.is_some() {
-            let node = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+            let node = AssignmentExpression::<false, YIELD, AWAIT>.parse(cursor)?;
             cursor.expect(Punctuator::CloseBracket, "expected token ']'")?;
             return Ok(node.into());
         }
@@ -463,33 +404,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Initializer
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct Initializer {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct Initializer<
+    const IN: bool,
+    const YIELD: bool,
+    const AWAIT: bool,
+>;
 
-impl Initializer {
-    /// Creates a new `Initializer` parser.
-    pub(in crate::syntax::parser) fn new<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for Initializer
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for Initializer<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -499,6 +421,6 @@ where
         let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
 
         cursor.expect(Punctuator::Assign, "initializer")?;
-        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
+        AssignmentExpression::<IN, YIELD, AWAIT>.parse(cursor)
     }
 }

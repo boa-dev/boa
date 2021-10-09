@@ -8,7 +8,7 @@ use crate::{
         parser::{
             expression::Expression,
             statement::{declaration::hoistable::FunctionDeclaration, Statement},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+            Cursor, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -26,29 +26,10 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
 /// [spec]: https://tc39.es/ecma262/#prod-IfStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct IfStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct IfStatement<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl IfStatement {
-    /// Creates a new `IfStatement` parser.
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for IfStatement
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for IfStatement<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -60,7 +41,7 @@ where
         cursor.expect(Keyword::If, "if statement")?;
         cursor.expect(Punctuator::OpenParen, "if statement")?;
 
-        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let condition = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
         let position = cursor
             .expect(Punctuator::CloseParen, "if statement")?
@@ -73,12 +54,11 @@ where
         {
             // FunctionDeclarations in IfStatement Statement Clauses
             // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-            FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+            FunctionDeclaration::<YIELD, AWAIT, false>
                 .parse(cursor)?
                 .into()
         } else {
-            let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor)?;
+            let node = Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
             // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
             if let Node::FunctionDecl(_) = node {
@@ -98,13 +78,12 @@ where
                 // FunctionDeclarations in IfStatement Statement Clauses
                 // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
                 Some(
-                    FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                    FunctionDeclaration::<YIELD, AWAIT, false>
                         .parse(cursor)?
                         .into(),
                 )
             } else {
-                let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                let node = Statement::<YIELD, AWAIT, RETURN>.parse(cursor)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
                 if let Node::FunctionDecl(_) = node {

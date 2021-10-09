@@ -16,8 +16,8 @@ use crate::{
         ast::{node::Continue, Keyword, Punctuator},
         parser::{
             cursor::{Cursor, SemicolonResult},
-            statement::LabelIdentifier,
-            AllowAwait, AllowYield, ParseError, TokenParser,
+            statement::BindingIdentifier,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -34,26 +34,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/continue
 /// [spec]: https://tc39.es/ecma262/#prod-ContinueStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ContinueStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct ContinueStatement<const YIELD: bool, const AWAIT: bool>;
 
-impl ContinueStatement {
-    /// Creates a new `ContinueStatement` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ContinueStatement
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for ContinueStatement<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -73,7 +56,7 @@ where
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let label = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
             cursor.expect_semicolon("continue statement")?;
 
             Some(label)

@@ -12,7 +12,7 @@ use crate::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -30,26 +30,12 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
 /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::statement) struct VariableStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser::statement) struct VariableStatement<
+    const YIELD: bool,
+    const AWAIT: bool,
+>;
 
-impl VariableStatement {
-    /// Creates a new `VariableStatement` parser.
-    pub(in crate::syntax::parser::statement) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for VariableStatement
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for VariableStatement<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -59,8 +45,7 @@ where
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
-        let decl_list =
-            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let decl_list = VariableDeclarationList::<true, YIELD, AWAIT>.parse(cursor)?;
 
         cursor.expect_semicolon("variable statement")?;
 
@@ -77,33 +62,14 @@ where
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
 /// [spec]: https://tc39.es/ecma262/#prod-VariableDeclarationList
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::statement) struct VariableDeclarationList {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser::statement) struct VariableDeclarationList<
+    const IN: bool,
+    const YIELD: bool,
+    const AWAIT: bool,
+>;
 
-impl VariableDeclarationList {
-    /// Creates a new `VariableDeclarationList` parser.
-    pub(in crate::syntax::parser::statement) fn new<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for VariableDeclarationList
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for VariableDeclarationList<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -113,10 +79,7 @@ where
         let mut list = Vec::new();
 
         loop {
-            list.push(
-                VariableDeclaration::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?,
-            );
+            list.push(VariableDeclaration::<IN, YIELD, AWAIT>.parse(cursor)?);
 
             match cursor.peek_semicolon()? {
                 SemicolonResult::NotFound(tk)
@@ -139,29 +102,10 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-VariableDeclaration
 #[derive(Debug, Clone, Copy)]
-struct VariableDeclaration {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+struct VariableDeclaration<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
-impl VariableDeclaration {
-    /// Creates a new `VariableDeclaration` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for VariableDeclaration
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for VariableDeclaration<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -172,16 +116,11 @@ where
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let bindings =
-                    ObjectBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                let bindings = ObjectBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                 let init = if let Some(t) = cursor.peek(0)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor)?,
-                        )
+                        Some(Initializer::<IN, YIELD, AWAIT>.parse(cursor)?)
                     } else {
                         None
                     }
@@ -192,16 +131,11 @@ where
                 Ok(Declaration::new_with_object_pattern(bindings, init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                let bindings =
-                    ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                let bindings = ArrayBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                 let init = if let Some(t) = cursor.peek(0)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor)?,
-                        )
+                        Some(Initializer::<IN, YIELD, AWAIT>.parse(cursor)?)
                     } else {
                         None
                     }
@@ -213,15 +147,11 @@ where
             }
 
             _ => {
-                let ident =
-                    BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                let ident = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
 
                 let init = if let Some(t) = cursor.peek(0)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(true, self.allow_yield, self.allow_await)
-                                .parse(cursor)?,
-                        )
+                        Some(Initializer::<true, YIELD, AWAIT>.parse(cursor)?)
                     } else {
                         None
                     }

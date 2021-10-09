@@ -17,8 +17,7 @@ use crate::{
         },
         lexer::{Error as LexError, TokenKind},
         parser::{
-            expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            ParseResult, TokenParser,
+            expression::update::UpdateExpression, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
 };
@@ -33,26 +32,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct UnaryExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct UnaryExpression<const YIELD: bool, const AWAIT: bool>;
 
-impl UnaryExpression {
-    /// Creates a new `UnaryExpression` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for UnaryExpression
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for UnaryExpression<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -103,7 +85,7 @@ where
                 cursor.next()?.expect("! token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor)?).into())
             }
-            _ => UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor),
+            _ => UpdateExpression::<YIELD, AWAIT>.parse(cursor),
         }
     }
 }

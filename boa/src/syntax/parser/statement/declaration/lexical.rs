@@ -21,7 +21,7 @@ use crate::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
             statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-            AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+            ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -36,36 +36,15 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct LexicalDeclaration {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    const_init_required: bool,
-}
+pub(super) struct LexicalDeclaration<
+    const IN: bool,
+    const YIELD: bool,
+    const AWAIT: bool,
+    const CONST_INIT: bool,
+>;
 
-impl LexicalDeclaration {
-    /// Creates a new `LexicalDeclaration` parser.
-    pub(super) fn new<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-        const_init_required: bool,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            const_init_required,
-        }
-    }
-}
-
-impl<R> TokenParser<R> for LexicalDeclaration
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool, const CONST_INIT: bool> TokenParser<R>
+    for LexicalDeclaration<IN, YIELD, AWAIT, CONST_INIT>
 where
     R: Read,
 {
@@ -76,22 +55,12 @@ where
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Const) => BindingList::new(
-                self.allow_in,
-                self.allow_yield,
-                self.allow_await,
-                true,
-                self.const_init_required,
-            )
-            .parse(cursor),
-            TokenKind::Keyword(Keyword::Let) => BindingList::new(
-                self.allow_in,
-                self.allow_yield,
-                self.allow_await,
-                false,
-                self.const_init_required,
-            )
-            .parse(cursor),
+            TokenKind::Keyword(Keyword::Const) => {
+                BindingList::<IN, YIELD, AWAIT, true, CONST_INIT>.parse(cursor)
+            }
+            TokenKind::Keyword(Keyword::Let) => {
+                BindingList::<IN, YIELD, AWAIT, false, CONST_INIT>.parse(cursor)
+            }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
@@ -107,39 +76,22 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-BindingList
 #[derive(Debug, Clone, Copy)]
-struct BindingList {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    is_const: bool,
-    const_init_required: bool,
-}
+struct BindingList<
+    const IN: bool,
+    const YIELD: bool,
+    const AWAIT: bool,
+    const CONST: bool,
+    const CONST_INIT: bool,
+>;
 
-impl BindingList {
-    /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-        is_const: bool,
-        const_init_required: bool,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            is_const,
-            const_init_required,
-        }
-    }
-}
-
-impl<R> TokenParser<R> for BindingList
+impl<
+        R,
+        const IN: bool,
+        const YIELD: bool,
+        const AWAIT: bool,
+        const CONST: bool,
+        const CONST_INIT: bool,
+    > TokenParser<R> for BindingList<IN, YIELD, AWAIT, CONST, CONST_INIT>
 where
     R: Read,
 {
@@ -154,11 +106,10 @@ where
         let mut const_decls = Vec::new();
 
         loop {
-            let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
-                .parse(cursor)?;
+            let decl = LexicalBinding::<IN, YIELD, AWAIT>.parse(cursor)?;
 
-            if self.is_const {
-                if self.const_init_required {
+            if CONST {
+                if CONST_INIT {
                     let init_is_some = match &decl {
                         Declaration::Identifier { init, .. } if init.is_some() => true,
                         Declaration::Pattern(p) if p.init().is_some() => true,
@@ -208,7 +159,7 @@ where
             }
         }
 
-        if self.is_const {
+        if CONST {
             Ok(DeclarationList::Const(const_decls.into()).into())
         } else {
             Ok(DeclarationList::Let(let_decls.into()).into())
@@ -222,29 +173,10 @@ where
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalBinding
-struct LexicalBinding {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+struct LexicalBinding<const IN: bool, const YIELD: bool, const AWAIT: bool>;
 
-impl LexicalBinding {
-    /// Creates a new `BindingList` parser.
-    fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for LexicalBinding
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for LexicalBinding<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -257,16 +189,11 @@ where
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let bindings =
-                    ObjectBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                let bindings = ObjectBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                 let init = if let Some(t) = cursor.peek(0)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor)?,
-                        )
+                        Some(Initializer::<IN, YIELD, AWAIT>.parse(cursor)?)
                     } else {
                         None
                     }
@@ -277,16 +204,11 @@ where
                 Ok(Declaration::new_with_object_pattern(bindings, init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                let bindings =
-                    ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                let bindings = ArrayBindingPattern::<IN, YIELD, AWAIT>.parse(cursor)?;
 
                 let init = if let Some(t) = cursor.peek(0)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor)?,
-                        )
+                        Some(Initializer::<IN, YIELD, AWAIT>.parse(cursor)?)
                     } else {
                         None
                     }
@@ -298,15 +220,11 @@ where
             }
 
             _ => {
-                let ident =
-                    BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                let ident = BindingIdentifier::<YIELD, AWAIT>.parse(cursor)?;
 
                 let init = if let Some(t) = cursor.peek(0)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                        Some(
-                            Initializer::new(true, self.allow_yield, self.allow_await)
-                                .parse(cursor)?,
-                        )
+                        Some(Initializer::<true, YIELD, AWAIT>.parse(cursor)?)
                     } else {
                         None
                     }

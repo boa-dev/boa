@@ -17,7 +17,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{Cursor, ParseError, TokenParser},
     },
 };
 
@@ -26,46 +26,24 @@ use std::io::Read;
 /// The possible TokenKind which indicate the end of a block statement.
 const BLOCK_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
 
-/// A `BlockStatement` is equivalent to a `Block`.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
-pub(super) type BlockStatement = Block;
-
 /// Variable declaration list parsing.
+///
+/// A `Block` is equivalent to a `BlockStatement`.
+///
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
-///  - [ECMAScript specification][spec]
+///  - [ECMAScript specification][spec_block]
+/// - [ECMAScript specification][spec_statement]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
-/// [spec]: https://tc39.es/ecma262/#prod-Block
+/// [spec_block]: https://tc39.es/ecma262/#prod-Block
+/// [spec_statement]: https://tc39.es/ecma262/#prod-BlockStatement
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Block {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-    allow_return: AllowReturn,
-}
+pub(super) struct Block<const YIELD: bool, const AWAIT: bool, const RETURN: bool>;
 
-impl Block {
-    /// Creates a new `Block` parser.
-    pub(super) fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-        R: Into<AllowReturn>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            allow_return: allow_return.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for Block
+impl<R, const YIELD: bool, const AWAIT: bool, const RETURN: bool> TokenParser<R>
+    for Block<YIELD, AWAIT, RETURN>
 where
     R: Read,
 {
@@ -81,15 +59,9 @@ where
             }
         }
 
-        let statement_list = StatementList::new(
-            self.allow_yield,
-            self.allow_await,
-            self.allow_return,
-            true,
-            &BLOCK_BREAK_TOKENS,
-        )
-        .parse(cursor)
-        .map(node::Block::from)?;
+        let statement_list = StatementList::<YIELD, AWAIT, RETURN, true>::new(&BLOCK_BREAK_TOKENS)
+            .parse(cursor)
+            .map(node::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block")?;
 
         Ok(statement_list)

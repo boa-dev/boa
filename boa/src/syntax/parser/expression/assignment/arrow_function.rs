@@ -17,9 +17,9 @@ use crate::{
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             error::{ErrorContext, ParseError, ParseResult},
-            function::{FormalParameterList, FormalParameters, FunctionBody},
+            function::{FormalParameterList, FormalParameters, FunctionStatementList},
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+            Cursor, TokenParser,
         },
     },
     BoaProfiler,
@@ -36,33 +36,14 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct ArrowFunction {
-    allow_in: AllowIn,
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct ArrowFunction<
+    const IN: bool,
+    const YIELD: bool,
+    const AWAIT: bool,
+>;
 
-impl ArrowFunction {
-    /// Creates a new `ArrowFunction` parser.
-    pub(in crate::syntax::parser) fn new<I, Y, A>(
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
-    where
-        I: Into<AllowIn>,
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ArrowFunction
+impl<R, const IN: bool, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for ArrowFunction<IN, YIELD, AWAIT>
 where
     R: Read,
 {
@@ -72,37 +53,36 @@ where
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
-            &next_token.kind()
-        {
-            // CoverParenthesizedExpressionAndArrowParameterList
-            let params_start_position = cursor
-                .expect(Punctuator::OpenParen, "arrow function")?
-                .span()
-                .end();
+        let (params, params_start_position) =
+            if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
+                // CoverParenthesizedExpressionAndArrowParameterList
+                let params_start_position = cursor
+                    .expect(Punctuator::OpenParen, "arrow function")?
+                    .span()
+                    .end();
 
-            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            cursor.expect(Punctuator::CloseParen, "arrow function")?;
-            (params, params_start_position)
-        } else {
-            let params_start_position = next_token.span().start();
-            let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                .parse(cursor)
-                .context("arrow function")?;
-            (
-                FormalParameterList {
-                    parameters: Box::new([FormalParameter::new(param, None, false)]),
-                    is_simple: true,
-                    has_duplicates: false,
-                },
-                params_start_position,
-            )
-        };
+                let params = FormalParameters::<YIELD, AWAIT>.parse(cursor)?;
+                cursor.expect(Punctuator::CloseParen, "arrow function")?;
+                (params, params_start_position)
+            } else {
+                let params_start_position = next_token.span().start();
+                let param = BindingIdentifier::<YIELD, AWAIT>
+                    .parse(cursor)
+                    .context("arrow function")?;
+                (
+                    FormalParameterList {
+                        parameters: Box::new([FormalParameter::new(param, None, false)]),
+                        is_simple: true,
+                        has_duplicates: false,
+                    },
+                    params_start_position,
+                )
+            };
 
         cursor.peek_expect_no_lineterminator(0, "arrow function")?;
 
         cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
-        let body = ConciseBody::new(self.allow_in).parse(cursor)?;
+        let body = ConciseBody::<IN>.parse(cursor)?;
 
         // Early Error: ArrowFormalParameters are UniqueFormalParameters.
         if params.has_duplicates {
@@ -145,23 +125,9 @@ where
 
 /// <https://tc39.es/ecma262/#prod-ConciseBody>
 #[derive(Debug, Clone, Copy)]
-struct ConciseBody {
-    allow_in: AllowIn,
-}
+struct ConciseBody<const IN: bool>;
 
-impl ConciseBody {
-    /// Creates a new `ConcideBody` parser.
-    fn new<I>(allow_in: I) -> Self
-    where
-        I: Into<AllowIn>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ConciseBody
+impl<R, const IN: bool> TokenParser<R> for ConciseBody<IN>
 where
     R: Read,
 {
@@ -171,12 +137,12 @@ where
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
-                let body = FunctionBody::new(false, false).parse(cursor)?;
+                let body = FunctionStatementList::<false, false>.parse(cursor)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
             _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false).parse(cursor)?,
+                ExpressionBody::<IN, false>.parse(cursor)?,
                 None,
             )
             .into()])),
@@ -186,32 +152,15 @@ where
 
 /// <https://tc39.es/ecma262/#prod-ExpressionBody>
 #[derive(Debug, Clone, Copy)]
-struct ExpressionBody {
-    allow_in: AllowIn,
-    allow_await: AllowAwait,
-}
+struct ExpressionBody<const IN: bool, const AWAIT: bool>;
 
-impl ExpressionBody {
-    /// Creates a new `ExpressionBody` parser.
-    fn new<I, A>(allow_in: I, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ExpressionBody
+impl<R, const IN: bool, const AWAIT: bool> TokenParser<R> for ExpressionBody<IN, AWAIT>
 where
     R: Read,
 {
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor)
+        AssignmentExpression::<IN, false, AWAIT>.parse(cursor)
     }
 }

@@ -16,10 +16,7 @@ use crate::{
             node::{ArrayDecl, Node, Spread},
             Const, Punctuator,
         },
-        parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            TokenParser,
-        },
+        parser::{expression::AssignmentExpression, Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -35,26 +32,9 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
 #[derive(Debug, Clone, Copy)]
-pub(super) struct ArrayLiteral {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct ArrayLiteral<const YIELD: bool, const AWAIT: bool>;
 
-impl ArrayLiteral {
-    /// Creates a new `ArrayLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ArrayLiteral
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for ArrayLiteral<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -77,14 +57,10 @@ where
             let _ = cursor.peek(0)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
             if cursor.next_if(Punctuator::Spread)?.is_some() {
-                let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                let node = AssignmentExpression::<true, YIELD, AWAIT>.parse(cursor)?;
                 elements.push(Spread::new(node).into());
             } else {
-                elements.push(
-                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
-                );
+                elements.push(AssignmentExpression::<true, YIELD, AWAIT>.parse(cursor)?);
             }
             cursor.next_if(Punctuator::Comma)?;
         }

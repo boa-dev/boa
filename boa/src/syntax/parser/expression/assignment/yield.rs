@@ -14,7 +14,7 @@ use crate::{
             Keyword, Punctuator,
         },
         lexer::TokenKind,
-        parser::{cursor::SemicolonResult, AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
+        parser::{cursor::SemicolonResult, Cursor, ParseResult, TokenParser},
     },
     BoaProfiler,
 };
@@ -32,26 +32,9 @@ use super::AssignmentExpression;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
 /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser) struct YieldExpression {
-    allow_in: AllowIn,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser) struct YieldExpression<const IN: bool, const AWAIT: bool>;
 
-impl YieldExpression {
-    /// Creates a new `YieldExpression` parser.
-    pub(in crate::syntax::parser) fn new<I, A>(allow_in: I, allow_await: A) -> Self
-    where
-        I: Into<AllowIn>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_in: allow_in.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for YieldExpression
+impl<R, const IN: bool, const AWAIT: bool> TokenParser<R> for YieldExpression<IN, AWAIT>
 where
     R: Read,
 {
@@ -74,15 +57,9 @@ where
             if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                 cursor.expect(TokenKind::Punctuator(Punctuator::Mul), "token disappeared")?;
                 delegate = true;
-                expr = Some(
-                    AssignmentExpression::new(self.allow_in, true, self.allow_await)
-                        .parse(cursor)?,
-                );
+                expr = Some(AssignmentExpression::<IN, true, AWAIT>.parse(cursor)?);
             } else {
-                expr = Some(
-                    AssignmentExpression::new(self.allow_in, true, self.allow_await)
-                        .parse(cursor)?,
-                );
+                expr = Some(AssignmentExpression::<IN, true, AWAIT>.parse(cursor)?);
             }
         }
 

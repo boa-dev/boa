@@ -15,7 +15,7 @@ use crate::{
         ast::{node::FunctionExpr, Keyword, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
-            function::{FormalParameters, FunctionBody},
+            function::{FormalParameters, FunctionStatementList},
             statement::BindingIdentifier,
             Cursor, ParseError, TokenParser,
         },
@@ -50,7 +50,7 @@ where
                 TokenKind::Identifier(_)
                 | TokenKind::Keyword(Keyword::Yield)
                 | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor)?)
+                    Some(BindingIdentifier::<false, false>.parse(cursor)?)
                 }
                 _ => None,
             }
@@ -77,12 +77,12 @@ where
             .span()
             .end();
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::<false, false>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "function expression")?;
         cursor.expect(Punctuator::OpenBlock, "function expression")?;
 
-        let body = FunctionBody::new(false, false).parse(cursor)?;
+        let body = FunctionStatementList::<false, false>.parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 

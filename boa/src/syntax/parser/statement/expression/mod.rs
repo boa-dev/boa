@@ -3,7 +3,7 @@ use crate::{
     syntax::{
         ast::{node::Node, Keyword, Punctuator},
         lexer::TokenKind,
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{Cursor, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -16,26 +16,12 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ExpressionStatement
 #[derive(Debug, Clone, Copy)]
-pub(in crate::syntax::parser::statement) struct ExpressionStatement {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(in crate::syntax::parser::statement) struct ExpressionStatement<
+    const YIELD: bool,
+    const AWAIT: bool,
+>;
 
-impl ExpressionStatement {
-    /// Creates a new `ExpressionStatement` parser.
-    pub(in crate::syntax::parser::statement) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for ExpressionStatement
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for ExpressionStatement<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -73,7 +59,7 @@ where
             _ => {}
         }
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
 
         cursor.expect_semicolon("expression statement")?;
 

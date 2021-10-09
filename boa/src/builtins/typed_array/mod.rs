@@ -2942,10 +2942,10 @@ impl TypedArray {
         let len = values.len();
         {
             let mut o = o.borrow_mut();
-            let mut o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
+            let o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
 
             // 2. Perform ? AllocateTypedArrayBuffer(O, len).
-            TypedArray::allocate_buffer(&mut o_inner, len, context)?;
+            TypedArray::allocate_buffer(o_inner, len, context)?;
         }
 
         // 3. Let k be 0.

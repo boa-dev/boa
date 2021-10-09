@@ -20,7 +20,7 @@ use crate::{
         lexer::TokenKind,
         parser::{
             expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -35,28 +35,18 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
 #[derive(Debug)]
-pub(super) struct CallExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
+pub(super) struct CallExpression<const YIELD: bool, const AWAIT: bool> {
     first_member_expr: Node,
 }
 
-impl CallExpression {
+impl<const YIELD: bool, const AWAIT: bool> CallExpression<YIELD, AWAIT> {
     /// Creates a new `CallExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, first_member_expr: Node) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-            first_member_expr,
-        }
+    pub(super) fn new(first_member_expr: Node) -> Self {
+        Self { first_member_expr }
     }
 }
 
-impl<R> TokenParser<R> for CallExpression
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R> for CallExpression<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -68,7 +58,7 @@ where
         let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let args = Arguments::<YIELD, AWAIT>.parse(cursor)?;
             Node::from(Call::new(self.first_member_expr, args))
         } else {
             let next_token = cursor.next()?.expect("token vanished");
@@ -83,7 +73,7 @@ where
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let args = Arguments::<YIELD, AWAIT>.parse(cursor)?;
                     lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
@@ -107,19 +97,13 @@ where
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
-                    let idx =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let idx = Expression::<true, YIELD, AWAIT>.parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
-                    lhs = TaggedTemplateLiteral::new(
-                        self.allow_yield,
-                        self.allow_await,
-                        tok.span().start(),
-                        lhs,
-                    )
-                    .parse(cursor)?;
+                    lhs = TaggedTemplateLiteral::<YIELD, AWAIT>::new(tok.span().start(), lhs)
+                        .parse(cursor)?;
                 }
                 _ => break,
             }

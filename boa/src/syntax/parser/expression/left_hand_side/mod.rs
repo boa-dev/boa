@@ -18,7 +18,7 @@ use crate::{
     syntax::{
         ast::{Node, Punctuator},
         lexer::{InputElement, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{Cursor, ParseError, TokenParser},
     },
 };
 
@@ -33,26 +33,10 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Left-hand-side_expressions
 /// [spec]: https://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct LeftHandSideExpression {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
+pub(super) struct LeftHandSideExpression<const YIELD: bool, const AWAIT: bool>;
 
-impl LeftHandSideExpression {
-    /// Creates a new `LeftHandSideExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for LeftHandSideExpression
+impl<R, const YIELD: bool, const AWAIT: bool> TokenParser<R>
+    for LeftHandSideExpression<YIELD, AWAIT>
 where
     R: Read,
 {
@@ -64,10 +48,10 @@ where
         cursor.set_goal(InputElement::TemplateTail);
 
         // TODO: Implement NewExpression: new MemberExpression
-        let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs = MemberExpression::<YIELD, AWAIT>.parse(cursor)?;
         if let Some(tok) = cursor.peek(0)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor);
+                return CallExpression::<YIELD, AWAIT>::new(lhs).parse(cursor);
             }
         }
         Ok(lhs)
