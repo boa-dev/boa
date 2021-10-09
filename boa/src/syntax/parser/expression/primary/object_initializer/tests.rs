@@ -73,7 +73,7 @@ fn check_object_short_function_arguments() {
             "b",
             FunctionExpr::new(
                 None,
-                vec![FormalParameter::new("test", None, false)],
+                vec![FormalParameter::new(Declaration::new_with_identifier("test", None), false)],
                 vec![],
             ),
         ),
@@ -133,7 +133,7 @@ fn check_object_setter() {
             "b",
             FunctionExpr::new(
                 None,
-                vec![FormalParameter::new("test", None, false)],
+                vec![FormalParameter::new(Declaration::new_with_identifier("test", None), false)],
                 vec![],
             ),
         ),
