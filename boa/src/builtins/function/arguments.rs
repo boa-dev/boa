@@ -4,7 +4,7 @@ use crate::{
     object::{FunctionBuilder, JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
-    syntax::ast::node::FormalParameter,
+    syntax::ast::node::{FormalParameter, declaration::Declaration},
     Context, JsValue,
 };
 
@@ -110,11 +110,12 @@ impl Arguments {
     /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
     pub(crate) fn create_mapped_arguments_object(
         func: &JsObject,
-        formals: &[FormalParameter],
+        formals: Vec<FormalParameter>,
         arguments_list: &[JsValue],
         env: &Environment,
         context: &mut Context,
     ) -> JsObject {
+        
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
         // It may contain duplicate identifiers.
         // 2. Let len be the number of elements in argumentsList.
@@ -169,72 +170,84 @@ impl Arguments {
         // 18. Set index to numberOfParameters - 1.
         // 19. Repeat, while index ≥ 0,
         // a. Let name be parameterNames[index].
-        for (index, parameter_name) in formals.iter().map(|fp| fp.name()).enumerate().rev() {
-            // b. If name is not an element of mappedNames, then
-            if !mapped_names.contains(parameter_name) {
-                // i. Add name as an element of the list mappedNames.
-                mapped_names.insert(parameter_name);
-                // ii. If index < len, then
-                if index < len {
-                    // 1. Let g be MakeArgGetter(name, env).
-                    // https://tc39.es/ecma262/#sec-makearggetter
-                    let g = {
-                        // 2. Let getter be ! CreateBuiltinFunction(getterClosure, 0, "", « »).
-                        // 3. NOTE: getter is never directly accessible to ECMAScript code.
-                        // 4. Return getter.
-                        FunctionBuilder::closure_with_captures(
-                            context,
-                            // 1. Let getterClosure be a new Abstract Closure with no parameters that captures
-                            // name and env and performs the following steps when called:
-                            |_, _, captures, context| {
-                                captures.0.get_binding_value(&captures.1, false, context)
-                            },
-                            (env.clone(), parameter_name.to_owned()),
-                        )
-                        .length(0)
-                        .name("")
-                        .build()
-                    };
+        println!("ys i ran");
+        for (index, parameter_name_vec) in formals.iter().clone().map(|fp| fp.name()).enumerate().rev() {
+            for parameter_name in parameter_name_vec.iter().cloned() {
+                
+                // b. If name is not an element of mappedNames, then
+                if !mapped_names.contains(parameter_name) {
+                    // i. Add name as an element of the list mappedNames.
+                    mapped_names.insert(parameter_name);
+                    
+                    match &formals[index].declaration() {
+                        Declaration::Identifier{ident:_, init:_} => {
 
-                    // 2. Let p be MakeArgSetter(name, env).
-                    // https://tc39.es/ecma262/#sec-makeargsetter
-                    let p = {
-                        // 2. Let setter be ! CreateBuiltinFunction(setterClosure, 1, "", « »).
-                        // 3. NOTE: setter is never directly accessible to ECMAScript code.
-                        // 4. Return setter.
-                        FunctionBuilder::closure_with_captures(
-                            context,
-                            // 1. Let setterClosure be a new Abstract Closure with parameters (value) that captures
-                            // name and env and performs the following steps when called:
-                            |_, args, captures, context| {
-                                let value = args.get(0).cloned().unwrap_or_default();
-                                // a. Return env.SetMutableBinding(name, value, false).
-                                captures
-                                    .0
-                                    .set_mutable_binding(&captures.1, value, false, context)
-                                    .map(|_| JsValue::Undefined)
-                                // Ok(JsValue::Undefined)
-                            },
-                            (env.clone(), parameter_name.to_owned()),
-                        )
-                        .length(1)
-                        .name("")
-                        .build()
-                    };
-
-                    // 3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {
-                    // [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
-                    map.__define_own_property__(
-                        index.into(),
-                        PropertyDescriptor::builder()
-                            .set(p)
-                            .get(g)
-                            .enumerable(false)
-                            .configurable(true)
-                            .build(),
-                        context,
-                    )
-                    .expect("[[DefineOwnProperty]] must not fail per the spec");
+                        // ii. If index < len, then
+                            if index < len {
+                                // 1. Let g be MakeArgGetter(name, env).
+                                // https://tc39.es/ecma262/#sec-makearggetter
+                                let g = {
+                                    // 2. Let getter be ! CreateBuiltinFunction(getterClosure, 0, "", « »).
+                                    // 3. NOTE: getter is never directly accessible to ECMAScript code.
+                                    // 4. Return getter.
+                                    FunctionBuilder::closure_with_captures(
+                                        context,
+                                        // 1. Let getterClosure be a new Abstract Closure with no parameters that captures
+                                        // name and env and performs the following steps when called:
+                                        |_, _, captures, context| {
+                                            println!("this is it {:?}",&captures);
+                                            captures.0.get_binding_value(&captures.1, false, context)
+                                        },
+                                        (env.clone(), parameter_name.to_owned()),
+                                    )
+                                    .length(0)
+                                    .name("")
+                                    .build()
+                                };
+                                // 2. Let p be MakeArgSetter(name, env).
+                                // https://tc39.es/ecma262/#sec-makeargsetter
+                                let p = {
+                                    // 2. Let setter be ! CreateBuiltinFunction(setterClosure, 1, "", « »).
+                                    // 3. NOTE: setter is never directly accessible to ECMAScript code.
+                                    // 4. Return setter.
+                                    FunctionBuilder::closure_with_captures(
+                                        context,
+                                        // 1. Let setterClosure be a new Abstract Closure with parameters (value) that captures
+                                        // name and env and performs the following steps when called:
+                                        |_, args, captures, context| {
+                                            let value = args.get(0).cloned().unwrap_or_default();
+                                            // a. Return env.SetMutableBinding(name, value, false).
+                                            captures
+                                            .0
+                                            .set_mutable_binding(&captures.1, value, false, context)
+                                            .map(|_| JsValue::Undefined)
+                                            // Ok(JsValue::Undefined)
+                                        },
+                                        (env.clone(), parameter_name.to_owned()),
+                                    )
+                                    .length(1)
+                                    .name("")
+                                    .build()
+                                };
+                                
+                                
+                                // 3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {
+                                // [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
+                                map.__define_own_property__(
+                                    index.into(),
+                                    PropertyDescriptor::builder()
+                                        .set(p)
+                                        .get(g)
+                                        .enumerable(false)
+                                        .configurable(true)
+                                        .build(),
+                                    context,
+                                )
+                                .expect("[[DefineOwnProperty]] must not fail per the spec");
+                            }
+                        },
+                        _ => {}
+                    }
                 }
             }
         }
@@ -267,6 +280,7 @@ impl Arguments {
         .expect("DefinePropertyOrThrow must not fail per the spec");
 
         // 22. Return obj.
+        
         obj
     }
 }
