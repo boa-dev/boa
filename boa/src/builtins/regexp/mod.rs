@@ -1596,7 +1596,7 @@ impl RegExp {
         let splitter = splitter
             .as_object()
             // todo: remove when we handle realms on `get_prototype_from_constructor` and make `construct` always return a `JsObject`
-            .ok_or_else(||context.construct_type_error("constructor did not return an object"))?;
+            .ok_or_else(|| context.construct_type_error("constructor did not return an object"))?;
 
         // 11. Let A be ! ArrayCreate(0).
         let a = Array::array_create(0, None, context).unwrap();

@@ -1203,14 +1203,17 @@ impl<'context> FunctionBuilder<'context> {
     ) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut C, &mut Context) -> JsResult<JsValue> + Copy + 'static,
-        C: NativeObject + Clone,
+        C: NativeObject,
     {
         Self {
             context,
             function: Some(Function::Closure {
-                function: Box::new(move |this, args, captures: &mut Captures, context| {
-                    let data = captures.try_downcast_mut::<C>(context)?;
-                    function(this, args, data, context)
+                function: Box::new(move |this, args, captures: Captures, context| {
+                    let mut captures = captures.as_mut_any();
+                    let captures = captures.downcast_mut::<C>().ok_or_else(|| {
+                        context.construct_type_error("cannot downcast `Captures` to given type")
+                    })?;
+                    function(this, args, captures, context)
                 }),
                 constructor: false,
                 captures: Captures::new(captures),

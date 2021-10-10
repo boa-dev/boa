@@ -518,7 +518,7 @@ impl Context {
         args: &[JsValue],
     ) -> JsResult<JsValue> {
         f.as_callable()
-            .ok_or_else(|| self.construct_type_error("not a function"))
+            .ok_or_else(|| self.construct_type_error("Value is not callable"))
             .and_then(|obj| obj.call(this, args, self))
     }
 

@@ -12,14 +12,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use std::{
+    any::Any,
     borrow::Cow,
     fmt,
     ops::{Deref, DerefMut},
 };
 
 use dyn_clone::DynClone;
+use gc::{Gc, GcCell};
 
-use crate::value::IntegerOrInfinity;
 use crate::{
     builtins::BuiltIn,
     context::StandardObjects,
@@ -37,6 +38,10 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder},
     property::PropertyKey,
     JsString,
+};
+use crate::{
+    object::{Ref, RefMut},
+    value::IntegerOrInfinity,
 };
 
 use super::JsArgs;
@@ -67,16 +72,12 @@ impl<T: Copy> DynCopy for T {}
 /// be callable from Javascript, but most of the time the compiler
 /// is smart enough to correctly infer the types.
 pub trait ClosureFunctionSignature:
-    Fn(&JsValue, &[JsValue], &mut Captures, &mut Context) -> JsResult<JsValue>
-    + DynCopy
-    + DynClone
-    + 'static
+    Fn(&JsValue, &[JsValue], Captures, &mut Context) -> JsResult<JsValue> + DynCopy + DynClone + 'static
 {
 }
 
-// The `Copy` bound automatically infers `DynCopy` and `DynClone`
 impl<T> ClosureFunctionSignature for T where
-    T: Fn(&JsValue, &[JsValue], &mut Captures, &mut Context) -> JsResult<JsValue> + Copy + 'static
+    T: Fn(&JsValue, &[JsValue], Captures, &mut Context) -> JsResult<JsValue> + Copy + 'static
 {
 }
 
@@ -125,19 +126,18 @@ impl ConstructorKind {
     }
 }
 
-/// Wrapper for `Box<dyn NativeObject>` that allows passing additional
+/// Wrapper for `Gc<GcCell<dyn NativeObject>>` that allows passing additional
 /// captures through a `Copy` closure.
 ///
 /// Any type implementing `Trace + Any + Debug`
 /// can be used as a capture context, so you can pass e.g. a String,
 /// a tuple or even a full struct.
 ///
-/// You can downcast to any type and handle the fail case as you like
-/// with `downcast_ref` and `downcast_mut`, or you can use `try_downcast_ref`
-/// and `try_downcast_mut` to automatically throw a `TypeError` if the downcast
-/// fails.
-#[derive(Debug, Trace, Finalize)]
-pub struct Captures(Box<dyn NativeObject>);
+/// You can cast to `Any` with `as_any`, `as_mut_any` and downcast
+/// with `Any::downcast_ref` and `Any::downcast_mut` to recover the original
+/// type.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub struct Captures(Gc<GcCell<Box<dyn NativeObject>>>);
 
 impl Captures {
     /// Creates a new capture context.
@@ -145,51 +145,25 @@ impl Captures {
     where
         T: NativeObject,
     {
-        Self(Box::new(captures))
+        Self(Gc::new(GcCell::new(Box::new(captures))))
     }
 
-    /// Downcasts `Captures` to the specified type, returning a reference to the
-    /// downcasted type if successful or `None` otherwise.
-    pub fn downcast_ref<T>(&self) -> Option<&T>
-    where
-        T: NativeObject,
-    {
-        self.0.deref().as_any().downcast_ref::<T>()
+    /// Casts `Captures` to `Any`
+    ///
+    /// # Panics
+    ///
+    /// Panics if it's already borrowed as `&mut Any`
+    pub fn as_any(&self) -> gc::GcCellRef<'_, dyn Any> {
+        Ref::map(self.0.borrow(), |data| data.deref().as_any())
     }
 
-    /// Mutably downcasts `Captures` to the specified type, returning a
-    /// mutable reference to the downcasted type if successful or `None` otherwise.
-    pub fn downcast_mut<T>(&mut self) -> Option<&mut T>
-    where
-        T: NativeObject,
-    {
-        self.0.deref_mut().as_mut_any().downcast_mut::<T>()
-    }
-
-    /// Downcasts `Captures` to the specified type, returning a reference to the
-    /// downcasted type if successful or a `TypeError` otherwise.
-    pub fn try_downcast_ref<T>(&self, context: &mut Context) -> JsResult<&T>
-    where
-        T: NativeObject,
-    {
-        self.0
-            .deref()
-            .as_any()
-            .downcast_ref::<T>()
-            .ok_or_else(|| context.construct_type_error("cannot downcast `Captures` to given type"))
-    }
-
-    /// Downcasts `Captures` to the specified type, returning a reference to the
-    /// downcasted type if successful or a `TypeError` otherwise.
-    pub fn try_downcast_mut<T>(&mut self, context: &mut Context) -> JsResult<&mut T>
-    where
-        T: NativeObject,
-    {
-        self.0
-            .deref_mut()
-            .as_mut_any()
-            .downcast_mut::<T>()
-            .ok_or_else(|| context.construct_type_error("cannot downcast `Captures` to given type"))
+    /// Mutably casts `Captures` to `Any`
+    ///
+    /// # Panics
+    ///
+    /// Panics if it's already borrowed as `&mut Any`
+    pub fn as_mut_any(&self) -> gc::GcCellRefMut<'_, Box<dyn NativeObject>, dyn Any> {
+        RefMut::map(self.0.borrow_mut(), |data| data.deref_mut().as_mut_any())
     }
 }
 
@@ -220,7 +194,7 @@ pub enum Function {
     },
     #[cfg(feature = "vm")]
     VmOrdinary {
-        code: gc::Gc<crate::vm::CodeBlock>,
+        code: Gc<crate::vm::CodeBlock>,
         environment: Environment,
     },
 }
