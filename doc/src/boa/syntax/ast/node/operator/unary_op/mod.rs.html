@@ -134,13 +134,6 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec::Executable</span>,
@@ -258,16 +251,9 @@
                         .<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">res</span>));
                 }
+                <span class="comment">// TODO: implement delete on references.</span>
                 <span class="ident">Node::Identifier</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="bool-val">false</span>),
-                <span class="ident">Node::ArrayDecl</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::Block</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::Const</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::FunctionExpr</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::New</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::Object</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::UnaryOp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="bool-val">true</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;wrong delete argument {}&quot;</span>, <span class="self">self</span>)),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="bool-val">true</span>),
             },
             <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">type_of</span>()),
         })
