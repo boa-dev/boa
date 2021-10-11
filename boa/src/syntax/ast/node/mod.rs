@@ -32,7 +32,7 @@ pub use self::{
     declaration::{
         generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
         AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, FunctionDecl,
-        FunctionExpr,
+        FunctionExpr, async_generator_expr::AsyncGeneratorExpr, async_generator_decl::AsyncGeneratorDecl,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -81,6 +81,12 @@ pub enum Node {
 
     /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
     AsyncFunctionExpr(AsyncFunctionExpr),
+    
+    /// An async generator expression node.
+    AsyncGeneratorExpr(AsyncGeneratorExpr),
+
+    /// An async generator declaration node.
+    AsyncGeneratorDecl(AsyncGeneratorDecl),
 
     /// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).
     AwaitExpr(AwaitExpr),
@@ -317,6 +323,8 @@ impl Node {
             Self::Yield(ref y) => Display::fmt(y, f),
             Self::GeneratorDecl(ref decl) => Display::fmt(decl, f),
             Self::GeneratorExpr(ref expr) => expr.display(f, indentation),
+            Self::AsyncGeneratorExpr(ref expr) => expr.display(f, indentation),
+            Self::AsyncGeneratorDecl(ref decl) => decl.display(f, indentation),
         }
     }
 }
@@ -327,6 +335,8 @@ impl Executable for Node {
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
+            Node::AsyncGeneratorExpr(ref expr) => expr.run(context),
+            Node::AsyncGeneratorDecl(ref decl) => decl.run(context),
             Node::AwaitExpr(ref expr) => expr.run(context),
             Node::Call(ref call) => call.run(context),
             Node::Const(Const::Null) => Ok(JsValue::null()),

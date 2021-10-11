@@ -11,6 +11,7 @@ mod array_initializer;
 mod async_function_expression;
 mod function_expression;
 mod generator_expression;
+mod async_generator_expression;
 mod object_initializer;
 mod template;
 #[cfg(test)]
@@ -19,7 +20,7 @@ mod tests;
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
     function_expression::FunctionExpression, generator_expression::GeneratorExpression,
-    object_initializer::ObjectLiteral,
+    object_initializer::ObjectLiteral, async_generator_expression::AsyncGeneratorExpression,
 };
 use super::Expression;
 use crate::{
@@ -89,9 +90,16 @@ where
                     FunctionExpression.parse(cursor).map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
-                .parse(cursor)
-                .map(Node::from),
+            TokenKind::Keyword(Keyword::Async) => {
+                cursor.peek_expect_no_lineterminator(0, "primary expression")?;
+                cursor.expect(Keyword::Function, "primary expression")?;
+                let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+                if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                    AsyncGeneratorExpression.parse(cursor).map(Node::from)
+                } else {
+                    AsyncFunctionExpression::new(self.allow_yield).parse(cursor).map(Node::from)
+                }
+            },
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
