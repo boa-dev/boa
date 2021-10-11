@@ -14,11 +14,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::{map, BuiltIn, JsArgs},
     context::StandardObjects,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, IntegrityLevel,
-        JsObject, ObjectData, ObjectInitializer, ObjectKind,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        IntegrityLevel, JsObject, ObjectData, ObjectInitializer, ObjectKind,
     },
     property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -88,6 +88,7 @@ impl BuiltIn for Object {
         .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
         .static_method(Self::has_own, "hasOwn", 2)
+        .static_method(Self::from_entries, "fromEntries", 1)
         .build();
 
         object.into()
@@ -875,6 +876,49 @@ impl Object {
 
         // 3. Return ? HasOwnProperty(obj, key).
         Ok(obj.has_own_property(key, context)?.into())
+    }
+
+    /// `Object.fromEntries( iterable )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.fromentries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries
+    pub fn from_entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Perform ? RequireObjectCoercible(iterable).
+        let iterable = args.get_or_undefined(0).require_object_coercible(context)?;
+
+        // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+        // 3. Assert: obj is an extensible ordinary object with no own properties.
+        let obj = context.construct_object();
+
+        // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
+        // obj and performs the following steps when called:
+        let mut closure = FunctionBuilder::closure_with_captures(
+            context,
+            |_, args, obj, context| {
+                let key = args.get_or_undefined(0);
+                let value = args.get_or_undefined(1);
+
+                // a. Let propertyKey be ? ToPropertyKey(key).
+                let property_key = key.to_property_key(context)?;
+
+                // b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
+                obj.create_data_property_or_throw(property_key, value, context)?;
+
+                // c. Return undefined.
+                Ok(JsValue::undefined())
+            },
+            obj.clone(),
+        );
+
+        // 5. Let adder be ! CreateBuiltinFunction(closure, 2, "", « »).
+        let adder = closure.length(2).name("").build();
+
+        // 6. Return ? AddEntriesFromIterable(obj, iterable, adder).
+        map::add_entries_from_iterable(&obj, iterable, &adder.into(), context)
     }
 }
 
