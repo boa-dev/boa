@@ -889,6 +889,57 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
@@ -909,6 +960,8 @@
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">arguments</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">array</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">bound_function</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">integer_indexed</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">string</span>;
 
@@ -938,7 +991,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__set_prototype_of__</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">val</span>: <span class="ident">JsPrototype</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
@@ -1101,6 +1154,50 @@
         <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__own_property_keys__</span>;
         <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">context</span>)
     }
+
+    <span class="doccomment">/// Internal method `[[Call]]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Call this object if it has a `[[Call]]` internal method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__call__</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__call__</span>;
+        <span class="ident">func</span>.<span class="ident">expect</span>(<span class="string">&quot;called `[[Call]]` for object without a `[[Call]]` internal method&quot;</span>)(
+            <span class="self">self</span>, <span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>,
+        )
+    }
+
+    <span class="doccomment">/// Internal method `[[Construct]]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Construct a new instance of this object if this object has a `[[Construct]]` internal method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">__construct__</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">data</span>.<span class="ident">internal_methods</span>.<span class="ident">__construct__</span>;
+        <span class="ident">func</span>.<span class="ident">expect</span>(<span class="string">&quot;called `[[Construct]]` for object without a `[[Construct]]` internal method&quot;</span>)(
+            <span class="self">self</span>, <span class="ident">args</span>, <span class="ident">new_target</span>, <span class="ident">context</span>,
+        )
+    }
 }
 
 <span class="doccomment">/// Definitions of the internal object methods for ordinary objects.</span>
@@ -1126,6 +1223,8 @@
     <span class="ident">__set__</span>: <span class="ident">ordinary_set</span>,
     <span class="ident">__delete__</span>: <span class="ident">ordinary_delete</span>,
     <span class="ident">__own_property_keys__</span>: <span class="ident">ordinary_own_property_keys</span>,
+    <span class="ident">__call__</span>: <span class="prelude-val">None</span>,
+    <span class="ident">__construct__</span>: <span class="prelude-val">None</span>,
 };
 
 <span class="doccomment">/// The internal representation of the internal methods of a `JsObject`.</span>
@@ -1136,6 +1235,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">InternalObjectMethods</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__get_prototype_of__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__set_prototype_of__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">JsPrototype</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
@@ -1151,6 +1251,10 @@
         <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="ident">PropertyKey</span>, <span class="ident">JsValue</span>, <span class="ident">JsValue</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__delete__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__own_property_keys__</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__call__</span>:
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">__construct__</span>:
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsObject</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Abstract operation `OrdinaryGetPrototypeOf`.</span>
@@ -1337,14 +1441,12 @@
         <span class="comment">// 4. Let parent be ? O.[[GetPrototypeOf]]().</span>
         <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. If parent is not null, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">parent</span> {
+        <span class="ident">parent</span>
+            <span class="comment">// 5. If parent is not null, then</span>
             <span class="comment">// a. Return ? parent.[[HasProperty]](P).</span>
-            <span class="ident">object</span>.<span class="ident">__has_property__</span>(<span class="ident">key</span>, <span class="ident">context</span>)
-        } <span class="kw">else</span> {
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">__has_property__</span>(<span class="ident">key</span>, <span class="ident">context</span>))
             <span class="comment">// 6. Return false.</span>
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-        }
+            .<span class="ident">unwrap_or</span>(<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>))
     }
 }
 
@@ -1772,7 +1874,7 @@
     <span class="comment">// 2. Let proto be ? Get(constructor, &quot;prototype&quot;).</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">as_object</span>() {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">proto</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">proto</span>.<span class="ident">clone</span>());
         }
     }
     <span class="comment">// 3. If Type(proto) is not Object, then</span>

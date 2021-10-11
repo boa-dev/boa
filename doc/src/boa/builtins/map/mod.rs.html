@@ -594,10 +594,6 @@
 <span id="594">594</span>
 <span id="595">595</span>
 <span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Map` object.</span>
 <span class="doccomment">//!</span>
@@ -651,19 +647,19 @@
 
         <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_species</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">get_size</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_size</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get size&quot;</span>)
             .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">entries_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::entries</span>)
             .<span class="ident">name</span>(<span class="string">&quot;entries&quot;</span>)
             .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">map_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
@@ -1051,19 +1047,16 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let M be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span> {
-            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_map</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;`this` is not a Map&quot;</span>),
-        };
+        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">this</span>
+            .<span class="ident">as_object</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_map</span>())
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a Map&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>) {
-            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-            <span class="ident">val</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">name</span>));
-            }
-        };
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">callback</span>.<span class="ident">display</span>()))
+        })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
@@ -1144,10 +1137,9 @@
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="comment">// 1. If IsCallable(adder) is false, throw a TypeError exception.</span>
-    <span class="kw">let</span> <span class="ident">adder</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">adder</span> {
-        <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;property `set` of `NewTarget` is not callable&quot;</span>),
-    };
+    <span class="kw">let</span> <span class="ident">adder</span> <span class="op">=</span> <span class="ident">adder</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;property `set` of `NewTarget` is not callable&quot;</span>)
+    })<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).</span>
     <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;

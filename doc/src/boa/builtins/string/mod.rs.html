@@ -1985,10 +1985,6 @@
 <span id="1985">1985</span>
 <span id="1986">1986</span>
 <span id="1987">1987</span>
-<span id="1988">1988</span>
-<span id="1989">1989</span>
-<span id="1990">1990</span>
-<span id="1991">1991</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -2217,18 +2213,10 @@
     }
 
     <span class="kw">fn</span> <span class="ident">this_string_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">this</span> {
-            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_string</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>);
-                }
-            }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        }
-
-        <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a string&quot;</span>))
+        <span class="ident">this</span>.<span class="ident">as_string</span>()
+            .<span class="ident">cloned</span>()
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_string</span>()))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a string&quot;</span>))
     }
 
     <span class="doccomment">/// `String.fromCharCode(...codePoints)`</span>
@@ -2712,10 +2700,10 @@
     }
 
     <span class="kw">fn</span> <span class="ident">is_regexp_object</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_regexp</span>(),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-        }
+        <span class="ident">value</span>
+            .<span class="ident">as_object</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_regexp</span>())
+            .<span class="ident">unwrap_or_default</span>()
     }
 
     <span class="doccomment">/// `String.prototype.replace( regexp|substr, newSubstr|function )`</span>
@@ -2751,12 +2739,12 @@
             <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::replace</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If replacer is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">replacer</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="op">=</span> <span class="ident">replacer</span> {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">replacer</span>,
+                <span class="kw">return</span> <span class="ident">replacer</span>.<span class="ident">call</span>(
                     <span class="ident">search_value</span>,
                     <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()],
+                    <span class="ident">context</span>,
                 );
             }
         }
@@ -2768,7 +2756,10 @@
         <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).</span>
-        <span class="kw">let</span> <span class="ident">functional_replace</span> <span class="op">=</span> <span class="ident">replace_value</span>.<span class="ident">is_function</span>();
+        <span class="kw">let</span> <span class="ident">functional_replace</span> <span class="op">=</span> <span class="ident">replace_value</span>
+            .<span class="ident">as_object</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+            .<span class="ident">unwrap_or_default</span>();
 
         <span class="comment">// 6. If functionalReplace is false, then</span>
         <span class="comment">// a. Set replaceValue to ? ToString(replaceValue).</span>
@@ -2860,7 +2851,7 @@
         <span class="comment">// 2. If searchValue is neither undefined nor null, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">search_value</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let isRegExp be ? IsRegExp(searchValue).</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">as_object</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_regexp</span>()) {
                 <span class="comment">// b. If isRegExp is true, then</span>
                 <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_regexp</span>() {
                     <span class="comment">// i. Let flags be ? Get(searchValue, &quot;flags&quot;).</span>
@@ -2882,9 +2873,9 @@
             <span class="kw">let</span> <span class="ident">replacer</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::replace</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// d. If replacer is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">replacer</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacer</span>) <span class="op">=</span> <span class="ident">replacer</span> {
                 <span class="comment">// i. Return ? Call(replacer, searchValue, « O, replaceValue »).</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">replacer</span>, <span class="ident">search_value</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">into</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()]);
+                <span class="kw">return</span> <span class="ident">replacer</span>.<span class="ident">call</span>(<span class="ident">search_value</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">into</span>(), <span class="ident">replace_value</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 
@@ -2895,7 +2886,10 @@
         <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).</span>
-        <span class="kw">let</span> <span class="ident">functional_replace</span> <span class="op">=</span> <span class="ident">replace_value</span>.<span class="ident">is_function</span>();
+        <span class="kw">let</span> <span class="ident">functional_replace</span> <span class="op">=</span> <span class="ident">replace_value</span>
+            .<span class="ident">as_object</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+            .<span class="ident">unwrap_or_default</span>();
 
         <span class="comment">// 6. If functionalReplace is false, then</span>
         <span class="kw">let</span> <span class="ident">replace_value_string</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">functional_replace</span> {
@@ -3119,9 +3113,9 @@
             <span class="comment">// a. Let matcher be ? GetMethod(regexp, @@match).</span>
             <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols</span>::<span class="ident">r#match</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If matcher is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">matcher</span> {
                 <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">matcher</span>, <span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()]);
+                <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 
@@ -3484,9 +3478,9 @@
             <span class="comment">// a. Let splitter be ? GetMethod(separator, @@split).</span>
             <span class="kw">let</span> <span class="ident">splitter</span> <span class="op">=</span> <span class="ident">separator</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::split</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If splitter is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">splitter</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">splitter</span>) <span class="op">=</span> <span class="ident">splitter</span> {
                 <span class="comment">// i. Return ? Call(splitter, separator, « O, limit »).</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">splitter</span>, <span class="ident">separator</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">limit</span>.<span class="ident">clone</span>()]);
+                <span class="kw">return</span> <span class="ident">splitter</span>.<span class="ident">call</span>(<span class="ident">separator</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">limit</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 
@@ -3653,9 +3647,9 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let isRegExp be ? IsRegExp(regexp).</span>
             <span class="comment">// b. If isRegExp is true, then</span>
-            <span class="kw">if</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>().<span class="ident">unwrap_or_default</span>().<span class="ident">is_regexp</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp_obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_regexp</span>()) {
                 <span class="comment">// i. Let flags be ? Get(regexp, &quot;flags&quot;).</span>
-                <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_field</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">regexp_obj</span>.<span class="ident">get</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).</span>
                 <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3667,13 +3661,11 @@
                     );
                 }
             }
-
             <span class="comment">// c. Let matcher be ? GetMethod(regexp, @@matchAll).</span>
             <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::match_all</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// d. If matcher is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">is_undefined</span>() {
-                <span class="comment">// i. Return ? Call(matcher, regexp, « O »).</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">matcher</span>, <span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()]);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">matcher</span> {
+                <span class="kw">return</span> <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 
@@ -3749,9 +3741,9 @@
             <span class="comment">// a. Let searcher be ? GetMethod(regexp, @@search).</span>
             <span class="kw">let</span> <span class="ident">searcher</span> <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::search</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If searcher is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">searcher</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">searcher</span>) <span class="op">=</span> <span class="ident">searcher</span> {
                 <span class="comment">// i. Return ? Call(searcher, regexp, « O »).</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">searcher</span>, <span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()]);
+                <span class="kw">return</span> <span class="ident">searcher</span>.<span class="ident">call</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">o</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
             }
         }
 

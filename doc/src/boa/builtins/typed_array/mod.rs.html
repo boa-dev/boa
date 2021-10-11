@@ -3368,6 +3368,12 @@
 <span id="3368">3368</span>
 <span id="3369">3369</span>
 <span id="3370">3370</span>
+<span id="3371">3371</span>
+<span id="3372">3372</span>
+<span id="3373">3373</span>
+<span id="3374">3374</span>
+<span id="3375">3375</span>
+<span id="3376">3376</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
@@ -3427,7 +3433,7 @@
 
                 <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident">TypedArray::get_species</span>)
                     .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-                    .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
                     .<span class="ident">build</span>();
 
                 <span class="ident">ConstructorBuilder::with_standard_object</span>(
@@ -3517,7 +3523,11 @@
                     <span class="comment">// ii. If firstArgument has a [[TypedArrayName]] internal slot, then</span>
                     <span class="kw">if</span> <span class="ident">first_argument</span>.<span class="ident">is_typed_array</span>() {
                         <span class="comment">// 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).</span>
-                        <span class="ident">TypedArray::initialize_from_typed_array</span>(<span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="ident">first_argument</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="ident">TypedArray::initialize_from_typed_array</span>(
+                            <span class="kw-2">&amp;</span><span class="ident">o</span>,
+                            <span class="ident">first_argument</span>.<span class="ident">clone</span>(),
+                            <span class="ident">context</span>,
+                        )<span class="question-mark">?</span>;
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">first_argument</span>.<span class="ident">is_array_buffer</span>() {
                         <span class="comment">// iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then</span>
 
@@ -3530,7 +3540,7 @@
                         <span class="comment">// 3. Perform ? InitializeTypedArrayFromArrayBuffer(O, firstArgument, byteOffset, length).</span>
                         <span class="ident">TypedArray::initialize_from_array_buffer</span>(
                             <span class="kw-2">&amp;</span><span class="ident">o</span>,
-                            <span class="ident">first_argument</span>,
+                            <span class="ident">first_argument</span>.<span class="ident">clone</span>(),
                             <span class="ident">byte_offset</span>,
                             <span class="ident">length</span>,
                             <span class="ident">context</span>,
@@ -3548,10 +3558,13 @@
                             <span class="ident">first_argument_v</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::replace</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                         <span class="comment">// 3. If usingIterator is not undefined, then</span>
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">using_iterator</span>.<span class="ident">is_undefined</span>() {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>) <span class="op">=</span> <span class="ident">using_iterator</span> {
                             <span class="comment">// a. Let values be ? IterableToList(firstArgument, usingIterator).</span>
-                            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span>
-                                <span class="ident">iterable_to_list</span>(<span class="ident">context</span>, <span class="ident">first_argument_v</span>, <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>))<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">iterable_to_list</span>(
+                                <span class="ident">context</span>,
+                                <span class="ident">first_argument_v</span>,
+                                <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>.<span class="ident">into</span>()),
+                            )<span class="question-mark">?</span>;
 
                             <span class="comment">// b. Perform ? InitializeTypedArrayFromList(O, values).</span>
                             <span class="ident">TypedArray::initialize_from_list</span>(<span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="ident">values</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3604,38 +3617,38 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_species</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">get_buffer</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::buffer</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get buffer&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">get_byte_length</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::byte_length</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get byteLength&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">get_byte_offset</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::byte_offset</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get byteOffset&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">get_length</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::length</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get length&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">get_to_string_tag</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::to_string_tag</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::values</span>)
             .<span class="ident">name</span>(<span class="string">&quot;values&quot;</span>)
             .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
@@ -3751,7 +3764,7 @@
         <span class="comment">// 1. Let C be the this value.</span>
         <span class="comment">// 2. If IsConstructor(C) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="ident">context</span>
                     .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.from called on non-constructable value&quot;</span>)
@@ -3780,13 +3793,13 @@
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
 
         <span class="comment">// 6. If usingIterator is not undefined, then</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">using_iterator</span>.<span class="ident">is_undefined</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>) <span class="op">=</span> <span class="ident">using_iterator</span> {
             <span class="comment">// a. Let values be ? IterableToList(source, usingIterator).</span>
-            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">iterable_to_list</span>(<span class="ident">context</span>, <span class="ident">source</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">iterable_to_list</span>(<span class="ident">context</span>, <span class="ident">source</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="ident">using_iterator</span>.<span class="ident">into</span>()))<span class="question-mark">?</span>;
 
             <span class="comment">// b. Let len be the number of elements in values.</span>
             <span class="comment">// c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).</span>
-            <span class="kw">let</span> <span class="ident">target_obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::create</span>(<span class="kw-2">&amp;</span><span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">values</span>.<span class="ident">len</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">target_obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::create</span>(<span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">values</span>.<span class="ident">len</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let k be 0.</span>
             <span class="comment">// e. Repeat, while k &lt; len,</span>
@@ -3822,7 +3835,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">array_like</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 10. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).</span>
-        <span class="kw">let</span> <span class="ident">target_obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::create</span>(<span class="kw-2">&amp;</span><span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">target_obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::create</span>(<span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Let k be 0.</span>
         <span class="comment">// 12. Repeat, while k &lt; len,</span>
@@ -3861,14 +3874,14 @@
         <span class="comment">// 2. Let C be the this value.</span>
         <span class="comment">// 3. If IsConstructor(C) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.of called on non-constructable value&quot;</span>)
             }
         };
 
         <span class="comment">// 4. Let newObj be ? TypedArrayCreate(C, « 𝔽(len) »).</span>
-        <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::create</span>(<span class="kw-2">&amp;</span><span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">args</span>.<span class="ident">len</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::create</span>(<span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">args</span>.<span class="ident">len</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let k be 0.</span>
         <span class="comment">// 6. Repeat, while k &lt; len,</span>
@@ -4217,7 +4230,7 @@
 
         <span class="comment">// 3. Return CreateArrayIterator(O, key+value).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
-            <span class="ident">o</span>,
+            <span class="ident">o</span>.<span class="ident">clone</span>(),
             <span class="ident">PropertyNameKind::KeyAndValue</span>,
             <span class="ident">context</span>,
         ))
@@ -4428,7 +4441,7 @@
         }
 
         <span class="comment">// 9. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(captured) »).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::species_create</span>(<span class="kw-2">&amp;</span><span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">captured</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::species_create</span>(<span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">captured</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 10. Let n be 0.</span>
         <span class="comment">// 11. For each element e of kept, do</span>
@@ -4844,7 +4857,7 @@
 
         <span class="comment">// 3. Return CreateArrayIterator(O, key).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
-            <span class="ident">o</span>,
+            <span class="ident">o</span>.<span class="ident">clone</span>(),
             <span class="ident">PropertyNameKind::Key</span>,
             <span class="ident">context</span>,
         ))
@@ -4987,7 +5000,7 @@
         };
 
         <span class="comment">// 5. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(len) »).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::species_create</span>(<span class="kw-2">&amp;</span><span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::species_create</span>(<span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let k be 0.</span>
         <span class="comment">// 7. Repeat, while k &lt; len,</span>
@@ -5259,12 +5272,12 @@
             <span class="comment">// 6. If source is an Object that has a [[TypedArrayName]] internal slot, then</span>
             <span class="ident">JsValue::Object</span>(<span class="ident">source</span>) <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">is_typed_array</span>() <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).</span>
-                <span class="self">Self</span><span class="ident">::set_typed_array_from_typed_array</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>, <span class="ident">target_offset</span>, <span class="ident">source</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="self">Self</span><span class="ident">::set_typed_array_from_typed_array</span>(<span class="ident">target</span>, <span class="ident">target_offset</span>, <span class="ident">source</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
             <span class="comment">// 7. Else,</span>
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// a. Perform ? SetTypedArrayFromArrayLike(target, targetOffset, source).</span>
-                <span class="self">Self</span><span class="ident">::set_typed_array_from_array_like</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>, <span class="ident">target_offset</span>, <span class="ident">source</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="self">Self</span><span class="ident">::set_typed_array_from_array_like</span>(<span class="ident">target</span>, <span class="ident">target_offset</span>, <span class="ident">source</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
         }
 
@@ -5658,7 +5671,7 @@
         <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">k</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::species_create</span>(<span class="kw-2">&amp;</span><span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">count</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::species_create</span>(<span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">count</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">a_borrow</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">a_array</span> <span class="op">=</span> <span class="ident">a_borrow</span>
             .<span class="ident">as_typed_array</span>()
@@ -6029,7 +6042,7 @@
         }
 
         <span class="comment">// 12. Return obj.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `23.2.3.28 %TypedArray%.prototype.subarray ( begin, end )`</span>
@@ -6103,7 +6116,7 @@
         <span class="comment">// 19. Let argumentsList be « buffer, 𝔽(beginByteOffset), 𝔽(newLength) ».</span>
         <span class="comment">// 20. Return ? TypedArraySpeciesCreate(O, argumentsList).</span>
         <span class="prelude-val">Ok</span>(<span class="self">Self</span><span class="ident">::species_create</span>(
-            <span class="kw-2">&amp;</span><span class="ident">obj</span>,
+            <span class="ident">obj</span>,
             <span class="ident">o</span>.<span class="ident">typed_array_name</span>(),
             <span class="kw-2">&amp;</span>[
                 <span class="ident">buffer</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
@@ -6139,7 +6152,7 @@
 
         <span class="comment">// 3. Return CreateArrayIterator(O, value).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
-            <span class="ident">o</span>,
+            <span class="ident">o</span>.<span class="ident">clone</span>(),
             <span class="ident">PropertyNameKind::Value</span>,
             <span class="ident">context</span>,
         ))
@@ -6257,10 +6270,8 @@
             }
         }
 
-        <span class="ident">drop</span>(<span class="ident">obj_borrow</span>);
-
         <span class="comment">// 4. Return newTypedArray.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-allocatetypedarraybuffer&gt;</span>
@@ -6313,10 +6324,10 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>();
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o_inner</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_typed_array_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;expected a TypedArray&quot;</span>);
+            <span class="kw">let</span> <span class="ident">o_inner</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_typed_array_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;expected a TypedArray&quot;</span>);
 
             <span class="comment">// 2. Perform ? AllocateTypedArrayBuffer(O, len).</span>
-            <span class="ident">TypedArray::allocate_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">o_inner</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">TypedArray::allocate_buffer</span>(<span class="ident">o_inner</span>, <span class="ident">len</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 3. Let k be 0.</span>
@@ -6408,10 +6419,6 @@
         <span class="kw">let</span> <span class="ident">src_data_obj</span> <span class="op">=</span> <span class="ident">src_array</span>
             .<span class="ident">viewed_array_buffer</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
-        <span class="kw">let</span> <span class="ident">src_data_obj_b</span> <span class="op">=</span> <span class="ident">src_data_obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">src_data</span> <span class="op">=</span> <span class="ident">src_data_obj_b</span>
-            .<span class="ident">as_array_buffer</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
 
         <span class="comment">// 3. Let constructorName be the String value of O.[[TypedArrayName]].</span>
         <span class="comment">// 4. Let elementType be the Element Type value in Table 73 for constructorName.</span>
@@ -6439,6 +6446,11 @@
         <span class="comment">// a. Let bufferConstructor be %ArrayBuffer%.</span>
         <span class="kw">let</span> <span class="ident">buffer_constructor</span> <span class="op">=</span>
             <span class="ident">src_data_obj</span>.<span class="ident">species_constructor</span>(<span class="ident">StandardObjects::array_buffer_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">src_data_obj_b</span> <span class="op">=</span> <span class="ident">src_data_obj</span>.<span class="ident">borrow</span>();
+        <span class="kw">let</span> <span class="ident">src_data</span> <span class="op">=</span> <span class="ident">src_data_obj_b</span>
+            .<span class="ident">as_array_buffer</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
 
         <span class="comment">// 14. If elementType is the same as srcType, then</span>
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">constructor_name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">src_name</span> {

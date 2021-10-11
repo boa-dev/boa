@@ -299,6 +299,7 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
+<span id="302">302</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Traits and structs for implementing native classes.</span>
 <span class="doccomment">//!</span>
@@ -412,18 +413,18 @@
             ));
         }
 
-        <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">get</span>(<span class="ident">T::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
-                <span class="ident">obj</span>
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                    <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
-                    <span class="ident">T::NAME</span>
-                ));
-            };
+        <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">get</span>(<span class="ident">T::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span> {
+            <span class="ident">obj</span>
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
+                <span class="ident">T::NAME</span>
+            ));
+        };
         <span class="kw">let</span> <span class="ident">class_prototype</span> <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
-                <span class="ident">obj</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+                <span class="ident">obj</span>.<span class="ident">clone</span>()
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
@@ -433,12 +434,13 @@
 
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">this</span>
             .<span class="ident">as_object</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
+            .<span class="ident">cloned</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
                 <span class="ident">obj</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">as_object</span>())
-                    .<span class="ident">transpose</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>())
             })
             .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+            .<span class="ident">flatten</span>()
             .<span class="ident">unwrap_or</span>(<span class="ident">class_prototype</span>);
 
         <span class="kw">let</span> <span class="ident">native_instance</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::constructor</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;

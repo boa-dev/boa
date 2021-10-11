@@ -1589,7 +1589,7 @@
                     <span class="comment">// 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).</span>
 
                     <span class="comment">// 2. Let restObj be ! OrdinaryObjectCreate(%Object.prototype%).</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+                    <span class="kw">let</span> <span class="ident">rest_obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
                     <span class="comment">// 3. Perform ? CopyDataProperties(restObj, value, excludedNames).</span>
                     <span class="ident">rest_obj</span>.<span class="ident">copy_data_properties</span>(<span class="ident">value</span>, <span class="ident">excluded_keys</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;

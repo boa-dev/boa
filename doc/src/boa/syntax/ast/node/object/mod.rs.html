@@ -313,7 +313,7 @@
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Object</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;object&quot;</span>, <span class="string">&quot;exec&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
         <span class="comment">// TODO: Implement the rest of the property types.</span>
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
@@ -365,7 +365,7 @@
                             <span class="ident">obj</span>.<span class="ident">__define_own_property__</span>(
                                 <span class="ident">name</span>,
                                 <span class="ident">PropertyDescriptor::builder</span>()
-                                    .<span class="ident">maybe_get</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
+                                    .<span class="ident">maybe_get</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>())
                                     .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
                                     .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
                                     .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
@@ -383,7 +383,7 @@
                                 <span class="ident">name</span>,
                                 <span class="ident">PropertyDescriptor::builder</span>()
                                     .<span class="ident">maybe_get</span>(<span class="ident">get</span>)
-                                    .<span class="ident">maybe_set</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>())
+                                    .<span class="ident">maybe_set</span>(<span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>())
                                     .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
                                     .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
                                     .<span class="ident">build</span>(),

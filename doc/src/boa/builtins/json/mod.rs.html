@@ -738,15 +738,6 @@
 <span id="738">738</span>
 <span id="739">739</span>
 <span id="740">740</span>
-<span id="741">741</span>
-<span id="742">742</span>
-<span id="743">743</span>
-<span id="744">744</span>
-<span id="745">745</span>
-<span id="746">746</span>
-<span id="747">747</span>
-<span id="748">748</span>
-<span id="749">749</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -847,23 +838,22 @@
         <span class="comment">// 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.</span>
         <span class="kw">let</span> <span class="ident">unfiltered</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">script_string</span>.<span class="ident">as_bytes</span>())<span class="question-mark">?</span>;
 
-        <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>().<span class="ident">as_object</span>() {
-            <span class="comment">// 11. If IsCallable(reviver) is true, then</span>
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).</span>
-                <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+        <span class="comment">// 11. If IsCallable(reviver) is true, then</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">as_callable</span>() {
+            <span class="comment">// a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).</span>
+            <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
-                <span class="comment">// b. Let rootName be the empty String.</span>
-                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).</span>
-                <span class="ident">root</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;&quot;</span>, <span class="ident">unfiltered</span>, <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow should never throw here&quot;</span>);
+            <span class="comment">// b. Let rootName be the empty String.</span>
+            <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).</span>
+            <span class="ident">root</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;&quot;</span>, <span class="ident">unfiltered</span>, <span class="ident">context</span>)
+                .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow should never throw here&quot;</span>);
 
-                <span class="comment">// d. Return ? InternalizeJSONProperty(root, rootName, reviver).</span>
-                <span class="self">Self</span><span class="ident">::internalize_json_property</span>(<span class="ident">root</span>, <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(), <span class="ident">obj</span>, <span class="ident">context</span>)
-            }
+            <span class="comment">// d. Return ? InternalizeJSONProperty(root, rootName, reviver).</span>
+            <span class="self">Self</span><span class="ident">::internalize_json_property</span>(<span class="kw-2">&amp;</span><span class="ident">root</span>, <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(), <span class="ident">obj</span>, <span class="ident">context</span>)
+        } <span class="kw">else</span> {
             <span class="comment">// 12. Else,</span>
             <span class="comment">// a. Return unfiltered.</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">unfiltered</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">unfiltered</span>)
         }
     }
 
@@ -874,9 +864,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-internalizejsonproperty</span>
     <span class="kw">fn</span> <span class="ident">internalize_json_property</span>(
-        <span class="ident">holder</span>: <span class="ident">JsObject</span>,
+        <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">name</span>: <span class="ident">JsString</span>,
-        <span class="ident">reviver</span>: <span class="ident">JsObject</span>,
+        <span class="ident">reviver</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let val be ? Get(holder, name).</span>
@@ -895,9 +885,9 @@
                     <span class="comment">// 1. Let prop be ! ToString(𝔽(I)).</span>
                     <span class="comment">// 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).</span>
                     <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::internalize_json_property</span>(
-                        <span class="ident">obj</span>.<span class="ident">clone</span>(),
+                        <span class="ident">obj</span>,
                         <span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
-                        <span class="ident">reviver</span>.<span class="ident">clone</span>(),
+                        <span class="ident">reviver</span>,
                         <span class="ident">context</span>,
                     )<span class="question-mark">?</span>;
 
@@ -924,12 +914,8 @@
                     <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_string</span>().<span class="ident">unwrap</span>();
 
                     <span class="comment">// 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).</span>
-                    <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::internalize_json_property</span>(
-                        <span class="ident">obj</span>.<span class="ident">clone</span>(),
-                        <span class="ident">p</span>.<span class="ident">clone</span>(),
-                        <span class="ident">reviver</span>.<span class="ident">clone</span>(),
-                        <span class="ident">context</span>,
-                    )<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span>
+                        <span class="self">Self</span><span class="ident">::internalize_json_property</span>(<span class="ident">obj</span>, <span class="ident">p</span>.<span class="ident">clone</span>(), <span class="ident">reviver</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                     <span class="comment">// 2. If newElement is undefined, then</span>
                     <span class="kw">if</span> <span class="ident">new_element</span>.<span class="ident">is_undefined</span>() {
@@ -946,7 +932,7 @@
         }
 
         <span class="comment">// 3. Return ? Call(reviver, holder, « name, val »).</span>
-        <span class="ident">reviver</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">val</span>], <span class="ident">context</span>)
+        <span class="ident">reviver</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">val</span>], <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `JSON.stringify( value[, replacer[, space]] )`</span>
@@ -987,7 +973,7 @@
             <span class="comment">// a. If IsCallable(replacer) is true, then</span>
             <span class="kw">if</span> <span class="ident">replacer_obj</span>.<span class="ident">is_callable</span>() {
                 <span class="comment">// i. Set ReplacerFunction to replacer.</span>
-                <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>)
+                <span class="ident">replacer_function</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacer_obj</span>.<span class="ident">clone</span>())
             <span class="comment">// b. Else,</span>
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let isArray be ? IsArray(replacer).</span>
@@ -1102,7 +1088,7 @@
 
         <span class="comment">// 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).</span>
         <span class="prelude-val">Ok</span>(
-            <span class="self">Self</span><span class="ident">::serialize_json_property</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">state</span>, <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>), <span class="ident">wrapper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+            <span class="self">Self</span><span class="ident">::serialize_json_property</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">state</span>, <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">wrapper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">into</span>())
                 .<span class="ident">unwrap_or_default</span>(),
         )
@@ -1117,7 +1103,7 @@
     <span class="kw">fn</span> <span class="ident">serialize_json_property</span>(
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StateRecord</span>,
         <span class="ident">key</span>: <span class="ident">JsString</span>,
-        <span class="ident">holder</span>: <span class="ident">JsObject</span>,
+        <span class="ident">holder</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let value be ? Get(holder, key).</span>
@@ -1140,11 +1126,11 @@
         <span class="comment">// 3. If state.[[ReplacerFunction]] is not undefined, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">replacer_function</span> {
             <span class="comment">// a. Set value to ? Call(state.[[ReplacerFunction]], holder, « key, value »).</span>
-            <span class="ident">value</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">value</span>], <span class="ident">context</span>)<span class="question-mark">?</span>
+            <span class="ident">value</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">holder</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">value</span>], <span class="ident">context</span>)<span class="question-mark">?</span>
         }
 
         <span class="comment">// 4. If Type(value) is Object, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>() {
             <span class="comment">// a. If value has a [[NumberData]] internal slot, then</span>
             <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_number</span>() {
                 <span class="comment">// i. Set value to ? ToNumber(value).</span>
@@ -1280,11 +1266,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-serializejsonobject</span>
     <span class="kw">fn</span> <span class="ident">serialize_json_object</span>(
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StateRecord</span>,
-        <span class="ident">value</span>: <span class="ident">JsObject</span>,
+        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
-        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>);
+        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
         <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>));
         }
@@ -1316,7 +1302,7 @@
         <span class="comment">// 8. For each element P of K, do</span>
         <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">k</span> {
             <span class="comment">// a. Let strP be ? SerializeJSONProperty(state, P, value).</span>
-            <span class="kw">let</span> <span class="ident">str_p</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::serialize_json_property</span>(<span class="ident">state</span>, <span class="ident">p</span>.<span class="ident">clone</span>(), <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">str_p</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::serialize_json_property</span>(<span class="ident">state</span>, <span class="ident">p</span>.<span class="ident">clone</span>(), <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If strP is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {
@@ -1393,11 +1379,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-serializejsonarray</span>
     <span class="kw">fn</span> <span class="ident">serialize_json_array</span>(
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StateRecord</span>,
-        <span class="ident">value</span>: <span class="ident">JsObject</span>,
+        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
-        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>);
+        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
         <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>));
         }
@@ -1423,12 +1409,8 @@
         <span class="comment">// 8. Repeat, while index &lt; len,</span>
         <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">len</span> {
             <span class="comment">// a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).</span>
-            <span class="kw">let</span> <span class="ident">str_p</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::serialize_json_property</span>(
-                <span class="ident">state</span>,
-                <span class="ident">index</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
-                <span class="ident">value</span>.<span class="ident">clone</span>(),
-                <span class="ident">context</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">str_p</span> <span class="op">=</span>
+                <span class="self">Self</span><span class="ident">::serialize_json_property</span>(<span class="ident">state</span>, <span class="ident">index</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(), <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If strP is undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {

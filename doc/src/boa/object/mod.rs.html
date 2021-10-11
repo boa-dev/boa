@@ -1726,6 +1726,22 @@
 <span id="1726">1726</span>
 <span id="1727">1727</span>
 <span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1734,9 +1750,10 @@
         <span class="ident">array::array_iterator::ArrayIterator</span>,
         <span class="ident">array_buffer::ArrayBuffer</span>,
         <span class="ident">function::arguments</span>::{<span class="ident">Arguments</span>, <span class="ident">MappedArguments</span>},
-        <span class="ident">function</span>::{<span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
+        <span class="ident">function</span>::{<span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
+        <span class="ident">object::for_in_iterator::ForInIterator</span>,
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
         <span class="ident">set::ordered_set::OrderedSet</span>,
         <span class="ident">set::set_iterator::SetIterator</span>,
@@ -1746,7 +1763,6 @@
     },
     <span class="ident">context::StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object::internal_methods::arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
@@ -1756,6 +1772,22 @@
     <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
 };
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations::IntegrityLevel</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property_map</span>::<span class="kw-2">*</span>;
+
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::internal_methods</span>::{
+    <span class="ident">arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS</span>,
+    <span class="ident">array::ARRAY_EXOTIC_INTERNAL_METHODS</span>,
+    <span class="ident">bound_function</span>::{
+        <span class="ident">BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS</span>,
+    },
+    <span class="ident">function</span>::{<span class="ident">CONSTRUCTOR_INTERNAL_METHODS</span>, <span class="ident">FUNCTION_INTERNAL_METHODS</span>},
+    <span class="ident">integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>,
+    <span class="ident">string::STRING_EXOTIC_INTERNAL_METHODS</span>,
+    <span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+};
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -1763,17 +1795,6 @@
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">property_map</span>;
-
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::builtins::object::for_in_iterator::ForInIterator</span>;
-<span class="kw">use</span> <span class="ident">internal_methods::InternalObjectMethods</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations::IntegrityLevel</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property_map</span>::<span class="kw-2">*</span>;
-
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::internal_methods</span>::{
-    <span class="ident">array::ARRAY_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>,
-    <span class="ident">string::STRING_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>,
-};
 
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.</span>
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">PROTOTYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;prototype&quot;</span>;
@@ -1837,6 +1858,7 @@
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
     <span class="ident">ForInIterator</span>(<span class="ident">ForInIterator</span>),
     <span class="ident">Function</span>(<span class="ident">Function</span>),
+    <span class="ident">BoundFunction</span>(<span class="ident">BoundFunction</span>),
     <span class="ident">Set</span>(<span class="ident">OrderedSet</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>),
     <span class="ident">SetIterator</span>(<span class="ident">SetIterator</span>),
     <span class="ident">String</span>(<span class="ident">JsString</span>),
@@ -1936,8 +1958,24 @@
     <span class="doccomment">/// Create the `Function` object data</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>(<span class="ident">function</span>: <span class="ident">Function</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
+            <span class="ident">internal_methods</span>: <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_constructor</span>() {
+                <span class="kw-2">&amp;</span><span class="ident">CONSTRUCTOR_INTERNAL_METHODS</span>
+            } <span class="kw">else</span> {
+                <span class="kw-2">&amp;</span><span class="ident">FUNCTION_INTERNAL_METHODS</span>
+            },
             <span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="ident">function</span>),
-            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+        }
+    }
+
+    <span class="doccomment">/// Create the `BoundFunction` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bound_function</span>(<span class="ident">bound_function</span>: <span class="ident">BoundFunction</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::BoundFunction</span>(<span class="ident">bound_function</span>),
+            <span class="ident">internal_methods</span>: <span class="kw">if</span> <span class="ident">constructor</span> {
+                <span class="kw-2">&amp;</span><span class="ident">BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS</span>
+            } <span class="kw">else</span> {
+                <span class="kw-2">&amp;</span><span class="ident">BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS</span>
+            },
         }
     }
 
@@ -2058,6 +2096,7 @@
             <span class="self">Self</span><span class="ident">::ArrayBuffer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ArrayBuffer&quot;</span>,
             <span class="self">Self</span><span class="ident">::ForInIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ForInIterator&quot;</span>,
             <span class="self">Self</span><span class="ident">::Function</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Function&quot;</span>,
+            <span class="self">Self</span><span class="ident">::BoundFunction</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BoundFunction&quot;</span>,
             <span class="self">Self</span><span class="ident">::RegExp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExp&quot;</span>,
             <span class="self">Self</span><span class="ident">::RegExpStringIterator</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;RegExpStringIterator&quot;</span>,
             <span class="self">Self</span><span class="ident">::Map</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Map&quot;</span>,
@@ -2107,38 +2146,6 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ObjectKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">kind</span>
-    }
-
-    <span class="doccomment">/// It determines if Object is a callable function with a `[[Call]]` internal method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="comment">// todo: functions are not the only objects that are callable.</span>
-    <span class="comment">// todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(
-            <span class="self">self</span>.<span class="ident">data</span>,
-            <span class="ident">ObjectData</span> {
-                <span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="kw">_</span>),
-                ..
-            }
-        )
-    }
-
-    <span class="doccomment">/// It determines if Object is a function object with a `[[Construct]]` internal method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isconstructor</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="comment">// todo: functions are not the only objects that are constructable.</span>
-    <span class="comment">// todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">data</span>, <span class="ident">ObjectData</span>{<span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="ident">f</span>), ..} <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_constructable</span>())
     }
 
     <span class="doccomment">/// Checks if it an `Array` object.</span>
@@ -2429,6 +2436,28 @@
                 <span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="ident">function</span>),
                 ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_function_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Function</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">function</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bound_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">BoundFunction</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::BoundFunction</span>(<span class="kw-2">ref</span> <span class="ident">bound_function</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">bound_function</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -2880,7 +2909,7 @@
             <span class="ident">context</span>,
             <span class="ident">function</span>: <span class="prelude-val">Some</span>(<span class="ident">Function::Native</span> {
                 <span class="ident">function</span>,
-                <span class="ident">constructable</span>: <span class="bool-val">false</span>,
+                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
             }),
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
@@ -2897,7 +2926,7 @@
             <span class="ident">context</span>,
             <span class="ident">function</span>: <span class="prelude-val">Some</span>(<span class="ident">Function::Closure</span> {
                 <span class="ident">function</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="kw">_</span>, <span class="ident">context</span><span class="op">|</span> <span class="ident">function</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)),
-                <span class="ident">constructable</span>: <span class="bool-val">false</span>,
+                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
                 <span class="ident">captures</span>: <span class="ident">Captures::new</span>(()),
             }),
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
@@ -2919,16 +2948,19 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">C</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="ident">C</span>: <span class="ident">NativeObject</span> <span class="op">+</span> <span class="ident">Clone</span>,
+        <span class="ident">C</span>: <span class="ident">NativeObject</span>,
     {
         <span class="self">Self</span> {
             <span class="ident">context</span>,
             <span class="ident">function</span>: <span class="prelude-val">Some</span>(<span class="ident">Function::Closure</span> {
-                <span class="ident">function</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="kw-2">mut</span> <span class="ident">captures</span>: <span class="ident">Captures</span>, <span class="ident">context</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">try_downcast_mut</span>::<span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="ident">function</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">data</span>, <span class="ident">context</span>)
+                <span class="ident">function</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">captures</span>: <span class="ident">Captures</span>, <span class="ident">context</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">as_mut_any</span>();
+                    <span class="kw">let</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot downcast `Captures` to given type&quot;</span>)
+                    })<span class="question-mark">?</span>;
+                    <span class="ident">function</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="ident">context</span>)
                 }),
-                <span class="ident">constructable</span>: <span class="bool-val">false</span>,
+                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
                 <span class="ident">captures</span>: <span class="ident">Captures::new</span>(<span class="ident">captures</span>),
             }),
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
@@ -2963,10 +2995,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The default is `false`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">function</span>.<span class="ident">as_mut</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">Function::Native</span> { <span class="ident">constructable</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructable</span> <span class="op">=</span> <span class="ident">yes</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">Function::Closure</span> { <span class="ident">constructable</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructable</span> <span class="op">=</span> <span class="ident">yes</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">Function::Native</span> { <span class="ident">constructor</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">Function::Closure</span> { <span class="ident">constructor</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
         }
         <span class="self">self</span>
@@ -3066,7 +3098,7 @@
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">function</span>)
             .<span class="ident">name</span>(<span class="ident">binding</span>.<span class="ident">name</span>)
             .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert_property</span>(
@@ -3112,7 +3144,7 @@
     <span class="ident">name</span>: <span class="ident">JsString</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>,
     <span class="ident">callable</span>: <span class="ident">bool</span>,
-    <span class="ident">constructable</span>: <span class="ident">bool</span>,
+    <span class="ident">constructor</span>: <span class="ident">bool</span>,
     <span class="ident">inherit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span>,
     <span class="ident">custom_prototype</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span>,
 }
@@ -3126,7 +3158,7 @@
             .<span class="ident">field</span>(<span class="string">&quot;prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prototype</span>)
             .<span class="ident">field</span>(<span class="string">&quot;inherit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inherit</span>)
             .<span class="ident">field</span>(<span class="string">&quot;callable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callable</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;constructable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructable</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructor</span>)
             .<span class="ident">finish</span>()
     }
 }
@@ -3143,7 +3175,7 @@
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
-            <span class="ident">constructable</span>: <span class="bool-val">true</span>,
+            <span class="ident">constructor</span>: <span class="bool-val">true</span>,
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
             <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
         }
@@ -3163,7 +3195,7 @@
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
-            <span class="ident">constructable</span>: <span class="bool-val">true</span>,
+            <span class="ident">constructor</span>: <span class="bool-val">true</span>,
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
             <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
         }
@@ -3184,7 +3216,7 @@
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">function</span>)
             .<span class="ident">name</span>(<span class="ident">binding</span>.<span class="ident">name</span>)
             .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert_property</span>(
@@ -3213,7 +3245,7 @@
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">function</span>)
             .<span class="ident">name</span>(<span class="ident">binding</span>.<span class="ident">name</span>)
             .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
         <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert_property</span>(
@@ -3359,8 +3391,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is `true`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">constructable</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">constructable</span> <span class="op">=</span> <span class="ident">constructable</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">constructor</span>;
         <span class="self">self</span>
     }
 
@@ -3393,7 +3425,7 @@
         <span class="comment">// Create the native function</span>
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Function::Native</span> {
             <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">constructor_function</span>,
-            <span class="ident">constructable</span>: <span class="self">self</span>.<span class="ident">constructable</span>,
+            <span class="ident">constructor</span>: <span class="self">self</span>.<span class="ident">constructor</span>,
         };
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()

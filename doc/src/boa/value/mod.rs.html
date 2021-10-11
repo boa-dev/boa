@@ -1169,15 +1169,6 @@
 <span id="1169">1169</span>
 <span id="1170">1170</span>
 <span id="1171">1171</span>
-<span id="1172">1172</span>
-<span id="1173">1173</span>
-<span id="1174">1174</span>
-<span id="1175">1175</span>
-<span id="1176">1176</span>
-<span id="1177">1177</span>
-<span id="1178">1178</span>
-<span id="1179">1179</span>
-<span id="1180">1180</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1311,11 +1302,38 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>.<span class="ident">clone</span>()),
+            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="doccomment">/// It determines if the value is a callable function with a `[[Call]]` internal method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+    }
+
+    <span class="doccomment">/// Returns true if the value is a constructor object</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>())
     }
 
     <span class="doccomment">/// Returns true if the value is a symbol.</span>
@@ -1329,12 +1347,6 @@
             <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
-    }
-
-    <span class="doccomment">/// Returns true if the value is a function</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">o</span>) <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_function</span>())
     }
 
     <span class="doccomment">/// Returns true if the value is undefined.</span>
@@ -1577,7 +1589,7 @@
             <span class="kw">let</span> <span class="ident">exotic_to_prim</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::to_primitive</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If exoticToPrim is not undefined, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">exotic_to_prim</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exotic_to_prim</span>) <span class="op">=</span> <span class="ident">exotic_to_prim</span> {
                 <span class="comment">// i. If preferredType is not present, let hint be &quot;default&quot;.</span>
                 <span class="comment">// ii. Else if preferredType is string, let hint be &quot;string&quot;.</span>
                 <span class="comment">// iii. Else,</span>
@@ -1591,7 +1603,7 @@
                 .<span class="ident">into</span>();
 
                 <span class="comment">// iv. Let result be ? Call(exoticToPrim, input, « hint »).</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">exotic_to_prim</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span>[<span class="ident">hint</span>])<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">exotic_to_prim</span>.<span class="ident">call</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>[<span class="ident">hint</span>], <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// v. If Type(result) is not Object, return result.</span>
                 <span class="comment">// vi. Throw a TypeError exception.</span>
                 <span class="kw">return</span> <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_object</span>() {
@@ -2131,11 +2143,13 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.</span>
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                .<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>)),
-        }
+        <span class="self">self</span>.<span class="ident">as_object</span>()
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                    <span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>,
+                )
+            })
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>))
     }
 
     <span class="doccomment">/// Converts argument to an integer, +∞, or -∞.</span>
@@ -2210,42 +2224,10 @@
             <span class="comment">// 3. If argument is a Proxy exotic object, then</span>
             <span class="comment">//     b. Let target be argument.[[ProxyTarget]].</span>
             <span class="comment">//     c. Return ? IsArray(target).</span>
-            <span class="comment">// 4. Return false.</span>
+            <span class="comment">// TODO: handle ProxyObjects</span>
             <span class="prelude-val">Ok</span>(<span class="ident">object</span>.<span class="ident">is_array</span>())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-        }
-    }
-
-    <span class="doccomment">/// It determines if the value is a callable function with a `[[Call]]` internal method.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">obj</span>.<span class="ident">is_callable</span>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
-    }
-
-    <span class="doccomment">/// Determines if `value` inherits from the instance object inheritance path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ordinary_has_instance</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">obj</span>.<span class="ident">ordinary_has_instance</span>(<span class="ident">context</span>, <span class="ident">value</span>)
-        } <span class="kw">else</span> {
+            <span class="comment">// 4. Return false.</span>
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         }
     }

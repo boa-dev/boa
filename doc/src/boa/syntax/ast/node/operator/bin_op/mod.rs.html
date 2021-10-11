@@ -210,40 +210,10 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax::ast</span>::{
         <span class="ident">node::Node</span>,
         <span class="ident">op</span>::{<span class="self">self</span>, <span class="ident">AssignOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>},
@@ -388,35 +358,7 @@
                         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                         <span class="ident">context</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>)<span class="question-mark">?</span>
                     }
-                    <span class="ident">CompOp::InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="comment">// &lt;https://tc39.es/ecma262/#sec-instanceofoperator&gt;</span>
-                        <span class="comment">// TODO: move to a separate instance_of_operator function</span>
-                        <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.</span>
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">y</span>.<span class="ident">is_object</span>() {
-                            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                                <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
-                                <span class="ident">y</span>.<span class="ident">type_of</span>()
-                            ));
-                        }
-
-                        <span class="comment">// 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).</span>
-                        <span class="kw">let</span> <span class="ident">inst_of_handler</span> <span class="op">=</span>
-                            <span class="ident">y</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::has_instance</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-                        <span class="comment">// 3. If instOfHandler is not undefined, then</span>
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">inst_of_handler</span>.<span class="ident">is_undefined</span>() {
-                            <span class="comment">// a. Return ! ToBoolean(? Call(instOfHandler, target, « V »)).</span>
-                            <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">inst_of_handler</span>, <span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="kw-2">&amp;</span>[<span class="ident">x</span>])<span class="question-mark">?</span>.<span class="ident">to_boolean</span>()
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">y</span>.<span class="ident">is_callable</span>() {
-                            <span class="comment">// 4. If IsCallable(target) is false, throw a TypeError exception.</span>
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                                <span class="string">&quot;right-hand side of &#39;instanceof&#39; is not callable&quot;</span>,
-                            ));
-                        } <span class="kw">else</span> {
-                            <span class="comment">// 5. Return ? OrdinaryHasInstance(target, V).</span>
-                            <span class="ident">y</span>.<span class="ident">ordinary_has_instance</span>(<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">x</span>)<span class="question-mark">?</span>
-                        }
-                    }
+                    <span class="ident">CompOp::InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">instance_of</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
                 }))
             }
             <span class="ident">op::BinOp::Log</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {

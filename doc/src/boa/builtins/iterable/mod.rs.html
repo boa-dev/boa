@@ -292,6 +292,10 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
@@ -416,22 +420,26 @@
             <span class="comment">// a. If hint is async, then</span>
             <span class="kw">if</span> <span class="ident">hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">IteratorHint::Async</span> {
                 <span class="comment">// i. Set method to ? GetMethod(obj, @@asyncIterator).</span>
-                <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::async_iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="comment">// ii. If method is undefined, then</span>
-                <span class="kw">if</span> <span class="ident">method</span>.<span class="ident">is_undefined</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">method</span>) <span class="op">=</span>
+                    <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::async_iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                {
+                    <span class="ident">method</span>.<span class="ident">into</span>()
+                } <span class="kw">else</span> {
+                    <span class="comment">// ii. If method is undefined, then</span>
                     <span class="comment">// 1. Let syncMethod be ? GetMethod(obj, @@iterator).</span>
-                    <span class="kw">let</span> <span class="ident">sync_method</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">sync_method</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                        .<span class="ident">map_or</span>(<span class="ident">JsValue::Undefined</span>, <span class="ident">JsValue::from</span>);
                     <span class="comment">// 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).</span>
                     <span class="kw">let</span> <span class="ident">_sync_iterator_record</span> <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Sync</span>), <span class="prelude-val">Some</span>(<span class="ident">sync_method</span>));
                     <span class="comment">// 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).</span>
                     <span class="macro">todo!</span>(<span class="string">&quot;CreateAsyncFromSyncIterator&quot;</span>);
                 }
-
-                <span class="ident">method</span>
             } <span class="kw">else</span> {
                 <span class="comment">// b. Otherwise, set method to ? GetMethod(obj, @@iterator).</span>
                 <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">map_or</span>(<span class="ident">JsValue::Undefined</span>, <span class="ident">JsValue::from</span>)
             }
         };
 

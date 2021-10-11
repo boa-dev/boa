@@ -1507,7 +1507,8 @@
             .<span class="ident">get</span>(<span class="string">&quot;prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;prototype must exist&quot;</span>)
             .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;prototype must be object&quot;</span>);
+            .<span class="ident">expect</span>(<span class="string">&quot;prototype must be object&quot;</span>)
+            .<span class="ident">clone</span>();
         <span class="ident">context</span>.<span class="ident">typed_array_constructor</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">typed_array_constructor_constructor</span>;
         <span class="ident">context</span>.<span class="ident">typed_array_constructor</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">typed_array_constructor_prototype</span>;
         <span class="ident">context</span>.<span class="ident">create_intrinsics</span>();
@@ -1597,10 +1598,9 @@
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">f</span> {
-            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="self">self</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Value is not callable&quot;</span>),
-        }
+        <span class="ident">f</span>.<span class="ident">as_callable</span>()
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not callable&quot;</span>))
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="self">self</span>))
     }
 
     <span class="doccomment">/// Return the global object.</span>
@@ -1775,7 +1775,7 @@
         <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">params</span>: <span class="ident">P</span>,
         <span class="kw-2">mut</span> <span class="ident">body</span>: <span class="ident">StatementList</span>,
-        <span class="ident">constructable</span>: <span class="ident">bool</span>,
+        <span class="ident">constructor</span>: <span class="ident">bool</span>,
         <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -1796,7 +1796,7 @@
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">params_len</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="ident">Function::Ordinary</span> {
-            <span class="ident">constructable</span>,
+            <span class="ident">constructor</span>,
             <span class="ident">this_mode</span>,
             <span class="ident">body</span>: <span class="ident">RcStatementList::from</span>(<span class="ident">body</span>),
             <span class="ident">params</span>,
@@ -1863,7 +1863,7 @@
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>, <span class="ident">body</span>)
             .<span class="ident">name</span>(<span class="ident">name</span>)
             .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
 
         <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">insert_property</span>(
@@ -1906,7 +1906,7 @@
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure</span>(<span class="self">self</span>, <span class="ident">body</span>)
             .<span class="ident">name</span>(<span class="ident">name</span>)
             .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">constructable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
 
         <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">insert_property</span>(
