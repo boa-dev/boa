@@ -3,8 +3,8 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsResult, JsValue,
+    builtins::Array, environment::lexical_environment::VariableScope, BoaProfiler, Context,
+    JsResult, JsValue,
 };
 
 mod call_frame;
@@ -215,22 +215,8 @@ impl Context {
             Opcode::InstanceOf => {
                 let target = self.vm.pop();
                 let v = self.vm.pop();
-                if !target.is_object() {
-                    return Err(self.construct_type_error(format!(
-                        "right-hand side of 'instanceof' should be an object, got {}",
-                        target.type_of()
-                    )));
-                };
-                let handler = target.get_method(WellKnownSymbols::has_instance(), self)?;
-                if !handler.is_undefined() {
-                    let value = self.call(&handler, &target, &[v.clone()])?.to_boolean();
-                    self.vm.push(value);
-                }
-                if !target.is_callable() {
-                    return Err(self
-                        .construct_type_error("right-hand side of 'instanceof' is not callable"));
-                }
-                let value = target.ordinary_has_instance(self, &v)?;
+                let value = v.instance_of(&target, self)?;
+
                 self.vm.push(value);
             }
             Opcode::Void => {
@@ -359,7 +345,7 @@ impl Context {
 
                 let value = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object
+                    object.clone()
                 } else {
                     value.to_object(self)?
                 };
@@ -373,7 +359,7 @@ impl Context {
                 let value = self.vm.pop();
                 let key = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object
+                    object.clone()
                 } else {
                     value.to_object(self)?
                 };
@@ -389,7 +375,7 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object
+                    object.clone()
                 } else {
                     object.to_object(self)?
                 };
@@ -403,7 +389,7 @@ impl Context {
                 let key = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object
+                    object.clone()
                 } else {
                     object.to_object(self)?
                 };
@@ -546,7 +532,7 @@ impl Context {
                     match self.vm.stack.last() {
                         None => "<empty>".to_string(),
                         Some(value) => {
-                            if value.is_function() {
+                            if value.is_callable() {
                                 "[function]".to_string()
                             } else if value.is_object() {
                                 "[object]".to_string()
@@ -591,7 +577,7 @@ impl Context {
                         "{:04}{:<width$} {}",
                         i,
                         "",
-                        if value.is_function() {
+                        if value.is_callable() {
                             "[function]".to_string()
                         } else if value.is_object() {
                             "[object]".to_string()

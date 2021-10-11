@@ -56,7 +56,7 @@ macro_rules! typed_array {
 
                 let get_species = FunctionBuilder::native(context, TypedArray::get_species)
                     .name("get [Symbol.species]")
-                    .constructable(false)
+                    .constructor(false)
                     .build();
 
                 ConstructorBuilder::with_standard_object(
@@ -146,7 +146,11 @@ macro_rules! typed_array {
                     // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
                     if first_argument.is_typed_array() {
                         // 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
-                        TypedArray::initialize_from_typed_array(&o, first_argument, context)?;
+                        TypedArray::initialize_from_typed_array(
+                            &o,
+                            first_argument.clone(),
+                            context,
+                        )?;
                     } else if first_argument.is_array_buffer() {
                         // iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
 
@@ -159,7 +163,7 @@ macro_rules! typed_array {
                         // 3. Perform ? InitializeTypedArrayFromArrayBuffer(O, firstArgument, byteOffset, length).
                         TypedArray::initialize_from_array_buffer(
                             &o,
-                            first_argument,
+                            first_argument.clone(),
                             byte_offset,
                             length,
                             context,
@@ -177,10 +181,13 @@ macro_rules! typed_array {
                             first_argument_v.get_method(WellKnownSymbols::replace(), context)?;
 
                         // 3. If usingIterator is not undefined, then
-                        if !using_iterator.is_undefined() {
+                        if let Some(using_iterator) = using_iterator {
                             // a. Let values be ? IterableToList(firstArgument, usingIterator).
-                            let values =
-                                iterable_to_list(context, first_argument_v, Some(using_iterator))?;
+                            let values = iterable_to_list(
+                                context,
+                                first_argument_v,
+                                Some(using_iterator.into()),
+                            )?;
 
                             // b. Perform ? InitializeTypedArrayFromList(O, values).
                             TypedArray::initialize_from_list(&o, values, context)?;
@@ -233,38 +240,38 @@ impl TypedArray {
     pub(crate) fn init(context: &mut Context) -> JsObject {
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_buffer = FunctionBuilder::native(context, Self::buffer)
             .name("get buffer")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_byte_length = FunctionBuilder::native(context, Self::byte_length)
             .name("get byteLength")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_byte_offset = FunctionBuilder::native(context, Self::byte_offset)
             .name("get byteOffset")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_length = FunctionBuilder::native(context, Self::length)
             .name("get length")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_to_string_tag = FunctionBuilder::native(context, Self::to_string_tag)
             .name("get [Symbol.toStringTag]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let object = ConstructorBuilder::with_standard_object(
@@ -380,7 +387,7 @@ impl TypedArray {
         // 1. Let C be the this value.
         // 2. If IsConstructor(C) is false, throw a TypeError exception.
         let constructor = match this.as_object() {
-            Some(obj) if obj.is_constructable() => obj,
+            Some(obj) if obj.is_constructor() => obj,
             _ => {
                 return context
                     .throw_type_error("TypedArray.from called on non-constructable value")
@@ -409,13 +416,13 @@ impl TypedArray {
         let this_arg = args.get_or_undefined(2);
 
         // 6. If usingIterator is not undefined, then
-        if !using_iterator.is_undefined() {
+        if let Some(using_iterator) = using_iterator {
             // a. Let values be ? IterableToList(source, usingIterator).
-            let values = iterable_to_list(context, source.clone(), Some(using_iterator))?;
+            let values = iterable_to_list(context, source.clone(), Some(using_iterator.into()))?;
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-            let target_obj = Self::create(&constructor, &[values.len().into()], context)?;
+            let target_obj = Self::create(constructor, &[values.len().into()], context)?;
 
             // d. Let k be 0.
             // e. Repeat, while k < len,
@@ -451,7 +458,7 @@ impl TypedArray {
         let len = array_like.length_of_array_like(context)?;
 
         // 10. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let target_obj = Self::create(&constructor, &[len.into()], context)?;
+        let target_obj = Self::create(constructor, &[len.into()], context)?;
 
         // 11. Let k be 0.
         // 12. Repeat, while k < len,
@@ -490,14 +497,14 @@ impl TypedArray {
         // 2. Let C be the this value.
         // 3. If IsConstructor(C) is false, throw a TypeError exception.
         let constructor = match this.as_object() {
-            Some(obj) if obj.is_constructable() => obj,
+            Some(obj) if obj.is_constructor() => obj,
             _ => {
                 return context.throw_type_error("TypedArray.of called on non-constructable value")
             }
         };
 
         // 4. Let newObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let new_obj = Self::create(&constructor, &[args.len().into()], context)?;
+        let new_obj = Self::create(constructor, &[args.len().into()], context)?;
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -846,7 +853,7 @@ impl TypedArray {
 
         // 3. Return CreateArrayIterator(O, key+value).
         Ok(ArrayIterator::create_array_iterator(
-            o,
+            o.clone(),
             PropertyNameKind::KeyAndValue,
             context,
         ))
@@ -1057,7 +1064,7 @@ impl TypedArray {
         }
 
         // 9. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(captured) »).
-        let a = Self::species_create(&obj, o.typed_array_name(), &[captured.into()], context)?;
+        let a = Self::species_create(obj, o.typed_array_name(), &[captured.into()], context)?;
 
         // 10. Let n be 0.
         // 11. For each element e of kept, do
@@ -1473,7 +1480,7 @@ impl TypedArray {
 
         // 3. Return CreateArrayIterator(O, key).
         Ok(ArrayIterator::create_array_iterator(
-            o,
+            o.clone(),
             PropertyNameKind::Key,
             context,
         ))
@@ -1616,7 +1623,7 @@ impl TypedArray {
         };
 
         // 5. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(len) »).
-        let a = Self::species_create(&obj, o.typed_array_name(), &[len.into()], context)?;
+        let a = Self::species_create(obj, o.typed_array_name(), &[len.into()], context)?;
 
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
@@ -1888,12 +1895,12 @@ impl TypedArray {
             // 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
             JsValue::Object(source) if source.is_typed_array() => {
                 // a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).
-                Self::set_typed_array_from_typed_array(&target, target_offset, source, context)?;
+                Self::set_typed_array_from_typed_array(target, target_offset, source, context)?;
             }
             // 7. Else,
             _ => {
                 // a. Perform ? SetTypedArrayFromArrayLike(target, targetOffset, source).
-                Self::set_typed_array_from_array_like(&target, target_offset, source, context)?;
+                Self::set_typed_array_from_array_like(target, target_offset, source, context)?;
             }
         }
 
@@ -2287,7 +2294,7 @@ impl TypedArray {
         let count = std::cmp::max(r#final - k, 0) as usize;
 
         // 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).
-        let a = Self::species_create(&obj, o.typed_array_name(), &[count.into()], context)?;
+        let a = Self::species_create(obj, o.typed_array_name(), &[count.into()], context)?;
         let a_borrow = a.borrow();
         let a_array = a_borrow
             .as_typed_array()
@@ -2658,7 +2665,7 @@ impl TypedArray {
         }
 
         // 12. Return obj.
-        Ok(obj.into())
+        Ok(obj.clone().into())
     }
 
     /// `23.2.3.28 %TypedArray%.prototype.subarray ( begin, end )`
@@ -2732,7 +2739,7 @@ impl TypedArray {
         // 19. Let argumentsList be « buffer, 𝔽(beginByteOffset), 𝔽(newLength) ».
         // 20. Return ? TypedArraySpeciesCreate(O, argumentsList).
         Ok(Self::species_create(
-            &obj,
+            obj,
             o.typed_array_name(),
             &[
                 buffer.clone().into(),
@@ -2768,7 +2775,7 @@ impl TypedArray {
 
         // 3. Return CreateArrayIterator(O, value).
         Ok(ArrayIterator::create_array_iterator(
-            o,
+            o.clone(),
             PropertyNameKind::Value,
             context,
         ))
@@ -2886,10 +2893,8 @@ impl TypedArray {
             }
         }
 
-        drop(obj_borrow);
-
         // 4. Return newTypedArray.
-        Ok(obj)
+        Ok(obj.clone())
     }
 
     /// <https://tc39.es/ecma262/#sec-allocatetypedarraybuffer>
@@ -2942,10 +2947,10 @@ impl TypedArray {
         let len = values.len();
         {
             let mut o = o.borrow_mut();
-            let mut o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
+            let o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
 
             // 2. Perform ? AllocateTypedArrayBuffer(O, len).
-            TypedArray::allocate_buffer(&mut o_inner, len, context)?;
+            TypedArray::allocate_buffer(o_inner, len, context)?;
         }
 
         // 3. Let k be 0.
@@ -3037,10 +3042,6 @@ impl TypedArray {
         let src_data_obj = src_array
             .viewed_array_buffer()
             .expect("Already checked for detached buffer");
-        let src_data_obj_b = src_data_obj.borrow();
-        let src_data = src_data_obj_b
-            .as_array_buffer()
-            .expect("Already checked for detached buffer");
 
         // 3. Let constructorName be the String value of O.[[TypedArrayName]].
         // 4. Let elementType be the Element Type value in Table 73 for constructorName.
@@ -3068,6 +3069,11 @@ impl TypedArray {
         // a. Let bufferConstructor be %ArrayBuffer%.
         let buffer_constructor =
             src_data_obj.species_constructor(StandardObjects::array_buffer_object, context)?;
+
+        let src_data_obj_b = src_data_obj.borrow();
+        let src_data = src_data_obj_b
+            .as_array_buffer()
+            .expect("Already checked for detached buffer");
 
         // 14. If elementType is the same as srcType, then
         let data = if constructor_name == src_name {

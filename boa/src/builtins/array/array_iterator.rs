@@ -62,57 +62,53 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let JsValue::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(array_iterator) = object.as_array_iterator_mut() {
-                let index = array_iterator.next_index;
-                if array_iterator.done {
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ));
-                }
+        let mut array_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let array_iterator = array_iterator
+            .as_mut()
+            .and_then(|obj| obj.as_array_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not an ArrayIterator"))?;
+        let index = array_iterator.next_index;
+        if array_iterator.done {
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
+        }
 
-                let len = if let Some(f) = array_iterator.array.borrow().as_typed_array() {
-                    if f.is_detached() {
-                        return context.throw_type_error(
-                            "Cannot get value from typed array that has a detached array buffer",
-                        );
-                    }
+        let len = if let Some(f) = array_iterator.array.borrow().as_typed_array() {
+            if f.is_detached() {
+                return context.throw_type_error(
+                    "Cannot get value from typed array that has a detached array buffer",
+                );
+            }
 
-                    f.array_length()
-                } else {
-                    array_iterator.array.length_of_array_like(context)?
-                };
+            f.array_length()
+        } else {
+            array_iterator.array.length_of_array_like(context)?
+        };
 
-                if index >= len {
-                    array_iterator.done = true;
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ));
-                }
-                array_iterator.next_index = index + 1;
-                return match array_iterator.kind {
-                    PropertyNameKind::Key => {
-                        Ok(create_iter_result_object(index.into(), false, context))
-                    }
-                    PropertyNameKind::Value => {
-                        let element_value = array_iterator.array.get(index, context)?;
-                        Ok(create_iter_result_object(element_value, false, context))
-                    }
-                    PropertyNameKind::KeyAndValue => {
-                        let element_value = array_iterator.array.get(index, context)?;
-                        let result =
-                            Array::create_array_from_list([index.into(), element_value], context);
-                        Ok(create_iter_result_object(result.into(), false, context))
-                    }
-                };
+        if index >= len {
+            array_iterator.done = true;
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
+        }
+        array_iterator.next_index = index + 1;
+        match array_iterator.kind {
+            PropertyNameKind::Key => Ok(create_iter_result_object(index.into(), false, context)),
+            PropertyNameKind::Value => {
+                let element_value = array_iterator.array.get(index, context)?;
+                Ok(create_iter_result_object(element_value, false, context))
+            }
+            PropertyNameKind::KeyAndValue => {
+                let element_value = array_iterator.array.get(index, context)?;
+                let result = Array::create_array_from_list([index.into(), element_value], context);
+                Ok(create_iter_result_object(result.into(), false, context))
             }
         }
-        context.throw_type_error("`this` is not an ArrayIterator")
     }
 
     /// Create the %ArrayIteratorPrototype% object

@@ -31,7 +31,7 @@ fn create_throw_type_error(context: &mut Context) -> JsObject {
         context.standard_objects().function_object().prototype(),
         ObjectData::function(Function::Native {
             function: throw_type_error,
-            constructable: false,
+            constructor: false,
         }),
     );
 

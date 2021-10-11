@@ -130,11 +130,38 @@ impl JsValue {
     }
 
     #[inline]
-    pub fn as_object(&self) -> Option<JsObject> {
+    pub fn as_object(&self) -> Option<&JsObject> {
         match *self {
-            Self::Object(ref o) => Some(o.clone()),
+            Self::Object(ref o) => Some(o),
             _ => None,
         }
+    }
+
+    /// It determines if the value is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[inline]
+    pub fn is_callable(&self) -> bool {
+        matches!(self, Self::Object(obj) if obj.is_callable())
+    }
+
+    #[inline]
+    pub fn as_callable(&self) -> Option<&JsObject> {
+        self.as_object().filter(|obj| obj.is_callable())
+    }
+
+    /// Returns true if the value is a constructor object
+    #[inline]
+    pub fn is_constructor(&self) -> bool {
+        matches!(self, Self::Object(obj) if obj.is_constructor())
+    }
+
+    #[inline]
+    pub fn as_constructor(&self) -> Option<&JsObject> {
+        self.as_object().filter(|obj| obj.is_constructor())
     }
 
     /// Returns true if the value is a symbol.
@@ -148,12 +175,6 @@ impl JsValue {
             Self::Symbol(symbol) => Some(symbol.clone()),
             _ => None,
         }
-    }
-
-    /// Returns true if the value is a function
-    #[inline]
-    pub fn is_function(&self) -> bool {
-        matches!(self, Self::Object(o) if o.is_function())
     }
 
     /// Returns true if the value is undefined.
@@ -396,7 +417,7 @@ impl JsValue {
             let exotic_to_prim = self.get_method(WellKnownSymbols::to_primitive(), context)?;
 
             // b. If exoticToPrim is not undefined, then
-            if !exotic_to_prim.is_undefined() {
+            if let Some(exotic_to_prim) = exotic_to_prim {
                 // i. If preferredType is not present, let hint be "default".
                 // ii. Else if preferredType is string, let hint be "string".
                 // iii. Else,
@@ -410,7 +431,7 @@ impl JsValue {
                 .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-                let result = context.call(&exotic_to_prim, self, &[hint])?;
+                let result = exotic_to_prim.call(self, &[hint], context)?;
                 // v. If Type(result) is not Object, return result.
                 // vi. Throw a TypeError exception.
                 return if result.is_object() {
@@ -950,11 +971,13 @@ impl JsValue {
     #[inline]
     pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
-        match self {
-            JsValue::Object(ref obj) => obj.to_property_descriptor(context),
-            _ => Err(context
-                .construct_type_error("Cannot construct a property descriptor from a non-object")),
-        }
+        self.as_object()
+            .ok_or_else(|| {
+                context.construct_type_error(
+                    "Cannot construct a property descriptor from a non-object",
+                )
+            })
+            .and_then(|obj| obj.to_property_descriptor(context))
     }
 
     /// Converts argument to an integer, +∞, or -∞.
@@ -1029,42 +1052,10 @@ impl JsValue {
             // 3. If argument is a Proxy exotic object, then
             //     b. Let target be argument.[[ProxyTarget]].
             //     c. Return ? IsArray(target).
-            // 4. Return false.
+            // TODO: handle ProxyObjects
             Ok(object.is_array())
         } else {
-            Ok(false)
-        }
-    }
-
-    /// It determines if the value is a callable function with a `[[Call]]` internal method.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
-    #[track_caller]
-    pub(crate) fn is_callable(&self) -> bool {
-        if let Self::Object(obj) = self {
-            obj.is_callable()
-        } else {
-            false
-        }
-    }
-
-    /// Determines if `value` inherits from the instance object inheritance path.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
-    pub(crate) fn ordinary_has_instance(
-        &self,
-        context: &mut Context,
-        value: &JsValue,
-    ) -> JsResult<bool> {
-        if let Self::Object(obj) = self {
-            obj.ordinary_has_instance(context, value)
-        } else {
+            // 4. Return false.
             Ok(false)
         }
     }

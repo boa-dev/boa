@@ -32,42 +32,39 @@ impl StringIterator {
     }
 
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let JsValue::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(string_iterator) = object.as_string_iterator_mut() {
-                if string_iterator.string.is_undefined() {
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ));
-                }
-                let native_string = string_iterator.string.to_string(context)?;
-                let len = native_string.encode_utf16().count() as i32;
-                let position = string_iterator.next_index;
-                if position >= len {
-                    string_iterator.string = JsValue::undefined();
-                    return Ok(create_iter_result_object(
-                        JsValue::undefined(),
-                        true,
-                        context,
-                    ));
-                }
-                let (_, code_unit_count, _) =
-                    code_point_at(native_string, position).expect("Invalid code point position");
-                string_iterator.next_index += code_unit_count as i32;
-                let result_string = crate::builtins::string::String::substring(
-                    &string_iterator.string,
-                    &[position.into(), string_iterator.next_index.into()],
-                    context,
-                )?;
-                Ok(create_iter_result_object(result_string, false, context))
-            } else {
-                context.throw_type_error("`this` is not an ArrayIterator")
-            }
-        } else {
-            context.throw_type_error("`this` is not an ArrayIterator")
+        let mut string_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let string_iterator = string_iterator
+            .as_mut()
+            .and_then(|obj| obj.as_string_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not an ArrayIterator"))?;
+
+        if string_iterator.string.is_undefined() {
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
         }
+        let native_string = string_iterator.string.to_string(context)?;
+        let len = native_string.encode_utf16().count() as i32;
+        let position = string_iterator.next_index;
+        if position >= len {
+            string_iterator.string = JsValue::undefined();
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
+        }
+        let (_, code_unit_count, _) =
+            code_point_at(native_string, position).expect("Invalid code point position");
+        string_iterator.next_index += code_unit_count as i32;
+        let result_string = crate::builtins::string::String::substring(
+            &string_iterator.string,
+            &[position.into(), string_iterator.next_index.into()],
+            context,
+        )?;
+        Ok(create_iter_result_object(result_string, false, context))
     }
 
     /// Create the %ArrayIteratorPrototype% object

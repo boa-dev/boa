@@ -83,18 +83,10 @@ impl Boolean {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
     fn this_boolean_value(value: &JsValue, context: &mut Context) -> JsResult<bool> {
-        match value {
-            JsValue::Boolean(boolean) => return Ok(*boolean),
-            JsValue::Object(ref object) => {
-                let object = object.borrow();
-                if let Some(boolean) = object.as_boolean() {
-                    return Ok(boolean);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a boolean"))
+        value
+            .as_boolean()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_boolean()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a boolean"))
     }
 
     /// The `toString()` method returns a string representing the specified `Boolean` object.

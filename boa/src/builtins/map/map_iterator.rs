@@ -66,16 +66,11 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let iterator_object = match this {
-            JsValue::Object(obj) if obj.borrow().is_map_iterator() => obj,
-            _ => return context.throw_type_error("`this` is not a MapIterator"),
-        };
-
-        let mut iterator_object = iterator_object.borrow_mut();
-
-        let map_iterator = iterator_object
-            .as_map_iterator_mut()
-            .expect("checked that obj was a map iterator");
+        let mut map_iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let map_iterator = map_iterator
+            .as_mut()
+            .and_then(|obj| obj.as_map_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not a MapIterator"))?;
 
         let item_kind = map_iterator.map_iteration_kind;
 

@@ -89,7 +89,7 @@ impl Object {
 impl Executable for Object {
     fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("object", "exec");
-        let mut obj = context.construct_object();
+        let obj = context.construct_object();
 
         // TODO: Implement the rest of the property types.
         for property in self.properties().iter() {
@@ -141,7 +141,7 @@ impl Executable for Object {
                             obj.__define_own_property__(
                                 name,
                                 PropertyDescriptor::builder()
-                                    .maybe_get(func.run(context)?.as_object())
+                                    .maybe_get(func.run(context)?.as_object().cloned())
                                     .maybe_set(set)
                                     .enumerable(true)
                                     .configurable(true)
@@ -159,7 +159,7 @@ impl Executable for Object {
                                 name,
                                 PropertyDescriptor::builder()
                                     .maybe_get(get)
-                                    .maybe_set(func.run(context)?.as_object())
+                                    .maybe_set(func.run(context)?.as_object().cloned())
                                     .enumerable(true)
                                     .configurable(true)
                                     .build(),

@@ -121,22 +121,26 @@ impl JsValue {
             // a. If hint is async, then
             if hint == IteratorHint::Async {
                 // i. Set method to ? GetMethod(obj, @@asyncIterator).
-                let method = self.get_method(WellKnownSymbols::async_iterator(), context)?;
-                // ii. If method is undefined, then
-                if method.is_undefined() {
+                if let Some(method) =
+                    self.get_method(WellKnownSymbols::async_iterator(), context)?
+                {
+                    method.into()
+                } else {
+                    // ii. If method is undefined, then
                     // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    let sync_method = self.get_method(WellKnownSymbols::iterator(), context)?;
+                    let sync_method = self
+                        .get_method(WellKnownSymbols::iterator(), context)?
+                        .map_or(JsValue::Undefined, JsValue::from);
                     // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
                     let _sync_iterator_record =
                         self.get_iterator(context, Some(IteratorHint::Sync), Some(sync_method));
                     // 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
                     todo!("CreateAsyncFromSyncIterator");
                 }
-
-                method
             } else {
                 // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
                 self.get_method(WellKnownSymbols::iterator(), context)?
+                    .map_or(JsValue::Undefined, JsValue::from)
             }
         };
 

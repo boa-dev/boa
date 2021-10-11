@@ -184,18 +184,10 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
     fn this_number_value(value: &JsValue, context: &mut Context) -> JsResult<f64> {
-        match *value {
-            JsValue::Integer(integer) => return Ok(f64::from(integer)),
-            JsValue::Rational(rational) => return Ok(rational),
-            JsValue::Object(ref object) => {
-                if let Some(number) = object.borrow().as_number() {
-                    return Ok(number);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a number"))
+        value
+            .as_number()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_number()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a number"))
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`

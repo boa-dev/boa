@@ -21,6 +21,7 @@ fn main() -> Result<(), JsValue> {
         println!("Called `closure`");
         // `variable` is captured from the main function.
         println!("variable = {}", variable);
+        println!();
 
         // We return the moved variable as a `JsValue`.
         Ok(JsValue::new(variable))
@@ -52,7 +53,7 @@ fn main() -> Result<(), JsValue> {
 
     // Now, we execute some operations that return a `Clone` type
     let clone_variable = BigStruct {
-        greeting: JsString::from("Hello from Javascript!"),
+        greeting: JsString::from("Hello!"),
         object,
     };
 
@@ -73,7 +74,11 @@ fn main() -> Result<(), JsValue> {
                 captures.greeting.as_str(),
             ]);
 
+            // We can also mutate the moved data inside the closure.
+            captures.greeting = format!("{} Hello!", captures.greeting).into();
+
             println!("{}", message);
+            println!();
 
             // We convert `message` into `Jsvalue` to be able to return it.
             Ok(message.into())
@@ -100,7 +105,13 @@ fn main() -> Result<(), JsValue> {
 
     assert_eq!(
         context.eval("createMessage()")?,
-        "message from `Boa dev`: Hello from Javascript!".into()
+        "message from `Boa dev`: Hello!".into()
+    );
+
+    // The data mutates between calls
+    assert_eq!(
+        context.eval("createMessage(); createMessage();")?,
+        "message from `Boa dev`: Hello! Hello! Hello!".into()
     );
 
     // We have moved `Clone` variables into a closure and executed that closure
