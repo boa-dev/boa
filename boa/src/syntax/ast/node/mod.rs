@@ -401,8 +401,7 @@ where
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
-    // name: Box<str>,
-    // init: Option<Node>,
+
     declaration: Declaration,
     is_rest_param: bool,
 

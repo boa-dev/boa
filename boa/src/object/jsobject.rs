@@ -4,7 +4,9 @@
 
 use super::{NativeObject, Object};
 use crate::{
+
     object::{ObjectData, ObjectKind},
+    
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
     Context, JsResult, JsValue,
@@ -265,10 +267,9 @@ impl JsObject {
                             // Add arguments object
                             let arguments_obj =
                                 if context.strict() || body.strict() || !is_simple_parameter_list {
-                                    println!("this is runninh 1");
                                     Arguments::create_unmapped_arguments_object(args, context)
                                 } else {
-                                    println!("this is runninh");
+                                
                                     Arguments::create_mapped_arguments_object(
                                         self, params.iter().cloned().collect(), args, &local_env, context,
                                     )

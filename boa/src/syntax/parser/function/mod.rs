@@ -17,10 +17,10 @@ use crate::{
         parser::{
             expression::Initializer,
             statement::{BindingIdentifier, StatementList, ObjectBindingPattern, ArrayBindingPattern},
-            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+            AllowAwait, AllowYield, Cursor, ParseError, TokenParser, 
         },
     },
-    BoaProfiler,
+    BoaProfiler, 
 };
 use std::{collections::HashSet, io::Read};
 
@@ -167,8 +167,20 @@ where
         if let Some(t) = cursor.peek(0)? { 
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) =>{  
-                    Declaration::new_with_object_pattern(
-                        ObjectBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?, None)
+                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+
+                    let init = if let Some(t) = cursor.peek(0)? {
+                        // Check that this is an initilizer before attempting parse.
+                        if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                            Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+                  
+                    Declaration::new_with_object_pattern(param, init)
                     
                 },
 
@@ -244,8 +256,20 @@ where
         if let Some(t) = cursor.peek(0)? { 
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) =>{  
-                    Declaration::new_with_object_pattern(
-                        ObjectBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?, None)
+                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+
+                    let init = if let Some(t) = cursor.peek(0)? {
+                        // Check that this is an initilizer before attempting parse.
+                        if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                            Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+                  
+                    Declaration::new_with_object_pattern(param, init)
 
                 },
 

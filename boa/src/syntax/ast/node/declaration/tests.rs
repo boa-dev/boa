@@ -15,27 +15,27 @@ fn duplicate_function_name() {
 fn fmt() {
     super::super::test_formatting(
         r#"
-        function func(a, b) {
+        function func(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {x`
             console.log(a);
         };
-        function func_2(a, b) {};
-        let arrow_func = (a, b) => {
+        function func_2(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {};
+        let arrow_func = (Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) => {
             console.log("in multi statement arrow");
             console.log(b);
         };
-        async function async_func(a, b) {
+        async function async_func(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {
             console.log(a);
         };
-        pass_async_func(async function(a, b) {
+        pass_async_func(async function(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {
             console.log("in async callback", a);
         });
-        pass_func(function(a, b) {
+        pass_func(function(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {
             console.log("in callback", a);
         });
-        let arrow_func_2 = (a, b) => {};
-        async function async_func_2(a, b) {};
-        pass_async_func(async function(a, b) {});
-        pass_func(function(a, b) {});
+        let arrow_func_2 = (Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) => {};
+        async function async_func_2(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {};
+        pass_async_func(async function(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {});
+        pass_func(function(Identifier { ident: Identifier { ident: "a" }, init: None }, Identifier { ident: Identifier { ident: "b" }, init: None }) {});
         "#,
     );
 }
