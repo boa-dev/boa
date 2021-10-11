@@ -159,7 +159,8 @@ impl CodeBlock {
             | Opcode::GetName
             | Opcode::SetName
             | Opcode::GetPropertyByName
-            | Opcode::SetPropertyByName => {
+            | Opcode::SetPropertyByName
+            | Opcode::DeletePropertyByName => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!("{:04}: '{}'", operand, self.variables[operand as usize])
@@ -207,6 +208,7 @@ impl CodeBlock {
             | Opcode::Neg
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
+            | Opcode::DeletePropertyByValue
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::This

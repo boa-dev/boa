@@ -397,6 +397,21 @@ impl Context {
                 let key = key.to_property_key(self)?;
                 object.set(key, value, true, self)?;
             }
+            Opcode::DeletePropertyByName => {
+                let index = self.vm.read::<u32>();
+                let key = self.vm.frame().code.variables[index as usize].clone();
+                let object = self.vm.pop();
+                let result = object.to_object(self)?.__delete__(&key.into(), self)?;
+                self.vm.push(result);
+            }
+            Opcode::DeletePropertyByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let result = object
+                    .to_object(self)?
+                    .__delete__(&key.to_property_key(self)?, self)?;
+                self.vm.push(result);
+            }
             Opcode::Throw => {
                 let value = self.vm.pop();
                 return Err(value);
