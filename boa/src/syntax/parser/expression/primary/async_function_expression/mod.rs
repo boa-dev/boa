@@ -49,8 +49,6 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionExpression", "Parsing");
-        cursor.peek_expect_no_lineterminator(0, "async function expression")?;
-        cursor.expect(Keyword::Function, "async function expression")?;
 
         let tok = cursor.peek(0)?;
 
