@@ -1,5 +1,5 @@
 use crate::syntax::{
-    ast::{Keyword, Punctuator},
+    ast::{node::declaration::async_generator_decl::AsyncGeneratorDecl, Punctuator},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
@@ -16,7 +16,7 @@ pub(super) struct AsyncGeneratorDeclaration {
 
 impl AsyncGeneratorDeclaration {
     /// Creates a new `AsyncGeneratorDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D)
+    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -61,16 +61,13 @@ impl<R> TokenParser<R> for AsyncGeneratorDeclaration
 where
     R: Read,
 {
-    type Output = AsyncGeneratorDeclaration
+    type Output = AsyncGeneratorDecl;
     
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Async, "async function declaration")?;
-        cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
-        cursor.expect(Keyword::Function, "async generator declaration")?;
         cursor.expect(Punctuator::Mul, "async generator declaration")?;
 
         let result = parse_callable_declaration(&self, cursor)?;
 
-        Ok(AsyncGeneratorDeclaration::new(result.0, result.1, result.2))
+        Ok(AsyncGeneratorDecl::new(result.0, result.1, result.2))
     }
 }
