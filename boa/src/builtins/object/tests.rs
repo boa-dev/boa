@@ -388,3 +388,35 @@ fn object_get_own_property_symbols() {
         ),
     ]);
 }
+
+#[test]
+fn object_from_entries_invalid_args() {
+    let error_message = r#"Uncaught "TypeError": "cannot convert null or undefined to Object""#;
+
+    check_output(&[
+        TestAction::TestEq("Object.fromEntries()", error_message),
+        TestAction::TestEq("Object.fromEntries(null)", error_message),
+        TestAction::TestEq("Object.fromEntries(undefined)", error_message),
+    ]);
+}
+
+#[test]
+fn object_from_entries() {
+    let scenario = r#"
+        let sym = Symbol("sym");
+        let map = Object.fromEntries([
+            ["long key", 1],
+            ["short", 2],
+            [sym, 3],
+            [5, 4],
+        ]);
+    "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("map['long key']", "1"),
+        TestAction::TestEq("map.short", "2"),
+        TestAction::TestEq("map[sym]", "3"),
+        TestAction::TestEq("map[5]", "4"),
+    ]);
+}
