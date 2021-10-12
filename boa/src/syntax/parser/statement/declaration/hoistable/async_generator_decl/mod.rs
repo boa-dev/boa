@@ -71,6 +71,6 @@ where
 
         let result = parse_callable_declaration(&self, cursor)?;
 
-        Ok(AsyncGeneratorDelc::new(result.0, result.1, result.2))
+        Ok(AsyncGeneratorDeclaration::new(result.0, result.1, result.2))
     }
 }
