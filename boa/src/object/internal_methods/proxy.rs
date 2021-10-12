@@ -5,7 +5,7 @@ use crate::{
     value::Type,
     Context, JsResult, JsValue,
 };
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 /// Definitions of the internal object methods for array exotic objects.
 ///
@@ -64,27 +64,6 @@ pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_ALL: InternalObjectMethods =
         __construct__: Some(proxy_exotic_construct),
     };
 
-// Helper function for internal proxy methods.
-#[inline]
-fn extract_handler_and_target(
-    obj: &JsObject,
-    context: &mut Context,
-) -> JsResult<(JsValue, JsObject)> {
-    if let Some(proxy) = obj.borrow().as_proxy() {
-        match (&proxy.handler, &proxy.target) {
-            (Some(handler), Some(target)) => Ok((handler.clone().into(), target.clone())),
-            (None, None) => {
-                Err(context.construct_type_error("Proxy object has empty handler and target"))
-            }
-            _ => Err(context.construct_type_error("Proxy object is in invalid state")),
-        }
-    } else {
-        Err(context.construct_type_error(
-            "Proxy object internal internal method called on non-proxy object",
-        ))
-    }
-}
-
 /// `10.5.1 [[GetPrototypeOf]] ( )`
 ///
 /// More information:
@@ -99,7 +78,12 @@ pub(crate) fn proxy_exotic_get_prototype_of(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "getPrototypeOf").
     let trap = if let Some(trap) = handler.get_method("getPrototypeOf", context)? {
@@ -156,7 +140,12 @@ pub(crate) fn proxy_exotic_set_prototype_of(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "setPrototypeOf").
     let trap = if let Some(trap) = handler.get_method("setPrototypeOf", context)? {
@@ -213,7 +202,12 @@ pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) 
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "isExtensible").
     let trap = if let Some(trap) = handler.get_method("isExtensible", context)? {
@@ -256,7 +250,12 @@ pub(crate) fn proxy_exotic_prevent_extensions(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "preventExtensions").
     let trap = if let Some(trap) = handler.get_method("preventExtensions", context)? {
@@ -299,7 +298,12 @@ pub(crate) fn proxy_exotic_get_own_property(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
     let trap = if let Some(trap) = handler.get_method("getOwnPropertyDescriptor", context)? {
@@ -417,7 +421,12 @@ pub(crate) fn proxy_exotic_define_own_property(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "defineProperty").
     let trap = if let Some(trap) = handler.get_method("defineProperty", context)? {
@@ -523,7 +532,12 @@ pub(crate) fn proxy_exotic_has_property(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "has").
     let trap = if let Some(trap) = handler.get_method("has", context)? {
@@ -584,7 +598,12 @@ pub(crate) fn proxy_exotic_get(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "get").
     let trap = if let Some(trap) = handler.get_method("get", context)? {
@@ -651,7 +670,12 @@ pub(crate) fn proxy_exotic_set(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "set").
     let trap = if let Some(trap) = handler.get_method("set", context)? {
@@ -726,7 +750,12 @@ pub(crate) fn proxy_exotic_delete(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "deleteProperty").
     let trap = if let Some(trap) = handler.get_method("deleteProperty", context)? {
@@ -787,7 +816,12 @@ pub(crate) fn proxy_exotic_own_property_keys(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "ownKeys").
     let trap = if let Some(trap) = handler.get_method("ownKeys", context)? {
@@ -806,7 +840,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
         trap_result_array.create_list_from_array_like(&[Type::String, Type::Symbol], context)?;
 
     // 9. If trapResult contains any duplicate entries, throw a TypeError exception.
-    let mut unchecked_result_keys: HashSet<PropertyKey> = HashSet::new();
+    let mut unchecked_result_keys: FxHashSet<PropertyKey> = FxHashSet::default();
     let mut trap_result = Vec::new();
     for value in &trap_result_raw {
         match value {
@@ -919,7 +953,12 @@ fn proxy_exotic_call(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Let trap be ? GetMethod(handler, "apply").
     let trap = if let Some(trap) = handler.get_method("apply", context)? {
@@ -936,7 +975,7 @@ fn proxy_exotic_call(
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
     trap.call(
         &handler,
-        &[target.into(), this.clone(), arg_array.into()],
+        &[target.clone().into(), this.clone(), arg_array.into()],
         context,
     )
 }
@@ -957,7 +996,12 @@ fn proxy_exotic_construct(
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
     // 4. Let target be O.[[ProxyTarget]].
-    let (handler, target) = extract_handler_and_target(obj, context)?;
+    let (target, handler) = obj
+        .borrow()
+        .as_proxy()
+        .expect("Proxy object internal internal method called on non-proxy object")
+        .data()
+        .ok_or_else(|| context.construct_type_error("Proxy object has empty handler and target"))?;
 
     // 5. Assert: IsConstructor(target) is true.
     assert!(target.is_constructor());
@@ -977,7 +1021,7 @@ fn proxy_exotic_construct(
     // 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
     let new_obj = trap.call(
         &handler,
-        &[target.into(), arg_array.into(), new_target.clone()],
+        &[target.clone().into(), arg_array.into(), new_target.clone()],
         context,
     )?;
 

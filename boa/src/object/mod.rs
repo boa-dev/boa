@@ -994,6 +994,17 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn as_proxy_mut(&mut self) -> Option<&mut Proxy> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Proxy(ref mut proxy),
+                ..
+            } => Some(proxy),
+            _ => None,
+        }
+    }
+
     /// Gets the prototype instance of this object.
     #[inline]
     pub fn prototype(&self) -> &JsPrototype {
