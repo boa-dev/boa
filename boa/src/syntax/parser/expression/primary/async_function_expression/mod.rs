@@ -3,7 +3,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node::AsyncFunctionExpr, Keyword, Punctuator},
+        ast::{node::AsyncFunctionExpr, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
