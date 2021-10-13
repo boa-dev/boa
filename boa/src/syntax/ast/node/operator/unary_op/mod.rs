@@ -114,16 +114,9 @@ impl Executable for UnaryOp {
                         .__delete__(&field.to_property_key(context)?, context)?;
                     return Ok(JsValue::new(res));
                 }
+                // TODO: implement delete on references.
                 Node::Identifier(_) => JsValue::new(false),
-                Node::ArrayDecl(_)
-                | Node::Block(_)
-                | Node::Const(_)
-                | Node::FunctionDecl(_)
-                | Node::FunctionExpr(_)
-                | Node::New(_)
-                | Node::Object(_)
-                | Node::UnaryOp(_) => JsValue::new(true),
-                _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
+                _ => JsValue::new(true),
             },
             op::UnaryOp::TypeOf => JsValue::new(self.target().run(context)?.type_of()),
         })

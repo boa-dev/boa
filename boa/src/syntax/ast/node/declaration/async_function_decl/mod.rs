@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncFunctionDecl {
-    name: Option<Box<str>>,
+    name: Box<str>,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
@@ -31,7 +31,7 @@ impl AsyncFunctionDecl {
     /// Creates a new async function declaration.
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
-        N: Into<Option<Box<str>>>,
+        N: Into<Box<str>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
@@ -43,8 +43,8 @@ impl AsyncFunctionDecl {
     }
 
     /// Gets the name of the async function declaration.
-    pub fn name(&self) -> Option<&str> {
-        self.name.as_deref()
+    pub fn name(&self) -> &str {
+        &self.name
     }
 
     /// Gets the list of parameters of the async function declaration.
@@ -63,10 +63,7 @@ impl AsyncFunctionDecl {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        match &self.name {
-            Some(name) => write!(f, "async function {}(", name)?,
-            None => write!(f, "async function (")?,
-        }
+        write!(f, "async function {}(", self.name())?;
         join_nodes(f, &self.parameters)?;
         if self.body().is_empty() {
             f.write_str(") {}")

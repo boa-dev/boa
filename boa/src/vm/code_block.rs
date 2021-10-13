@@ -45,8 +45,8 @@ pub struct CodeBlock {
     /// Is this function in strict mode.
     pub(crate) strict: bool,
 
-    /// Is this function constructable.
-    pub(crate) constructable: bool,
+    /// Is this function a constructor.
+    pub(crate) constructor: bool,
 
     /// [[ThisMode]]
     pub(crate) this_mode: ThisMode,
@@ -67,7 +67,7 @@ pub struct CodeBlock {
 }
 
 impl CodeBlock {
-    pub fn new(name: JsString, length: u32, strict: bool, constructable: bool) -> Self {
+    pub fn new(name: JsString, length: u32, strict: bool, constructor: bool) -> Self {
         Self {
             code: Vec::new(),
             literals: Vec::new(),
@@ -76,7 +76,7 @@ impl CodeBlock {
             name,
             length,
             strict,
-            constructable,
+            constructor,
             this_mode: ThisMode::Global,
             params: Vec::new().into_boxed_slice(),
         }
@@ -159,7 +159,8 @@ impl CodeBlock {
             | Opcode::GetName
             | Opcode::SetName
             | Opcode::GetPropertyByName
-            | Opcode::SetPropertyByName => {
+            | Opcode::SetPropertyByName
+            | Opcode::DeletePropertyByName => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!("{:04}: '{}'", operand, self.variables[operand as usize])
@@ -207,6 +208,7 @@ impl CodeBlock {
             | Opcode::Neg
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
+            | Opcode::DeletePropertyByValue
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::This
@@ -359,6 +361,7 @@ pub(crate) enum FunctionBody {
     },
 }
 
+// TODO: this should be modified to not take `exit_on_return` and then moved to `internal_methods`
 impl JsObject {
     pub(crate) fn call_internal(
         &self,
@@ -483,8 +486,8 @@ impl JsObject {
         let this_function_object = self.clone();
         // let mut has_parameter_expressions = false;
 
-        if !self.is_constructable() {
-            return context.throw_type_error("not a constructable function");
+        if !self.is_constructor() {
+            return context.throw_type_error("not a constructor function");
         }
 
         let body = {

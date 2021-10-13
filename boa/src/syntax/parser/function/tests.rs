@@ -21,10 +21,27 @@ fn check_basic() {
     );
 }
 
-/// Checks for duplicate parameter names.
+/// Checks if duplicate parameter names are allowed with strict mode off.
 #[test]
-fn check_duplicates() {
-    let js = "function foo(a, a) {}";
+fn check_duplicates_strict_off() {
+    check_parser(
+        "function foo(a, a) { return a; }",
+        vec![FunctionDecl::new(
+            Box::from("foo"),
+            vec![
+                FormalParameter::new("a", None, false),
+                FormalParameter::new("a", None, false),
+            ],
+            vec![Return::new(Identifier::from("a"), None).into()],
+        )
+        .into()],
+    );
+}
+
+/// Checks if duplicate parameter names are an error with strict mode on.
+#[test]
+fn check_duplicates_strict_on() {
+    let js = "'use strict'; function foo(a, a) {}";
 
     let res = Parser::new(js.as_bytes(), false).parse_all();
     dbg!(&res);

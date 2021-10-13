@@ -40,7 +40,7 @@ impl BuiltIn for ArrayBuffer {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         ConstructorBuilder::with_standard_object(
@@ -229,34 +229,37 @@ impl ArrayBuffer {
         let ctor = obj.species_constructor(StandardObjects::array_buffer_object, context)?;
 
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
-        let new = Self::constructor(&ctor.into(), &[new_len.into()], context)?;
+        let new = ctor.construct(&[new_len.into()], &ctor.clone().into(), context)?;
 
         // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
-        let new_obj = if let Some(obj) = new.as_object() {
-            obj
-        } else {
-            return context.throw_type_error("ArrayBuffer constructor returned non-object value");
-        };
-        let mut new_obj_borrow = new_obj.borrow_mut();
-        let new_array_buffer = if let Some(b) = new_obj_borrow.as_array_buffer_mut() {
-            b
-        } else {
-            return context.throw_type_error("ArrayBuffer constructor returned invalid object");
-        };
+        let new_obj = new.as_object().cloned().ok_or_else(|| {
+            context.construct_type_error("ArrayBuffer constructor returned non-object value")
+        })?;
 
-        // TODO: Shared Array Buffer
-        // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
+        {
+            let new_obj = new_obj.borrow();
+            let new_array_buffer = new_obj.as_array_buffer().ok_or_else(|| {
+                context.construct_type_error("ArrayBuffer constructor returned invalid object")
+            })?;
 
-        // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
-        if Self::is_detached_buffer(new_array_buffer) {
-            return context
-                .throw_type_error("ArrayBuffer constructor returned detached ArrayBuffer");
+            // TODO: Shared Array Buffer
+            // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
+
+            // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
+            if new_array_buffer.is_detached_buffer() {
+                return context
+                    .throw_type_error("ArrayBuffer constructor returned detached ArrayBuffer");
+            }
         }
-
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
         if JsValue::same_value(&new, this) {
             return context.throw_type_error("New ArrayBuffer is the same as this ArrayBuffer");
         }
+
+        let mut new_obj_borrow = new_obj.borrow_mut();
+        let new_array_buffer = new_obj_borrow
+            .as_array_buffer_mut()
+            .expect("Already checked that `new_obj` was an `ArrayBuffer`");
 
         // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
         if new_array_buffer.array_buffer_byte_length < new_len {
@@ -307,7 +310,7 @@ impl ArrayBuffer {
             context,
         )?;
         let obj = context.construct_object();
-        obj.set_prototype_instance(prototype.into());
+        obj.set_prototype(prototype.into());
 
         // 2. Let block be ? CreateByteDataBlock(byteLength).
         // TODO: for now just a arbitrary limit to not OOM.

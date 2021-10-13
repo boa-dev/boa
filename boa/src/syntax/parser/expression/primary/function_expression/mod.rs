@@ -58,7 +58,24 @@ where
             None
         };
 
-        cursor.expect(Punctuator::OpenParen, "function expression")?;
+        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
+        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+        if let Some(name) = &name {
+            if cursor.strict_mode() && ["eval", "arguments"].contains(&name.as_ref()) {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Unexpected eval or arguments in strict mode".into(),
+                    match cursor.peek(0)? {
+                        Some(token) => token.span().end(),
+                        None => Position::new(1, 1),
+                    },
+                )));
+            }
+        }
+
+        let params_start_position = cursor
+            .expect(Punctuator::OpenParen, "function expression")?
+            .span()
+            .end();
 
         let params = FormalParameters::new(false, false).parse(cursor)?;
 
@@ -69,11 +86,30 @@ where
 
         cursor.expect(Punctuator::CloseBlock, "function expression")?;
 
+        // Early Error: If the source code matching FormalParameters is strict mode code,
+        // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
+        if (cursor.strict_mode() || body.strict()) && params.has_duplicates {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Duplicate parameter name not allowed in this context".into(),
+                params_start_position,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
+        // and IsSimpleParameterList of FormalParameters is false.
+        if body.strict() && !params.is_simple {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+                params_start_position,
+            )));
+        }
+
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
         {
             let lexically_declared_names = body.lexically_declared_names();
+
             for param in params.as_ref() {
                 for param_name in param.name().iter(){
                     if lexically_declared_names.contains(param_name) {
@@ -85,10 +121,11 @@ where
                             },
                         )));
                     }
+
                 }
             }
         }
 
-        Ok(FunctionExpr::new(name, params, body))
+        Ok(FunctionExpr::new(name, params.parameters, body))
     }
 }

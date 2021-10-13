@@ -17,6 +17,8 @@ pub mod async_function_decl;
 pub mod async_function_expr;
 pub mod function_decl;
 pub mod function_expr;
+pub mod generator_decl;
+pub mod generator_expr;
 
 pub use self::{
     arrow_function_decl::ArrowFunctionDecl, async_function_decl::AsyncFunctionDecl,
@@ -517,7 +519,7 @@ impl DeclarationPatternObject {
                     // 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).
 
                     // 2. Let restObj be ! OrdinaryObjectCreate(%Object.prototype%).
-                    let mut rest_obj = context.construct_object();
+                    let rest_obj = context.construct_object();
 
                     // 3. Perform ? CopyDataProperties(restObj, value, excludedNames).
                     rest_obj.copy_data_properties(value, excluded_keys.clone(), context)?;

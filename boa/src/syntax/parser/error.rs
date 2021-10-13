@@ -92,6 +92,14 @@ impl ParseError {
         Self::General { message, position }
     }
 
+    /// Creates a "general" parsing error with the specific error message for a wrong function declaration in non-strict mode.
+    pub(super) fn wrong_function_declaration_non_strict(position: Position) -> Self {
+        Self::General {
+            message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
+            position
+        }
+    }
+
     /// Creates a parsing error from a lexing error.
     pub(super) fn lex(e: LexError) -> Self {
         Self::Lex { err: e }

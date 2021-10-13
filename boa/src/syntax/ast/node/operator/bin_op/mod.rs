@@ -1,7 +1,6 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    symbol::WellKnownSymbols,
     syntax::ast::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
@@ -146,35 +145,7 @@ impl Executable for BinOp {
                         let key = x.to_property_key(context)?;
                         context.has_property(&y, &key)?
                     }
-                    CompOp::InstanceOf => {
-                        // <https://tc39.es/ecma262/#sec-instanceofoperator>
-                        // TODO: move to a separate instance_of_operator function
-                        // 1. If Type(target) is not Object, throw a TypeError exception.
-                        if !y.is_object() {
-                            return context.throw_type_error(format!(
-                                "right-hand side of 'instanceof' should be an object, got {}",
-                                y.type_of()
-                            ));
-                        }
-
-                        // 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).
-                        let inst_of_handler =
-                            y.get_method(WellKnownSymbols::has_instance(), context)?;
-
-                        // 3. If instOfHandler is not undefined, then
-                        if !inst_of_handler.is_undefined() {
-                            // a. Return ! ToBoolean(? Call(instOfHandler, target, « V »)).
-                            context.call(&inst_of_handler, &y, &[x])?.to_boolean()
-                        } else if !y.is_callable() {
-                            // 4. If IsCallable(target) is false, throw a TypeError exception.
-                            return Err(context.construct_type_error(
-                                "right-hand side of 'instanceof' is not callable",
-                            ));
-                        } else {
-                            // 5. Return ? OrdinaryHasInstance(target, V).
-                            y.ordinary_has_instance(context, &x)?
-                        }
-                    }
+                    CompOp::InstanceOf => x.instance_of(&y, context)?,
                 }))
             }
             op::BinOp::Log(op) => Ok(match op {

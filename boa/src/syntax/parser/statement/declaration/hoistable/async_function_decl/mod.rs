@@ -2,12 +2,9 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::AsyncFunctionDecl, Keyword, Punctuator},
-    lexer::TokenKind,
+    ast::{node::AsyncFunctionDecl, Keyword},
     parser::{
-        function::FormalParameters,
-        function::FunctionBody,
-        statement::{BindingIdentifier, LexError, Position},
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
@@ -44,6 +41,33 @@ impl AsyncFunctionDeclaration {
     }
 }
 
+impl CallableDeclaration for AsyncFunctionDeclaration {
+    fn error_context(&self) -> &'static str {
+        "async function declaration"
+    }
+    fn is_default(&self) -> bool {
+        self.is_default.0
+    }
+    fn name_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn name_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+    fn parameters_allow_yield(&self) -> bool {
+        false
+    }
+    fn parameters_allow_await(&self) -> bool {
+        true
+    }
+    fn body_allow_yield(&self) -> bool {
+        false
+    }
+    fn body_allow_await(&self) -> bool {
+        true
+    }
+}
+
 impl<R> TokenParser<R> for AsyncFunctionDeclaration
 where
     R: Read,
@@ -54,59 +78,11 @@ where
         cursor.expect(Keyword::Async, "async function declaration")?;
         cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
         cursor.expect(Keyword::Function, "async function declaration")?;
-        let tok = cursor.peek(0)?;
 
-        let name = if let Some(token) = tok {
-            match token.kind() {
-                TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    if !self.is_default.0 {
-                        return Err(ParseError::unexpected(
-                            token.clone(),
-                            " in async function declaration",
-                        ));
-                    }
-                    None
-                }
-                _ => {
-                    Some(BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?)
-                }
-            }
-        } else {
-            return Err(ParseError::AbruptEnd);
-        };
 
-        cursor.expect(Punctuator::OpenParen, "async function declaration")?;
+        let result = parse_callable_declaration(&self, cursor)?;
 
-        let params = FormalParameters::new(false, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "async function declaration")?;
-        cursor.expect(Punctuator::OpenBlock, "async function declaration")?;
-
-        let body = FunctionBody::new(false, true).parse(cursor)?;
-
-        cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
-
-        // It is a Syntax Error if any element of the BoundNames of FormalParameters
-        // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-        {
-            let lexically_declared_names = body.lexically_declared_names();
-            for param in params.as_ref() {
-                
-                for param_name in param.name().iter() {
-                    if lexically_declared_names.contains(param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                            match cursor.peek(0)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
-
-        Ok(AsyncFunctionDecl::new(name, params, body))
+        Ok(AsyncFunctionDecl::new(result.0, result.1, result.2))
     }
 }

@@ -10,6 +10,7 @@
 mod array_initializer;
 mod async_function_expression;
 mod function_expression;
+mod generator_expression;
 mod object_initializer;
 mod template;
 #[cfg(test)]
@@ -17,7 +18,8 @@ mod tests;
 
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
-    function_expression::FunctionExpression, object_initializer::ObjectLiteral,
+    function_expression::FunctionExpression, generator_expression::GeneratorExpression,
+    object_initializer::ObjectLiteral,
 };
 use super::Expression;
 use crate::{
@@ -80,7 +82,12 @@ where
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
             TokenKind::Keyword(Keyword::Function) => {
-                FunctionExpression.parse(cursor).map(Node::from)
+                let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+                if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                    GeneratorExpression.parse(cursor).map(Node::from)
+                } else {
+                    FunctionExpression.parse(cursor).map(Node::from)
+                }
             }
             TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
                 .parse(cursor)
@@ -106,7 +113,39 @@ where
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
-            TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
+            TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()),
+            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
+                Err(ParseError::general(
+                    "Unexpected identifier",
+                    tok.span().start(),
+                ))
+            }
+            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+                if cursor.strict_mode() {
+                    return Err(ParseError::general(
+                        "Unexpected strict mode reserved word",
+                        tok.span().start(),
+                    ));
+                }
+                Ok(Identifier::from("yield").into())
+            }
+            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+                // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
+                Err(ParseError::general(
+                    "Unexpected identifier",
+                    tok.span().start(),
+                ))
+            }
+            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+                if cursor.strict_mode() {
+                    return Err(ParseError::general(
+                        "Unexpected strict mode reserved word",
+                        tok.span().start(),
+                    ));
+                }
+                Ok(Identifier::from("await").into())
+            }
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
             TokenKind::TemplateNoSubstitution(template_string) => {
                 Ok(Const::from(template_string.to_owned_cooked().map_err(ParseError::lex)?).into())

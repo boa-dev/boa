@@ -2,11 +2,9 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::FunctionDecl, Keyword, Punctuator},
+    ast::{node::FunctionDecl, Keyword},
     parser::{
-        function::FormalParameters,
-        function::FunctionBody,
-        statement::{BindingIdentifier, LexError, Position},
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
@@ -22,7 +20,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
 
 #[derive(Debug, Clone, Copy)]
-pub(super) struct FunctionDeclaration {
+pub(in crate::syntax::parser) struct FunctionDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
@@ -30,7 +28,11 @@ pub(super) struct FunctionDeclaration {
 
 impl FunctionDeclaration {
     /// Creates a new `FunctionDeclaration` parser.
-    pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A, D>(
+        allow_yield: Y,
+        allow_await: A,
+        is_default: D,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -44,6 +46,33 @@ impl FunctionDeclaration {
     }
 }
 
+impl CallableDeclaration for FunctionDeclaration {
+    fn error_context(&self) -> &'static str {
+        "function declaration"
+    }
+    fn is_default(&self) -> bool {
+        self.is_default.0
+    }
+    fn name_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn name_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+    fn parameters_allow_yield(&self) -> bool {
+        false
+    }
+    fn parameters_allow_await(&self) -> bool {
+        false
+    }
+    fn body_allow_yield(&self) -> bool {
+        self.allow_yield.0
+    }
+    fn body_allow_await(&self) -> bool {
+        self.allow_await.0
+    }
+}
+
 impl<R> TokenParser<R> for FunctionDeclaration
 where
     R: Read,
@@ -53,41 +82,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
-        // TODO: If self.is_default, then this can be empty.
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::OpenParen, "function declaration")?;
+        let result = parse_callable_declaration(&self, cursor)?;
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "function declaration")?;
-        cursor.expect(Punctuator::OpenBlock, "function declaration")?;
-
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
-
-        cursor.expect(Punctuator::CloseBlock, "function declaration")?;
-
-        // It is a Syntax Error if any element of the BoundNames of FormalParameters
-        // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-        {
-            let lexically_declared_names = body.lexically_declared_names();
-            for param in params.as_ref() {
-                
-                for param_name in param.name().iter() {
-                    if lexically_declared_names.contains(param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!("Redeclaration of formal parameter `{}`", param_name).into(),
-                            match cursor.peek(0)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
-
-        Ok(FunctionDecl::new(name, params, body))
+        Ok(FunctionDecl::new(result.0, result.1, result.2))
     }
 }

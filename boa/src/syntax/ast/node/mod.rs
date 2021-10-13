@@ -20,6 +20,7 @@ pub mod switch;
 pub mod template;
 pub mod throw;
 pub mod try_node;
+pub mod r#yield;
 
 pub use self::{
     array::ArrayDecl,
@@ -29,8 +30,11 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationPattern,  DeclarationList,
-        FunctionDecl, FunctionExpr,
+
+        generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
+        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, FunctionDecl,
+        FunctionExpr,
+
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -38,6 +42,7 @@ pub use self::{
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
+    r#yield::Yield,
     return_smt::Return,
     spread::Spread,
     statement_list::{RcStatementList, StatementList},
@@ -209,6 +214,15 @@ pub enum Node {
     /// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty
     Empty,
+
+    /// A `yield` node. [More information](./yield/struct.Yield.html).
+    Yield(Yield),
+
+    /// A generator function declaration node. [More information](./declaration/struct.GeneratorDecl.html).
+    GeneratorDecl(GeneratorDecl),
+
+    /// A generator function expression node. [More information](./declaration/struct.GeneratorExpr.html).
+    GeneratorExpr(GeneratorExpr),
 }
 
 impl Display for Node {
@@ -302,6 +316,9 @@ impl Node {
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
             Self::Empty => write!(f, ";"),
+            Self::Yield(ref y) => Display::fmt(y, f),
+            Self::GeneratorDecl(ref decl) => Display::fmt(decl, f),
+            Self::GeneratorExpr(ref expr) => expr.display(f, indentation),
         }
     }
 }
@@ -363,6 +380,9 @@ impl Executable for Node {
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
             Node::Empty => Ok(JsValue::undefined()),
+            Node::Yield(ref y) => y.run(context),
+            Node::GeneratorDecl(ref decl) => decl.run(context),
+            Node::GeneratorExpr(ref expr) => expr.run(context),
         }
     }
 }
@@ -639,7 +659,16 @@ pub enum MethodDefinitionKind {
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
     Ordinary,
-    // TODO: support other method definition kinds, like `Generator`.
+
+    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods
+    Generator,
 }
 
 unsafe impl Trace for MethodDefinitionKind {

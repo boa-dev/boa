@@ -370,7 +370,29 @@ impl ByteCompiler {
                     UnaryOp::DecrementPre => todo!(),
                     UnaryOp::IncrementPost => todo!(),
                     UnaryOp::DecrementPost => todo!(),
-                    UnaryOp::Delete => todo!(),
+                    UnaryOp::Delete => match unary.target() {
+                        Node::GetConstField(ref get_const_field) => {
+                            let index = self.get_or_insert_name(get_const_field.field());
+                            self.compile_expr(get_const_field.obj(), true);
+                            self.emit(Opcode::DeletePropertyByName, &[index]);
+                            None
+                        }
+                        Node::GetField(ref get_field) => {
+                            self.compile_expr(get_field.field(), true);
+                            self.compile_expr(get_field.obj(), true);
+                            self.emit(Opcode::DeletePropertyByValue, &[]);
+                            None
+                        }
+                        // TODO: implement delete on references.
+                        Node::Identifier(_) => {
+                            self.emit(Opcode::PushFalse, &[]);
+                            None
+                        }
+                        _ => {
+                            self.emit(Opcode::PushTrue, &[]);
+                            None
+                        }
+                    },
                     UnaryOp::Minus => Some(Opcode::Neg),
                     UnaryOp::Plus => Some(Opcode::Pos),
                     UnaryOp::Not => Some(Opcode::LogicalNot),
@@ -382,10 +404,10 @@ impl ByteCompiler {
                 if let Some(opcode) = opcode {
                     self.compile_expr(unary.target(), true);
                     self.emit(opcode, &[]);
+                }
 
-                    if !use_expr {
-                        self.emit(Opcode::Pop, &[]);
-                    }
+                if !use_expr {
+                    self.emit(Opcode::Pop, &[]);
                 }
             }
             Node::BinOp(binary) => {
@@ -849,7 +871,7 @@ impl ByteCompiler {
         let mut code = CodeBlock::new(name.unwrap_or("").into(), length, false, true);
 
         if let FunctionKind::Arrow = kind {
-            code.constructable = false;
+            code.constructor = false;
             code.this_mode = ThisMode::Lexical;
         }
 

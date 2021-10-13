@@ -102,12 +102,12 @@ impl BuiltIn for Symbol {
         let to_primitive = FunctionBuilder::native(context, Self::to_primitive)
             .name("[Symbol.toPrimitive]")
             .length(1)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_description = FunctionBuilder::native(context, Self::get_description)
             .name("get description")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let symbol_object = ConstructorBuilder::with_standard_object(
@@ -141,7 +141,7 @@ impl BuiltIn for Symbol {
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .callable(true)
-        .constructable(false)
+        .constructor(false)
         .property(
             symbol_to_string_tag,
             Self::NAME,
@@ -190,18 +190,10 @@ impl Symbol {
     }
 
     fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
-        match value {
-            JsValue::Symbol(ref symbol) => return Ok(symbol.clone()),
-            JsValue::Object(ref object) => {
-                let object = object.borrow();
-                if let Some(symbol) = object.as_symbol() {
-                    return Ok(symbol);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a Symbol"))
+        value
+            .as_symbol()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a Symbol"))
     }
 
     /// `Symbol.prototype.toString()`

@@ -426,7 +426,8 @@ impl Default for Context {
             .get("prototype", &mut context)
             .expect("prototype must exist")
             .as_object()
-            .expect("prototype must be object");
+            .expect("prototype must be object")
+            .clone();
         context.typed_array_constructor.constructor = typed_array_constructor_constructor;
         context.typed_array_constructor.prototype = typed_array_constructor_prototype;
         context.create_intrinsics();
@@ -516,10 +517,9 @@ impl Context {
         this: &JsValue,
         args: &[JsValue],
     ) -> JsResult<JsValue> {
-        match *f {
-            JsValue::Object(ref object) if object.is_callable() => object.call(this, args, self),
-            _ => self.throw_type_error("Value is not callable"),
-        }
+        f.as_callable()
+            .ok_or_else(|| self.construct_type_error("Value is not callable"))
+            .and_then(|obj| obj.call(this, args, self))
     }
 
     /// Return the global object.
@@ -694,7 +694,7 @@ impl Context {
         name: N,
         params: P,
         mut body: StatementList,
-        constructable: bool,
+        constructor: bool,
         this_mode: ThisMode,
     ) -> JsResult<JsValue>
     where
@@ -715,7 +715,7 @@ impl Context {
         let params = params.into();
         let params_len = params.len();
         let func = Function::Ordinary {
-            constructable,
+            constructor,
             this_mode,
             body: RcStatementList::from(body),
             params,
@@ -782,7 +782,7 @@ impl Context {
         let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
-            .constructable(true)
+            .constructor(true)
             .build();
 
         self.global_object().insert_property(
@@ -825,7 +825,7 @@ impl Context {
         let function = FunctionBuilder::closure(self, body)
             .name(name)
             .length(length)
-            .constructable(true)
+            .constructor(true)
             .build();
 
         self.global_object().insert_property(

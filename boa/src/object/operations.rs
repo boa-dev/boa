@@ -266,7 +266,13 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        self.call_construct(this, args, context, false)
+        // 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. If IsCallable(F) is false, throw a TypeError exception.
+        if !self.is_callable() {
+            return context.throw_type_error("not a function");
+        }
+        // 3. Return ? F.[[Call]](V, argumentsList).
+        self.__call__(this, args, context)
     }
 
     /// Construct an instance of this object with the specified arguments.
@@ -284,7 +290,10 @@ impl JsObject {
         new_target: &JsValue,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        self.call_construct(new_target, args, context, true)
+        // 1. If newTarget is not present, set newTarget to F.
+        // 2. If argumentsList is not present, set argumentsList to a new empty List.
+        // 3. Return ? F.[[Construct]](argumentsList, newTarget).
+        self.__construct__(args, new_target, context)
     }
 
     /// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
@@ -435,7 +444,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").
-        let c = self.clone().get("constructor", context)?;
+        let c = self.get("constructor", context)?;
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
@@ -457,14 +466,9 @@ impl JsObject {
 
         // 7. If IsConstructor(S) is true, return S.
         // 8. Throw a TypeError exception.
-        if let Some(obj) = s.as_object() {
-            if obj.is_constructable() {
-                Ok(obj)
-            } else {
-                Err(context.construct_type_error("property 'constructor' is not a constructor"))
-            }
-        } else {
-            Err(context.construct_type_error("property 'constructor' is not an object"))
+        match s.as_object() {
+            Some(obj) if obj.is_constructor() => Ok(obj.clone()),
+            _ => Err(context.construct_type_error("property 'constructor' is not a constructor")),
         }
     }
 
@@ -580,26 +584,20 @@ impl JsValue {
     /// - [EcmaScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
     where
         K: Into<PropertyKey>,
     {
         // 1. Assert: IsPropertyKey(P) is true.
         // 2. Let func be ? GetV(V, P).
-        let func = self.get_v(key, context)?;
-
-        // 3. If func is either undefined or null, return undefined.
-        if func.is_null_or_undefined() {
-            return Ok(JsValue::undefined());
-        }
-
-        // 4. If IsCallable(func) is false, throw a TypeError exception.
-        if !func.is_callable() {
-            Err(context
-                .construct_type_error("value returned for property of object is not a function"))
-        } else {
+        match &self.get_v(key, context)? {
+            // 3. If func is either undefined or null, return undefined.
+            JsValue::Undefined | JsValue::Null => Ok(None),
             // 5. Return func.
-            Ok(func)
+            JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            // 4. If IsCallable(func) is false, throw a TypeError exception.
+            _ => Err(context
+                .construct_type_error("value returned for property of object is not a function")),
         }
     }
 
@@ -684,5 +682,68 @@ impl JsValue {
 
         // 3. Return ? Call(func, V, argumentsList)
         context.call(&func, self, args)
+    }
+
+    /// Abstract operation `OrdinaryHasInstance ( C, O )`
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
+    pub fn ordinary_has_instance(
+        function: &JsValue,
+        object: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<bool> {
+        // 1. If IsCallable(C) is false, return false.
+        let function = if let Some(function) = function.as_callable() {
+            function
+        } else {
+            return Ok(false);
+        };
+
+        // 2. If C has a [[BoundTargetFunction]] internal slot, then
+        if let Some(bound_function) = function.borrow().as_bound_function() {
+            // a. Let BC be C.[[BoundTargetFunction]].
+            // b. Return ? InstanceofOperator(O, BC).
+            return JsValue::instance_of(
+                object,
+                &bound_function.target_function().clone().into(),
+                context,
+            );
+        }
+
+        let mut object = if let Some(obj) = object.as_object() {
+            obj.clone()
+        } else {
+            // 3. If Type(O) is not Object, return false.
+            return Ok(false);
+        };
+
+        // 4. Let P be ? Get(C, "prototype").
+        let prototype = function.get("prototype", context)?;
+
+        let prototype = if let Some(obj) = prototype.as_object() {
+            obj
+        } else {
+            // 5. If Type(P) is not Object, throw a TypeError exception.
+            return Err(context
+                .construct_type_error("function has non-object prototype in instanceof check"));
+        };
+
+        // 6. Repeat,
+        loop {
+            // a. Set O to ? O.[[GetPrototypeOf]]().
+            object = match object.__get_prototype_of__(context)? {
+                Some(obj) => obj,
+                // b. If O is null, return false.
+                None => return Ok(false),
+            };
+
+            // c. If SameValue(P, O) is true, return true.
+            if JsObject::equals(&object, prototype) {
+                return Ok(true);
+            }
+        }
     }
 }

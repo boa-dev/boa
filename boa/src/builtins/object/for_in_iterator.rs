@@ -62,62 +62,59 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let JsValue::Object(ref o) = this {
-            let mut for_in_iterator = o.borrow_mut();
-            if let Some(iterator) = for_in_iterator.as_for_in_iterator_mut() {
-                let mut object = iterator.object.to_object(context)?;
-                loop {
-                    if !iterator.object_was_visited {
-                        let keys = object.__own_property_keys__(context)?;
-                        for k in keys {
-                            match k {
-                                PropertyKey::String(ref k) => {
-                                    iterator.remaining_keys.push_back(k.clone());
-                                }
-                                PropertyKey::Index(i) => {
-                                    iterator.remaining_keys.push_back(i.to_string().into());
-                                }
-                                _ => {}
-                            }
+        let mut iterator = this.as_object().map(|obj| obj.borrow_mut());
+        let iterator = iterator
+            .as_mut()
+            .and_then(|obj| obj.as_for_in_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not a ForInIterator"))?;
+        let mut object = iterator.object.to_object(context)?;
+        loop {
+            if !iterator.object_was_visited {
+                let keys = object.__own_property_keys__(context)?;
+                for k in keys {
+                    match k {
+                        PropertyKey::String(ref k) => {
+                            iterator.remaining_keys.push_back(k.clone());
                         }
-                        iterator.object_was_visited = true;
+                        PropertyKey::Index(i) => {
+                            iterator.remaining_keys.push_back(i.to_string().into());
+                        }
+                        _ => {}
                     }
-                    while let Some(r) = iterator.remaining_keys.pop_front() {
-                        if !iterator.visited_keys.contains(&r) {
-                            if let Some(desc) = object
-                                .__get_own_property__(&PropertyKey::from(r.clone()), context)?
-                            {
-                                iterator.visited_keys.insert(r.clone());
-                                if desc.expect_enumerable() {
-                                    return Ok(create_iter_result_object(
-                                        JsValue::new(r.to_string()),
-                                        false,
-                                        context,
-                                    ));
-                                }
-                            }
-                        }
-                    }
-                    match object.prototype_instance().to_object(context) {
-                        Ok(o) => {
-                            object = o;
-                        }
-                        _ => {
-                            return Ok(create_iter_result_object(
-                                JsValue::undefined(),
-                                true,
-                                context,
-                            ))
-                        }
-                    }
-                    iterator.object = JsValue::new(object.clone());
-                    iterator.object_was_visited = false;
                 }
-            } else {
-                context.throw_type_error("`this` is not a ForInIterator")
+                iterator.object_was_visited = true;
             }
-        } else {
-            context.throw_type_error("`this` is not an ForInIterator")
+            while let Some(r) = iterator.remaining_keys.pop_front() {
+                if !iterator.visited_keys.contains(&r) {
+                    if let Some(desc) =
+                        object.__get_own_property__(&PropertyKey::from(r.clone()), context)?
+                    {
+                        iterator.visited_keys.insert(r.clone());
+                        if desc.expect_enumerable() {
+                            return Ok(create_iter_result_object(
+                                JsValue::new(r.to_string()),
+                                false,
+                                context,
+                            ));
+                        }
+                    }
+                }
+            }
+            let proto = object.prototype().clone();
+            match proto {
+                Some(o) => {
+                    object = o;
+                }
+                _ => {
+                    return Ok(create_iter_result_object(
+                        JsValue::undefined(),
+                        true,
+                        context,
+                    ))
+                }
+            }
+            iterator.object = JsValue::new(object.clone());
+            iterator.object_was_visited = false;
         }
     }
 

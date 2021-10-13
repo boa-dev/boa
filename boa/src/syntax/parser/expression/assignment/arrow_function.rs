@@ -17,7 +17,7 @@ use crate::{
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             error::{ErrorContext, ParseError, ParseResult},
-            function::{FormalParameters, FunctionBody},
+            function::{FormalParameterList, FormalParameters, FunctionBody},
             statement::BindingIdentifier,
             AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
         },
@@ -72,18 +72,33 @@ where
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
+        let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
+            &next_token.kind()
+        {
             // CoverParenthesizedExpressionAndArrowParameterList
-            cursor.expect(Punctuator::OpenParen, "arrow function")?;
+            let params_start_position = cursor
+                .expect(Punctuator::OpenParen, "arrow function")?
+                .span()
+                .end();
 
             let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
             cursor.expect(Punctuator::CloseParen, "arrow function")?;
-            params
+            (params, params_start_position)
         } else {
+            let params_start_position = next_token.span().start();
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
                 .context("arrow function")?;
-            Box::new([FormalParameter::new(Declaration::new_with_identifier(param,None), false)])
+
+            (
+                FormalParameterList {
+                    parameters: Box::new([FormalParameter::new(Declaration::new_with_identifier(param,None), false)]),
+                    is_simple: true,
+                    has_duplicates: false,
+                },
+                params_start_position,
+            )
+
         };
 
         cursor.peek_expect_no_lineterminator(0, "arrow function")?;
@@ -91,11 +106,29 @@ where
         cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
         let body = ConciseBody::new(self.allow_in).parse(cursor)?;
 
+        // Early Error: ArrowFormalParameters are UniqueFormalParameters.
+        if params.has_duplicates {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Duplicate parameter name not allowed in this context".into(),
+                params_start_position,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
+        // and IsSimpleParameterList of ArrowParameters is false.
+        if body.strict() && !params.is_simple {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+                params_start_position,
+            )));
+        }
+
         // It is a Syntax Error if any element of the BoundNames of ArrowParameters
         // also occurs in the LexicallyDeclaredNames of ConciseBody.
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
         {
             let lexically_declared_names = body.lexically_declared_names();
+
             for param in params.as_ref() {
                 for param_name in param.name().iter(){
                     if lexically_declared_names.contains(param_name) {
@@ -107,11 +140,12 @@ where
                             },
                         )));
                     }
+
                 }
             }
         }
 
-        Ok(ArrowFunctionDecl::new(params, body))
+        Ok(ArrowFunctionDecl::new(params.parameters, body))
     }
 }
 
