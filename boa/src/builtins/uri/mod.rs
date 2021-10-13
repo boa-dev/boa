@@ -109,7 +109,6 @@ fn combine_surrogate_pair(first: u32, second: u32) -> u32 {
 }
 
 fn utf8_encode(str: &mut Vec<u8>, mut code_point: u32, code_point_pair: Option<u32>, replace_invalid: bool) {
-    //unsigned Utf8::Encode(char* str, uchar c, int previous, bool replace_invalid) {
     println!("utf8_encode(): code_point = {}", code_point);
 
     let k_mask = !(1 << 6);
@@ -133,17 +132,7 @@ fn utf8_encode(str: &mut Vec<u8>, mut code_point: u32, code_point_pair: Option<u
                 code_point = 0xFFFD;
             }
         }
-        // DCHECK(!Utf16::IsLeadSurrogate(Utf16::kNoPreviousCharacter));
-        // if (Utf16::IsSurrogatePair(previous, code_point)) {
-        //     const int kUnmatchedSize = kSizeOfUnmatchedSurrogate;
-        //     return Encode(str - kUnmatchedSize,
-        //                   Utf16::CombineSurrogatePair(previous, code_point),
-        //                   Utf16::kNoPreviousCharacter, replace_invalid) -
-        //         kUnmatchedSize;
-        // } else if (replace_invalid &&
-        //     (Utf16::IsLeadSurrogate(code_point) || Utf16::IsTrailSurrogate(code_point))) {
-        //     code_point = kBadChar;
-        // }
+
         str.push((0xE0 | (code_point >> 12)) as u8);
         str.push((0x80 | ((code_point >> 6) & k_mask)) as u8);
         str.push((0x80 | (code_point & k_mask)) as u8);
@@ -155,7 +144,7 @@ fn utf8_encode(str: &mut Vec<u8>, mut code_point: u32, code_point_pair: Option<u
     }
 }
 
-fn add_encoded_octet_to_buffer(utf8_encoded: &u8, encoded_result: &mut String) {
+fn add_encoded_octet(utf8_encoded: &u8, encoded_result: &mut String) {
     let value1 = String::from(naive_decimal_to_hexadecimal((utf8_encoded >> 4)));
     let value2 = String::from(naive_decimal_to_hexadecimal((utf8_encoded & 0x0F)));
 
@@ -169,7 +158,7 @@ fn encode_single(code_point: u32, encoded_result: &mut String) {
     utf8_encode(&mut utf8_encoded, code_point, None, false);
 
     utf8_encoded.iter()
-        .for_each(|encoded| { add_encoded_octet_to_buffer(encoded, encoded_result) });
+        .for_each(|encoded| { add_encoded_octet(encoded, encoded_result) });
 }
 
 fn encode_pair(code_point: u32, code_point_pair: u32, encoded_result: &mut String) {
@@ -177,7 +166,7 @@ fn encode_pair(code_point: u32, code_point_pair: u32, encoded_result: &mut Strin
     utf8_encode(&mut utf8_encoded, combine_surrogate_pair(code_point, code_point_pair), None, false);
 
     utf8_encoded.iter()
-        .for_each(|encoded| { add_encoded_octet_to_buffer(encoded, encoded_result) });
+        .for_each(|encoded| { add_encoded_octet(encoded, encoded_result) });
 }
 
 impl Uri {
@@ -191,20 +180,12 @@ impl Uri {
         let mut index = 0;
 
         while index < encoded.len() {
-            let code_point = encoded[index] as u32;
-            println!("encode(): code_point = {}", &code_point);
+            // let code_point = encoded[index] as u32;
+            let str_code_point = code_point_at(string.clone(), index as i32);
 
-            if is_leading_surrogate(code_point as u16) {
-                index += 1;
-                // TODO: use method get instead
-                let code_point_pair = encoded[index];
+            if let Some((code_point, _, is_unpaired_surrogate)) = str_code_point {
+                println!("encode(): code_point = {}", &code_point);
 
-                if is_trailing_surrogate(code_point_pair) {
-                    encode_pair(code_point, code_point_pair as u32, &mut encoded_result);
-                } else {
-                    panic!("bad pair - false positive");
-                }
-            } else if !is_trailing_surrogate(code_point as u16) {
                 if is_unescaped_uri_component_character(code_point as u16)
                     || (!is_uri_component && is_uri_reserved(code_point as u16)) {
 
@@ -214,10 +195,12 @@ impl Uri {
                         panic!("encode(): failure");
                     }
                 } else {
+                    if is_unpaired_surrogate {
+                        panic!("URIError: invalid surrogate pair");
+                    }
+
                     encode_single(code_point, &mut encoded_result);
                 }
-            } else {
-                panic!("URIError");
             }
 
             index += 1;
