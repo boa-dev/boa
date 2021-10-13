@@ -711,19 +711,59 @@ unsafe impl Trace for PropertyName {
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
     // Remove preceding newline.
-    let source = &source[1..];
+    let mut source = &source[1..];
 
+    let target_idx = source.find("#target#");
+    let target = match target_idx {
+        None => "".to_owned(),
+        Some(x) => {
+            let target_src = &source[(x+9)..];
+            source = &source[..(x)];
+           
+            let first_line = &target_src[..target_src.find('\n').unwrap()];
+            let trimmed_first_line = first_line.trim();
+            let characters_to_remove = first_line.len() - trimmed_first_line.len();
+            let target = target_src
+            .lines()
+            .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+            .collect::<Vec<&'static str>>()
+            .join("\n");
+
+            target
+        },
+    };
+
+    
+    
     // Find out how much the code is indented
     let first_line = &source[..source.find('\n').unwrap()];
     let trimmed_first_line = first_line.trim();
     let characters_to_remove = first_line.len() - trimmed_first_line.len();
 
-    let scenario = source
+    let scenario = match target.is_empty() {
+        true => {
+            source
+            .lines()
+            .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+            .collect::<Vec<&'static str>>()
+            .join("\n")
+        },
+        false => target,
+    };
+        // .lines()
+        // .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+        // .collect::<Vec<&'static str>>()
+        // .join("\n");
+    
+    let result = format!("{}", crate::parse(&(
+        source
         .lines()
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
-        .join("\n");
-    let result = format!("{}", crate::parse(&scenario, false).unwrap());
+        .join("\n")
+    ), false).unwrap());
+
+
     if scenario != result {
         eprint!("========= Expected:\n{}", scenario);
         eprint!("========= Got:\n{}", result);
@@ -732,4 +772,5 @@ fn test_formatting(source: &'static str) {
         eprintln!("========= Got:      {:?}", result);
         panic!("parsing test did not give the correct result (see above)");
     }
+    
 }

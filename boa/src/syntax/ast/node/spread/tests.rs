@@ -42,6 +42,15 @@ fn fmt() {
         };
         let a = g("message");
         a;
+        #target#
+        function f(Identifier { ident: Identifier { ident: "m" }, init: None }) {
+            return m;
+        };
+        function g(...Identifier { ident: Identifier { ident: "args" }, init: None }) {
+            return f(...args);
+        };
+        let a = g("message");
+        a;
         "#,
     );
 }

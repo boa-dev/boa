@@ -4,7 +4,7 @@ use crate::{
     object::{FunctionBuilder, JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
-    syntax::ast::node::{FormalParameter, declaration::Declaration},
+    syntax::ast::node::FormalParameter,
     Context, JsValue,
 };
 
