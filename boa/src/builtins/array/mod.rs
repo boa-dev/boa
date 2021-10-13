@@ -1345,7 +1345,7 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.reduce: predicate is not callable")
+            context.construct_type_error("Array.prototype.findIndex: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1448,7 +1448,7 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.reduce: predicate is not callable")
+            context.construct_type_error("Array.prototype.findLastIndex: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
