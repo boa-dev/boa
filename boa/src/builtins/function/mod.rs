@@ -31,8 +31,8 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, NativeObject, ObjectData},
     property::Attribute,
     property::PropertyDescriptor,
-    syntax::ast::node::{FormalParameter, RcStatementList},
     syntax::ast::node::declaration::Declaration,
+    syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
 use crate::{object::Object, symbol::WellKnownSymbols};
@@ -216,28 +216,27 @@ impl Function {
         context: &mut Context,
         local_env: &Environment,
     ) {
-        
         use crate::builtins::Array;
         // Create array of values
         let array = Array::new_array(context);
         Array::add_to_array_object(&array, args_list.get(index..).unwrap_or_default(), context)
             .unwrap();
 
-
         let binding_params = param.run(Some(array.clone()), context).unwrap_or_default();
         for binding_items in binding_params.iter() {
-            
             // // Create binding
             local_env
                 .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
                 .expect("Failed to create binding");
 
-
             // // Set binding to value
             local_env
-                .initialize_binding(binding_items.0.as_ref() , JsValue::new(binding_items.1.clone()), context)
+                .initialize_binding(
+                    binding_items.0.as_ref(),
+                    JsValue::new(binding_items.1.clone()),
+                    context,
+                )
                 .expect("Failed to intialize binding");
-
         }
     }
 
@@ -248,24 +247,22 @@ impl Function {
         local_env: &Environment,
         context: &mut Context,
     ) {
-
-
         let binding_params = param.run(Some(value), context).unwrap_or_default();
         for binding_items in binding_params.iter() {
-           
             // // Create binding
             local_env
                 .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
                 .expect("Failed to create binding");
 
-
             // // Set binding to value
             local_env
-                .initialize_binding(binding_items.0.as_ref() , JsValue::new(binding_items.1.clone()), context)
+                .initialize_binding(
+                    binding_items.0.as_ref(),
+                    JsValue::new(binding_items.1.clone()),
+                    context,
+                )
                 .expect("Failed to intialize binding");
-
         }
-
     }
 
     /// Returns true if the function object is a constructor.
@@ -538,36 +535,31 @@ impl BuiltInFunctionObject {
                 Some(name),
             ) => Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into()),
             (Function::Ordinary { body, params, .. }, Some(name)) => {
-                
                 let arguments: String = {
                     let mut argument_list: Vec<String> = Vec::new();
-                    for params_item in params.iter(){
-                        
-                        argument_list.push (
-                            match &params_item.declaration(){
-                                Declaration::Identifier{ident, .. } => ident.as_ref().to_string(),
-                                Declaration::Pattern(pattern) => {
-                                    vec!["{ ".to_string() , pattern.idents().join(", ") , " }".to_string() ].join("")
-                                    
-                                    
-                                  
-                                }
-                            }.clone()
+                    for params_item in params.iter() {
+                        argument_list.push(
+                            match &params_item.declaration() {
+                                Declaration::Identifier { ident, .. } => ident.as_ref().to_string(),
+                                Declaration::Pattern(pattern) => vec![
+                                    "{ ".to_string(),
+                                    pattern.idents().join(", "),
+                                    " }".to_string(),
+                                ]
+                                .join(""),
+                            }
+                            .clone(),
                         );
-
-                      
                     }
                     if argument_list.len() > 1 {
                         argument_list.join(", ")
-                    }
-                    else {
+                    } else {
                         "".to_string()
                     }
                     // params
                     // .iter()
                     // .map(|param| param.name().iter().map(|param_name| param_name))
                     // .collect::<Vec<&str>>()
-                    
                 };
 
                 let statement_list = &*body;

@@ -79,9 +79,7 @@ where
         cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
         cursor.expect(Keyword::Function, "async function declaration")?;
 
-
         let result = parse_callable_declaration(&self, cursor)?;
-
 
         Ok(AsyncFunctionDecl::new(result.0, result.1, result.2))
     }

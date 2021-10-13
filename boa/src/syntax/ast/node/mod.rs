@@ -30,11 +30,9 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-
         generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
-        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, FunctionDecl,
-        FunctionExpr,DeclarationPattern,
-
+        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, DeclarationPattern,
+        FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -421,10 +419,8 @@ where
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
-
     declaration: Declaration,
     is_rest_param: bool,
-
 }
 
 impl FormalParameter {
@@ -441,20 +437,16 @@ impl FormalParameter {
 
     /// Gets the name of the formal parameter.
     pub fn name(&self) -> Vec<&str> {
-        match &self.declaration
-        {
-            Declaration::Identifier{ident, ..} => vec![ident.as_ref()],
-            Declaration::Pattern(pattern) => {
-                match pattern {
-                    DeclarationPattern::Object(object_pattern) => object_pattern.idents(),
-                    
-                    DeclarationPattern::Array(array_pattern) => array_pattern.idents(),
-                    
-                }
-            }
+        match &self.declaration {
+            Declaration::Identifier { ident, .. } => vec![ident.as_ref()],
+            Declaration::Pattern(pattern) => match pattern {
+                DeclarationPattern::Object(object_pattern) => object_pattern.idents(),
+
+                DeclarationPattern::Array(array_pattern) => array_pattern.idents(),
+            },
         }
     }
-    
+
     /// Get the declaration of the formal parameter
     pub fn declaration(&self) -> Declaration {
         self.declaration.clone()
@@ -478,26 +470,18 @@ impl FormalParameter {
         context: &mut Context,
     ) -> JsResult<Vec<(Box<str>, JsValue)>> {
         match &self.declaration {
-            Declaration::Identifier{ident, ..} => {
-                
-                Ok(vec![(ident.as_ref().to_string().into_boxed_str(), init.unwrap())])
-            }
+            Declaration::Identifier { ident, .. } => Ok(vec![(
+                ident.as_ref().to_string().into_boxed_str(),
+                init.unwrap(),
+            )]),
 
-            Declaration::Pattern(pattern) => {
-                match &pattern {
-                    DeclarationPattern::Object(object_pattern) => {
-                        object_pattern.run(init, context)
-                    }
+            Declaration::Pattern(pattern) => match &pattern {
+                DeclarationPattern::Object(object_pattern) => object_pattern.run(init, context),
 
-                    DeclarationPattern::Array(array_pattern) => {
-                        array_pattern.run(init, context)
-                    }
-                }
-            }
+                DeclarationPattern::Array(array_pattern) => array_pattern.run(init, context),
+            },
         }
     }
-
-
 }
 
 impl Display for FormalParameter {
@@ -746,24 +730,22 @@ fn test_formatting(source: &'static str) {
     let target = match target_idx {
         None => "".to_owned(),
         Some(x) => {
-            let target_src = &source[(x+9)..];
+            let target_src = &source[(x + 9)..];
             source = &source[..(x)];
-           
+
             let first_line = &target_src[..target_src.find('\n').unwrap()];
             let trimmed_first_line = first_line.trim();
             let characters_to_remove = first_line.len() - trimmed_first_line.len();
             let target = target_src
-            .lines()
-            .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-            .collect::<Vec<&'static str>>()
-            .join("\n");
+                .lines()
+                .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+                .collect::<Vec<&'static str>>()
+                .join("\n");
 
             target
-        },
+        }
     };
 
-    
-    
     // Find out how much the code is indented
     let first_line = &source[..source.find('\n').unwrap()];
     let trimmed_first_line = first_line.trim();
@@ -772,26 +754,30 @@ fn test_formatting(source: &'static str) {
     let scenario = match target.is_empty() {
         true => {
             source
-            .lines()
-            .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-            .collect::<Vec<&'static str>>()
-            .join("\n")
-        },
+                .lines()
+                .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+                .collect::<Vec<&'static str>>()
+                .join("\n")
+        }
         false => target,
     };
-        // .lines()
-        // .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-        // .collect::<Vec<&'static str>>()
-        // .join("\n");
-    
-    let result = format!("{}", crate::parse(&(
-        source
-        .lines()
-        .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-        .collect::<Vec<&'static str>>()
-        .join("\n")
-    ), false).unwrap());
+    // .lines()
+    // .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+    // .collect::<Vec<&'static str>>()
+    // .join("\n");
 
+    let result = format!(
+        "{}",
+        crate::parse(
+            &(source
+                .lines()
+                .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+                .collect::<Vec<&'static str>>()
+                .join("\n")),
+            false
+        )
+        .unwrap()
+    );
 
     if scenario != result {
         eprint!("========= Expected:\n{}", scenario);
@@ -801,5 +787,4 @@ fn test_formatting(source: &'static str) {
         eprintln!("========= Got:      {:?}", result);
         panic!("parsing test did not give the correct result (see above)");
     }
-    
 }

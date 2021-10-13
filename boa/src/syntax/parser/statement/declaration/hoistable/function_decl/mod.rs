@@ -82,9 +82,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
-
         let result = parse_callable_declaration(&self, cursor)?;
-
 
         Ok(FunctionDecl::new(result.0, result.1, result.2))
     }

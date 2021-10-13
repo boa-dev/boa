@@ -12,17 +12,17 @@ mod tests;
 
 use crate::{
     syntax::{
-
-        ast::{node, Punctuator, node::declaration::Declaration,},
+        ast::{node, node::declaration::Declaration, Punctuator},
         lexer::{Error as LexError, InputElement, TokenKind},
-
         parser::{
             expression::Initializer,
-            statement::{BindingIdentifier, StatementList, ObjectBindingPattern, ArrayBindingPattern},
-            AllowAwait, AllowYield, Cursor, ParseError, TokenParser, 
+            statement::{
+                ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern, StatementList,
+            },
+            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler, 
+    BoaProfiler,
 };
 use rustc_hash::FxHashSet;
 use std::io::Read;
@@ -65,11 +65,8 @@ impl FormalParameters {
 impl<R> TokenParser<R> for FormalParameters
 where
     R: Read,
-    
 {
-
     type Output = FormalParameterList;
-
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
@@ -92,7 +89,6 @@ where
 
         let mut parameter_names = FxHashSet::default();
 
-
         loop {
             let mut rest_param = false;
 
@@ -108,15 +104,12 @@ where
                 is_simple = false;
             }
             for param_name in next_param.name().iter() {
-            
                 if parameter_names.contains(<&str>::clone(param_name)) {
                     has_duplicates = true;
                 }
                 parameter_names.insert(Box::from(<&str>::clone(param_name)));
             }
             params.push(next_param.clone());
-        
-
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)
@@ -199,53 +192,63 @@ where
         let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
         cursor.expect(Punctuator::Spread, "rest parameter")?;
 
-        // TODO: BindingPattern
-        if let Some(t) = cursor.peek(0)? { 
+        if let Some(t) = cursor.peek(0)? {
             let declaration = match *t.kind() {
-                TokenKind::Punctuator(Punctuator::OpenBlock) =>{  
-                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor)?;
 
                     let init = if let Some(t) = cursor.peek(0)? {
                         // Check that this is an initilizer before attempting parse.
                         if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                            Some(
+                                Initializer::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?,
+                            )
                         } else {
                             None
                         }
                     } else {
                         None
                     };
-                  
+
                     Declaration::new_with_object_pattern(param, init)
-                    
-                },
+                }
 
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     Declaration::new_with_array_pattern(
-                        ArrayBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?, None)
-                },
+                        ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor)?,
+                        None,
+                    )
+                }
 
                 _ => {
-                    
-                    let params = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let params =
+                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
                     let init = if let Some(t) = cursor.peek(0)? {
                         // Check that this is an initilizer before attempting parse.
                         if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                            Some(
+                                Initializer::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?,
+                            )
                         } else {
                             None
                         }
                     } else {
                         None
                     };
-                    
+
                     Declaration::new_with_identifier(params, init)
-                    
                 }
             };
             Ok(Self::Output::new(declaration, true))
         } else {
-            Ok(Self::Output::new(Declaration::new_with_identifier("", None), true))
+            Ok(Self::Output::new(
+                Declaration::new_with_identifier("", None),
+                true,
+            ))
         }
     }
 }
@@ -284,62 +287,70 @@ where
     R: Read,
 {
     type Output = node::FormalParameter;
-    
+
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameter", "Parsing");
-        
-        // TODO: BindingPattern
-        if let Some(t) = cursor.peek(0)? { 
+
+        if let Some(t) = cursor.peek(0)? {
             let declaration = match *t.kind() {
-                TokenKind::Punctuator(Punctuator::OpenBlock) =>{  
-                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor)?;
 
                     let init = if let Some(t) = cursor.peek(0)? {
                         // Check that this is an initilizer before attempting parse.
                         if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                            Some(
+                                Initializer::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?,
+                            )
                         } else {
                             None
                         }
                     } else {
                         None
                     };
-                  
-                    Declaration::new_with_object_pattern(param, init)
 
-                },
+                    Declaration::new_with_object_pattern(param, init)
+                }
 
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     Declaration::new_with_array_pattern(
-                        ArrayBindingPattern::new(true, self.allow_yield, self.allow_await).parse(cursor)?, None)
-                },
+                        ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor)?,
+                        None,
+                    )
+                }
 
                 _ => {
-                    
-                    let params = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let params =
+                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
                     let init = if let Some(t) = cursor.peek(0)? {
                         // Check that this is an initilizer before attempting parse.
                         if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                            Some(
+                                Initializer::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?,
+                            )
                         } else {
                             None
                         }
                     } else {
                         None
                     };
-                    
+
                     Declaration::new_with_identifier(params, init)
-                    
                 }
             };
             Ok(Self::Output::new(declaration, false))
         } else {
-            Ok(Self::Output::new(Declaration::new_with_identifier("", None), false  ))
+            Ok(Self::Output::new(
+                Declaration::new_with_identifier("", None),
+                false,
+            ))
         }
-  
     }
 }
-
 
 /// A `FunctionBody` is equivalent to a `FunctionStatementList`.
 ///

@@ -11,7 +11,10 @@ use super::AssignmentExpression;
 use crate::{
     syntax::{
         ast::{
-            node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList, declaration::Declaration},
+            node::{
+                declaration::Declaration, ArrowFunctionDecl, FormalParameter, Node, Return,
+                StatementList,
+            },
             Punctuator,
         },
         lexer::{Error as LexError, Position, TokenKind},
@@ -92,13 +95,15 @@ where
 
             (
                 FormalParameterList {
-                    parameters: Box::new([FormalParameter::new(Declaration::new_with_identifier(param,None), false)]),
+                    parameters: Box::new([FormalParameter::new(
+                        Declaration::new_with_identifier(param, None),
+                        false,
+                    )]),
                     is_simple: true,
                     has_duplicates: false,
                 },
                 params_start_position,
             )
-
         };
 
         cursor.peek_expect_no_lineterminator(0, "arrow function")?;
@@ -130,7 +135,7 @@ where
             let lexically_declared_names = body.lexically_declared_names();
 
             for param in params.parameters.as_ref() {
-                for param_name in param.name().iter(){
+                for param_name in param.name().iter() {
                     if lexically_declared_names.contains(param_name) {
                         return Err(ParseError::lex(LexError::Syntax(
                             format!("Redeclaration of formal parameter `{}`", param_name).into(),
@@ -140,7 +145,6 @@ where
                             },
                         )));
                     }
-
                 }
             }
         }

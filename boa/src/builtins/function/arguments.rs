@@ -171,9 +171,10 @@ impl Arguments {
         // 19. Repeat, while index ≥ 0,
         // a. Let name be parameterNames[index].
 
-        for (index, parameter_name_vec) in formals.iter().clone().map(|fp| fp.name()).enumerate().rev() {
+        for (index, parameter_name_vec) in
+            formals.iter().clone().map(|fp| fp.name()).enumerate().rev()
+        {
             for parameter_name in parameter_name_vec.iter().cloned() {
-                
                 // b. If name is not an element of mappedNames, then
                 if !mapped_names.contains(parameter_name) {
                     // i. Add name as an element of the list mappedNames.
@@ -191,7 +192,6 @@ impl Arguments {
                                 // 1. Let getterClosure be a new Abstract Closure with no parameters that captures
                                 // name and env and performs the following steps when called:
                                 |_, _, captures, context| {
-                    
                                     captures.0.get_binding_value(&captures.1, false, context)
                                 },
                                 (env.clone(), parameter_name.to_owned()),
@@ -214,9 +214,9 @@ impl Arguments {
                                     let value = args.get(0).cloned().unwrap_or_default();
                                     // a. Return env.SetMutableBinding(name, value, false).
                                     captures
-                                    .0
-                                    .set_mutable_binding(&captures.1, value, false, context)
-                                    .map(|_| JsValue::Undefined)
+                                        .0
+                                        .set_mutable_binding(&captures.1, value, false, context)
+                                        .map(|_| JsValue::Undefined)
                                     // Ok(JsValue::Undefined)
                                 },
                                 (env.clone(), parameter_name.to_owned()),
@@ -225,8 +225,7 @@ impl Arguments {
                             .name("")
                             .build()
                         };
-                        
-                        
+
                         // 3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {
                         // [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
                         map.__define_own_property__(
@@ -241,7 +240,6 @@ impl Arguments {
                         )
                         .expect("[[DefineOwnProperty]] must not fail per the spec");
                     }
-                        
                 }
             }
         }
@@ -274,7 +272,7 @@ impl Arguments {
         .expect("DefinePropertyOrThrow must not fail per the spec");
 
         // 22. Return obj.
-        
+
         obj
     }
 }

@@ -4,9 +4,7 @@
 
 use super::{JsPrototype, NativeObject, Object};
 use crate::{
-
     object::{ObjectData, ObjectKind},
-    
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
     Context, JsResult, JsValue,
