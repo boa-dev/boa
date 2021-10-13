@@ -250,7 +250,7 @@ impl Function {
     ) {
 
 
-        let binding_params = param.run(Some(value.clone()), context).unwrap_or_default();
+        let binding_params = param.run(Some(value), context).unwrap_or_default();
         for binding_items in binding_params.iter() {
            
             // // Create binding
