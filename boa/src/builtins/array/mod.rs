@@ -1402,18 +1402,16 @@ impl Array {
         let this_arg = args.get_or_undefined(1);
 
         // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
-        let mut k = len;
         // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
-        while k > 0 {
+        for k in (0..len).rev() {
             // a. Let Pk be ! ToString(𝔽(k)).
-            let pk = k - 1;
             // b. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(pk, context)?;
+            let k_value = o.get(k, context)?;
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
                 .call(
                     this_arg,
-                    &[k_value.clone(), k.into(), o.clone().into()],
+                    &[k_value.clone(), k.into(), this.clone()],
                     context,
                 )?
                 .to_boolean();
@@ -1422,7 +1420,6 @@ impl Array {
                 return Ok(k_value);
             }
             // e. Set k to k - 1.
-            k -= 1;
         }
         // 6. Return undefined.
         Ok(JsValue::undefined())
@@ -1457,23 +1454,20 @@ impl Array {
         let this_arg = args.get_or_undefined(1);
 
         // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
-        let mut k = len;
         // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
-        while k > 0 {
+        for k in (0..len).rev() {
             // a. Let Pk be ! ToString(𝔽(k)).
-            let pk = k - 1;
             // b. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(pk, context)?;
+            let k_value = o.get(k, context)?;
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
-                .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                .call(this_arg, &[k_value, k.into(), this.clone()], context)?
                 .to_boolean();
             // d. If testResult is true, return 𝔽(k).
             if test_result {
-                return Ok(JsValue::new(pk));
+                return Ok(JsValue::new(k));
             }
             // e. Set k to k - 1.
-            k -= 1;
         }
         // 6. Return -1𝔽.
         Ok(JsValue::new(-1))
