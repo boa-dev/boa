@@ -109,10 +109,10 @@ where
             }
             for param_name in next_param.name().iter() {
             
-                if param_names.contains(param_name.clone()) {
+                if parameter_names.contains(param_name.clone()) {
                     has_duplicates = true;
                 }
-                param_names.insert(Box::from(param_name.clone()));
+                parameter_names.insert(Box::from(param_name.clone()));
             }
             params.push(next_param.clone());
         

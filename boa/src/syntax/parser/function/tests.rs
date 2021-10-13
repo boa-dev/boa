@@ -29,8 +29,8 @@ fn check_duplicates_strict_off() {
         vec![FunctionDecl::new(
             Box::from("foo"),
             vec![
-                FormalParameter::new("a", None, false),
-                FormalParameter::new("a", None, false),
+                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
+                FormalParameter::new(Declaration::new_with_identifier("a", None), false),
             ],
             vec![Return::new(Identifier::from("a"), None).into()],
         )

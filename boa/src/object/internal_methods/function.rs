@@ -171,8 +171,12 @@ pub(super) fn call_construct(
                     for param in params.iter() {
                         has_parameter_expressions =
                             has_parameter_expressions || param.init().is_some();
-                        arguments_in_parameter_names =
-                            arguments_in_parameter_names || param.name() == "arguments";
+
+                        for param_name in param.name().iter() {
+                            arguments_in_parameter_names =
+                                arguments_in_parameter_names || param_name.clone() == "arguments";
+                        }
+
                         is_simple_parameter_list = is_simple_parameter_list
                             && !param.is_rest_param()
                             && param.init().is_none()
@@ -199,7 +203,7 @@ pub(super) fn call_construct(
                                 Arguments::create_unmapped_arguments_object(args, context)
                             } else {
                                 Arguments::create_mapped_arguments_object(
-                                    obj, params, args, &local_env, context,
+                                    obj, params.iter().cloned().collect(), args, &local_env, context,
                                 )
                             };
                         local_env.create_mutable_binding("arguments", false, true, context)?;

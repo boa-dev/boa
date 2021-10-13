@@ -33,7 +33,7 @@ pub use self::{
 
         generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
         AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, FunctionDecl,
-        FunctionExpr,
+        FunctionExpr,DeclarationPattern,
 
     },
     field::{GetConstField, GetField},
