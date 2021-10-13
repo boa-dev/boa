@@ -21,13 +21,8 @@ use crate::{
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Proxy {
-    data: Option<ProxyData>,
-}
-
-#[derive(Debug, Clone, Trace, Finalize)]
-struct ProxyData {
-    target: JsObject,
-    handler: JsObject,
+    // (target, handler)
+    data: Option<(JsObject, JsObject)>,
 }
 
 impl BuiltIn for Proxy {
@@ -59,16 +54,17 @@ impl Proxy {
 
     fn new(target: JsObject, handler: JsObject) -> Self {
         Self {
-            data: Some(ProxyData { target, handler }),
+            data: Some((target, handler)),
         }
     }
 
-    // This is an internal method only built for usage in the proxy internal methods.
-    // It returns the (target, handler) of the proxy.
-    pub(crate) fn data(&self) -> Option<(JsObject, JsValue)> {
-        self.data
-            .as_ref()
-            .map(|data| (data.target.clone(), data.handler.clone().into()))
+    /// This is an internal method only built for usage in the proxy internal methods.
+    ///
+    /// It returns the (target, handler) of the proxy.
+    pub(crate) fn try_data(&self, context: &mut Context) -> JsResult<(JsObject, JsObject)> {
+        self.data.clone().ok_or_else(|| {
+            context.construct_type_error("Proxy object has empty handler and target")
+        })
     }
 
     /// `28.2.1.1 Proxy ( target, handler )`
@@ -88,7 +84,7 @@ impl Proxy {
         }
 
         // 2. Return ? ProxyCreate(target, handler).
-        Self::proxy_create(args.get_or_undefined(0), args.get_or_undefined(1), context)
+        Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)
     }
 
     // `10.5.14 ProxyCreate ( target, handler )`
@@ -97,11 +93,7 @@ impl Proxy {
     //  - [ECMAScript reference][spec]
     //
     // [spec]: https://tc39.es/ecma262/#sec-proxycreate
-    fn proxy_create(
-        target: &JsValue,
-        handler: &JsValue,
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn create(target: &JsValue, handler: &JsValue, context: &mut Context) -> JsResult<JsValue> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = target.as_object().ok_or_else(|| {
             context.construct_type_error("Proxy constructor called with non-object handler")
@@ -141,7 +133,7 @@ impl Proxy {
     /// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable
     fn revocable(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let p be ? ProxyCreate(target, handler).
-        let p = Self::proxy_create(args.get_or_undefined(0), args.get_or_undefined(1), context)?;
+        let p = Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)?;
 
         // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
