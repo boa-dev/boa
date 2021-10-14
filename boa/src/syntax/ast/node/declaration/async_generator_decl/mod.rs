@@ -12,10 +12,10 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 /// The 'async function*' defines an async generator function
-/// 
+///
 /// More information:
 ///  - [ECMAScript reference][spec]
-/// 
+///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]

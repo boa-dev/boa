@@ -62,7 +62,7 @@ where
     R: Read,
 {
     type Output = AsyncGeneratorDecl;
-    
+
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::Mul, "async generator declaration")?;
 
