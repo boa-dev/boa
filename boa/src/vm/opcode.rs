@@ -456,6 +456,42 @@ pub enum Opcode {
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
 
+    /// Sets a getter property by name of an object.
+    ///
+    /// Like `object.name = value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    SetPropertyGetterByName,
+
+    /// Sets a getter property by value of an object.
+    ///
+    /// Like `object[key] = value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, key, object **=>**
+    SetPropertyGetterByValue,
+
+    /// Sets a setter property by name of an object.
+    ///
+    /// Like `object.name = value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    SetPropertySetterByName,
+
+    /// Sets a setter property by value of an object.
+    ///
+    /// Like `object[key] = value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, key, object **=>**
+    SetPropertySetterByValue,
+
     /// Deletes a property by name of an object.
     ///
     /// Like `delete object.key.`
@@ -639,6 +675,10 @@ impl Opcode {
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
+            Opcode::SetPropertyGetterByName => "SetPropertyGetterByName",
+            Opcode::SetPropertyGetterByValue => "SetPropertyGetterByValue",
+            Opcode::SetPropertySetterByName => "SetPropertySetterByName",
+            Opcode::SetPropertySetterByValue => "SetPropertySetterByValue",
             Opcode::DeletePropertyByName => "DeletePropertyByName",
             Opcode::DeletePropertyByValue => "DeletePropertyByValue",
             Opcode::Jump => "Jump",
