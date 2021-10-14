@@ -179,7 +179,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     {
         let lexically_declared_names = body.lexically_declared_names();
         for param in params.parameters.as_ref() {
-            for param_name in param.name() {
+            for param_name in param.names() {
                 if lexically_declared_names.contains(param_name) {
                     return Err(ParseError::lex(LexError::Syntax(
                         format!("Redeclaration of formal parameter `{}`", param_name).into(),

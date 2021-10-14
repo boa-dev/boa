@@ -115,7 +115,6 @@ impl Arguments {
         env: &Environment,
         context: &mut Context,
     ) -> JsObject {
-        // TODO
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
         // It may contain duplicate identifiers.
         // 2. Let len be the number of elements in argumentsList.
@@ -172,7 +171,7 @@ impl Arguments {
         // a. Let name be parameterNames[index].
 
         for (index, parameter_name_vec) in
-            formals.iter().clone().map(|fp| fp.name()).enumerate().rev()
+            formals.iter().clone().map(|fp| fp.names()).enumerate().rev()
         {
             for parameter_name in parameter_name_vec.iter().cloned() {
                 // b. If name is not an element of mappedNames, then

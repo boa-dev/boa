@@ -100,14 +100,14 @@ where
                 _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
 
-            if next_param.is_rest_param() || next_param.init().is_some() {
+            if next_param.is_rest_param() || next_param.init().is_some() || !next_param.is_identifier(){
                 is_simple = false;
             }
-            for param_name in next_param.name().iter() {
-                if parameter_names.contains(<&str>::clone(param_name)) {
+            for param_name in next_param.names().iter() {
+                if parameter_names.contains(*param_name) {
                     has_duplicates = true;
                 }
-                parameter_names.insert(Box::from(<&str>::clone(param_name)));
+                parameter_names.insert(Box::from(*param_name));
             }
             params.push(next_param.clone());
 

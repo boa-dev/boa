@@ -556,10 +556,6 @@ impl BuiltInFunctionObject {
                     } else {
                         "".to_string()
                     }
-                    // params
-                    // .iter()
-                    // .map(|param| param.name().iter().map(|param_name| param_name))
-                    // .collect::<Vec<&str>>()
                 };
 
                 let statement_list = &*body;

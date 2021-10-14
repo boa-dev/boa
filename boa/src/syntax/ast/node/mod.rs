@@ -436,7 +436,7 @@ impl FormalParameter {
     }
 
     /// Gets the name of the formal parameter.
-    pub fn name(&self) -> Vec<&str> {
+    pub fn names(&self) -> Vec<&str> {
         match &self.declaration {
             Declaration::Identifier { ident, .. } => vec![ident.as_ref()],
             Declaration::Pattern(pattern) => match pattern {
@@ -450,13 +450,11 @@ impl FormalParameter {
     /// Get the declaration of the formal parameter
     pub fn declaration(&self) -> Declaration {
         self.declaration.clone()
-        // recieved as reference, check if needs to be returned as reference or was it recieved in the preffered format
     }
 
     /// Gets the initialization node of the formal parameter, if any.
     pub fn init(&self) -> Option<&Node> {
         self.declaration.init()
-        // recieved as reference, check if needs to be returned as reference or was it recieved in the preffered format
     }
 
     /// Gets wether the parameter is a rest parameter.
@@ -480,6 +478,13 @@ impl FormalParameter {
 
                 DeclarationPattern::Array(array_pattern) => array_pattern.run(init, context),
             },
+        }
+    }
+
+    pub fn is_identifier(&self) -> bool {
+        match &self.declaration {
+            Declaration::Identifier { .. } => true,
+            _ => false, 
         }
     }
 }
@@ -761,10 +766,6 @@ fn test_formatting(source: &'static str) {
         }
         false => target,
     };
-    // .lines()
-    // .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-    // .collect::<Vec<&'static str>>()
-    // .join("\n");
 
     let result = format!(
         "{}",
