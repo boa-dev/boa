@@ -9,14 +9,12 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-
-
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncGeneratorExpr {
     name: Option<Box<str>>,
     parameters: Box<[FormalParameter]>,
-    body: StatementList
+    body: StatementList,
 }
 
 impl AsyncGeneratorExpr {
@@ -64,7 +62,7 @@ impl AsyncGeneratorExpr {
         self.display_block(f, indentation)
     }
 
-    pub (in crate::syntax::ast::node) fn display_block(
+    pub(in crate::syntax::ast::node) fn display_block(
         &self,
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
@@ -77,7 +75,6 @@ impl AsyncGeneratorExpr {
             write!(f, "{}}}", "    ".repeat(indentation))
         }
     }
-
 }
 
 impl Executable for AsyncGeneratorExpr {

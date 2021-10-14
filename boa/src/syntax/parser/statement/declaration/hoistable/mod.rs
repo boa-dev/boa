@@ -9,14 +9,14 @@
 mod tests;
 
 mod async_function_decl;
+mod async_generator_decl;
 mod function_decl;
 mod generator_decl;
-mod async_generator_decl;
 
 use async_function_decl::AsyncFunctionDeclaration;
+use async_generator_decl::AsyncGeneratorDeclaration;
 pub(in crate::syntax::parser) use function_decl::FunctionDeclaration;
 use generator_decl::GeneratorDeclaration;
-use async_generator_decl::AsyncGeneratorDeclaration;
 
 use crate::{
     syntax::{
@@ -91,9 +91,17 @@ where
                 cursor.expect(Keyword::Function, "async generator declaration")?;
                 let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
-                    AsyncGeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default).parse(cursor).map(Node::from)
+                    AsyncGeneratorDeclaration::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        self.is_default,
+                    )
+                    .parse(cursor)
+                    .map(Node::from)
                 } else {
-                    AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor).map(Node::from)
+                    AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                        .parse(cursor)
+                        .map(Node::from)
                 }
             }
             _ => unreachable!("unknown token found: {:?}", tok),

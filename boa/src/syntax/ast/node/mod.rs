@@ -30,9 +30,10 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
+        async_generator_decl::AsyncGeneratorDecl, async_generator_expr::AsyncGeneratorExpr,
         generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
         AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, FunctionDecl,
-        FunctionExpr, async_generator_expr::AsyncGeneratorExpr, async_generator_decl::AsyncGeneratorDecl,
+        FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -81,7 +82,7 @@ pub enum Node {
 
     /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
     AsyncFunctionExpr(AsyncFunctionExpr),
-    
+
     /// An async generator expression node.
     AsyncGeneratorExpr(AsyncGeneratorExpr),
 

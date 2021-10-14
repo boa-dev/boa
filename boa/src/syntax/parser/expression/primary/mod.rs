@@ -9,9 +9,9 @@
 
 mod array_initializer;
 mod async_function_expression;
+mod async_generator_expression;
 mod function_expression;
 mod generator_expression;
-mod async_generator_expression;
 mod object_initializer;
 mod template;
 #[cfg(test)]
@@ -19,8 +19,8 @@ mod tests;
 
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
-    function_expression::FunctionExpression, generator_expression::GeneratorExpression,
-    object_initializer::ObjectLiteral, async_generator_expression::AsyncGeneratorExpression,
+    async_generator_expression::AsyncGeneratorExpression, function_expression::FunctionExpression,
+    generator_expression::GeneratorExpression, object_initializer::ObjectLiteral,
 };
 use super::Expression;
 use crate::{
@@ -97,9 +97,11 @@ where
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     AsyncGeneratorExpression.parse(cursor).map(Node::from)
                 } else {
-                    AsyncFunctionExpression::new(self.allow_yield).parse(cursor).map(Node::from)
+                    AsyncFunctionExpression::new(self.allow_yield)
+                        .parse(cursor)
+                        .map(Node::from)
                 }
-            },
+            }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
