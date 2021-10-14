@@ -940,6 +940,7 @@
 <span id="940">940</span>
 <span id="941">941</span>
 <span id="942">942</span>
+<span id="943">943</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
@@ -963,6 +964,7 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">bound_function</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">integer_indexed</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">proxy</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod</span> <span class="ident">string</span>;
 
 <span class="kw">impl</span> <span class="ident">JsObject</span> {
@@ -1692,10 +1694,10 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_compatible_property_descriptor</span>(
     <span class="ident">extensible</span>: <span class="ident">bool</span>,
     <span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>,
-    <span class="ident">current</span>: <span class="ident">PropertyDescriptor</span>,
+    <span class="ident">current</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="comment">// 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).</span>
-    <span class="ident">validate_and_apply_property_descriptor</span>(<span class="prelude-val">None</span>, <span class="ident">extensible</span>, <span class="ident">desc</span>, <span class="prelude-val">Some</span>(<span class="ident">current</span>))
+    <span class="ident">validate_and_apply_property_descriptor</span>(<span class="prelude-val">None</span>, <span class="ident">extensible</span>, <span class="ident">desc</span>, <span class="ident">current</span>)
 }
 
 <span class="doccomment">/// Abstract operation `ValidateAndApplyPropertyDescriptor`</span>

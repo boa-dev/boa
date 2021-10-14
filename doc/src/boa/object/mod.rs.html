@@ -1742,6 +1742,77 @@
 <span id="1742">1742</span>
 <span id="1743">1743</span>
 <span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1754,6 +1825,7 @@
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
         <span class="ident">object::for_in_iterator::ForInIterator</span>,
+        <span class="ident">proxy::Proxy</span>,
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
         <span class="ident">set::ordered_set::OrderedSet</span>,
         <span class="ident">set::set_iterator::SetIterator</span>,
@@ -1784,6 +1856,10 @@
     },
     <span class="ident">function</span>::{<span class="ident">CONSTRUCTOR_INTERNAL_METHODS</span>, <span class="ident">FUNCTION_INTERNAL_METHODS</span>},
     <span class="ident">integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>,
+    <span class="ident">proxy</span>::{
+        <span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_ALL</span>, <span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_BASIC</span>,
+        <span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL</span>,
+    },
     <span class="ident">string::STRING_EXOTIC_INTERNAL_METHODS</span>,
     <span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>,
 };
@@ -1867,6 +1943,7 @@
     <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
     <span class="ident">Error</span>,
     <span class="ident">Ordinary</span>,
+    <span class="ident">Proxy</span>(<span class="ident">Proxy</span>),
     <span class="ident">Date</span>(<span class="ident">Date</span>),
     <span class="ident">Global</span>,
     <span class="ident">Arguments</span>(<span class="ident">Arguments</span>),
@@ -2043,6 +2120,20 @@
         }
     }
 
+    <span class="doccomment">/// Create the `Proxy` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">proxy</span>(<span class="ident">proxy</span>: <span class="ident">Proxy</span>, <span class="ident">call</span>: <span class="ident">bool</span>, <span class="ident">construct</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::Proxy</span>(<span class="ident">proxy</span>),
+            <span class="ident">internal_methods</span>: <span class="kw">if</span> <span class="ident">call</span> <span class="op">&amp;&amp;</span> <span class="ident">construct</span> {
+                <span class="kw-2">&amp;</span><span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_ALL</span>
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">call</span> {
+                <span class="kw-2">&amp;</span><span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL</span>
+            } <span class="kw">else</span> {
+                <span class="kw-2">&amp;</span><span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_BASIC</span>
+            },
+        }
+    }
+
     <span class="doccomment">/// Create the `Date` object data</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">date</span>(<span class="ident">date</span>: <span class="ident">Date</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -2108,6 +2199,7 @@
             <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Symbol&quot;</span>,
             <span class="self">Self</span><span class="ident">::Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Error&quot;</span>,
             <span class="self">Self</span><span class="ident">::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Ordinary&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Proxy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Proxy&quot;</span>,
             <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Boolean&quot;</span>,
             <span class="self">Self</span><span class="ident">::Number</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Number&quot;</span>,
             <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BigInt&quot;</span>,
@@ -2695,6 +2787,40 @@
         )
     }
 
+    <span class="doccomment">/// Checks if it&#39;s an proxy object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_proxy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Proxy</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_proxy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Proxy</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Proxy</span>(<span class="kw-2">ref</span> <span class="ident">proxy</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">proxy</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_proxy_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Proxy</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Proxy</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">proxy</span>),
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">proxy</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Gets the prototype instance of this object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">JsPrototype</span> {
@@ -2743,7 +2869,7 @@
         }
     }
 
-    <span class="doccomment">/// Reeturn `true` if it is a native object and the native type is `T`.</span>
+    <span class="doccomment">/// Return `true` if it is a native object and the native type is `T`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
@@ -2814,7 +2940,7 @@
     <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If a field was already in the object with the same name that a `Some` is returned</span>
-    <span class="doccomment">/// with that field, otherwise None is retuned.</span>
+    <span class="doccomment">/// with that field, otherwise None is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -3018,8 +3144,8 @@
             .<span class="ident">writable</span>(<span class="bool-val">false</span>)
             .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
             .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
-        <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>()));
-        <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
+        <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
+        <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>()));
 
         <span class="ident">function</span>
     }
@@ -3140,6 +3266,7 @@
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>,
     <span class="ident">constructor_function</span>: <span class="ident">NativeFunctionSignature</span>,
     <span class="ident">constructor_object</span>: <span class="ident">JsObject</span>,
+    <span class="ident">constructor_has_prototype</span>: <span class="ident">bool</span>,
     <span class="ident">prototype</span>: <span class="ident">JsObject</span>,
     <span class="ident">name</span>: <span class="ident">JsString</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>,
@@ -3155,6 +3282,7 @@
             .<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
             .<span class="ident">field</span>(<span class="string">&quot;length&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">length</span>)
             .<span class="ident">field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructor_object</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;constructor_has_prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructor_has_prototype</span>)
             .<span class="ident">field</span>(<span class="string">&quot;prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prototype</span>)
             .<span class="ident">field</span>(<span class="string">&quot;inherit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inherit</span>)
             .<span class="ident">field</span>(<span class="string">&quot;callable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callable</span>)
@@ -3178,6 +3306,7 @@
             <span class="ident">constructor</span>: <span class="bool-val">true</span>,
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
             <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
+            <span class="ident">constructor_has_prototype</span>: <span class="bool-val">true</span>,
         }
     }
 
@@ -3191,6 +3320,7 @@
             <span class="ident">context</span>,
             <span class="ident">constructor_function</span>: <span class="ident">constructor</span>,
             <span class="ident">constructor_object</span>: <span class="ident">object</span>.<span class="ident">constructor</span>,
+            <span class="ident">constructor_has_prototype</span>: <span class="bool-val">true</span>,
             <span class="ident">prototype</span>: <span class="ident">object</span>.<span class="ident">prototype</span>,
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
@@ -3414,6 +3544,15 @@
         <span class="self">self</span>
     }
 
+    <span class="doccomment">/// Specify whether the constructor function has a &#39;prototype&#39; property.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Default is `true`</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor_has_prototype</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">constructor_has_prototype</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">constructor_has_prototype</span> <span class="op">=</span> <span class="ident">constructor_has_prototype</span>;
+        <span class="self">self</span>
+    }
+
     <span class="doccomment">/// Return the current context.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="kw-2">mut</span> <span class="ident">Context</span> {
@@ -3455,14 +3594,17 @@
                         .<span class="ident">prototype</span>(),
                 );
             }
-            <span class="ident">constructor</span>.<span class="ident">insert_property</span>(
-                <span class="ident">PROTOTYPE</span>,
-                <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">clone</span>())
-                    .<span class="ident">writable</span>(<span class="bool-val">false</span>)
-                    .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                    .<span class="ident">configurable</span>(<span class="bool-val">false</span>),
-            );
+
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">constructor_has_prototype</span> {
+                <span class="ident">constructor</span>.<span class="ident">insert_property</span>(
+                    <span class="ident">PROTOTYPE</span>,
+                    <span class="ident">PropertyDescriptor::builder</span>()
+                        .<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">clone</span>())
+                        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
+                        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                        .<span class="ident">configurable</span>(<span class="bool-val">false</span>),
+                );
+            }
         }
 
         {

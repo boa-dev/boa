@@ -178,6 +178,9 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -200,6 +203,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nan</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">number</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proxy</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reflect</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">set</span>;
@@ -225,6 +229,7 @@
     <span class="ident">number::Number</span>,
     <span class="ident">object::for_in_iterator::ForInIterator</span>,
     <span class="ident">object::Object</span> <span class="kw">as</span> <span class="ident">BuiltInObjectObject</span>,
+    <span class="ident">proxy::Proxy</span>,
     <span class="ident">reflect::Reflect</span>,
     <span class="ident">regexp::RegExp</span>,
     <span class="ident">set::set_iterator::SetIterator</span>,
@@ -303,6 +308,7 @@
         <span class="ident">Math</span>,
         <span class="ident">Json</span>,
         <span class="ident">Array</span>,
+        <span class="ident">Proxy</span>,
         <span class="ident">ArrayBuffer</span>,
         <span class="ident">BigInt</span>,
         <span class="ident">Boolean</span>,

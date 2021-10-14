@@ -747,6 +747,27 @@
 <span id="747">747</span>
 <span id="748">748</span>
 <span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
@@ -1284,6 +1305,34 @@
         <span class="prelude-val">Ok</span>(<span class="ident">properties</span>)
     }
 
+    <span class="doccomment">/// Abstract operation `GetMethod ( V, P )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Retrieves the value of a specific property, when the value of the property is expected to be a function.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
+    {
+        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
+        <span class="comment">// It is implemented for JsObject for convenience.</span>
+
+        <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
+        <span class="comment">// 2. Let func be ? GetV(V, P).</span>
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// 3. If func is either undefined or null, return undefined.</span>
+            <span class="ident">JsValue::Undefined</span> <span class="op">|</span> <span class="ident">JsValue::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="comment">// 5. Return func.</span>
+            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>())),
+            <span class="comment">// 4. If IsCallable(func) is false, throw a TypeError exception.</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
+                .<span class="ident">construct_type_error</span>(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)),
+        }
+    }
+
     <span class="comment">// todo: GetFunctionRealm</span>
 
     <span class="comment">// todo: CopyDataProperties</span>
@@ -1334,21 +1383,14 @@
     <span class="doccomment">/// - [EcmaScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_method</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
-        <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-        <span class="comment">// 2. Let func be ? GetV(V, P).</span>
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">get_v</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="comment">// 3. If func is either undefined or null, return undefined.</span>
-            <span class="ident">JsValue::Undefined</span> <span class="op">|</span> <span class="ident">JsValue::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="comment">// 5. Return func.</span>
-            <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>())),
-            <span class="comment">// 4. If IsCallable(func) is false, throw a TypeError exception.</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
-                .<span class="ident">construct_type_error</span>(<span class="string">&quot;value returned for property of object is not a function&quot;</span>)),
-        }
+        <span class="comment">// Note: The spec specifies this function for JsValue.</span>
+        <span class="comment">// The main part of the function is implemented for JsObject.</span>
+        <span class="self">self</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">get_method</span>(<span class="ident">key</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// It is used to create List value whose elements are provided by the indexed properties of</span>

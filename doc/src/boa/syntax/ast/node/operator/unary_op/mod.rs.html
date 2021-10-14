@@ -134,6 +134,10 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec::Executable</span>,
@@ -246,10 +250,14 @@
                 <span class="ident">Node::GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">get_field</span>.<span class="ident">field</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">obj</span>
+                    <span class="kw">let</span> <span class="ident">delete_status</span> <span class="op">=</span> <span class="ident">obj</span>
                         .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                         .<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">res</span>));
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">delete_status</span> <span class="op">&amp;&amp;</span> <span class="ident">context</span>.<span class="ident">strict</span>() {
+                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot delete property&quot;</span>);
+                    } <span class="kw">else</span> {
+                        <span class="ident">JsValue::new</span>(<span class="ident">delete_status</span>)
+                    }
                 }
                 <span class="comment">// TODO: implement delete on references.</span>
                 <span class="ident">Node::Identifier</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="bool-val">false</span>),

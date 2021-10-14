@@ -259,7 +259,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">super</span><span class="ident">::is_compatible_property_descriptor</span>(
             <span class="ident">extensible</span>,
             <span class="ident">desc</span>,
-            <span class="ident">string_desc</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">string_desc</span>),
         ))
     } <span class="kw">else</span> {
         <span class="comment">// 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).</span>
