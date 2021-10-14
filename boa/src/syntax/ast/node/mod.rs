@@ -482,10 +482,7 @@ impl FormalParameter {
     }
 
     pub fn is_identifier(&self) -> bool {
-        match &self.declaration {
-            Declaration::Identifier { .. } => true,
-            _ => false, 
-        }
+        matches!(&self.declaration, Declaration::Identifier { .. })
     }
 }
 

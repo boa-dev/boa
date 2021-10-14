@@ -100,7 +100,10 @@ where
                 _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
 
-            if next_param.is_rest_param() || next_param.init().is_some() || !next_param.is_identifier(){
+            if next_param.is_rest_param()
+                || next_param.init().is_some()
+                || !next_param.is_identifier()
+            {
                 is_simple = false;
             }
             for param_name in next_param.names().iter() {
