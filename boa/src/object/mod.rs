@@ -9,6 +9,7 @@ use crate::{
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         object::for_in_iterator::ForInIterator,
+        proxy::Proxy,
         regexp::regexp_string_iterator::RegExpStringIterator,
         set::ordered_set::OrderedSet,
         set::set_iterator::SetIterator,
@@ -39,6 +40,10 @@ use self::internal_methods::{
     },
     function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
     integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+    proxy::{
+        PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
+        PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
+    },
     string::STRING_EXOTIC_INTERNAL_METHODS,
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
@@ -122,6 +127,7 @@ pub enum ObjectKind {
     Symbol(JsSymbol),
     Error,
     Ordinary,
+    Proxy(Proxy),
     Date(Date),
     Global,
     Arguments(Arguments),
@@ -298,6 +304,20 @@ impl ObjectData {
         }
     }
 
+    /// Create the `Proxy` object data
+    pub fn proxy(proxy: Proxy, call: bool, construct: bool) -> Self {
+        Self {
+            kind: ObjectKind::Proxy(proxy),
+            internal_methods: if call && construct {
+                &PROXY_EXOTIC_INTERNAL_METHODS_ALL
+            } else if call {
+                &PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL
+            } else {
+                &PROXY_EXOTIC_INTERNAL_METHODS_BASIC
+            },
+        }
+    }
+
     /// Create the `Date` object data
     pub fn date(date: Date) -> Self {
         Self {
@@ -363,6 +383,7 @@ impl Display for ObjectKind {
             Self::Symbol(_) => "Symbol",
             Self::Error => "Error",
             Self::Ordinary => "Ordinary",
+            Self::Proxy(_) => "Proxy",
             Self::Boolean(_) => "Boolean",
             Self::Number(_) => "Number",
             Self::BigInt(_) => "BigInt",
@@ -950,6 +971,40 @@ impl Object {
         )
     }
 
+    /// Checks if it's an proxy object.
+    #[inline]
+    pub fn is_proxy(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Proxy(_),
+                ..
+            }
+        )
+    }
+
+    #[inline]
+    pub fn as_proxy(&self) -> Option<&Proxy> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Proxy(ref proxy),
+                ..
+            } => Some(proxy),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_proxy_mut(&mut self) -> Option<&mut Proxy> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Proxy(ref mut proxy),
+                ..
+            } => Some(proxy),
+            _ => None,
+        }
+    }
+
     /// Gets the prototype instance of this object.
     #[inline]
     pub fn prototype(&self) -> &JsPrototype {
@@ -998,7 +1053,7 @@ impl Object {
         }
     }
 
-    /// Reeturn `true` if it is a native object and the native type is `T`.
+    /// Return `true` if it is a native object and the native type is `T`.
     #[inline]
     pub fn is<T>(&self) -> bool
     where
@@ -1069,7 +1124,7 @@ impl Object {
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name that a `Some` is returned
-    /// with that field, otherwise None is retuned.
+    /// with that field, otherwise None is returned.
     #[inline]
     pub fn insert_property<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
@@ -1273,8 +1328,8 @@ impl<'context> FunctionBuilder<'context> {
             .writable(false)
             .enumerable(false)
             .configurable(true);
-        function.insert_property("name", property.clone().value(self.name.clone()));
-        function.insert_property("length", property.value(self.length));
+        function.insert_property("length", property.clone().value(self.length));
+        function.insert_property("name", property.value(self.name.clone()));
 
         function
     }
@@ -1395,6 +1450,7 @@ pub struct ConstructorBuilder<'context> {
     context: &'context mut Context,
     constructor_function: NativeFunctionSignature,
     constructor_object: JsObject,
+    constructor_has_prototype: bool,
     prototype: JsObject,
     name: JsString,
     length: usize,
@@ -1410,6 +1466,7 @@ impl Debug for ConstructorBuilder<'_> {
             .field("name", &self.name)
             .field("length", &self.length)
             .field("constructor", &self.constructor_object)
+            .field("constructor_has_prototype", &self.constructor_has_prototype)
             .field("prototype", &self.prototype)
             .field("inherit", &self.inherit)
             .field("callable", &self.callable)
@@ -1433,6 +1490,7 @@ impl<'context> ConstructorBuilder<'context> {
             constructor: true,
             inherit: None,
             custom_prototype: None,
+            constructor_has_prototype: true,
         }
     }
 
@@ -1446,6 +1504,7 @@ impl<'context> ConstructorBuilder<'context> {
             context,
             constructor_function: constructor,
             constructor_object: object.constructor,
+            constructor_has_prototype: true,
             prototype: object.prototype,
             length: 0,
             name: JsString::default(),
@@ -1669,6 +1728,15 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
+    /// Specify whether the constructor function has a 'prototype' property.
+    ///
+    /// Default is `true`
+    #[inline]
+    pub fn constructor_has_prototype(&mut self, constructor_has_prototype: bool) -> &mut Self {
+        self.constructor_has_prototype = constructor_has_prototype;
+        self
+    }
+
     /// Return the current context.
     #[inline]
     pub fn context(&mut self) -> &'_ mut Context {
@@ -1710,14 +1778,17 @@ impl<'context> ConstructorBuilder<'context> {
                         .prototype(),
                 );
             }
-            constructor.insert_property(
-                PROTOTYPE,
-                PropertyDescriptor::builder()
-                    .value(self.prototype.clone())
-                    .writable(false)
-                    .enumerable(false)
-                    .configurable(false),
-            );
+
+            if self.constructor_has_prototype {
+                constructor.insert_property(
+                    PROTOTYPE,
+                    PropertyDescriptor::builder()
+                        .value(self.prototype.clone())
+                        .writable(false)
+                        .enumerable(false)
+                        .configurable(false),
+                );
+            }
         }
 
         {

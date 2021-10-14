@@ -67,14 +67,27 @@ impl Executable for Assign {
                 }
             }
             Node::GetConstField(ref get_const_field) => {
-                let val_obj = get_const_field.obj().run(context)?;
-                val_obj.set_field(get_const_field.field(), val.clone(), false, context)?;
+                let value = get_const_field.obj().run(context)?;
+                let obj = value.to_object(context)?;
+                let succeeded =
+                    obj.__set__(get_const_field.field().into(), val.clone(), value, context)?;
+                if !succeeded && context.strict() {
+                    return context.throw_type_error(
+                        "Assignment to read-only properties is not allowed in strict mode",
+                    );
+                }
             }
             Node::GetField(ref get_field) => {
-                let object = get_field.obj().run(context)?;
+                let value = get_field.obj().run(context)?;
+                let obj = value.to_object(context)?;
                 let field = get_field.field().run(context)?;
                 let key = field.to_property_key(context)?;
-                object.set_field(key, val.clone(), false, context)?;
+                let succeeded = obj.__set__(key, val.clone(), value, context)?;
+                if !succeeded && context.strict() {
+                    return context.throw_type_error(
+                        "Assignment to read-only properties is not allowed in strict mode",
+                    );
+                }
             }
             _ => (),
         }

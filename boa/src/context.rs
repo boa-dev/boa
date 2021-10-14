@@ -79,6 +79,7 @@ impl StandardConstructor {
 #[derive(Debug, Clone)]
 pub struct StandardObjects {
     object: StandardConstructor,
+    proxy: StandardConstructor,
     function: StandardConstructor,
     array: StandardConstructor,
     bigint: StandardConstructor,
@@ -115,6 +116,7 @@ impl Default for StandardObjects {
     fn default() -> Self {
         Self {
             object: StandardConstructor::default(),
+            proxy: StandardConstructor::default(),
             function: StandardConstructor::default(),
             array: StandardConstructor::default(),
             bigint: StandardConstructor::default(),
@@ -162,6 +164,11 @@ impl StandardObjects {
     #[inline]
     pub fn object_object(&self) -> &StandardConstructor {
         &self.object
+    }
+
+    #[inline]
+    pub fn proxy_object(&self) -> &StandardConstructor {
+        &self.proxy
     }
 
     #[inline]

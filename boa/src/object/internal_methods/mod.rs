@@ -20,6 +20,7 @@ pub(super) mod array;
 pub(super) mod bound_function;
 pub(super) mod function;
 pub(super) mod integer_indexed;
+pub(super) mod proxy;
 pub(super) mod string;
 
 impl JsObject {
@@ -749,10 +750,10 @@ pub(crate) fn ordinary_own_property_keys(
 pub(crate) fn is_compatible_property_descriptor(
     extensible: bool,
     desc: PropertyDescriptor,
-    current: PropertyDescriptor,
+    current: Option<PropertyDescriptor>,
 ) -> bool {
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
-    validate_and_apply_property_descriptor(None, extensible, desc, Some(current))
+    validate_and_apply_property_descriptor(None, extensible, desc, current)
 }
 
 /// Abstract operation `ValidateAndApplyPropertyDescriptor`

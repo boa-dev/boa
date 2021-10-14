@@ -69,7 +69,7 @@ pub(crate) fn string_exotic_define_own_property(
         Ok(super::is_compatible_property_descriptor(
             extensible,
             desc,
-            string_desc,
+            Some(string_desc),
         ))
     } else {
         // 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).

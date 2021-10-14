@@ -19,6 +19,7 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod proxy;
 pub mod reflect;
 pub mod regexp;
 pub mod set;
@@ -44,6 +45,7 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    proxy::Proxy,
     reflect::Reflect,
     regexp::RegExp,
     set::set_iterator::SetIterator,
@@ -122,6 +124,7 @@ pub fn init(context: &mut Context) {
         Math,
         Json,
         Array,
+        Proxy,
         ArrayBuffer,
         BigInt,
         Boolean,
