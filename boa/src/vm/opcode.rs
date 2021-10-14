@@ -364,6 +364,20 @@ pub enum Opcode {
     /// Stack: value **=>** (-value)
     Neg,
 
+    /// Unary `++` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** (value + 1)
+    Inc,
+
+    /// Unary `--` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** (value - 1)
+    Dec,
+
     /// Declate `var` type variable.
     ///
     /// Operands: name_index: `u32`
@@ -613,6 +627,8 @@ impl Opcode {
             Opcode::Coalesce => "Coalesce",
             Opcode::Pos => "Pos",
             Opcode::Neg => "Neg",
+            Opcode::Inc => "Inc",
+            Opcode::Dec => "Dec",
             Opcode::DefVar => "DefVar",
             Opcode::DefLet => "DefLet",
             Opcode::DefConst => "DefConst",

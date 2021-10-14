@@ -366,10 +366,48 @@ impl ByteCompiler {
             }
             Node::UnaryOp(unary) => {
                 let opcode = match unary.op() {
-                    UnaryOp::IncrementPre => todo!(),
-                    UnaryOp::DecrementPre => todo!(),
-                    UnaryOp::IncrementPost => todo!(),
-                    UnaryOp::DecrementPost => todo!(),
+                    UnaryOp::IncrementPre => {
+                        self.compile_expr(unary.target(), true);
+                        self.emit(Opcode::Inc, &[]);
+
+                        let access = self.compile_access(unary.target());
+                        self.access_set(access, None, use_expr);
+                        None
+                    }
+                    UnaryOp::DecrementPre => {
+                        self.compile_expr(unary.target(), true);
+                        self.emit(Opcode::Dec, &[]);
+
+                        let access = self.compile_access(unary.target());
+                        self.access_set(access, None, use_expr);
+                        None
+                    }
+                    UnaryOp::IncrementPost => {
+                        self.compile_expr(unary.target(), true);
+                        self.emit(Opcode::Dup, &[]);
+                        self.emit(Opcode::Inc, &[]);
+                        let access = self.compile_access(unary.target());
+                        self.access_set(access, None, false);
+
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+
+                        None
+                    }
+                    UnaryOp::DecrementPost => {
+                        self.compile_expr(unary.target(), true);
+                        self.emit(Opcode::Dup, &[]);
+                        self.emit(Opcode::Dec, &[]);
+                        let access = self.compile_access(unary.target());
+                        self.access_set(access, None, false);
+
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+
+                        None
+                    }
                     UnaryOp::Delete => match unary.target() {
                         Node::GetConstField(ref get_const_field) => {
                             let index = self.get_or_insert_name(get_const_field.field());

@@ -236,6 +236,14 @@ impl Context {
                 let value = self.vm.pop().neg(self)?;
                 self.vm.push(value);
             }
+            Opcode::Inc => {
+                let value = self.vm.pop().add(&JsValue::Integer(1), self)?;
+                self.vm.push(value);
+            }
+            Opcode::Dec => {
+                let value = self.vm.pop().sub(&JsValue::Integer(1), self)?;
+                self.vm.push(value);
+            }
             Opcode::LogicalNot => {
                 let value = self.vm.pop();
                 self.vm.push(!value.to_boolean());
