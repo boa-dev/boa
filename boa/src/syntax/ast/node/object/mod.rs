@@ -72,7 +72,10 @@ impl Object {
                     match &kind {
                         MethodDefinitionKind::Get => write!(f, "get ")?,
                         MethodDefinitionKind::Set => write!(f, "set ")?,
-                        MethodDefinitionKind::Ordinary | MethodDefinitionKind::Generator => (),
+                        MethodDefinitionKind::Ordinary
+                        | MethodDefinitionKind::Generator
+                        | MethodDefinitionKind::Async
+                        | MethodDefinitionKind::AsyncGenerator => (),
                     }
                     write!(f, "{}(", key)?;
                     join_nodes(f, node.parameters())?;
@@ -176,6 +179,21 @@ impl Executable for Object {
                                     .enumerable(true)
                                     .configurable(true)
                                     .build(),
+                                context,
+                            )?;
+                        }
+                        &MethodDefinitionKind::AsyncGenerator => {
+                            // TODO: Implement async generator method definition execution.
+                            obj.__define_own_property__(
+                                name,
+                                PropertyDescriptor::builder().value(JsValue::undefined()).writable(true).enumerable(true).configurable(true).build(),
+                                context,
+                            )?;
+                        }
+                        &MethodDefinitionKind::Async => {
+                            obj.__define_own_property__(
+                                name,
+                                PropertyDescriptor::builder().value(JsValue::undefined()).writable(true).enumerable(true).configurable(true).build(),
                                 context,
                             )?;
                         }
