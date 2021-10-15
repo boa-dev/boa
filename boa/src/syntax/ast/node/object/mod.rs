@@ -186,14 +186,24 @@ impl Executable for Object {
                             // TODO: Implement async generator method definition execution.
                             obj.__define_own_property__(
                                 name,
-                                PropertyDescriptor::builder().value(JsValue::undefined()).writable(true).enumerable(true).configurable(true).build(),
+                                PropertyDescriptor::builder()
+                                    .value(JsValue::undefined())
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true)
+                                    .build(),
                                 context,
                             )?;
                         }
                         &MethodDefinitionKind::Async => {
                             obj.__define_own_property__(
                                 name,
-                                PropertyDescriptor::builder().value(JsValue::undefined()).writable(true).enumerable(true).configurable(true).build(),
+                                PropertyDescriptor::builder()
+                                    .value(JsValue::undefined())
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true)
+                                    .build(),
                                 context,
                             )?;
                         }
