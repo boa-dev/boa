@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test;
+
 ///Async Generator Expression Parsing
 ///
 /// My attempt
