@@ -4,14 +4,14 @@ use crate::syntax::{
         Const,
     },
     parser::tests::check_parser,
-}
+};
 
 ///checks async generator expression parsing
 
 #[test]
 fn check_async_generator_expr() {
     check_parser(
-        "const add = async *function(){
+        "const add = async function*(){
             return 1;
         };
         ",
@@ -22,19 +22,23 @@ fn check_async_generator_expr() {
                     AsyncGeneratorExpr::new::<Option<Box<str>>, _, StatementList>(
                         None,
                         [],
-                        vec![Return::new::<_, _, Option<Box<str>>>(Const::from(1), None).into()].into(),
-                    ).into()
+                        vec![Return::new::<_, _, Option<Box<str>>>(Const::from(1), None).into()]
+                            .into(),
+                    )
+                    .into(),
                 ),
-            )].into(),
-        ).into()]
+            )]
+            .into(),
+        )
+        .into()],
     );
 }
 
 #[test]
 fn check_nested_async_generator_expr() {
     check_parser(
-        "const a = async *function() {
-            const b = async *function() {
+        "const a = async function*() {
+            const b = async function*() {
                 return 1;
             };
         };
