@@ -3,9 +3,9 @@ mod test;
 
 ///Async Generator Expression Parsing
 ///
-/// My attempt
+/// Implements TokenParser for an AsyncGeneratorExpression and outputs
+/// an AsyncGeneratorExpr ast node.
 ///
-//Put test mod here
 use crate::{
     syntax::{
         ast::{node::AsyncGeneratorExpr, Keyword, Punctuator},
