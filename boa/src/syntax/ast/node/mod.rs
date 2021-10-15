@@ -636,23 +636,23 @@ pub enum MethodDefinitionKind {
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods
     Generator,
-    
+
     /// Async generators can be used to define a method
-    /// 
+    ///
     /// More information
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
-    /// 
+    ///
     /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_generator_methods
     AsyncGenerator,
 
     /// Async function can be used to define a method
-    /// 
+    ///
     /// More information
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
-    /// 
+    ///
     /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_methods
     Async,

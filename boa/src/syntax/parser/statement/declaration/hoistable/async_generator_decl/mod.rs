@@ -47,10 +47,10 @@ impl CallableDeclaration for AsyncGeneratorDeclaration {
         self.allow_await.0
     }
     fn parameters_allow_yield(&self) -> bool {
-        false
+        true
     }
     fn parameters_allow_await(&self) -> bool {
-        false
+        true
     }
     fn body_allow_yield(&self) -> bool {
         true
