@@ -25,7 +25,8 @@ pub mod generator_expr;
 pub use self::{
     arrow_function_decl::ArrowFunctionDecl, async_function_decl::AsyncFunctionDecl,
     async_function_expr::AsyncFunctionExpr, function_decl::FunctionDecl,
-    function_expr::FunctionExpr,
+    function_expr::FunctionExpr, async_generator_decl::AsyncGeneratorDecl, 
+    async_generator_expr::AsyncGeneratorExpr,
 };
 
 #[cfg(test)]
