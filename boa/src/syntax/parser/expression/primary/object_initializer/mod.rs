@@ -207,6 +207,7 @@ where
                 cursor.expect(Punctuator::CloseParen, "async generator method definition")?;
 
                 // Early Error: UniqueFormalParameters : FormalParameters
+                // NOTE: does not appear to formally be in ECMAScript specs for method
                 if params.has_duplicates {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Duplicate parameter name not allowed in this context".into(),
@@ -268,6 +269,7 @@ where
                 cursor.expect(Punctuator::CloseParen, "async method definition")?;
 
                 // Early Error: UniqueFormalParameters : FormalParameters
+                // NOTE: does not appear to be in ECMAScript specs
                 if params.has_duplicates {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Duplicate parameter name not allowed in this context".into(),
@@ -333,6 +335,7 @@ where
             cursor.expect(Punctuator::CloseParen, "generator method definition")?;
 
             // Early Error: UniqueFormalParameters : FormalParameters
+            // NOTE: does not appear to be in ECMAScript specs for GeneratorMethod
             if params.has_duplicates {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Duplicate parameter name not allowed in this context".into(),
