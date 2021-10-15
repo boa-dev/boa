@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::syntax::{
     ast::{node::declaration::async_generator_decl::AsyncGeneratorDecl, Punctuator},
     parser::{
