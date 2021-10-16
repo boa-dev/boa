@@ -222,14 +222,14 @@ impl Function {
         Array::add_to_array_object(&array, args_list.get(index..).unwrap_or_default(), context)
             .unwrap();
 
-        let binding_params = param.run(Some(array.clone()), context).unwrap_or_default();
+        let binding_params = param.run(Some(array), context).unwrap_or_default();
         for binding_items in binding_params.iter() {
-            // // Create binding
+            // Create binding
             local_env
                 .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
                 .expect("Failed to create binding");
 
-            // // Set binding to value
+            // Set binding to value
             local_env
                 .initialize_binding(
                     binding_items.0.as_ref(),
@@ -249,12 +249,12 @@ impl Function {
     ) {
         let binding_params = param.run(Some(value), context).unwrap_or_default();
         for binding_items in binding_params.iter() {
-            // // Create binding
+            // Create binding
             local_env
                 .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
                 .expect("Failed to create binding");
 
-            // // Set binding to value
+            // Set binding to value
             local_env
                 .initialize_binding(
                     binding_items.0.as_ref(),
@@ -536,26 +536,17 @@ impl BuiltInFunctionObject {
             ) => Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into()),
             (Function::Ordinary { body, params, .. }, Some(name)) => {
                 let arguments: String = {
-                    let mut argument_list: Vec<String> = Vec::new();
+                    let mut argument_list: Vec<Cow<'_, str>> = Vec::new();
                     for params_item in params.iter() {
-                        argument_list.push(
-                            match &params_item.declaration() {
-                                Declaration::Identifier { ident, .. } => ident.as_ref().to_string(),
-                                Declaration::Pattern(pattern) => vec![
-                                    "{ ".to_string(),
-                                    pattern.idents().join(", "),
-                                    " }".to_string(),
-                                ]
-                                .join(""),
+                        let argument_item = match &params_item.declaration() {
+                            Declaration::Identifier { ident, .. } => Cow::Borrowed(ident.as_ref()),
+                            Declaration::Pattern(pattern) => {
+                                Cow::Owned(format!("{{{}}}", pattern.idents().join(",")))
                             }
-                            .clone(),
-                        );
+                        };
+                        argument_list.push(argument_item);
                     }
-                    if argument_list.len() > 1 {
-                        argument_list.join(", ")
-                    } else {
-                        "".to_string()
-                    }
+                    argument_list.join(",")
                 };
 
                 let statement_list = &*body;

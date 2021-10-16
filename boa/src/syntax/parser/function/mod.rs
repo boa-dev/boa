@@ -100,6 +100,13 @@ where
                 _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
 
+            if next_param.is_rest_param() && next_param.init().is_some() {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Rest parameter may not have a default initializer".into(),
+                    start_position,
+                )));
+            }
+
             if next_param.is_rest_param()
                 || next_param.init().is_some()
                 || !next_param.is_identifier()
@@ -112,7 +119,7 @@ where
                 }
                 parameter_names.insert(Box::from(*param_name));
             }
-            params.push(next_param.clone());
+            params.push(next_param);
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseParen)

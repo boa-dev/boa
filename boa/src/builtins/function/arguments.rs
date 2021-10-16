@@ -170,13 +170,7 @@ impl Arguments {
         // 19. Repeat, while index ≥ 0,
         // a. Let name be parameterNames[index].
 
-        for (index, parameter_name_vec) in formals
-            .iter()
-            .clone()
-            .map(|fp| fp.names())
-            .enumerate()
-            .rev()
-        {
+        for (index, parameter_name_vec) in formals.iter().map(|fp| fp.names()).enumerate().rev() {
             for parameter_name in parameter_name_vec.iter().cloned() {
                 // b. If name is not an element of mappedNames, then
                 if !mapped_names.contains(parameter_name) {

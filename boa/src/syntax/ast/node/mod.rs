@@ -448,8 +448,8 @@ impl FormalParameter {
     }
 
     /// Get the declaration of the formal parameter
-    pub fn declaration(&self) -> Declaration {
-        self.declaration.clone()
+    pub fn declaration(&self) -> &Declaration {
+        &self.declaration
     }
 
     /// Gets the initialization node of the formal parameter, if any.
