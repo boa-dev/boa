@@ -55,6 +55,8 @@
             .show();
         });
 
+      let versionList = [];
+
       for (let rel of data) {
         let [version, tag] = getRefTag(rel.tag_name);
 
@@ -65,15 +67,54 @@
 
         fetch(`./refs/tags/${tag}/latest.json`)
           .then((response) => response.json())
-          .then((data) => {
-            latest[rel.tag_name] = data;
+          .then((reldata) => {
+            latest[rel.tag_name] = reldata;
 
             if (rel.tag_name == latestTag) {
               let container = $("#version-latest .card-body");
               container.append(infoLink(rel.tag_name));
+              return;
             }
 
-            // TODO: add version history.
+            let dataHTML = `<span class="text-success">${formatter.format(
+              reldata.r.o
+            )}</span>`;
+            dataHTML += ` / <span class="text-warning">${formatter.format(
+              reldata.r.i
+            )}</span>`;
+            dataHTML += ` / <span class="text-danger">${formatter.format(
+              reldata.r.c - reldata.r.o - reldata.r.i
+            )}${reldata.r.p !== 0
+              ? ` (${formatter.format(
+                reldata.r.p
+              )} <i class="bi-exclamation-triangle"></i>)`
+              : ""
+              }</span>`;
+
+            let html = $(`<li class="list-group-item"><b>${tag}</b> ${dataHTML}</li>`);
+            html.append(infoLink(rel.tag_name, reldata));
+            versionList.push({ tag, html });
+            //   .append(createGeneralInfo(data));
+
+            // if (typeof latest[latestTag] !== "undefined") {
+            //   innerContainer.append();
+            // }
+
+            if (versionList.length === data.length - 11) {
+              versionList.sort((a, b) => a.tag > b.tag ? -1 : 1);
+
+              let versionListHTML = $('<ul class="list-group list-group-flush"></ul>');
+              for (version of versionList) {
+                versionListHTML.append(version.html);
+              }
+
+              $("#old-versions")
+                .append($('<div class="card"></div>')
+                  .append($('<div class="card-body"></div>')
+                    .append($(`<h2>Older versions</h2>`))
+                    .append(versionListHTML)))
+                .show();
+            }
           });
       }
     });
@@ -102,7 +143,7 @@
   function showData(data, infoIcon) {
     let infoContainer = $("#info");
     $(infoIcon).attr("class", "spinner-border text-primary small")
-    
+
     setTimeout(
       function () {
         infoContainer.empty();
@@ -190,13 +231,12 @@
       )}</span>`;
       dataHTML += ` / <span class="text-danger">${formatter.format(
         suite.c - suite.o - suite.i
-      )}${
-        suite.p !== 0
-          ? ` (${formatter.format(
-              suite.p
-            )} <i class="bi-exclamation-triangle"></i>)`
-          : ""
-      }</span>`;
+      )}${suite.p !== 0
+        ? ` (${formatter.format(
+          suite.p
+        )} <i class="bi-exclamation-triangle"></i>)`
+        : ""
+        }</span>`;
       dataHTML += ` / <span>${formatter.format(suite.c)}</span>`;
       info.append($('<span class="data-overview"></span>').html(dataHTML));
 
@@ -300,19 +340,17 @@
         $('<li class="list-group-item"></li>').html(
           `Failed tests: <span class="text-danger">${formatter.format(
             latest.t - latest.o - latest.i
-          )}${
-            latest.p !== 0
-              ? ` (${formatter.format(
-                  latest.p
-                )} <i class="bi-exclamation-triangle"></i>)`
-              : ""
+          )}${latest.p !== 0
+            ? ` (${formatter.format(
+              latest.p
+            )} <i class="bi-exclamation-triangle"></i>)`
+            : ""
           }</span>`
         )
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Conformance: <b>${
-            Math.round((10000 * latest.o) / latest.t) / 100
+          `Conformance: <b>${Math.round((10000 * latest.o) / latest.t) / 100
           }%</b>`
         )
       );
