@@ -13,7 +13,7 @@ jobs:
     name: Check on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -36,7 +36,7 @@ jobs:
     name: Check on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -56,7 +56,7 @@ jobs:
     name: Check on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -71,7 +71,7 @@ jobs:
     name: Test Suite on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -100,7 +100,7 @@ jobs:
     name: Test VM on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -123,7 +123,7 @@ jobs:
     name: Test Suite on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -143,7 +143,7 @@ jobs:
     name: Test Suite on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -158,7 +158,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -174,7 +174,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -198,7 +198,7 @@ jobs:
     name: Examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -227,7 +227,7 @@ jobs:
     name: Documentation check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
