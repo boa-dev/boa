@@ -9,6 +9,13 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+/// The `async function*` keyword can be used to define a generator function inside an expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
+
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncGeneratorExpr {

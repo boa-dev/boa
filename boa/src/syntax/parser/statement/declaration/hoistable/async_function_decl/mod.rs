@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::AsyncFunctionDecl, Keyword},
+    ast::node::AsyncFunctionDecl,
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
