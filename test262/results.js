@@ -1,4 +1,5 @@
 "use strict";
+
 (function () {
   let latest = {};
   let mainData = [];
@@ -36,6 +37,7 @@
   fetch("https://api.github.com/repos/boa-dev/boa/releases")
     .then((response) => response.json())
     .then((data) => {
+      data.sort((a, b) => compareVersions(a.tag_name, b.tag_name) * -1);
       let latestTag = data[0].tag_name;
 
       // We set the latest version.
@@ -47,13 +49,15 @@
             .append(createGeneralInfo(data));
 
           if (typeof latest[latestTag] !== "undefined") {
-            innerContainer.append(infoLink(latestTag, data));
+            innerContainer.append(infoLink(latestTag));
           }
 
           $("#version-latest")
             .append($('<div class="card"></div>').append(innerContainer))
             .show();
         });
+
+      let versionList = [];
 
       for (let rel of data) {
         let [version, tag] = getRefTag(rel.tag_name);
@@ -65,31 +69,93 @@
 
         fetch(`./refs/tags/${tag}/latest.json`)
           .then((response) => response.json())
-          .then((data) => {
-            latest[rel.tag_name] = data;
+          .then((reldata) => {
+            latest[rel.tag_name] = reldata;
 
             if (rel.tag_name == latestTag) {
               let container = $("#version-latest .card-body");
               container.append(infoLink(rel.tag_name));
+              return;
             }
 
-            // TODO: add version history.
+            let dataHTML =
+              '<span class="position-absolute top-50 start-50 translate-middle">';
+            dataHTML += `<span class="text-success">${formatter.format(
+              reldata.r.o
+            )}</span>`;
+            dataHTML += ` / <span class="text-warning">${formatter.format(
+              reldata.r.i
+            )}</span>`;
+            dataHTML += ` / <span class="text-danger">${formatter.format(
+              reldata.r.c - reldata.r.o - reldata.r.i
+            )}${
+              reldata.r.p !== 0
+                ? ` (${formatter.format(
+                    reldata.r.p
+                  )} <i class="bi-exclamation-triangle"></i>)`
+                : ""
+            }</span>`;
+            console.log(reldata.r);
+            dataHTML += ` / <b>${formatter.format(
+              Math.round((10000 * reldata.r.o) / reldata.r.c) / 100
+            )}%</b></span>`;
+
+            var tagHTML = `<b class="position-absolute top-50 start-0 translate-middle-y">${tag}</b>`;
+
+            let html = $(
+              `<li class="list-group-item position-relative">${tagHTML}${dataHTML}</li>`
+            );
+            html.append(
+              infoLink(
+                rel.tag_name,
+                "position-absolute top-50 end-0 translate-middle-y"
+              )
+            );
+            versionList.push({ tag, html });
+            //   .append(createGeneralInfo(data));
+
+            // if (typeof latest[latestTag] !== "undefined") {
+            //   innerContainer.append();
+            // }
+
+            if (versionList.length === data.length - 11) {
+              versionList.sort((a, b) => compareVersions(a.tag, b.tag) * -1);
+
+              let versionListHTML = $(
+                '<ul class="list-group list-group-flush"></ul>'
+              );
+              for (version of versionList) {
+                versionListHTML.append(version.html);
+              }
+
+              $("#old-versions")
+                .append(
+                  $('<div class="card"></div>').append(
+                    $('<div class="card-body"></div>')
+                      .append($(`<h2>Older versions</h2>`))
+                      .append(versionListHTML)
+                  )
+                )
+                .show();
+            }
           });
       }
     });
 
   // Creates a link to show the information about a particular tag / branch
-  function infoLink(tag, data) {
-    let container = $('<div class="info-link"></div>');
+  function infoLink(tag, extraClass) {
+    let container = $(
+      `<div class="info-link${extraClass ? " " + extraClass : ""}"></div>`
+    );
 
     if (tag === "main") {
       container.append(createHistoricalGraph());
     }
 
     container.append(
-      $('<a class="card-link" href="#"></a>')
+      $('<a class="card-link"></a>')
         .append($('<i class="bi-info-square"></i>'))
-        .click((e) => {
+        .on("click", (e) => {
           let data = latest[tag];
           showData(data, e.target);
         })
@@ -101,8 +167,8 @@
   // Shows the full test data.
   function showData(data, infoIcon) {
     let infoContainer = $("#info");
-    $(infoIcon).attr("class", "spinner-border text-primary small")
-    
+    $(infoIcon).attr("class", "spinner-border text-primary small");
+
     setTimeout(
       function () {
         infoContainer.empty();
@@ -158,7 +224,7 @@
           addSuite(infoContainer, suite, "info", "test/" + suite.n, data.u);
         }
         infoContainer.collapse("show");
-        $(infoIcon).attr("class", "bi-info-square")
+        $(infoIcon).attr("class", "bi-info-square");
       },
       infoContainer.hasClass("show") ? 500 : 0
     );
@@ -420,3 +486,39 @@
     return [version, tag];
   }
 })();
+
+function compareVersions(a, b) {
+  a = splitVersion(a);
+  b = splitVersion(b);
+
+  if (a[0] > b[0]) {
+    return 1;
+  } else if (b[0] > a[0]) {
+    return -1;
+  } else if (a[1] > b[1]) {
+    return 1;
+  } else if (b[1] > a[1]) {
+    return -1;
+  } else if (a[2] > b[2]) {
+    return 1;
+  } else if (b[2] > a[2]) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+
+function splitVersion(ver) {
+  ver = ver[0] === "v" ? ver.slice(1) : ver;
+  ver = ver.split(".").map((x) => parseInt(x));
+
+  if (ver.length === 1) {
+    ver.push(0);
+  }
+
+  if (ver.length === 2) {
+    ver.push(0);
+  }
+
+  return ver;
+}
