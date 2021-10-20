@@ -43,17 +43,6 @@ fn fmt() {
         };
         let a = 10;
         tag`result: ${a} \x26 ${a + 10}`;
-        
-        #target#
-        function tag(Identifier { ident: Identifier { ident: "t" }, init: None }, ...Identifier { ident: Identifier { ident: "args" }, init: None }) {
-            let a = [];
-            a = a.concat([t[0], t[1], t[2]]);
-            a = a.concat([t.raw[0], t.raw[1], t.raw[2]]);
-            a = a.concat([args[0], args[1]]);
-            return a;
-        };
-        let a = 10;
-        tag`result: ${a} \x26 ${a + 10}`;
         "#,
     );
 }

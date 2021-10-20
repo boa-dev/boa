@@ -491,7 +491,7 @@ impl Display for FormalParameter {
         if self.is_rest_param {
             write!(f, "...")?;
         }
-        write!(f, "{:?}", self.declaration)?;
+        write!(f, "{}", self.declaration)?;
         Ok(())
     }
 }
@@ -723,60 +723,23 @@ unsafe impl Trace for PropertyName {
 /// are using different indents in their source files. This fixes
 /// any strings which may have been changed in a different indent
 /// level.
+
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
     // Remove preceding newline.
-    let mut source = &source[1..];
-
-    let target_idx = source.find("#target#");
-    let target = match target_idx {
-        None => "".to_owned(),
-        Some(x) => {
-            let target_src = &source[(x + 9)..];
-            source = &source[..(x)];
-
-            let first_line = &target_src[..target_src.find('\n').unwrap()];
-            let trimmed_first_line = first_line.trim();
-            let characters_to_remove = first_line.len() - trimmed_first_line.len();
-            let target = target_src
-                .lines()
-                .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-                .collect::<Vec<&'static str>>()
-                .join("\n");
-
-            target
-        }
-    };
+    let source = &source[1..];
 
     // Find out how much the code is indented
     let first_line = &source[..source.find('\n').unwrap()];
     let trimmed_first_line = first_line.trim();
     let characters_to_remove = first_line.len() - trimmed_first_line.len();
 
-    let scenario = match target.is_empty() {
-        true => {
-            source
-                .lines()
-                .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-                .collect::<Vec<&'static str>>()
-                .join("\n")
-        }
-        false => target,
-    };
-
-    let result = format!(
-        "{}",
-        crate::parse(
-            &(source
-                .lines()
-                .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
-                .collect::<Vec<&'static str>>()
-                .join("\n")),
-            false
-        )
-        .unwrap()
-    );
-
+    let scenario = source
+        .lines()
+        .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+        .collect::<Vec<&'static str>>()
+        .join("\n");
+    let result = format!("{}", crate::parse(&scenario, false).unwrap());
     if scenario != result {
         eprint!("========= Expected:\n{}", scenario);
         eprint!("========= Got:\n{}", result);

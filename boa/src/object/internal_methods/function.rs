@@ -204,11 +204,7 @@ pub(super) fn call_construct(
                                 Arguments::create_unmapped_arguments_object(args, context)
                             } else {
                                 Arguments::create_mapped_arguments_object(
-                                    obj,
-                                    params.to_vec(),
-                                    args,
-                                    &local_env,
-                                    context,
+                                    obj, params, args, &local_env, context,
                                 )
                             };
                         local_env.create_mutable_binding("arguments", false, true, context)?;

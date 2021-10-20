@@ -110,7 +110,7 @@ impl Arguments {
     /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
     pub(crate) fn create_mapped_arguments_object(
         func: &JsObject,
-        formals: Vec<FormalParameter>,
+        formals: &[FormalParameter],
         arguments_list: &[JsValue],
         env: &Environment,
         context: &mut Context,
