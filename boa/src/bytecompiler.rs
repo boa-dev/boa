@@ -1035,12 +1035,7 @@ impl ByteCompiler {
                 let access = Access::Variable { index };
                 self.access_set(access, None, false);
             }
-            FunctionKind::Expression => {
-                if !use_expr {
-                    self.emit(Opcode::Dup, &[]);
-                }
-            }
-            FunctionKind::Arrow => {
+            FunctionKind::Expression | FunctionKind::Arrow => {
                 if !use_expr {
                     self.emit(Opcode::Pop, &[]);
                 }

@@ -458,7 +458,7 @@ pub enum Opcode {
 
     /// Sets a getter property by name of an object.
     ///
-    /// Like `object.name = value`
+    /// Like `get name() value`
     ///
     /// Operands: name_index: `u32`
     ///
@@ -467,7 +467,7 @@ pub enum Opcode {
 
     /// Sets a getter property by value of an object.
     ///
-    /// Like `object[key] = value`
+    /// Like `get [key]() value`
     ///
     /// Operands:
     ///
@@ -476,7 +476,7 @@ pub enum Opcode {
 
     /// Sets a setter property by name of an object.
     ///
-    /// Like `object.name = value`
+    /// Like `set name() value`
     ///
     /// Operands: name_index: `u32`
     ///
@@ -485,7 +485,7 @@ pub enum Opcode {
 
     /// Sets a setter property by value of an object.
     ///
-    /// Like `object[key] = value`
+    /// Like `set [key]() value`
     ///
     /// Operands:
     ///
