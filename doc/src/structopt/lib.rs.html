@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;structopt-0.3.23&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../structopt/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;structopt-0.3.25&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../structopt/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1214,6 +1214,18 @@
 <span id="1214">1214</span>
 <span id="1215">1215</span>
 <span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2018 Guillaume Pinot (@TeXitoi) &lt;texitoi@texitoi.eu&gt;</span>
 <span class="comment">//</span>
@@ -1277,7 +1289,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! First, let&#39;s look at the example:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```should_panic</span>
+<span class="doccomment">//! ```</span>
 <span class="doccomment">//! use std::path::PathBuf;</span>
 <span class="doccomment">//! use structopt::StructOpt;</span>
 <span class="doccomment">//!</span>
@@ -1312,7 +1324,10 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
+<span class="doccomment">//! #   /*</span>
 <span class="doccomment">//!     let opt = Opt::from_args();</span>
+<span class="doccomment">//! #   */</span>
+<span class="doccomment">//! #   let opt = Opt::from_iter(&amp;[&quot;binary&quot;, &quot;-o&quot;, &quot;stdout&quot;, &quot;input&quot;]);</span>
 <span class="doccomment">//!     println!(&quot;{:?}&quot;, opt);</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
@@ -1351,13 +1366,17 @@
 <span class="doccomment">//!     They are what used to be explicit `#[structopt(raw(...))]` attrs in pre-0.3 `structopt`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Every `structopt attribute` looks like comma-separated sequence of methods:</span>
-<span class="doccomment">//! ```rust,ignore</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! # #[derive(structopt::StructOpt)] struct S {</span>
+<span class="doccomment">//! #</span>
 <span class="doccomment">//! #[structopt(</span>
 <span class="doccomment">//!     short, // method with no arguments - always magical</span>
 <span class="doccomment">//!     long = &quot;--long-option&quot;, // method with one argument</span>
 <span class="doccomment">//!     required_if(&quot;out&quot;, &quot;file&quot;), // method with one and more args</span>
 <span class="doccomment">//!     parse(from_os_str = path::to::parser) // some magical methods have their own syntax</span>
 <span class="doccomment">//! )]</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # s: () } mod path { pub(crate) mod to { pub(crate) fn parser(_: &amp;std::ffi::OsStr) {} }}</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `#[structopt(...)]` attributes can be placed on top of `struct`, `enum`,</span>
@@ -1391,11 +1410,15 @@
 <span class="doccomment">//! They are the reason why `structopt` is so flexible. **Every and each method from</span>
 <span class="doccomment">//! `clap::App/Arg` can be used this way!**</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```ignore</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! # #[derive(structopt::StructOpt)] struct S {</span>
+<span class="doccomment">//! #</span>
 <span class="doccomment">//! #[structopt(</span>
 <span class="doccomment">//!     global = true, // name = arg form, neat for one-arg methods</span>
 <span class="doccomment">//!     required_if(&quot;out&quot;, &quot;file&quot;) // name(arg1, arg2, ...) form.</span>
 <span class="doccomment">//! )]</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # s: String }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The first form can only be used for methods which take only one argument.</span>
@@ -1652,7 +1675,6 @@
 <span class="doccomment">//!     /// for its type (in this case 0).</span>
 <span class="doccomment">//!     #[structopt(skip)]</span>
 <span class="doccomment">//!     skipped: u32,</span>
-<span class="doccomment">//!</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Opt::from_iter(</span>
@@ -1669,7 +1691,7 @@
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! struct Opt {</span>
 <span class="doccomment">//!     #[structopt(default_value = &quot;&quot;, long)]</span>
-<span class="doccomment">//!     prefix: String</span>
+<span class="doccomment">//!     prefix: String,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1691,7 +1713,7 @@
 <span class="doccomment">//! struct Opt {</span>
 <span class="doccomment">//!     // just leave the `= &quot;...&quot;` part and structopt will figure it for you</span>
 <span class="doccomment">//!     #[structopt(default_value, long)]</span>
-<span class="doccomment">//!     prefix: String // `String` implements both `Default` and `ToString`</span>
+<span class="doccomment">//!     prefix: String, // `String` implements both `Default` and `ToString`</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1716,8 +1738,8 @@
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! #[structopt(about = &quot;I am a program and I work, just pass `-h`&quot;)]</span>
 <span class="doccomment">//! struct Foo {</span>
-<span class="doccomment">//!   #[structopt(short, help = &quot;Pass `-h` and you&#39;ll see me!&quot;)]</span>
-<span class="doccomment">//!   bar: String</span>
+<span class="doccomment">//!     #[structopt(short, help = &quot;Pass `-h` and you&#39;ll see me!&quot;)]</span>
+<span class="doccomment">//!     bar: String,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1730,8 +1752,8 @@
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! /// I am a program and I work, just pass `-h`</span>
 <span class="doccomment">//! struct Foo {</span>
-<span class="doccomment">//!   /// Pass `-h` and you&#39;ll see me!</span>
-<span class="doccomment">//!   bar: String</span>
+<span class="doccomment">//!     /// Pass `-h` and you&#39;ll see me!</span>
+<span class="doccomment">//!     bar: String,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1772,7 +1794,7 @@
 <span class="doccomment">//!     /// until I&#39;ll have destroyed humanity. Enjoy your</span>
 <span class="doccomment">//!     /// pathetic existence, you mere mortals.</span>
 <span class="doccomment">//!     #[structopt(long)]</span>
-<span class="doccomment">//!     kill_all_humans: bool</span>
+<span class="doccomment">//!     kill_all_humans: bool,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1849,7 +1871,7 @@
 <span class="doccomment">//! Also, `structopt` will *still* remove leading and trailing blank lines so</span>
 <span class="doccomment">//! these formats are equivalent:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```ignore</span>
+<span class="doccomment">//! ```</span>
 <span class="doccomment">//! /** This is a doc comment</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Hello! */</span>
@@ -1863,6 +1885,8 @@
 <span class="doccomment">//! /// This is a doc comment</span>
 <span class="doccomment">//! ///</span>
 <span class="doccomment">//! /// Hello!</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # mod m {}</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! ______________</span>
 <span class="doccomment">//!</span>
@@ -1882,8 +1906,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! struct Foo {</span>
-<span class="doccomment">//!   #[structopt(short, long, env = &quot;PARAMETER_VALUE&quot;)]</span>
-<span class="doccomment">//!   parameter_value: String</span>
+<span class="doccomment">//!     #[structopt(short, long, env = &quot;PARAMETER_VALUE&quot;)]</span>
+<span class="doccomment">//!     parameter_value: String,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1905,8 +1929,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! struct Foo {</span>
-<span class="doccomment">//!   #[structopt(long = &quot;secret&quot;, env = &quot;SECRET_VALUE&quot;, hide_env_values = true)]</span>
-<span class="doccomment">//!   secret_value: String</span>
+<span class="doccomment">//!     #[structopt(long = &quot;secret&quot;, env = &quot;SECRET_VALUE&quot;, hide_env_values = true)]</span>
+<span class="doccomment">//!     secret_value: String,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1924,8 +1948,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! struct Foo {</span>
-<span class="doccomment">//!   #[structopt(long = &quot;secret&quot;, env)]</span>
-<span class="doccomment">//!   secret_value: String</span>
+<span class="doccomment">//!     #[structopt(long = &quot;secret&quot;, env)]</span>
+<span class="doccomment">//!     secret_value: String,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -1991,21 +2015,21 @@
 <span class="doccomment">//!         #[structopt(short)]</span>
 <span class="doccomment">//!         patch: bool,</span>
 <span class="doccomment">//!         #[structopt(parse(from_os_str))]</span>
-<span class="doccomment">//!         files: Vec&lt;PathBuf&gt;</span>
+<span class="doccomment">//!         files: Vec&lt;PathBuf&gt;,</span>
 <span class="doccomment">//!     },</span>
 <span class="doccomment">//!     Fetch {</span>
 <span class="doccomment">//!         #[structopt(long)]</span>
 <span class="doccomment">//!         dry_run: bool,</span>
 <span class="doccomment">//!         #[structopt(long)]</span>
 <span class="doccomment">//!         all: bool,</span>
-<span class="doccomment">//!         repository: Option&lt;String&gt;</span>
+<span class="doccomment">//!         repository: Option&lt;String&gt;,</span>
 <span class="doccomment">//!     },</span>
 <span class="doccomment">//!     Commit {</span>
 <span class="doccomment">//!         #[structopt(short)]</span>
 <span class="doccomment">//!         message: Option&lt;String&gt;,</span>
 <span class="doccomment">//!         #[structopt(short)]</span>
-<span class="doccomment">//!         all: bool</span>
-<span class="doccomment">//!     }</span>
+<span class="doccomment">//!         all: bool,</span>
+<span class="doccomment">//!     },</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -2024,22 +2048,22 @@
 <span class="doccomment">//!     supervising_faerie: String,</span>
 <span class="doccomment">//!     /// The faerie tree this cookie is being made in.</span>
 <span class="doccomment">//!     tree: Option&lt;String&gt;,</span>
-<span class="doccomment">//!     #[structopt(subcommand)]  // Note that we mark a field as a subcommand</span>
-<span class="doccomment">//!     cmd: Command</span>
+<span class="doccomment">//!     #[structopt(subcommand)] // Note that we mark a field as a subcommand</span>
+<span class="doccomment">//!     cmd: Command,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! enum Command {</span>
 <span class="doccomment">//!     /// Pound acorns into flour for cookie dough.</span>
 <span class="doccomment">//!     Pound {</span>
-<span class="doccomment">//!         acorns: u32</span>
+<span class="doccomment">//!         acorns: u32,</span>
 <span class="doccomment">//!     },</span>
 <span class="doccomment">//!     /// Add magical sparkles -- the secret ingredient!</span>
 <span class="doccomment">//!     Sparkle {</span>
 <span class="doccomment">//!         #[structopt(short, parse(from_occurrences))]</span>
 <span class="doccomment">//!         magicality: u64,</span>
 <span class="doccomment">//!         #[structopt(short)]</span>
-<span class="doccomment">//!         color: String</span>
+<span class="doccomment">//!         color: String,</span>
 <span class="doccomment">//!     },</span>
 <span class="doccomment">//!     Finish(Finish),</span>
 <span class="doccomment">//! }</span>
@@ -2049,19 +2073,19 @@
 <span class="doccomment">//! struct Finish {</span>
 <span class="doccomment">//!     #[structopt(short)]</span>
 <span class="doccomment">//!     time: u32,</span>
-<span class="doccomment">//!     #[structopt(subcommand)]  // Note that we mark a field as a subcommand</span>
-<span class="doccomment">//!     finish_type: FinishType</span>
+<span class="doccomment">//!     #[structopt(subcommand)] // Note that we mark a field as a subcommand</span>
+<span class="doccomment">//!     finish_type: FinishType,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // subsubcommand!</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! enum FinishType {</span>
 <span class="doccomment">//!     Glaze {</span>
-<span class="doccomment">//!         applications: u32</span>
+<span class="doccomment">//!         applications: u32,</span>
 <span class="doccomment">//!     },</span>
 <span class="doccomment">//!     Powder {</span>
 <span class="doccomment">//!         flavor: String,</span>
-<span class="doccomment">//!         dips: u32</span>
+<span class="doccomment">//!         dips: u32,</span>
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
@@ -2085,14 +2109,14 @@
 <span class="doccomment">//! struct Foo {</span>
 <span class="doccomment">//!     file: String,</span>
 <span class="doccomment">//!     #[structopt(subcommand)]</span>
-<span class="doccomment">//!     cmd: Option&lt;Command&gt;</span>
+<span class="doccomment">//!     cmd: Option&lt;Command&gt;,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
 <span class="doccomment">//! enum Command {</span>
 <span class="doccomment">//!     Bar,</span>
 <span class="doccomment">//!     Baz,</span>
-<span class="doccomment">//!     Quux</span>
+<span class="doccomment">//!     Quux,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -2170,7 +2194,7 @@
 <span class="doccomment">//!     BaseCli(BaseCli),</span>
 <span class="doccomment">//!     Dex {</span>
 <span class="doccomment">//!         arg2: i32,</span>
-<span class="doccomment">//!     }</span>
+<span class="doccomment">//!     },</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -2285,10 +2309,10 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // a struct with single custom argument</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
-<span class="doccomment">//! struct GenericArgs&lt;T:FromStr&gt; where &lt;T as FromStr&gt;::Err: fmt::Display + fmt::Debug {</span>
+<span class="doccomment">//! struct GenericArgs&lt;T: FromStr&gt; where &lt;T as FromStr&gt;::Err: fmt::Display + fmt::Debug {</span>
 <span class="doccomment">//!     generic_arg_1: String,</span>
 <span class="doccomment">//!     generic_arg_2: String,</span>
-<span class="doccomment">//!     custom_arg_1: T</span>
+<span class="doccomment">//!     custom_arg_1: T,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -2298,11 +2322,11 @@
 <span class="doccomment">//! # use structopt::StructOpt;</span>
 <span class="doccomment">//! // a struct with multiple custom arguments in a substructure</span>
 <span class="doccomment">//! #[derive(StructOpt)]</span>
-<span class="doccomment">//! struct GenericArgs&lt;T:StructOpt&gt; {</span>
+<span class="doccomment">//! struct GenericArgs&lt;T: StructOpt&gt; {</span>
 <span class="doccomment">//!     generic_arg_1: String,</span>
 <span class="doccomment">//!     generic_arg_2: String,</span>
 <span class="doccomment">//!     #[structopt(flatten)]</span>
-<span class="doccomment">//!     custom_args: T</span>
+<span class="doccomment">//!     custom_args: T,</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 
