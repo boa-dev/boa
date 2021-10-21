@@ -3,7 +3,10 @@ use gc::Gc;
 use crate::{
     builtins::function::ThisMode,
     syntax::ast::{
-        node::{Declaration, GetConstField, GetField, StatementList},
+        node::{
+            Declaration, GetConstField, GetField, MethodDefinitionKind, PropertyDefinition,
+            PropertyName, StatementList,
+        },
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
     },
@@ -67,19 +70,19 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn get_or_insert_literal(&mut self, liternal: Literal) -> u32 {
-        if let Some(index) = self.literals_map.get(&liternal) {
+    fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
+        if let Some(index) = self.literals_map.get(&literal) {
             return *index;
         }
 
-        let value = match liternal.clone() {
+        let value = match literal.clone() {
             Literal::String(value) => JsValue::new(value),
             Literal::BigInt(value) => JsValue::new(value),
         };
 
         let index = self.code_block.literals.len() as u32;
         self.code_block.literals.push(value);
-        self.literals_map.insert(liternal, index);
+        self.literals_map.insert(literal, index);
         index
     }
 
@@ -153,8 +156,8 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn emit_push_literal(&mut self, liternal: Literal) {
-        let index = self.get_or_insert_literal(liternal);
+    fn emit_push_literal(&mut self, literal: Literal) {
+        let index = self.get_or_insert_literal(literal);
         self.emit(Opcode::PushLiteral, &[index]);
     }
 
@@ -583,10 +586,97 @@ impl ByteCompiler {
                 }
             }
             Node::Object(object) => {
-                if object.properties().is_empty() {
-                    self.emit(Opcode::PushEmptyObject, &[]);
-                } else {
-                    todo!("object literal with properties");
+                self.emit_opcode(Opcode::PushEmptyObject);
+                for property in object.properties() {
+                    self.emit_opcode(Opcode::Dup);
+                    match property {
+                        PropertyDefinition::IdentifierReference(identifier_reference) => {
+                            let index = self.get_or_insert_name(identifier_reference);
+                            self.emit(Opcode::SetPropertyByName, &[index]);
+                        }
+                        PropertyDefinition::Property(name, node) => {
+                            self.compile_stmt(node, true);
+                            self.emit_opcode(Opcode::Swap);
+                            match name {
+                                PropertyName::Literal(name) => {
+                                    let index = self.get_or_insert_name(name);
+                                    self.emit(Opcode::SetPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true);
+                                    self.emit_opcode(Opcode::Swap);
+                                    self.emit_opcode(Opcode::SetPropertyByValue);
+                                }
+                            }
+                        }
+                        PropertyDefinition::MethodDefinition(kind, name, func) => {
+                            match kind {
+                                MethodDefinitionKind::Get => {
+                                    self.compile_stmt(&func.clone().into(), true);
+                                    self.emit_opcode(Opcode::Swap);
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            let index = self.get_or_insert_name(name);
+                                            self.emit(Opcode::SetPropertyGetterByName, &[index]);
+                                        }
+                                        PropertyName::Computed(name_node) => {
+                                            self.compile_stmt(name_node, true);
+                                            self.emit_opcode(Opcode::Swap);
+                                            self.emit_opcode(Opcode::SetPropertyGetterByValue);
+                                        }
+                                    }
+                                }
+                                MethodDefinitionKind::Set => {
+                                    self.compile_stmt(&func.clone().into(), true);
+                                    self.emit_opcode(Opcode::Swap);
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            let index = self.get_or_insert_name(name);
+                                            self.emit(Opcode::SetPropertySetterByName, &[index]);
+                                        }
+                                        PropertyName::Computed(name_node) => {
+                                            self.compile_stmt(name_node, true);
+                                            self.emit_opcode(Opcode::Swap);
+                                            self.emit_opcode(Opcode::SetPropertySetterByValue);
+                                        }
+                                    }
+                                }
+                                MethodDefinitionKind::Ordinary => {
+                                    self.compile_stmt(&func.clone().into(), true);
+                                    self.emit_opcode(Opcode::Swap);
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            let index = self.get_or_insert_name(name);
+                                            self.emit(Opcode::SetPropertyByName, &[index]);
+                                        }
+                                        PropertyName::Computed(name_node) => {
+                                            self.compile_stmt(name_node, true);
+                                            self.emit_opcode(Opcode::Swap);
+                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                        }
+                                    }
+                                }
+                                MethodDefinitionKind::Generator => {
+                                    // TODO: Implement generators
+                                    self.emit_opcode(Opcode::PushUndefined);
+                                    self.emit_opcode(Opcode::Swap);
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            let index = self.get_or_insert_name(name);
+                                            self.emit(Opcode::SetPropertyByName, &[index]);
+                                        }
+                                        PropertyName::Computed(name_node) => {
+                                            self.compile_stmt(name_node, true);
+                                            self.emit_opcode(Opcode::Swap);
+                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // TODO: Spread Object
+                        PropertyDefinition::SpreadObject(_) => todo!(),
+                    }
                 }
 
                 if !use_expr {
@@ -883,7 +973,7 @@ impl ByteCompiler {
             Arrow,
         }
 
-        let (kind, name, paramaters, body) = match function {
+        let (kind, name, parameters, body) = match function {
             Node::FunctionDecl(function) => (
                 FunctionKind::Declaration,
                 Some(function.name()),
@@ -905,7 +995,7 @@ impl ByteCompiler {
             _ => unreachable!(),
         };
 
-        let length = paramaters.len() as u32;
+        let length = parameters.len() as u32;
         let mut code = CodeBlock::new(name.unwrap_or("").into(), length, false, true);
 
         if let FunctionKind::Arrow = kind {
@@ -926,7 +1016,7 @@ impl ByteCompiler {
             compiler.compile_stmt(node, false);
         }
 
-        compiler.code_block.params = paramaters.to_owned().into_boxed_slice();
+        compiler.code_block.params = parameters.to_owned().into_boxed_slice();
 
         // TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn't
         compiler.emit(Opcode::PushUndefined, &[]);
@@ -945,12 +1035,7 @@ impl ByteCompiler {
                 let access = Access::Variable { index };
                 self.access_set(access, None, false);
             }
-            FunctionKind::Expression => {
-                if use_expr {
-                    self.emit(Opcode::Dup, &[]);
-                }
-            }
-            FunctionKind::Arrow => {
+            FunctionKind::Expression | FunctionKind::Arrow => {
                 if !use_expr {
                     self.emit(Opcode::Pop, &[]);
                 }
