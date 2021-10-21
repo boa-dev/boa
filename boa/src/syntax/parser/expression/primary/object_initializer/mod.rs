@@ -194,9 +194,13 @@ where
         }
 
         if cursor.next_if(Keyword::Async)?.is_some() {
+            cursor.peek_expect_no_lineterminator(0, "Async object methods")?;
+
+            let mul_check = cursor.next_if(Punctuator::Mul)?;
             let property_name =
                 PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            if cursor.next_if(Punctuator::Mul)?.is_some() {
+
+            if mul_check.is_some() {
                 // MethodDefinition[?Yield, ?Await] -> AsyncGeneratorMethod[?Yield, ?Await]
 
                 let params_start_position = cursor
