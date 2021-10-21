@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.23&#x2F;src&#x2F;error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.23&#x2F;src&#x2F;error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -394,8 +394,7 @@
 <span id="394">394</span>
 <span id="395">395</span>
 <span id="396">396</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="ident">libc::c_int</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">libc::c_int</span>;
 <span class="kw">use</span> <span class="ident">std::env::JoinPathsError</span>;
 <span class="kw">use</span> <span class="ident">std::error</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">NulError</span>};
@@ -435,7 +434,7 @@
     <span class="doccomment">/// safe to unwrap the return value. This API will change in the next major</span>
     <span class="doccomment">/// version.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_error</span>(<span class="ident">code</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="ident"><span class="kw">crate</span>::init</span>();
         <span class="kw">unsafe</span> {
             <span class="comment">// Note that whenever libgit2 returns an error any negative value</span>
             <span class="comment">// indicates that an error happened. Auxiliary information is</span>
@@ -495,36 +494,36 @@
     <span class="doccomment">/// doesn&#39;t convey anything in particular.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ErrorCode</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">raw_code</span>() {
-            <span class="ident">raw::GIT_OK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::GenericError</span>,
-            <span class="ident">raw::GIT_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::GenericError</span>,
-            <span class="ident">raw::GIT_ENOTFOUND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::NotFound</span>,
-            <span class="ident">raw::GIT_EEXISTS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Exists</span>,
-            <span class="ident">raw::GIT_EAMBIGUOUS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Ambiguous</span>,
-            <span class="ident">raw::GIT_EBUFS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::BufSize</span>,
-            <span class="ident">raw::GIT_EUSER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::User</span>,
-            <span class="ident">raw::GIT_EBAREREPO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::BareRepo</span>,
-            <span class="ident">raw::GIT_EUNBORNBRANCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::UnbornBranch</span>,
-            <span class="ident">raw::GIT_EUNMERGED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Unmerged</span>,
-            <span class="ident">raw::GIT_ENONFASTFORWARD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::NotFastForward</span>,
-            <span class="ident">raw::GIT_EINVALIDSPEC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::InvalidSpec</span>,
-            <span class="ident">raw::GIT_ECONFLICT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Conflict</span>,
-            <span class="ident">raw::GIT_ELOCKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Locked</span>,
-            <span class="ident">raw::GIT_EMODIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Modified</span>,
-            <span class="ident">raw::GIT_PASSTHROUGH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::GenericError</span>,
-            <span class="ident">raw::GIT_ITEROVER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::GenericError</span>,
-            <span class="ident">raw::GIT_EAUTH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Auth</span>,
-            <span class="ident">raw::GIT_ECERTIFICATE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Certificate</span>,
-            <span class="ident">raw::GIT_EAPPLIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Applied</span>,
-            <span class="ident">raw::GIT_EPEEL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Peel</span>,
-            <span class="ident">raw::GIT_EEOF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Eof</span>,
-            <span class="ident">raw::GIT_EINVALID</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Invalid</span>,
-            <span class="ident">raw::GIT_EUNCOMMITTED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Uncommitted</span>,
-            <span class="ident">raw::GIT_EDIRECTORY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::Directory</span>,
-            <span class="ident">raw::GIT_EMERGECONFLICT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::MergeConflict</span>,
-            <span class="ident">raw::GIT_EMISMATCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::HashsumMismatch</span>,
-            <span class="ident">raw::GIT_EINDEXDIRTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::IndexDirty</span>,
-            <span class="ident">raw::GIT_EAPPLYFAIL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::ApplyFail</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorCode::GenericError</span>,
+            <span class="ident">raw::GIT_OK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::GenericError</span>,
+            <span class="ident">raw::GIT_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::GenericError</span>,
+            <span class="ident">raw::GIT_ENOTFOUND</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::NotFound</span>,
+            <span class="ident">raw::GIT_EEXISTS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Exists</span>,
+            <span class="ident">raw::GIT_EAMBIGUOUS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Ambiguous</span>,
+            <span class="ident">raw::GIT_EBUFS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::BufSize</span>,
+            <span class="ident">raw::GIT_EUSER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::User</span>,
+            <span class="ident">raw::GIT_EBAREREPO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::BareRepo</span>,
+            <span class="ident">raw::GIT_EUNBORNBRANCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::UnbornBranch</span>,
+            <span class="ident">raw::GIT_EUNMERGED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Unmerged</span>,
+            <span class="ident">raw::GIT_ENONFASTFORWARD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::NotFastForward</span>,
+            <span class="ident">raw::GIT_EINVALIDSPEC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::InvalidSpec</span>,
+            <span class="ident">raw::GIT_ECONFLICT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Conflict</span>,
+            <span class="ident">raw::GIT_ELOCKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Locked</span>,
+            <span class="ident">raw::GIT_EMODIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Modified</span>,
+            <span class="ident">raw::GIT_PASSTHROUGH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::GenericError</span>,
+            <span class="ident">raw::GIT_ITEROVER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::GenericError</span>,
+            <span class="ident">raw::GIT_EAUTH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Auth</span>,
+            <span class="ident">raw::GIT_ECERTIFICATE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Certificate</span>,
+            <span class="ident">raw::GIT_EAPPLIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Applied</span>,
+            <span class="ident">raw::GIT_EPEEL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Peel</span>,
+            <span class="ident">raw::GIT_EEOF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Eof</span>,
+            <span class="ident">raw::GIT_EINVALID</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Invalid</span>,
+            <span class="ident">raw::GIT_EUNCOMMITTED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Uncommitted</span>,
+            <span class="ident">raw::GIT_EDIRECTORY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::Directory</span>,
+            <span class="ident">raw::GIT_EMERGECONFLICT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::MergeConflict</span>,
+            <span class="ident">raw::GIT_EMISMATCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::HashsumMismatch</span>,
+            <span class="ident">raw::GIT_EINDEXDIRTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::IndexDirty</span>,
+            <span class="ident">raw::GIT_EAPPLYFAIL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::ApplyFail</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorCode::GenericError</span>,
         }
     }
 
@@ -570,42 +569,42 @@
     <span class="doccomment">/// typically not directly actionable.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ErrorClass</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">raw_class</span>() {
-            <span class="ident">raw::GIT_ERROR_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::None</span>,
-            <span class="ident">raw::GIT_ERROR_NOMEMORY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::NoMemory</span>,
-            <span class="ident">raw::GIT_ERROR_OS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Os</span>,
-            <span class="ident">raw::GIT_ERROR_INVALID</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Invalid</span>,
-            <span class="ident">raw::GIT_ERROR_REFERENCE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Reference</span>,
-            <span class="ident">raw::GIT_ERROR_ZLIB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Zlib</span>,
-            <span class="ident">raw::GIT_ERROR_REPOSITORY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Repository</span>,
-            <span class="ident">raw::GIT_ERROR_CONFIG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Config</span>,
-            <span class="ident">raw::GIT_ERROR_REGEX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Regex</span>,
-            <span class="ident">raw::GIT_ERROR_ODB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Odb</span>,
-            <span class="ident">raw::GIT_ERROR_INDEX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Index</span>,
-            <span class="ident">raw::GIT_ERROR_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Object</span>,
-            <span class="ident">raw::GIT_ERROR_NET</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Net</span>,
-            <span class="ident">raw::GIT_ERROR_TAG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Tag</span>,
-            <span class="ident">raw::GIT_ERROR_TREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Tree</span>,
-            <span class="ident">raw::GIT_ERROR_INDEXER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Indexer</span>,
-            <span class="ident">raw::GIT_ERROR_SSL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Ssl</span>,
-            <span class="ident">raw::GIT_ERROR_SUBMODULE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Submodule</span>,
-            <span class="ident">raw::GIT_ERROR_THREAD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Thread</span>,
-            <span class="ident">raw::GIT_ERROR_STASH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Stash</span>,
-            <span class="ident">raw::GIT_ERROR_CHECKOUT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Checkout</span>,
-            <span class="ident">raw::GIT_ERROR_FETCHHEAD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::FetchHead</span>,
-            <span class="ident">raw::GIT_ERROR_MERGE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Merge</span>,
-            <span class="ident">raw::GIT_ERROR_SSH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Ssh</span>,
-            <span class="ident">raw::GIT_ERROR_FILTER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Filter</span>,
-            <span class="ident">raw::GIT_ERROR_REVERT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Revert</span>,
-            <span class="ident">raw::GIT_ERROR_CALLBACK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Callback</span>,
-            <span class="ident">raw::GIT_ERROR_CHERRYPICK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::CherryPick</span>,
-            <span class="ident">raw::GIT_ERROR_DESCRIBE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Describe</span>,
-            <span class="ident">raw::GIT_ERROR_REBASE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Rebase</span>,
-            <span class="ident">raw::GIT_ERROR_FILESYSTEM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Filesystem</span>,
-            <span class="ident">raw::GIT_ERROR_PATCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Patch</span>,
-            <span class="ident">raw::GIT_ERROR_WORKTREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Worktree</span>,
-            <span class="ident">raw::GIT_ERROR_SHA1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Sha1</span>,
-            <span class="ident">raw::GIT_ERROR_HTTP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::Http</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">super</span><span class="ident">::ErrorClass::None</span>,
+            <span class="ident">raw::GIT_ERROR_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::None</span>,
+            <span class="ident">raw::GIT_ERROR_NOMEMORY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::NoMemory</span>,
+            <span class="ident">raw::GIT_ERROR_OS</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Os</span>,
+            <span class="ident">raw::GIT_ERROR_INVALID</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Invalid</span>,
+            <span class="ident">raw::GIT_ERROR_REFERENCE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Reference</span>,
+            <span class="ident">raw::GIT_ERROR_ZLIB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Zlib</span>,
+            <span class="ident">raw::GIT_ERROR_REPOSITORY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Repository</span>,
+            <span class="ident">raw::GIT_ERROR_CONFIG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Config</span>,
+            <span class="ident">raw::GIT_ERROR_REGEX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Regex</span>,
+            <span class="ident">raw::GIT_ERROR_ODB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Odb</span>,
+            <span class="ident">raw::GIT_ERROR_INDEX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Index</span>,
+            <span class="ident">raw::GIT_ERROR_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Object</span>,
+            <span class="ident">raw::GIT_ERROR_NET</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Net</span>,
+            <span class="ident">raw::GIT_ERROR_TAG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Tag</span>,
+            <span class="ident">raw::GIT_ERROR_TREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Tree</span>,
+            <span class="ident">raw::GIT_ERROR_INDEXER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Indexer</span>,
+            <span class="ident">raw::GIT_ERROR_SSL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Ssl</span>,
+            <span class="ident">raw::GIT_ERROR_SUBMODULE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Submodule</span>,
+            <span class="ident">raw::GIT_ERROR_THREAD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Thread</span>,
+            <span class="ident">raw::GIT_ERROR_STASH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Stash</span>,
+            <span class="ident">raw::GIT_ERROR_CHECKOUT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Checkout</span>,
+            <span class="ident">raw::GIT_ERROR_FETCHHEAD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::FetchHead</span>,
+            <span class="ident">raw::GIT_ERROR_MERGE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Merge</span>,
+            <span class="ident">raw::GIT_ERROR_SSH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Ssh</span>,
+            <span class="ident">raw::GIT_ERROR_FILTER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Filter</span>,
+            <span class="ident">raw::GIT_ERROR_REVERT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Revert</span>,
+            <span class="ident">raw::GIT_ERROR_CALLBACK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Callback</span>,
+            <span class="ident">raw::GIT_ERROR_CHERRYPICK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::CherryPick</span>,
+            <span class="ident">raw::GIT_ERROR_DESCRIBE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Describe</span>,
+            <span class="ident">raw::GIT_ERROR_REBASE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Rebase</span>,
+            <span class="ident">raw::GIT_ERROR_FILESYSTEM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Filesystem</span>,
+            <span class="ident">raw::GIT_ERROR_PATCH</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Patch</span>,
+            <span class="ident">raw::GIT_ERROR_WORKTREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Worktree</span>,
+            <span class="ident">raw::GIT_ERROR_SHA1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Sha1</span>,
+            <span class="ident">raw::GIT_ERROR_HTTP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::Http</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">super</span>::ErrorClass::None</span>,
         }
     }
 
@@ -784,14 +783,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::repo_init</span>();
+        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
 
         <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_submodule</span>(<span class="string">&quot;does_not_exist&quot;</span>).<span class="ident">err</span>().<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">err</span>.<span class="ident">code</span>(), <span class="ident">ErrorCode::NotFound</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">err</span>.<span class="ident">class</span>(), <span class="ident">ErrorClass::Submodule</span>);
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

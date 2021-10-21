@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rayon-1.5.1&#x2F;src&#x2F;iter&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rayon/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rayon-1.5.1&#x2F;src&#x2F;iter&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rayon/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -3192,8 +3192,7 @@
 <span id="3192">3192</span>
 <span id="3193">3193</span>
 <span id="3194">3194</span>
-</pre><pre class="rust">
-<span class="doccomment">//! Traits for writing parallel programs using an iterator-style interface</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Traits for writing parallel programs using an iterator-style interface</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! You will rarely need to interact with this module directly unless you have</span>
 <span class="doccomment">//! need to name one of the iterator types.</span>
@@ -3274,8 +3273,8 @@
 <span class="doccomment">//! because `ParallelIterator` is **not object-safe**.</span>
 <span class="doccomment">//! (This keeps the implementation simpler and allows extra optimizations.)</span>
 
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::plumbing</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::private::Try</span>;
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::plumbing</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::private::Try</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">either::Either</span>;
 <span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="self">self</span>, <span class="ident">Ordering</span>};
 <span class="kw">use</span> <span class="ident">std::iter</span>::{<span class="ident">Product</span>, <span class="ident">Sum</span>};
@@ -3386,7 +3385,7 @@
 
 <span class="kw">mod</span> <span class="ident">step_by</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">step_by</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::step_by::StepBy</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::step_by::StepBy</span>;
 
 <span class="doccomment">/// `IntoParallelIterator` implements the conversion to a [`ParallelIterator`].</span>
 <span class="doccomment">///</span>
@@ -3398,7 +3397,7 @@
 <span class="doccomment">/// [`std::iter::IntoIterator`]: https://doc.rust-lang.org/std/iter/trait.IntoIterator.html</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoParallelIterator</span> {
     <span class="doccomment">/// The parallel iterator type that will be created.</span>
-    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// The type of item that the parallel iterator will produce.</span>
     <span class="kw">type</span> <span class="ident">Item</span>: <span class="ident">Send</span>;
@@ -3425,7 +3424,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`zip`]: trait.IndexedParallelIterator.html#method.zip</span>
-    <span class="kw">fn</span> <span class="ident">into_par_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span>;
+    <span class="kw">fn</span> <span class="ident">into_par_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span>;
 }
 
 <span class="doccomment">/// `IntoParallelRefIterator` implements the conversion to a</span>
@@ -3443,7 +3442,7 @@
 <span class="doccomment">/// [`IntoParallelIterator`]: trait.IntoParallelIterator.html</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoParallelRefIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The type of the parallel iterator that will be returned.</span>
-    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// The type of item that the parallel iterator will produce.</span>
     <span class="doccomment">/// This will typically be an `&amp;&#39;data T` reference type.</span>
@@ -3464,7 +3463,7 @@
     <span class="doccomment">/// assert!(v.par_iter().zip(&amp;v)</span>
     <span class="doccomment">///          .all(|(a, b)| std::ptr::eq(a, b)));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">par_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span>;
+    <span class="kw">fn</span> <span class="ident">par_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">I</span>: <span class="lifetime">&#39;data</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">IntoParallelRefIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">I</span>
@@ -3474,7 +3473,7 @@
     <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">I</span> <span class="kw">as</span> <span class="ident">IntoParallelIterator</span><span class="op">&gt;</span><span class="ident">::Iter</span>;
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">I</span> <span class="kw">as</span> <span class="ident">IntoParallelIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">par_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span> {
+    <span class="kw">fn</span> <span class="ident">par_iter</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span> {
         <span class="self">self</span>.<span class="ident">into_par_iter</span>()
     }
 }
@@ -3494,7 +3493,7 @@
 <span class="doccomment">/// [`IntoParallelIterator`]: trait.IntoParallelIterator.html</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoParallelRefMutIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The type of iterator that will be created.</span>
-    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// The type of item that will be produced; this is typically an</span>
     <span class="doccomment">/// `&amp;&#39;data mut T` reference.</span>
@@ -3511,7 +3510,7 @@
     <span class="doccomment">/// v.par_iter_mut().enumerate().for_each(|(i, x)| *x = i);</span>
     <span class="doccomment">/// assert_eq!(v, [0, 1, 2, 3, 4]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">par_iter_mut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span>;
+    <span class="kw">fn</span> <span class="ident">par_iter_mut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">I</span>: <span class="lifetime">&#39;data</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">IntoParallelRefMutIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">I</span>
@@ -3521,7 +3520,7 @@
     <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="ident">I</span> <span class="kw">as</span> <span class="ident">IntoParallelIterator</span><span class="op">&gt;</span><span class="ident">::Iter</span>;
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="ident">I</span> <span class="kw">as</span> <span class="ident">IntoParallelIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>;
 
-    <span class="kw">fn</span> <span class="ident">par_iter_mut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span> {
+    <span class="kw">fn</span> <span class="ident">par_iter_mut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span> {
         <span class="self">self</span>.<span class="ident">into_par_iter</span>()
     }
 }
@@ -3559,7 +3558,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">for_each</span><span class="op">&lt;</span><span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>)
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">for_each::for_each</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">op</span>)
     }
@@ -3589,7 +3588,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">for_each_with</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">op</span>: <span class="ident">OP</span>)
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
     {
         <span class="self">self</span>.<span class="ident">map_with</span>(<span class="ident">init</span>, <span class="ident">op</span>).<span class="ident">collect</span>()
@@ -3623,7 +3622,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">for_each_init</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">INIT</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">INIT</span>, <span class="ident">op</span>: <span class="ident">OP</span>)
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">INIT</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="self">self</span>.<span class="ident">map_init</span>(<span class="ident">init</span>, <span class="ident">op</span>).<span class="ident">collect</span>()
@@ -3651,7 +3650,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">try_for_each</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> {
@@ -3690,7 +3689,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">try_for_each_with</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
         <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
@@ -3732,7 +3731,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">try_for_each_init</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">INIT</span>, <span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">INIT</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">INIT</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
@@ -3778,7 +3777,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">map_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
         <span class="ident">Map::new</span>(<span class="self">self</span>, <span class="ident">map_op</span>)
@@ -3815,7 +3814,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">map_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">map_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapWith</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
@@ -3852,7 +3851,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">map_init</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">INIT</span>, <span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">INIT</span>, <span class="ident">map_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapInit</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">INIT</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">INIT</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
@@ -3948,7 +3947,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">inspect</span><span class="op">&lt;</span><span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">inspect_op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Inspect</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">OP</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">Inspect::new</span>(<span class="self">self</span>, <span class="ident">inspect_op</span>)
     }
@@ -3968,7 +3967,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">update</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">update_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Update</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">Update::new</span>(<span class="self">self</span>, <span class="ident">update_op</span>)
     }
@@ -3989,7 +3988,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">filter</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">filter_op</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">Filter::new</span>(<span class="self">self</span>, <span class="ident">filter_op</span>)
     }
@@ -4014,7 +4013,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">filter_map</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">filter_op</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FilterMap</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
         <span class="ident">FilterMap::new</span>(<span class="self">self</span>, <span class="ident">filter_op</span>)
@@ -4040,7 +4039,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">flat_map</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">PI</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">map_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FlatMap</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PI</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PI</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">PI</span>: <span class="ident">IntoParallelIterator</span>,
     {
         <span class="ident">FlatMap::new</span>(<span class="self">self</span>, <span class="ident">map_op</span>)
@@ -4086,7 +4085,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">flat_map_iter</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">SI</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">map_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FlatMapIter</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SI</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SI</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">SI</span>: <span class="ident">IntoIterator</span>,
         <span class="ident">SI::Item</span>: <span class="ident">Send</span>,
     {
@@ -4109,7 +4108,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">flatten</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Flatten</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">IntoParallelIterator</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">IntoParallelIterator</span>,
     {
         <span class="ident">Flatten::new</span>(<span class="self">self</span>)
     }
@@ -4132,8 +4131,8 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">flatten_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FlattenIter</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">IntoIterator</span>,
-        <span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">Send</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">IntoIterator</span>,
+        <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::Item</span>: <span class="ident">Send</span>,
     {
         <span class="ident">FlattenIter::new</span>(<span class="self">self</span>)
     }
@@ -4168,10 +4167,10 @@
     <span class="doccomment">/// produce a true identity.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [associative]: https://en.wikipedia.org/wiki/Associative_property</span>
-    <span class="kw">fn</span> <span class="ident">reduce</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">ID</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span>
+    <span class="kw">fn</span> <span class="ident">reduce</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">ID</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">reduce::reduce</span>(<span class="self">self</span>, <span class="ident">identity</span>, <span class="ident">op</span>)
     }
@@ -4202,9 +4201,9 @@
     <span class="doccomment">/// will be non-deterministic.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [associative]: https://en.wikipedia.org/wiki/Associative_property</span>
-    <span class="kw">fn</span> <span class="ident">reduce_with</span><span class="op">&lt;</span><span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">reduce_with</span><span class="op">&lt;</span><span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="kw">fn</span> <span class="ident">opt_fold</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="kw">move</span> <span class="op">|</span><span class="ident">opt_a</span>, <span class="ident">b</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">opt_a</span> {
@@ -4256,11 +4255,11 @@
     <span class="doccomment">/// // Or the squares might overflow before it even reaches `try_reduce`</span>
     <span class="doccomment">/// assert_eq!(sum_squares(1_000_000..1_000_001), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_reduce</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">OP</span>, <span class="ident">ID</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span>
+    <span class="kw">fn</span> <span class="ident">try_reduce</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">OP</span>, <span class="ident">ID</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">try_reduce::try_reduce</span>(<span class="self">self</span>, <span class="ident">identity</span>, <span class="ident">op</span>)
     }
@@ -4300,10 +4299,10 @@
     <span class="doccomment">///     .expect(&quot;Some value, since the iterator is not empty&quot;)</span>
     <span class="doccomment">///     .expect_err(&quot;not found&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">try_reduce_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_reduce_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">try_reduce_with::try_reduce_with</span>(<span class="self">self</span>, <span class="ident">op</span>)
     }
@@ -4443,7 +4442,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Fold</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Send</span>,
     {
@@ -4471,7 +4470,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">fold_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FoldWith</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
     {
         <span class="ident">FoldWith::new</span>(<span class="self">self</span>, <span class="ident">init</span>, <span class="ident">fold_op</span>)
@@ -4504,7 +4503,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">try_fold</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">R</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">identity</span>: <span class="ident">ID</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryFold</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">R</span>, <span class="ident">ID</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">ID</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
@@ -4531,7 +4530,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">try_fold_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TryFoldWith</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">R</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
@@ -4564,7 +4563,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">sum</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span>
     <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sum</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sum</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+        <span class="ident">S</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sum</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sum</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
     {
         <span class="ident">sum::sum</span>(<span class="self">self</span>)
     }
@@ -4597,7 +4596,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">product</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">P</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Product</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Product</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Product</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Product</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
     {
         <span class="ident">product::product</span>(<span class="self">self</span>)
     }
@@ -4625,9 +4624,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(b.par_iter().min(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">min</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">Ord</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Ord</span>,
     {
         <span class="self">self</span>.<span class="ident">reduce_with</span>(<span class="ident">cmp::min</span>)
     }
@@ -4649,9 +4648,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().min_by(|x, y| x.cmp(y)), Some(&amp;-3));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">min_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>, <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>,
+        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>,
     {
         <span class="kw">fn</span> <span class="ident">min</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
             <span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) {
@@ -4680,10 +4679,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().min_by_key(|x| x.abs()), Some(&amp;2));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">min_by_key</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">min_by_key</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>,
+        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>,
     {
         <span class="kw">fn</span> <span class="ident">key</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">K</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">K</span>, <span class="ident">T</span>) {
             <span class="kw">move</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">x</span>)
@@ -4723,9 +4722,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(b.par_iter().max(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">max</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">Ord</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Ord</span>,
     {
         <span class="self">self</span>.<span class="ident">reduce_with</span>(<span class="ident">cmp::max</span>)
     }
@@ -4747,9 +4746,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().max_by(|x, y| x.abs().cmp(&amp;y.abs())), Some(&amp;240));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">max_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">max_by</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>, <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>,
+        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>, <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>,
     {
         <span class="kw">fn</span> <span class="ident">max</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
             <span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) {
@@ -4778,10 +4777,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().max_by_key(|x| x.abs()), Some(&amp;34));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">max_by_key</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">max_by_key</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>,
+        <span class="ident">F</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>,
     {
         <span class="kw">fn</span> <span class="ident">key</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">K</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">K</span>, <span class="ident">T</span>) {
             <span class="kw">move</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">x</span>)
@@ -4816,7 +4815,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">chain</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">chain</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Chain</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">C::Iter</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">Chain::new</span>(<span class="self">self</span>, <span class="ident">chain</span>.<span class="ident">into_par_iter</span>())
     }
@@ -4844,9 +4843,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().find_any(|&amp;&amp;x| x == 100), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">find_any</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">find_any</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">find::find</span>(<span class="self">self</span>, <span class="ident">predicate</span>)
     }
@@ -4874,9 +4873,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().find_first(|&amp;&amp;x| x == 100), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">find_first</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">find_first</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">find_first_last::find_first</span>(<span class="self">self</span>, <span class="ident">predicate</span>)
     }
@@ -4903,9 +4902,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(a.par_iter().find_last(|&amp;&amp;x| x == 100), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">find_last</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">find_last</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">find_first_last::find_last</span>(<span class="self">self</span>, <span class="ident">predicate</span>)
     }
@@ -4935,7 +4934,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">find_map_any</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
         <span class="kw">fn</span> <span class="ident">yes</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -4969,7 +4968,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">find_map_first</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
         <span class="kw">fn</span> <span class="ident">yes</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5003,7 +5002,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">find_map_last</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
         <span class="kw">fn</span> <span class="ident">yes</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5015,9 +5014,9 @@
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;parallel `find` does not search in order -- use `find_any`, \\
                          `find_first`, or `find_last`&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">find</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">find</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="self">self</span>.<span class="ident">find_any</span>(<span class="ident">predicate</span>)
     }
@@ -5041,7 +5040,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">any</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="self">self</span>.<span class="ident">map</span>(<span class="ident">predicate</span>).<span class="ident">find_any</span>(<span class="ident">bool::clone</span>).<span class="ident">is_some</span>()
     }
@@ -5063,7 +5062,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">all</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">is_false</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5236,7 +5235,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">collect</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">FromParallelIterator</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">FromParallelIterator</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">C::from_par_iter</span>(<span class="self">self</span>)
     }
@@ -5307,9 +5306,9 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">partition</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">A</span>, <span class="ident">B</span>)
     <span class="kw">where</span>
-        <span class="ident">A</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">ParallelExtend</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
-        <span class="ident">B</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">ParallelExtend</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">A</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">ParallelExtend</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        <span class="ident">B</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">ParallelExtend</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">unzip::partition</span>(<span class="self">self</span>, <span class="ident">predicate</span>)
     }
@@ -5361,7 +5360,7 @@
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">ParallelExtend</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">ParallelExtend</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Either</span><span class="op">&lt;</span><span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">L</span>: <span class="ident">Send</span>,
         <span class="ident">R</span>: <span class="ident">Send</span>,
     {
@@ -5380,9 +5379,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(r, vec![1, -1, 2, -1, 3]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">intersperse</span>(<span class="self">self</span>, <span class="ident">element</span>: <span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">intersperse</span>(<span class="self">self</span>, <span class="ident">element</span>: <span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">Clone</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Clone</span>,
     {
         <span class="ident">Intersperse::new</span>(<span class="self">self</span>, <span class="ident">element</span>)
     }
@@ -5401,7 +5400,7 @@
     <span class="doccomment">/// [README]: https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md</span>
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Internal method used to define the behavior of this parallel</span>
     <span class="doccomment">/// iterator. You should not need to call this directly.</span>
@@ -5455,7 +5454,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(vec, [0, 1, 2, 3, 4]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">collect_into_vec</span>(<span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">collect_into_vec</span>(<span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>) {
         <span class="ident">collect::collect_into_vec</span>(<span class="self">self</span>, <span class="ident">target</span>);
     }
 
@@ -5560,8 +5559,8 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">interleave</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interleave</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">I::Iter</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
-        <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">Interleave::new</span>(<span class="self">self</span>, <span class="ident">other</span>.<span class="ident">into_par_iter</span>())
     }
@@ -5579,8 +5578,8 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">interleave_shortest</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InterleaveShortest</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">I::Iter</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
-        <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
+        <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">InterleaveShortest::new</span>(<span class="self">self</span>, <span class="ident">other</span>.<span class="ident">into_par_iter</span>())
     }
@@ -5626,9 +5625,9 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">cmp</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">Ord</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Ord</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">ordering</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span><span class="op">&gt;</span>((<span class="ident">x</span>, <span class="ident">y</span>): (<span class="ident">T</span>, <span class="ident">T</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
@@ -5668,7 +5667,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">ordering</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>, <span class="ident">U</span><span class="op">&gt;</span>((<span class="ident">x</span>, <span class="ident">y</span>): (<span class="ident">T</span>, <span class="ident">U</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
@@ -5694,7 +5693,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">eq</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>, <span class="ident">U</span><span class="op">&gt;</span>((<span class="ident">x</span>, <span class="ident">y</span>): (<span class="ident">T</span>, <span class="ident">U</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5711,7 +5710,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="op">!</span><span class="self">self</span>.<span class="ident">eq</span>(<span class="ident">other</span>)
     }
@@ -5722,7 +5721,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">partial_cmp</span>(<span class="ident">other</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Ordering::Less</span>)
     }
@@ -5733,7 +5732,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">ord</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">partial_cmp</span>(<span class="ident">other</span>);
         <span class="ident">ord</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Ordering::Equal</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">ord</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Ordering::Less</span>)
@@ -5745,7 +5744,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="self">self</span>.<span class="ident">partial_cmp</span>(<span class="ident">other</span>) <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Ordering::Greater</span>)
     }
@@ -5756,7 +5755,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoParallelIterator</span>,
         <span class="ident">I::Iter</span>: <span class="ident">IndexedParallelIterator</span>,
-        <span class="self">Self</span><span class="ident">::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">ord</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">partial_cmp</span>(<span class="ident">other</span>);
         <span class="ident">ord</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Ordering::Equal</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">ord</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Ordering::Greater</span>)
@@ -5861,7 +5860,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">position_any</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">p</span>): <span class="kw-2">&amp;</span>(<span class="ident">usize</span>, <span class="ident">bool</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5898,7 +5897,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">position_first</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">p</span>): <span class="kw-2">&amp;</span>(<span class="ident">usize</span>, <span class="ident">bool</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5935,7 +5934,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">position_last</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">p</span>): <span class="kw-2">&amp;</span>(<span class="ident">usize</span>, <span class="ident">bool</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -5953,7 +5952,7 @@
     )]</span>
     <span class="kw">fn</span> <span class="ident">position</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="self">self</span>.<span class="ident">position_any</span>(<span class="ident">predicate</span>)
     }
@@ -5978,7 +5977,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">positions</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">predicate</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Positions</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">P</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="self">Self</span><span class="ident">::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">P</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">Positions::new</span>(<span class="self">self</span>, <span class="ident">predicate</span>)
     }
@@ -6086,7 +6085,7 @@
     <span class="doccomment">/// iterators.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [README]: https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md</span>
-    <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>;
+    <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>;
 
     <span class="doccomment">/// Internal method used to define the behavior of this parallel</span>
     <span class="doccomment">/// iterator. You should not need to call this directly.</span>
@@ -6103,7 +6102,7 @@
     <span class="doccomment">/// iterators.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [README]: https://github.com/rayon-rs/rayon/blob/master/src/iter/plumbing/README.md</span>
-    <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>;
+    <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>;
 }
 
 <span class="doccomment">/// `FromParallelIterator` implements the creation of a collection</span>
@@ -6228,7 +6227,7 @@
 <span class="doccomment">/// [`ParallelDrainRange`]: trait.ParallelDrainRange.html</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ParallelDrainFull</span> {
     <span class="doccomment">/// The draining parallel iterator type that will be created.</span>
-    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// The type of item that the parallel iterator will produce.</span>
     <span class="doccomment">/// This is usually the same as `IntoParallelIterator::Item`.</span>
@@ -6259,7 +6258,7 @@
     <span class="doccomment">/// assert!(heap.is_empty());</span>
     <span class="doccomment">/// assert!(heap.capacity() &gt;= squares.len());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">par_drain</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span>;
+    <span class="kw">fn</span> <span class="ident">par_drain</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span>;
 }
 
 <span class="doccomment">/// `ParallelDrainRange` creates a parallel iterator that moves a range of items</span>
@@ -6270,7 +6269,7 @@
 <span class="doccomment">/// [`ParallelDrainFull`]: trait.ParallelDrainFull.html</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ParallelDrainRange</span><span class="op">&lt;</span><span class="ident">Idx</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The draining parallel iterator type that will be created.</span>
-    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Iter</span>: <span class="ident">ParallelIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// The type of item that the parallel iterator will produce.</span>
     <span class="doccomment">/// This is usually the same as `IntoParallelIterator::Item`.</span>
@@ -6334,7 +6333,7 @@
     <span class="doccomment">/// assert_eq!(&amp;vec[3..], &amp;squares[8..]);</span>
     <span class="doccomment">/// assert!(vec.capacity() &gt;= squares.len());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">par_drain</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">Idx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span>;
+    <span class="kw">fn</span> <span class="ident">par_drain</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">Idx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span>;
 }
 
 <span class="doccomment">/// We hide the `Try` trait in a private module, as it&#39;s only meant to be a</span>
@@ -6348,9 +6347,9 @@
 
         <span class="kw">type</span> <span class="prelude-val">Ok</span>;
         <span class="kw">type</span> <span class="ident">Error</span>;
-        <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Ok</span>, <span class="self">Self</span><span class="ident">::Error</span><span class="op">&gt;</span>;
-        <span class="kw">fn</span> <span class="ident">from_ok</span>(<span class="ident">v</span>: <span class="self">Self</span><span class="ident">::Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
-        <span class="kw">fn</span> <span class="ident">from_error</span>(<span class="ident">v</span>: <span class="self">Self</span><span class="ident">::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+        <span class="kw">fn</span> <span class="ident">from_ok</span>(<span class="ident">v</span>: <span class="ident"><span class="self">Self</span>::Ok</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+        <span class="kw">fn</span> <span class="ident">from_error</span>(<span class="ident">v</span>: <span class="ident"><span class="self">Self</span>::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Try</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -6387,7 +6386,7 @@
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rayon" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

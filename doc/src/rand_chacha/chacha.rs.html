@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand_chacha-0.3.1&#x2F;src&#x2F;chacha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chacha.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand_chacha-0.3.1&#x2F;src&#x2F;chacha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chacha.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -630,8 +630,7 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
-</pre><pre class="rust">
-<span class="comment">// Copyright 2018 Developers of the Rand project.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
 <span class="comment">// https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license</span>
@@ -644,8 +643,8 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span> <span class="kw">use</span> <span class="ident">core</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">std</span> <span class="kw">as</span> <span class="ident">core</span>;
 
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::core::fmt</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::guts::ChaCha</span>;
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::core::fmt</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::guts::ChaCha</span>;
 <span class="kw">use</span> <span class="ident">rand_core::block</span>::{<span class="ident">BlockRng</span>, <span class="ident">BlockRngCore</span>};
 <span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">CryptoRng</span>, <span class="ident">Error</span>, <span class="ident">RngCore</span>, <span class="ident">SeedableRng</span>};
 
@@ -689,7 +688,7 @@
 <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Default</span>
 {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
         <span class="ident">new</span>.<span class="number">0</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>);
         <span class="ident">new</span>
     }
@@ -719,7 +718,7 @@
             <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">u32</span>;
             <span class="kw">type</span> <span class="ident">Results</span> <span class="op">=</span> <span class="ident">Array64</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="ident">::Results</span>) {
+            <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Results</span>) {
                 <span class="comment">// Fill slice of words by writing to equivalent slice of bytes, then fixing endianness.</span>
                 <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">refill4</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rounds</span>, <span class="kw">unsafe</span> {
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">r</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Array64</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> [<span class="ident">u8</span>; <span class="number">256</span>])
@@ -733,7 +732,7 @@
         <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span> {
             <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">32</span>];
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span><span class="ident">::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="ident"><span class="self">Self</span>::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span> { <span class="ident">state</span>: <span class="ident">ChaCha::new</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>, <span class="kw-2">&amp;</span>[<span class="number">0u8</span>; <span class="number">8</span>]) }
             }
         }
@@ -786,7 +785,7 @@
         <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
             <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">32</span>];
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span><span class="ident">::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="ident"><span class="self">Self</span>::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore::from_seed</span>(<span class="ident">seed</span>);
                 <span class="self">Self</span> {
                     <span class="ident">rng</span>: <span class="ident">BlockRng::new</span>(<span class="ident">core</span>),
@@ -926,7 +925,7 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
             <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng::deserialize</span>(<span class="ident">d</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="self">Self</span><span class="ident">::from</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>))
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng::deserialize</span>(<span class="ident">d</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::from</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>))
             }
         }
 
@@ -963,7 +962,7 @@
                 <span class="comment">// Construct one of the possible concrete RNGs realizing an abstract state.</span>
                 <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                     <span class="kw">use</span> <span class="ident">rand_core::SeedableRng</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::from_seed</span>(<span class="ident">a</span>.<span class="ident">seed</span>);
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::from_seed</span>(<span class="ident">a</span>.<span class="ident">seed</span>);
                     <span class="ident">r</span>.<span class="ident">set_stream</span>(<span class="ident">a</span>.<span class="ident">stream</span>);
                     <span class="ident">r</span>.<span class="ident">set_word_pos</span>(<span class="ident">a</span>.<span class="ident">word_pos</span>);
                     <span class="ident">r</span>
@@ -983,7 +982,7 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span> <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ChaCha20Rng</span>, <span class="ident">ChaCha12Rng</span>, <span class="ident">ChaCha8Rng</span>};
 
-    <span class="kw">type</span> <span class="ident">ChaChaRng</span> <span class="op">=</span> <span class="kw">super</span><span class="ident">::ChaCha20Rng</span>;
+    <span class="kw">type</span> <span class="ident">ChaChaRng</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::ChaCha20Rng</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1247,7 +1246,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_chacha_word_pos_wrap_excess</span>() {
-        <span class="kw">use</span> <span class="kw">super</span><span class="ident">::BLOCK_WORDS</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::BLOCK_WORDS</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ChaChaRng::from_seed</span>(<span class="ident">Default::default</span>());
         <span class="comment">// refilling the buffer in set_word_pos will wrap the block counter past 0</span>
         <span class="kw">let</span> <span class="ident">last_block</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">68</span>) <span class="op">-</span> <span class="ident">u128::from</span>(<span class="ident">BLOCK_WORDS</span>);
@@ -1263,7 +1262,7 @@
         <span class="macro">assert_eq!</span>(<span class="ident">rng</span>.<span class="ident">get_word_pos</span>(), <span class="number">0</span>);
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_chacha" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;proc-macro2-1.0.29&#x2F;src&#x2F;wrapper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapper.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;proc-macro2-1.0.29&#x2F;src&#x2F;wrapper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wrapper.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -964,8 +964,7 @@
 <span id="964">964</span>
 <span id="965">965</span>
 <span id="966">966</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::detection::inside_proc_macro</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::detection::inside_proc_macro</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">fallback</span>, <span class="ident">Delimiter</span>, <span class="ident">Punct</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">std::iter::FromIterator</span>;
@@ -1294,18 +1293,18 @@
             <span class="ident">TokenTreeIter::Fallback</span>(<span class="ident">iter</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">iter</span>.<span class="ident">next</span>(),
         };
         <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">token</span> {
-            <span class="ident">proc_macro::TokenTree::Group</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::Group::_new</span>(<span class="ident">Group::Compiler</span>(<span class="ident">tt</span>)).<span class="ident">into</span>(),
+            <span class="ident">proc_macro::TokenTree::Group</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Group::_new</span>(<span class="ident">Group::Compiler</span>(<span class="ident">tt</span>)).<span class="ident">into</span>(),
             <span class="ident">proc_macro::TokenTree::Punct</span>(<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">spacing</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tt</span>.<span class="ident">spacing</span>() {
                     <span class="ident">proc_macro::Spacing::Joint</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Spacing::Joint</span>,
                     <span class="ident">proc_macro::Spacing::Alone</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Spacing::Alone</span>,
                 };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="ident">tt</span>.<span class="ident">as_char</span>(), <span class="ident">spacing</span>);
-                <span class="ident">o</span>.<span class="ident">set_span</span>(<span class="kw">crate</span><span class="ident">::Span::_new</span>(<span class="ident">Span::Compiler</span>(<span class="ident">tt</span>.<span class="ident">span</span>())));
+                <span class="ident">o</span>.<span class="ident">set_span</span>(<span class="ident"><span class="kw">crate</span>::Span::_new</span>(<span class="ident">Span::Compiler</span>(<span class="ident">tt</span>.<span class="ident">span</span>())));
                 <span class="ident">o</span>.<span class="ident">into</span>()
             }
-            <span class="ident">proc_macro::TokenTree::Ident</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::Ident::_new</span>(<span class="ident">Ident::Compiler</span>(<span class="ident">s</span>)).<span class="ident">into</span>(),
-            <span class="ident">proc_macro::TokenTree::Literal</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::Literal::_new</span>(<span class="ident">Literal::Compiler</span>(<span class="ident">l</span>)).<span class="ident">into</span>(),
+            <span class="ident">proc_macro::TokenTree::Ident</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Ident::_new</span>(<span class="ident">Ident::Compiler</span>(<span class="ident">s</span>)).<span class="ident">into</span>(),
+            <span class="ident">proc_macro::TokenTree::Literal</span>(<span class="ident">l</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Literal::_new</span>(<span class="ident">Literal::Compiler</span>(<span class="ident">l</span>)).<span class="ident">into</span>(),
         })
     }
 
@@ -1505,9 +1504,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro::Span</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw">crate</span><span class="ident">::Span</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">proc_span</span>: <span class="ident">proc_macro::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::Span</span> {
-        <span class="kw">crate</span><span class="ident">::Span::_new</span>(<span class="ident">Span::Compiler</span>(<span class="ident">proc_span</span>))
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro::Span</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::Span</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">proc_span</span>: <span class="ident">proc_macro::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Span</span> {
+        <span class="ident"><span class="kw">crate</span>::Span::_new</span>(<span class="ident">Span::Compiler</span>(<span class="ident">proc_span</span>))
     }
 }
 
@@ -1886,7 +1885,7 @@
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Literal</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">LexError</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">inside_proc_macro</span>() {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">literal_from_str</span>)]</span>
             {
@@ -1931,7 +1930,7 @@
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

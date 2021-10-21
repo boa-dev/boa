@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;memchr-2.4.1&#x2F;src&#x2F;memmem&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;memchr-2.4.1&#x2F;src&#x2F;memmem&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1294,8 +1294,7 @@
 <span id="1294">1294</span>
 <span id="1295">1295</span>
 <span id="1296">1296</span>
-</pre><pre class="rust">
-<span class="doccomment">/*!
+</pre><pre class="rust"><code><span class="doccomment">/*!
 This module provides forward and reverse substring search routines.
 
 Unlike the standard library&#39;s substring search routines, these work on
@@ -1363,7 +1362,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 ```
 */</span>
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::prefilter::Prefilter</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::prefilter::Prefilter</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">cow::CowBytes</span>,
@@ -1384,7 +1383,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
 <span class="macro">macro_rules!</span> <span class="ident">define_memmem_quickcheck_tests</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::memmem::proptests</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::memmem::proptests</span>;
 
         <span class="macro">quickcheck::quickcheck!</span> {
             <span class="kw">fn</span> <span class="ident">qc_fwd_prefix_is_substring</span>(<span class="ident">bs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -1428,7 +1427,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="macro">macro_rules!</span> <span class="ident">define_memmem_simple_tests</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fwd</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rev</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::memmem::testsimples</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::memmem::testsimples</span>;
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">simple_forward</span>() {
@@ -2077,7 +2076,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">miri</span>), <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">memchr_runtime_simd</span>))]</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">SearcherConfig</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">ninfo</span> <span class="op">=</span> <span class="ident">NeedleInfo::new</span>(<span class="ident">needle</span>);
         <span class="kw">let</span> <span class="ident">prefn</span> <span class="op">=</span>
@@ -2098,7 +2097,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">miri</span>), <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">memchr_runtime_simd</span>)))]</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">SearcherConfig</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">ninfo</span> <span class="op">=</span> <span class="ident">NeedleInfo::new</span>(<span class="ident">needle</span>);
         <span class="kw">let</span> <span class="ident">prefn</span> <span class="op">=</span>
@@ -2135,7 +2134,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
@@ -2164,7 +2163,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Searcher</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
@@ -2200,7 +2199,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PrefilterState</span>,
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">needle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">needle</span>();
         <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
@@ -2208,7 +2207,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::memchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::memchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
             <span class="ident">TwoWay</span>(<span class="kw-2">ref</span> <span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// For very short haystacks (e.g., where the prefilter probably</span>
                 <span class="comment">// can&#39;t run), it&#39;s faster to just run RK.</span>
@@ -2323,7 +2322,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherRevKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">Empty</span>
@@ -2344,7 +2343,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     }
 
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherRevKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
@@ -2360,7 +2359,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">into_owned</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SearcherRev</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherRevKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Empty</span>,
@@ -2379,7 +2378,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="doccomment">/// prefilter&#39;s current state of effectiveness.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">rfind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SearcherRevKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::SearcherRevKind</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">needle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">needle</span>();
         <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
@@ -2387,7 +2386,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">haystack</span>.<span class="ident">len</span>()),
-            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::memrchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
+            <span class="ident">OneByte</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::memrchr</span>(<span class="ident">b</span>, <span class="ident">haystack</span>),
             <span class="ident">TwoWay</span>(<span class="kw-2">ref</span> <span class="ident">tw</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// For very short haystacks (e.g., where the prefilter probably</span>
                 <span class="comment">// can&#39;t run), it&#39;s faster to just run RK.</span>
@@ -2411,7 +2410,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
     <span class="comment">// N.B. This defines the quickcheck tests using the properties defined</span>
     <span class="comment">// below. Because of macro-visibility weirdness, the actual macro is</span>
     <span class="comment">// defined at the top of this file.</span>
-    <span class="macro">define_memmem_quickcheck_tests!</span>(<span class="kw">super</span><span class="ident">::find</span>, <span class="kw">super</span><span class="ident">::rfind</span>);
+    <span class="macro">define_memmem_quickcheck_tests!</span>(<span class="ident"><span class="kw">super</span>::find</span>, <span class="ident"><span class="kw">super</span>::rfind</span>);
 
     <span class="doccomment">/// Check that every prefix of the given byte string is a substring.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prefix_is_substring</span>(
@@ -2504,7 +2503,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
 <span class="doccomment">/// implementation.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">testsimples</span> {
-    <span class="macro">define_memmem_simple_tests!</span>(<span class="kw">super</span><span class="ident">::find</span>, <span class="kw">super</span><span class="ident">::rfind</span>);
+    <span class="macro">define_memmem_simple_tests!</span>(<span class="ident"><span class="kw">super</span>::find</span>, <span class="ident"><span class="kw">super</span>::rfind</span>);
 
     <span class="doccomment">/// Each test is a (needle, haystack, expected_fwd, expected_rev) tuple.</span>
     <span class="kw">type</span> <span class="ident">SearchTest</span> <span class="op">=</span>
@@ -2591,7 +2590,7 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

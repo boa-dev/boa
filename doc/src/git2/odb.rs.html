@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.23&#x2F;src&#x2F;odb.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>odb.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.23&#x2F;src&#x2F;odb.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>odb.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -710,8 +710,7 @@
 <span id="710">710</span>
 <span id="711">711</span>
 <span id="712">712</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="ident">std::io</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>;
 <span class="kw">use</span> <span class="ident">std::marker</span>;
 <span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
 <span class="kw">use</span> <span class="ident">std::ptr</span>;
@@ -721,8 +720,8 @@
 
 <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>, <span class="ident">c_void</span>, <span class="ident">size_t</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::panic</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::Binding</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::panic</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::Binding</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">raw</span>, <span class="ident">Error</span>, <span class="ident">IndexerProgress</span>, <span class="ident">Mempack</span>, <span class="ident">Object</span>, <span class="ident">ObjectType</span>, <span class="ident">Oid</span>, <span class="ident">Progress</span>};
 
 <span class="doccomment">/// A structure to represent a git object database</span>
@@ -754,7 +753,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> <span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an object database without any backends.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Odb</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="ident"><span class="kw">crate</span>::init</span>();
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
             <span class="macro">try_call!</span>(<span class="ident">raw::git_odb_new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>));
@@ -1344,11 +1343,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">packwriter</span>() {
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_source</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::repo_init</span>();
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_target</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::repo_init</span>();
+        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_source</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
+        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_target</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo_source</span>.<span class="ident">packbuilder</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-        <span class="kw">let</span> (<span class="ident">commit_source_id</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo_source</span>);
+        <span class="kw">let</span> (<span class="ident">commit_source_id</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo_source</span>);
         <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_object</span>(<span class="ident">commit_source_id</span>, <span class="prelude-val">None</span>));
         <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>));
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">repo_target</span>.<span class="ident">odb</span>().<span class="ident">unwrap</span>();
@@ -1363,11 +1362,11 @@
     <span class="kw">fn</span> <span class="ident">packwriter_progress</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">progress_called</span> <span class="op">=</span> <span class="bool-val">false</span>;
         {
-            <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_source</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::repo_init</span>();
-            <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_target</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::repo_init</span>();
+            <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_source</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
+            <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo_target</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="macro">t!</span>(<span class="ident">repo_source</span>.<span class="ident">packbuilder</span>());
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
-            <span class="kw">let</span> (<span class="ident">commit_source_id</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo_source</span>);
+            <span class="kw">let</span> (<span class="ident">commit_source_id</span>, <span class="ident">_tree</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo_source</span>);
             <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">insert_object</span>(<span class="ident">commit_source_id</span>, <span class="prelude-val">None</span>));
             <span class="macro">t!</span>(<span class="ident">builder</span>.<span class="ident">write_buf</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>));
             <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">repo_target</span>.<span class="ident">odb</span>().<span class="ident">unwrap</span>();
@@ -1389,7 +1388,7 @@
         <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 
         <span class="comment">// Create a repo, add a mempack backend</span>
-        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::repo_init</span>();
+        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::repo_init</span>();
         <span class="kw">let</span> <span class="ident">odb</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">odb</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">mempack</span> <span class="op">=</span> <span class="ident">odb</span>.<span class="ident">add_new_mempack_backend</span>(<span class="number">1000</span>).<span class="ident">unwrap</span>();
 
@@ -1399,7 +1398,7 @@
 
         <span class="comment">// Make a commit that adds foo. This writes new stuff into the mempack</span>
         <span class="comment">// backend.</span>
-        <span class="kw">let</span> (<span class="ident">oid1</span>, <span class="ident">_id</span>) <span class="op">=</span> <span class="kw">crate</span><span class="ident">::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
+        <span class="kw">let</span> (<span class="ident">oid1</span>, <span class="ident">_id</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::test::commit</span>(<span class="kw-2">&amp;</span><span class="ident">repo</span>);
         <span class="kw">let</span> <span class="ident">commit1</span> <span class="op">=</span> <span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">oid1</span>).<span class="ident">unwrap</span>();
         <span class="macro">t!</span>(<span class="ident">repo</span>.<span class="ident">reset</span>(<span class="ident">commit1</span>.<span class="ident">as_object</span>(), <span class="ident">ResetType::Hard</span>, <span class="prelude-val">None</span>));
         <span class="macro">assert!</span>(<span class="ident">foo_file</span>.<span class="ident">exists</span>());
@@ -1423,7 +1422,7 @@
         <span class="macro">assert!</span>(<span class="ident">foo_file</span>.<span class="ident">exists</span>());
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

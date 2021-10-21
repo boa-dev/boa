@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.78&#x2F;src&#x2F;data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;syn-1.0.78&#x2F;src&#x2F;data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -503,9 +503,8 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::punctuated::Punctuated</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::punctuated::Punctuated</span>;
 
 <span class="macro">ast_struct!</span> {
     <span class="doccomment">/// An enum variant.</span>
@@ -584,7 +583,7 @@
     <span class="doccomment">/// variant&#39;s fields uniformly.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">punctuated::Iter</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::punctuated::empty_punctuated_iter</span>(),
+            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::punctuated::empty_punctuated_iter</span>(),
             <span class="ident">Fields::Named</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">named</span>.<span class="ident">iter</span>(),
             <span class="ident">Fields::Unnamed</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">unnamed</span>.<span class="ident">iter</span>(),
         }
@@ -595,7 +594,7 @@
     <span class="doccomment">/// struct or variant&#39;s fields uniformly.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">punctuated::IterMut</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">crate</span><span class="ident">::punctuated::empty_punctuated_iter_mut</span>(),
+            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::punctuated::empty_punctuated_iter_mut</span>(),
             <span class="ident">Fields::Named</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">named</span>.<span class="ident">iter_mut</span>(),
             <span class="ident">Fields::Unnamed</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">unnamed</span>.<span class="ident">iter_mut</span>(),
         }
@@ -624,7 +623,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Field</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">punctuated::IntoIter</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Punctuated</span>::<span class="op">&lt;</span><span class="ident">Field</span>, ()<span class="op">&gt;</span><span class="ident">::new</span>().<span class="ident">into_iter</span>(),
             <span class="ident">Fields::Named</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">named</span>.<span class="ident">into_iter</span>(),
@@ -637,7 +636,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Field</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">punctuated::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Field</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">iter</span>()
     }
 }
@@ -646,7 +645,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Field</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">punctuated::IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Field</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">iter_mut</span>()
     }
 }
@@ -745,9 +744,9 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">parsing</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ext::IdentExt</span>;
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parse::discouraged::Speculative</span>;
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ext::IdentExt</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse::discouraged::Speculative</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Variant</span> {
@@ -849,7 +848,7 @@
             <span class="comment">// matcher that matched no tokens.</span>
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Group</span>) {
                 <span class="kw">let</span> <span class="ident">ahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
-                <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::group::parse_group</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::group::parse_group</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">content</span>.<span class="ident">is_empty</span>() {
                     <span class="ident">input</span>.<span class="ident">advance_to</span>(<span class="kw-2">&amp;</span><span class="ident">ahead</span>);
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Visibility::Inherited</span>);
@@ -857,9 +856,9 @@
             }
 
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">pub</span>]) {
-                <span class="self">Self</span><span class="ident">::parse_pub</span>(<span class="ident">input</span>)
+                <span class="ident"><span class="self">Self</span>::parse_pub</span>(<span class="ident">input</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">crate</span>]) {
-                <span class="self">Self</span><span class="ident">::parse_crate</span>(<span class="ident">input</span>)
+                <span class="ident"><span class="self">Self</span>::parse_crate</span>(<span class="ident">input</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Visibility::Inherited</span>)
             }
@@ -934,7 +933,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">printing</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::print::TokensOrDefault</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::print::TokensOrDefault</span>;
     <span class="kw">use</span> <span class="ident">proc_macro2::TokenStream</span>;
     <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">ToTokens</span>, <span class="ident">TokenStreamExt</span>};
 
@@ -1009,7 +1008,7 @@
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

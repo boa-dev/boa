@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="github crates-io docs-rs"><meta name="keywords" content="rust, rustlang, rust-lang, syn"><title>syn - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../syn/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate syn</h2><div class="block version"><div class="narrow-helper"></div><p>Version 1.0.78</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all syn's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="syn" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">syn</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/syn/lib.rs.html#1-1005" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://github.com/dtolnay/syn"><img src="https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github" alt="github" /></a> <a href="https://crates.io/crates/syn"><img src="https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&amp;labelColor=555555&amp;logo=rust" alt="crates-io" /></a> <a href="index.html"><img src="https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&amp;labelColor=555555&amp;logoColor=white&amp;logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K" alt="docs-rs" /></a></p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="github crates-io docs-rs"><meta name="keywords" content="rust, rustlang, rust-lang, syn"><title>syn - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../syn/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate syn</h2><div class="block version"><div class="narrow-helper"></div><p>Version 1.0.78</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all syn's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="syn" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">syn</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/syn/lib.rs.html#1-1005" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://github.com/dtolnay/syn"><img src="https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github" alt="github" /></a> <a href="https://crates.io/crates/syn"><img src="https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&amp;labelColor=555555&amp;logo=rust" alt="crates-io" /></a> <a href="index.html"><img src="https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&amp;labelColor=555555&amp;logoColor=white&amp;logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K" alt="docs-rs" /></a></p>
 <br>
 <p>Syn is a parsing library for parsing a stream of Rust tokens into a syntax
 tree of Rust source code.</p>
@@ -47,14 +47,13 @@ the Rust compiler passes their data structure as tokens into our macro. We
 get to execute arbitrary Rust code to figure out what to do with those
 tokens, then hand some tokens back to the compiler to compile into the
 user’s crate.</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies]
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
 syn = &quot;1.0&quot;
 quote = &quot;1.0&quot;
 
 [lib]
-proc-macro = true</pre></div>
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">proc_macro::TokenStream</span>;
+proc-macro = true</code></pre></div>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">proc_macro::TokenStream</span>;
 <span class="kw">use</span> <span class="ident">quote::quote</span>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_macro_input</span>, <span class="ident">DeriveInput</span>};
 
@@ -70,49 +69,46 @@ proc-macro = true</pre></div>
 
     <span class="comment">// Hand the output tokens back to the compiler</span>
     <span class="ident">TokenStream::from</span>(<span class="ident">expanded</span>)
-}</pre></div>
+}</code></pre></div>
 <p>The <a href="https://github.com/dtolnay/syn/tree/master/examples/heapsize"><code>heapsize</code></a> example directory shows a complete working implementation
 of a derive macro. It works on any Rust compiler 1.31+. The example derives
 a <code>HeapSize</code> trait which computes an estimate of the amount of heap memory
 owned by a value.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">HeapSize</span> {
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">HeapSize</span> {
     <span class="doccomment">/// Total number of bytes of heap memory owned by `self`.</span>
     <span class="kw">fn</span> <span class="ident">heap_size_of_children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
-}</pre></div>
+}</code></pre></div>
 <p>The derive macro allows users to write <code>#[derive(HeapSize)]</code> on data
 structures in their program.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">HeapSize</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">HeapSize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Demo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
     <span class="ident">a</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">b</span>: <span class="ident">u8</span>,
     <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
     <span class="ident">d</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p><br></p>
 <h1 id="spans-and-error-reporting" class="section-header"><a href="#spans-and-error-reporting">Spans and error reporting</a></h1>
 <p>The token-based procedural macro API provides great control over where the
 compiler’s error messages are displayed in user code. Consider the error the
 user sees if one of their field types does not implement <code>HeapSize</code>.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">HeapSize</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">HeapSize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Broken</span> {
     <span class="ident">ok</span>: <span class="ident">String</span>,
     <span class="ident">bad</span>: <span class="ident">std::thread::Thread</span>,
-}</pre></div>
+}</code></pre></div>
 <p>By tracking span information all the way through the expansion of a
 procedural macro as shown in the <code>heapsize</code> example, token-based macros in
 Syn are able to trigger errors that directly pinpoint the source of the
 problem.</p>
-<div class="example-wrap"><pre class="language-text">error[E0277]: the trait bound `std::thread::Thread: HeapSize` is not satisfied
+<div class="example-wrap"><pre class="language-text"><code>error[E0277]: the trait bound `std::thread::Thread: HeapSize` is not satisfied
  --&gt; src/main.rs:7:5
   |
 7 |     bad: std::thread::Thread,
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `HeapSize` is not implemented for `Thread`</pre></div><br>
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^ the trait `HeapSize` is not implemented for `Thread`</code></pre></div><br>
 <h1 id="parsing-a-custom-syntax" class="section-header"><a href="#parsing-a-custom-syntax">Parsing a custom syntax</a></h1>
 <p>The <a href="https://github.com/dtolnay/syn/tree/master/examples/lazy-static"><code>lazy-static</code></a> example directory shows the implementation of a
 <code>functionlike!(...)</code> procedural macro in which the input tokens are parsed
@@ -120,17 +116,16 @@ using Syn’s parsing API.</p>
 <p>The example reimplements the popular <code>lazy_static</code> crate from crates.io as a
 procedural macro.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="macro">lazy_static!</span> {
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">lazy_static!</span> {
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">USERNAME</span>: <span class="ident">Regex</span> <span class="op">=</span> <span class="ident">Regex::new</span>(<span class="string">&quot;^[a-z0-9_-]{3,16}$&quot;</span>).<span class="ident">unwrap</span>();
-}</pre></div>
+}</code></pre></div>
 <p>The implementation shows how to trigger custom warnings and error messages
 on the macro input.</p>
-<div class="example-wrap"><pre class="language-text">warning: come on, pick a more creative name
+<div class="example-wrap"><pre class="language-text"><code>warning: come on, pick a more creative name
   --&gt; src/main.rs:10:16
    |
 10 |     static ref FOO: String = &quot;lazy_static&quot;.to_owned();
-   |                ^^^</pre></div><br>
+   |                ^^^</code></pre></div><br>
 <h1 id="testing" class="section-header"><a href="#testing">Testing</a></h1>
 <p>When testing macros, we often care not just that the macro can be used
 successfully but also that when the macro is provided with invalid input it

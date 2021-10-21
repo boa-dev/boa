@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;builtins&#x2F;math&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;builtins&#x2F;math&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -889,8 +889,7 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
-</pre><pre class="rust">
-<span class="doccomment">//! This module implements the global `Math` object.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.</span>
 <span class="doccomment">//!</span>
@@ -908,7 +907,7 @@
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span><span class="ident">::JsArgs</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -925,7 +924,7 @@
         .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
 
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>;
         <span class="kw">let</span> <span class="ident">string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
@@ -938,41 +937,41 @@
             .<span class="ident">property</span>(<span class="string">&quot;PI&quot;</span>, <span class="ident">std::f64::consts::PI</span>, <span class="ident">attribute</span>)
             .<span class="ident">property</span>(<span class="string">&quot;SQRT1_2&quot;</span>, <span class="ident">std::f64::consts::FRAC_1_SQRT_2</span>, <span class="ident">attribute</span>)
             .<span class="ident">property</span>(<span class="string">&quot;SQRT2&quot;</span>, <span class="ident">std::f64::consts::SQRT_2</span>, <span class="ident">attribute</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::abs</span>, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::acos</span>, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::acosh</span>, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::asin</span>, <span class="string">&quot;asin&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::asinh</span>, <span class="string">&quot;asinh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::atan</span>, <span class="string">&quot;atan&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::atanh</span>, <span class="string">&quot;atanh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::atan2</span>, <span class="string">&quot;atan2&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::cbrt</span>, <span class="string">&quot;cbrt&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::ceil</span>, <span class="string">&quot;ceil&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::clz32</span>, <span class="string">&quot;clz32&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::cos</span>, <span class="string">&quot;cos&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::cosh</span>, <span class="string">&quot;cosh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::exp</span>, <span class="string">&quot;exp&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::expm1</span>, <span class="string">&quot;expm1&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::floor</span>, <span class="string">&quot;floor&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::fround</span>, <span class="string">&quot;fround&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::hypot</span>, <span class="string">&quot;hypot&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::imul</span>, <span class="string">&quot;imul&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log</span>, <span class="string">&quot;log&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log1p</span>, <span class="string">&quot;log1p&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log10</span>, <span class="string">&quot;log10&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::log2</span>, <span class="string">&quot;log2&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::max</span>, <span class="string">&quot;max&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::min</span>, <span class="string">&quot;min&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::pow</span>, <span class="string">&quot;pow&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::random</span>, <span class="string">&quot;random&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::round</span>, <span class="string">&quot;round&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::sign</span>, <span class="string">&quot;sign&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::sin</span>, <span class="string">&quot;sin&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::sinh</span>, <span class="string">&quot;sinh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::sqrt</span>, <span class="string">&quot;sqrt&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::tan</span>, <span class="string">&quot;tan&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::tanh</span>, <span class="string">&quot;tanh&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">function</span>(<span class="self">Self</span><span class="ident">::trunc</span>, <span class="string">&quot;trunc&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::abs</span>, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::acos</span>, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::acosh</span>, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::asin</span>, <span class="string">&quot;asin&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::asinh</span>, <span class="string">&quot;asinh&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::atan</span>, <span class="string">&quot;atan&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::atanh</span>, <span class="string">&quot;atanh&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::atan2</span>, <span class="string">&quot;atan2&quot;</span>, <span class="number">2</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::cbrt</span>, <span class="string">&quot;cbrt&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::ceil</span>, <span class="string">&quot;ceil&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::clz32</span>, <span class="string">&quot;clz32&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::cos</span>, <span class="string">&quot;cos&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::cosh</span>, <span class="string">&quot;cosh&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::exp</span>, <span class="string">&quot;exp&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::expm1</span>, <span class="string">&quot;expm1&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::floor</span>, <span class="string">&quot;floor&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::fround</span>, <span class="string">&quot;fround&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::hypot</span>, <span class="string">&quot;hypot&quot;</span>, <span class="number">2</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::imul</span>, <span class="string">&quot;imul&quot;</span>, <span class="number">2</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log</span>, <span class="string">&quot;log&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log1p</span>, <span class="string">&quot;log1p&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log10</span>, <span class="string">&quot;log10&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::log2</span>, <span class="string">&quot;log2&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::max</span>, <span class="string">&quot;max&quot;</span>, <span class="number">2</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::min</span>, <span class="string">&quot;min&quot;</span>, <span class="number">2</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::pow</span>, <span class="string">&quot;pow&quot;</span>, <span class="number">2</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::random</span>, <span class="string">&quot;random&quot;</span>, <span class="number">0</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::round</span>, <span class="string">&quot;round&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sign</span>, <span class="string">&quot;sign&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sin</span>, <span class="string">&quot;sin&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sinh</span>, <span class="string">&quot;sinh&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::sqrt</span>, <span class="string">&quot;sqrt&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::tan</span>, <span class="string">&quot;tan&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::tanh</span>, <span class="string">&quot;tanh&quot;</span>, <span class="number">1</span>)
+            .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::trunc</span>, <span class="string">&quot;trunc&quot;</span>, <span class="number">1</span>)
             .<span class="ident">property</span>(
                 <span class="ident">string_tag</span>,
                 <span class="ident">Math::NAME</span>,
@@ -1781,7 +1780,7 @@
             .<span class="ident">into</span>())
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
 </body></html>

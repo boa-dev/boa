@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;value&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;value&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1169,8 +1169,7 @@
 <span id="1169">1169</span>
 <span id="1170">1170</span>
 <span id="1171">1171</span>
-</pre><pre class="rust">
-<span class="doccomment">//! This module implements the JavaScript Value.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
 
@@ -1268,43 +1267,43 @@
     <span class="doccomment">/// Creates a new `undefined` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">undefined</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Undefined</span>
+        <span class="ident"><span class="self">Self</span>::Undefined</span>
     }
 
     <span class="doccomment">/// Creates a new `null` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Null</span>
+        <span class="ident"><span class="self">Self</span>::Null</span>
     }
 
     <span class="doccomment">/// Creates a new number with `NaN` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">f64::NAN</span>)
+        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">f64::NAN</span>)
     }
 
     <span class="doccomment">/// Creates a new number with `Infinity` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positive_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">f64::INFINITY</span>)
+        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">f64::INFINITY</span>)
     }
 
     <span class="doccomment">/// Creates a new number with `-Infinity` value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negative_infinity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">f64::NEG_INFINITY</span>)
+        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">f64::NEG_INFINITY</span>)
     }
 
     <span class="doccomment">/// Returns true if the value is an object</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>),
+            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1317,7 +1316,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1328,7 +1327,7 @@
     <span class="doccomment">/// Returns true if the value is a constructor object</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>())
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1339,12 +1338,12 @@
     <span class="doccomment">/// Returns true if the value is a symbol.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1352,25 +1351,25 @@
     <span class="doccomment">/// Returns true if the value is undefined.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Undefined</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Undefined</span>)
     }
 
     <span class="doccomment">/// Returns true if the value is null.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Null</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Null</span>)
     }
 
     <span class="doccomment">/// Returns true if the value is null or undefined.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null_or_undefined</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Null</span> <span class="op">|</span> <span class="self">Self</span><span class="ident">::Undefined</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Null</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Undefined</span>)
     }
 
     <span class="doccomment">/// Returns true if the value is a 64-bit floating-point number.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_double</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns true if the value is integer.</span>
@@ -1382,8 +1381,8 @@
         <span class="kw">let</span> <span class="ident">is_racional_intiger</span> <span class="op">=</span> <span class="op">|</span><span class="ident">n</span>: <span class="ident">f64</span><span class="op">|</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> ((<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="kw">as</span> <span class="ident">f64</span>);
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">is_racional_intiger</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">is_racional_intiger</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
@@ -1391,14 +1390,14 @@
     <span class="doccomment">/// Returns true if the value is a number.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>.<span class="ident">into</span>()),
-            <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">rational</span>),
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>.<span class="ident">into</span>()),
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">rational</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1406,14 +1405,14 @@
     <span class="doccomment">/// Returns true if the value is a string.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::String</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns the string if the values is a string, otherwise `None`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>),
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1421,13 +1420,13 @@
     <span class="doccomment">/// Returns true if the value is a boolean.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
+            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1435,14 +1434,14 @@
     <span class="doccomment">/// Returns true if the value is a bigint.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>))
     }
 
     <span class="doccomment">/// Returns an optional reference to a `BigInt` if the value is a BigInt primitive.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>),
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -1455,13 +1454,13 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-toboolean</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_boolean</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Undefined</span> <span class="op">|</span> <span class="self">Self</span><span class="ident">::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="self">Self</span><span class="ident">::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">n</span>.<span class="ident">is_nan</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="self">Self</span><span class="ident">::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">n</span>.<span class="ident">is_zero</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
+            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">n</span>.<span class="ident">is_nan</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">n</span>.<span class="ident">is_zero</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
@@ -1476,7 +1475,7 @@
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_property&quot;</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// TODO: had to skip `__get_own_properties__` since we don&#39;t have context here</span>
                 <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">cloned</span>();
                 <span class="kw">if</span> <span class="ident">property</span>.<span class="ident">is_some</span>() {
@@ -1500,7 +1499,7 @@
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">obj</span>.<span class="ident">clone</span>()
                 .<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)
         } <span class="kw">else</span> {
@@ -1537,7 +1536,7 @@
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::set_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="comment">// 4. Let success be ? O.[[Set]](P, V, O).</span>
             <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="ident">obj</span>
                 .<span class="ident">clone</span>()
@@ -1557,7 +1556,7 @@
     <span class="doccomment">/// Set the kind of an object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">ObjectData</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>;
         }
     }
@@ -2192,14 +2191,14 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-typeof-operator</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsString</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;number&quot;</span>,
-            <span class="self">Self</span><span class="ident">::String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;string&quot;</span>,
-            <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;boolean&quot;</span>,
-            <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbol&quot;</span>,
-            <span class="self">Self</span><span class="ident">::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
-            <span class="self">Self</span><span class="ident">::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>,
-            <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;bigint&quot;</span>,
-            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;number&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;string&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;boolean&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbol&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;bigint&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() {
                     <span class="string">&quot;function&quot;</span>
                 } <span class="kw">else</span> {
@@ -2235,7 +2234,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Undefined</span>
+        <span class="ident"><span class="self">Self</span>::Undefined</span>
     }
 }
 
@@ -2259,89 +2258,89 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>)
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="ident"><span class="self">Self</span>::Number</span>(<span class="ident">value</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">JsBigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">value</span>)
+        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">value</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Numeric</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">Numeric::Number</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">number</span>),
-            <span class="ident">Numeric::BigInt</span>(<span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">bigint</span>),
+            <span class="ident">Numeric::Number</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">number</span>),
+            <span class="ident">Numeric::BigInt</span>(<span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">bigint</span>),
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

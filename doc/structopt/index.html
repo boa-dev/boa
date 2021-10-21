@@ -1,17 +1,17 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate defines the `StructOpt` trait and its custom derive."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate structopt</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.3.25</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="structopt" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">structopt</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1228" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate defines the `StructOpt` trait and its custom derive."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate structopt</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.3.25</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="structopt" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">structopt</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1228" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
 <h2 id="features" class="section-header"><a href="#features">Features</a></h2>
 <p>If you want to disable all the <code>clap</code> features (colors,
 suggestions, ..) add <code>default-features = false</code> to the <code>structopt</code>
 dependency:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies]
-structopt = { version = &quot;0.3&quot;, default-features = false }</pre></div>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+structopt = { version = &quot;0.3&quot;, default-features = false }</code></pre></div>
 <p>Support for <a href="https://github.com/rust-cli/paw"><code>paw</code></a> (the
 <code>Command line argument paw-rser abstraction for main</code>) is disabled
 by default, but can be enabled in the <code>structopt</code> dependency
 with the feature <code>paw</code>:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies]
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
 structopt = { version = &quot;0.3&quot;, features = [ &quot;paw&quot; ] }
-paw = &quot;1.0&quot;</pre></div><h1 id="table-of-contents" class="section-header"><a href="#table-of-contents">Table of Contents</a></h1>
+paw = &quot;1.0&quot;</code></pre></div><h1 id="table-of-contents" class="section-header"><a href="#table-of-contents">Table of Contents</a></h1>
 <ul>
 <li><a href="#how-to-derivestructopt">How to <code>derive(StructOpt)</code></a></li>
 <li><a href="#attributes">Attributes</a>
@@ -44,8 +44,7 @@ paw = &quot;1.0&quot;</pre></div><h1 id="table-of-contents" class="section-heade
 <h2 id="how-to-derivestructopt" class="section-header"><a href="#how-to-derivestructopt">How to <code>derive(StructOpt)</code></a></h2>
 <p>First, let’s look at the example:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 <span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
@@ -81,7 +80,7 @@ paw = &quot;1.0&quot;</pre></div><h1 id="table-of-contents" class="section-heade
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="kw">let</span> <span class="ident">opt</span> <span class="op">=</span> <span class="ident">Opt::from_args</span>();
     <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">opt</span>);
-}</pre></div>
+}</code></pre></div>
 <p>So <code>derive(StructOpt)</code> tells Rust to generate a command line parser,
 and the various <code>structopt</code> attributes are simply
 used for additional parameters.</p>
@@ -114,13 +113,12 @@ They are what used to be explicit <code>#[structopt(raw(...))]</code> attrs in p
 </ul>
 <p>Every <code>structopt attribute</code> looks like comma-separated sequence of methods:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">structopt</span>(
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">structopt</span>(
     <span class="ident">short</span>, <span class="comment">// method with no arguments - always magical</span>
     <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;--long-option&quot;</span>, <span class="comment">// method with one argument</span>
     <span class="ident">required_if</span>(<span class="string">&quot;out&quot;</span>, <span class="string">&quot;file&quot;</span>), <span class="comment">// method with one and more args</span>
     <span class="ident">parse</span>(<span class="ident">from_os_str</span> <span class="op">=</span> <span class="ident">path::to::parser</span>) <span class="comment">// some magical methods have their own syntax</span>
-)]</span></pre></div>
+)]</span></code></pre></div>
 <p><code>#[structopt(...)]</code> attributes can be placed on top of <code>struct</code>, <code>enum</code>,
 <code>struct</code> field or <code>enum</code> variant. Attributes on top of <code>struct</code> or <code>enum</code>
 represent <code>clap::App</code> method calls, field or variant attributes correspond
@@ -128,8 +126,7 @@ to <code>clap::Arg</code> method calls.</p>
 <p>In other words, the <code>Opt</code> struct from the example above
 will be turned into this (<em>details omitted</em>):</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="ident">App::new</span>(<span class="string">&quot;example&quot;</span>)
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">App::new</span>(<span class="string">&quot;example&quot;</span>)
     .<span class="ident">version</span>(<span class="string">&quot;0.2.0&quot;</span>)
     .<span class="ident">about</span>(<span class="string">&quot;An example of StructOpt usage.&quot;</span>)
 .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;debug&quot;</span>)
@@ -141,16 +138,15 @@ will be turned into this (<em>details omitted</em>):</p>
     .<span class="ident">short</span>(<span class="string">&quot;v&quot;</span>)
     .<span class="ident">long</span>(<span class="string">&quot;velocity&quot;</span>)
     .<span class="ident">default_value</span>(<span class="string">&quot;42&quot;</span>))
-<span class="comment">// and so on</span></pre></div>
+<span class="comment">// and so on</span></code></pre></div>
 <h2 id="raw-methods" class="section-header"><a href="#raw-methods">Raw methods</a></h2>
 <p>They are the reason why <code>structopt</code> is so flexible. <strong>Every and each method from
 <code>clap::App/Arg</code> can be used this way!</strong></p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">structopt</span>(
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">structopt</span>(
     <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="comment">// name = arg form, neat for one-arg methods</span>
     <span class="ident">required_if</span>(<span class="string">&quot;out&quot;</span>, <span class="string">&quot;file&quot;</span>) <span class="comment">// name(arg1, arg2, ...) form.</span>
-)]</span></pre></div>
+)]</span></code></pre></div>
 <p>The first form can only be used for methods which take only one argument.
 The second form must be used with multi-arg methods, but can also be used with
 single-arg methods. These forms are identical otherwise.</p>
@@ -173,8 +169,7 @@ and/or on “field-level” (on top of a <code>struct</code> field or <em>inside
 Top level (non-magical) methods correspond to <code>App::method</code> calls, field-level methods
 are <code>Arg::method</code> calls.</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
-<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">top_level</span>)]</span>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">top_level</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">field_level</span>)]</span>
     <span class="ident">field</span>: <span class="ident">u32</span>
@@ -190,7 +185,7 @@ are <code>Arg::method</code> calls.</p>
 
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">top_level</span>)]</span>
     <span class="ident">Orange</span>,
-}</pre></div>
+}</code></pre></div>
 <ul>
 <li>
 <p><code>name</code>: <code>[name = expr]</code></p>
@@ -317,8 +312,7 @@ annotate the field with explicit <a href="#custom-string-parsers"><code>#[struct
 <hr />
 <p>Thus, the <code>speed</code> argument is generated as:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="ident">clap::Arg::with_name</span>(<span class="string">&quot;speed&quot;</span>)
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">clap::Arg::with_name</span>(<span class="string">&quot;speed&quot;</span>)
     .<span class="ident">takes_value</span>(<span class="bool-val">true</span>)
     .<span class="ident">multiple</span>(<span class="bool-val">false</span>)
     .<span class="ident">required</span>(<span class="bool-val">false</span>)
@@ -326,7 +320,7 @@ annotate the field with explicit <a href="#custom-string-parsers"><code>#[struct
     .<span class="ident">short</span>(<span class="string">&quot;v&quot;</span>)
     .<span class="ident">long</span>(<span class="string">&quot;velocity&quot;</span>)
     .<span class="ident">help</span>(<span class="string">&quot;Set speed&quot;</span>)
-    .<span class="ident">default_value</span>(<span class="string">&quot;42&quot;</span>);</pre></div>
+    .<span class="ident">default_value</span>(<span class="string">&quot;42&quot;</span>);</code></pre></div>
 <h2 id="specifying-argument-types" class="section-header"><a href="#specifying-argument-types">Specifying argument types</a></h2>
 <p>There are three types of arguments that can be supplied to each
 (sub-)command:</p>
@@ -350,8 +344,7 @@ the resulting flag is going to be renamed using <code>kebab-case</code> if the
 <code>rename_all</code> attribute was not specified previously. The same is true
 for subcommands with implicit naming through the related data structure.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
@@ -384,17 +377,16 @@ for subcommands with implicit naming through the related data structure.</p>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">skip</span>)]</span>
     <span class="ident">skipped</span>: <span class="ident">u32</span>,
 }
-</pre></div>
+</code></pre></div>
 <h2 id="default-values" class="section-header"><a href="#default-values">Default values</a></h2>
 <p>In clap, default values for options can be specified via <a href="https://docs.rs/clap/2.33.0/clap/struct.Arg.html#method.default_value"><code>Arg::default_value</code></a>.</p>
 <p>Of course, you can use as a raw method:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Opt</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>, <span class="ident">long</span>)]</span>
     <span class="ident">prefix</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p>This is quite mundane and error-prone to type the <code>&quot;...&quot;</code> default by yourself,
 especially when the Rust ecosystem uses the <a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code></a> trait for that.
 It would be wonderful to have <code>structopt</code> to take the <code>Default_default</code> and fill it
@@ -404,13 +396,12 @@ gives us some <code>Self</code> value. We need to map <code>Self</code> to <code
 <p><code>structopt</code> solves this problem via <a href="https://doc.rust-lang.org/std/string/trait.ToString.html"><code>ToString</code></a> trait.</p>
 <p>To be able to use auto-default the type must implement <em>both</em> <code>Default</code> and <code>ToString</code>:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Opt</span> {
     <span class="comment">// just leave the `= &quot;...&quot;` part and structopt will figure it for you</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">default_value</span>, <span class="ident">long</span>)]</span>
     <span class="ident">prefix</span>: <span class="ident">String</span>, <span class="comment">// `String` implements both `Default` and `ToString`</span>
-}</pre></div>
+}</code></pre></div>
 <h2 id="help-messages" class="section-header"><a href="#help-messages">Help messages</a></h2>
 <p>In clap, help messages for the whole binary can be specified
 via <a href="https://docs.rs/clap/2/clap/struct.App.html#method.about"><code>App::about</code></a> and <a href="https://docs.rs/clap/2/clap/struct.App.html#method.long_about"><code>App::long_about</code></a> while help messages
@@ -419,25 +410,23 @@ for individual arguments can be specified via <a href="https://docs.rs/clap/2/cl
 <code>--help</code> and “short” variants are used with <code>-h</code> flag. In <code>structopt</code>,
 you can use them via <a href="#raw-methods">raw methods</a>, for example:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;I am a program and I work, just pass `-h`&quot;</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>, <span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Pass `-h` and you&#39;ll see me!&quot;</span>)]</span>
     <span class="ident">bar</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p>For convenience, doc comments can be used instead of raw methods
 (this example works exactly like the one above):</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="doccomment">/// I am a program and I work, just pass `-h`</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="doccomment">/// Pass `-h` and you&#39;ll see me!</span>
     <span class="ident">bar</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p>Doc comments on <a href="#magical-methods">top-level</a> will be turned into
 <code>App::about/long_about</code> call (see below), doc comments on field-level are
 <code>Arg::help/long_help</code> calls.</p>
@@ -454,8 +443,7 @@ your program is called with <code>--help</code> instead of <code>-h</code>. Of c
 use them via raw methods as described <a href="#help-messages">above</a>.</p>
 <p>The more convenient way is to use a so-called “long” doc comment:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="doccomment">/// Hi there, I&#39;m Robo!</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// I like beeping, stumbling, eating your electricity,</span>
@@ -469,7 +457,7 @@ use them via raw methods as described <a href="#help-messages">above</a>.</p>
     <span class="doccomment">/// pathetic existence, you mere mortals.</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>)]</span>
     <span class="ident">kill_all_humans</span>: <span class="ident">bool</span>,
-}</pre></div>
+}</code></pre></div>
 <p>A long doc comment consists of three parts:</p>
 <ul>
 <li>Short summary</li>
@@ -483,14 +471,13 @@ with the first being a summary and the rest being the detailed description.</p>
 and the whole help message on <code>--help</code> (see below).</p>
 <p>So, the example above will be turned into this (details omitted):</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="ident">clap::App::new</span>(<span class="string">&quot;&lt;name&gt;&quot;</span>)
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">clap::App::new</span>(<span class="string">&quot;&lt;name&gt;&quot;</span>)
     .<span class="ident">about</span>(<span class="string">&quot;Hi there, I&#39;m Robo!&quot;</span>)
     .<span class="ident">long_about</span>(<span class="string">&quot;Hi there, I&#39;m Robo!\n\n\
                  I like beeping, stumbling, eating your electricity,\
                  and making records of you singing in a shower.\
                  Pay up or I&#39;ll upload it to youtube!&quot;</span>)
-<span class="comment">// args...</span></pre></div>
+<span class="comment">// args...</span></code></pre></div>
 <h3 id="-h-vs---help-aka-help-vs-long_help" class="section-header"><a href="#-h-vs---help-aka-help-vs-long_help"><code>-h</code> vs <code>--help</code> (A.K.A <code>help()</code> vs <code>long_help()</code>)</a></h3>
 <p>The <code>-h</code> flag is not the same as <code>--help</code>.</p>
 <p>-h corresponds to <code>Arg::help/App::about</code> and requests short “summary” messages
@@ -536,8 +523,7 @@ line, even if this attribute is present, to allow for a space between
 <p>Also, <code>structopt</code> will <em>still</em> remove leading and trailing blank lines so
 these formats are equivalent:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="doccomment">/** This is a doc comment
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="doccomment">/** This is a doc comment
 
 Hello! */</span>
 
@@ -549,37 +535,35 @@ Hello!
 
 <span class="doccomment">/// This is a doc comment</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Hello!</span></pre></div>
+<span class="doccomment">/// Hello!</span></code></pre></div>
 <hr />
 <h2 id="environment-variable-fallback" class="section-header"><a href="#environment-variable-fallback">Environment variable fallback</a></h2>
 <p>It is possible to specify an environment variable fallback option for an arguments
 so that its value is taken from the specified environment variable if not
 given through the command-line:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;PARAMETER_VALUE&quot;</span>)]</span>
     <span class="ident">parameter_value</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p>By default, values from the environment are shown in the help output (i.e. when invoking
 <code>--help</code>):</p>
-<div class="example-wrap"><pre class="language-shell">$ cargo run -- --help
+<div class="example-wrap"><pre class="language-shell"><code>$ cargo run -- --help
 ...
 OPTIONS:
-  -p, --parameter-value &lt;parameter-value&gt;     [env: PARAMETER_VALUE=env_value]</pre></div>
+  -p, --parameter-value &lt;parameter-value&gt;     [env: PARAMETER_VALUE=env_value]</code></pre></div>
 <p>In some cases this may be undesirable, for example when being used for passing
 credentials or secret tokens. In those cases you can use <code>hide_env_values</code> to avoid
 having structopt emit the actual secret values:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;secret&quot;</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;SECRET_VALUE&quot;</span>, <span class="ident">hide_env_values</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
     <span class="ident">secret_value</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <h3 id="auto-deriving-environment-variables" class="section-header"><a href="#auto-deriving-environment-variables">Auto-deriving environment variables</a></h3>
 <p>Environment variables tend to be called after the corresponding <code>struct</code>’s field,
 as in example above. The field is <code>secret_value</code> and the env var is “SECRET_VALUE”;
@@ -587,13 +571,12 @@ the name is the same, except casing is different.</p>
 <p>It’s pretty tedious and error-prone to type the same name twice,
 so you can ask <code>structopt</code> to do that for you.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;secret&quot;</span>, <span class="ident">env</span>)]</span>
     <span class="ident">secret_value</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p>It works just like <code>#[structopt(short/long)]</code>: if <code>env</code> is not set to some concrete
 value the value will be derived from the field’s name. This is controlled by
 <code>#[structopt(rename_all_env)]</code>.</p>
@@ -607,8 +590,7 @@ a command line option and <code>clap</code> should know nothing about it. You ca
 or <code>#[structopt(skip)]</code> if you want assign the field with <code>Default::default()</code>
 (obviously, the field’s type must implement <code>Default</code>).</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Opt</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">short</span>)]</span>
     <span class="ident">number</span>: <span class="ident">u32</span>,
@@ -626,7 +608,7 @@ or <code>#[structopt(skip)]</code> if you want assign the field with <code>Defau
     <span class="ident">k2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">skip</span> <span class="op">=</span> <span class="string">&quot;cake&quot;</span>)]</span> <span class="comment">// &amp;str implements Into&lt;String&gt;</span>
     <span class="ident">v2</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <h2 id="subcommands" class="section-header"><a href="#subcommands">Subcommands</a></h2>
 <p>Some applications, especially large ones, split their functionality
 through the use of “subcommands”. Each of these act somewhat like a separate
@@ -635,8 +617,7 @@ One example is <code>git</code>, which has subcommands such as <code>add</code>,
 and <code>clone</code>, to mention just a few.</p>
 <p><code>clap</code> has this functionality, and <code>structopt</code> supports it through enums:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;the stupid content tracker&quot;</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Git</span> {
@@ -661,15 +642,14 @@ and <code>clone</code>, to mention just a few.</p>
         <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>)]</span>
         <span class="ident">all</span>: <span class="ident">bool</span>,
     },
-}</pre></div>
+}</code></pre></div>
 <p>Using <code>derive(StructOpt)</code> on an enum instead of a struct will produce
 a <code>clap::App</code> that only takes subcommands. So <code>git add</code>, <code>git fetch</code>,
 and <code>git commit</code> would be commands allowed for the above example.</p>
 <p><code>structopt</code> also provides support for applications where certain flags
 need to apply to all subcommands, as well as nested subcommands:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">MakeCookie</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;supervisor&quot;</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;Puck&quot;</span>, <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;supervisor&quot;</span>)]</span>
     <span class="ident">supervising_faerie</span>: <span class="ident">String</span>,
@@ -714,7 +694,7 @@ need to apply to all subcommands, as well as nested subcommands:</p>
         <span class="ident">flavor</span>: <span class="ident">String</span>,
         <span class="ident">dips</span>: <span class="ident">u32</span>,
     }
-}</pre></div>
+}</code></pre></div>
 <p>Marking a field with <code>structopt(subcommand)</code> will add the subcommands of the
 designated enum to the current <code>clap::App</code>. The designated enum <em>must</em> also
 be derived <code>StructOpt</code>. So the above example would take the following
@@ -727,8 +707,7 @@ commands:</p>
 <h3 id="optional-subcommands" class="section-header"><a href="#optional-subcommands">Optional subcommands</a></h3>
 <p>Subcommands may be optional:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="ident">file</span>: <span class="ident">String</span>,
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">subcommand</span>)]</span>
@@ -740,15 +719,14 @@ commands:</p>
     <span class="ident">Bar</span>,
     <span class="ident">Baz</span>,
     <span class="ident">Quux</span>,
-}</pre></div>
+}</code></pre></div>
 <h3 id="external-subcommands" class="section-header"><a href="#external-subcommands">External subcommands</a></h3>
 <p>Sometimes you want to support not only the set of well-known subcommands
 but you also want to allow other, user-driven subcommands. <code>clap</code> supports
 this via <a href="https://docs.rs/clap/2.32.0/clap/enum.AppSettings.html#variant.AllowExternalSubcommands"><code>AppSettings::AllowExternalSubcommands</code></a>.</p>
 <p><code>structopt</code> provides it’s own dedicated syntax for that:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Opt</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">subcommand</span>)]</span>
     <span class="ident">sub</span>: <span class="ident">Subcommands</span>,
@@ -782,7 +760,7 @@ this via <a href="https://docs.rs/clap/2.32.0/clap/enum.AppSettings.html#variant
 
 <span class="comment">// Please note that if you&#39;d wanted to allow &quot;no subcommands at all&quot; case</span>
 <span class="comment">// you should have used `sub: Option&lt;Subcommands&gt;` above</span>
-<span class="macro">assert!</span>(<span class="ident">Opt::from_iter_safe</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;test&quot;</span>]).<span class="ident">is_err</span>());</pre></div>
+<span class="macro">assert!</span>(<span class="ident">Opt::from_iter_safe</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;test&quot;</span>]).<span class="ident">is_err</span>());</code></pre></div>
 <p>In other words, you just add an extra tuple variant marked with
 <code>#[structopt(subcommand)]</code>, and its type must be either
 <code>Vec&lt;String&gt;</code> or <code>Vec&lt;OsString&gt;</code>. <code>structopt</code> will detect <code>String</code> in this context
@@ -791,8 +769,7 @@ and use appropriate <code>clap</code> API.</p>
 <p>It is also possible to combine multiple enums of subcommands into one.
 All the subcommands will be on the same level.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">enum</span> <span class="ident">BaseCli</span> {
     <span class="ident">Ghost10</span> {
         <span class="ident">arg1</span>: <span class="ident">i32</span>,
@@ -806,15 +783,14 @@ All the subcommands will be on the same level.</p>
     <span class="ident">Dex</span> {
         <span class="ident">arg2</span>: <span class="ident">i32</span>,
     },
-}</pre></div>
-<div class="example-wrap"><pre class="language-shell">cli ghost10 42
-cli dex 42</pre></div><h2 id="flattening" class="section-header"><a href="#flattening">Flattening</a></h2>
+}</code></pre></div>
+<div class="example-wrap"><pre class="language-shell"><code>cli ghost10 42
+cli dex 42</code></pre></div><h2 id="flattening" class="section-header"><a href="#flattening">Flattening</a></h2>
 <p>It can sometimes be useful to group related arguments in a substruct,
 while keeping the command-line interface flat. In these cases you can mark
 a field as <code>flatten</code> and give it another type that derives <code>StructOpt</code>:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Cmdline</span> {
     <span class="doccomment">/// switch on verbosity</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>)]</span>
@@ -831,7 +807,7 @@ a field as <code>flatten</code> and give it another type that derives <code>Stru
     <span class="doccomment">/// daemon group</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>)]</span>
     <span class="ident">group</span>: <span class="ident">String</span>,
-}</pre></div>
+}</code></pre></div>
 <p>In this example, the derived <code>Cmdline</code> parser will support the options <code>-v</code>,
 <code>-u</code> and <code>-g</code>.</p>
 <p>This feature also makes it possible to define a <code>StructOpt</code> struct in a
@@ -842,8 +818,7 @@ pass off this struct to a handler provided by that library.</p>
 like to provide a custom parsing scheme other than <code>FromStr</code>, you may
 provide a custom string parser using <code>parse(...)</code> like this:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::num::ParseIntError</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::num::ParseIntError</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 
 <span class="kw">fn</span> <span class="ident">parse_hex</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">ParseIntError</span><span class="op">&gt;</span> {
@@ -856,7 +831,7 @@ provide a custom string parser using <code>parse(...)</code> like this:</p>
     <span class="ident">number</span>: <span class="ident">u32</span>,
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span>, <span class="ident">parse</span>(<span class="ident">from_os_str</span>))]</span>
     <span class="ident">output</span>: <span class="ident">PathBuf</span>,
-}</pre></div>
+}</code></pre></div>
 <p>There are five kinds of custom parsers:</p>
 <table><thead><tr><th>Kind</th><th>Signature</th><th>Default</th></tr></thead><tbody>
 <tr><td><code>from_str</code></td><td><code>fn(&amp;str) -&gt; T</code></td><td><code>::std::convert::From::from</code></td></tr>
@@ -890,8 +865,7 @@ on any generic types that will be used by the <code>StructOpt</code> derive macr
 some cases, associated types will require additional bounds. See the usage
 of <code>FromStr</code> below for an example of this.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">str::FromStr</span>};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">str::FromStr</span>};
 
 <span class="comment">// a struct with single custom argument</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
@@ -899,18 +873,17 @@ of <code>FromStr</code> below for an example of this.</p>
     <span class="ident">generic_arg_1</span>: <span class="ident">String</span>,
     <span class="ident">generic_arg_2</span>: <span class="ident">String</span>,
     <span class="ident">custom_arg_1</span>: <span class="ident">T</span>,
-}</pre></div>
+}</code></pre></div>
 <p>or</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="comment">// a struct with multiple custom arguments in a substructure</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// a struct with multiple custom arguments in a substructure</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
 <span class="kw">struct</span> <span class="ident">GenericArgs</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">StructOpt</span><span class="op">&gt;</span> {
     <span class="ident">generic_arg_1</span>: <span class="ident">String</span>,
     <span class="ident">generic_arg_2</span>: <span class="ident">String</span>,
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">flatten</span>)]</span>
     <span class="ident">custom_args</span>: <span class="ident">T</span>,
-}</pre></div>
+}</code></pre></div>
 </div></details><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
 <div class="item-table"><div class="item-left import-item"><code>pub use <a class="mod" href="../clap/index.html" title="mod clap">clap</a>;</code></div><div class="item-right docblock-short"></div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
 <div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.StructOpt.html" title="structopt::StructOpt trait">StructOpt</a></div><div class="item-right docblock-short"><p>A struct that is converted from command line arguments.</p>

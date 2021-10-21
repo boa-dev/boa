@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;chrono-0.4.19&#x2F;src&#x2F;datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;chrono-0.4.19&#x2F;src&#x2F;datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2587,8 +2587,7 @@
 <span id="2587">2587</span>
 <span id="2588">2588</span>
 <span id="2589">2589</span>
-</pre><pre class="rust">
-<span class="comment">// This is a part of Chrono.</span>
+</pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
 
 <span class="doccomment">//! ISO 8601 date and time with time zone.</span>
@@ -3543,7 +3542,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-serialize&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">rustc_serialize</span> {
-    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::DateTime</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
     <span class="kw">use</span> <span class="ident">core::fmt</span>;
     <span class="kw">use</span> <span class="ident">core::ops::Deref</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
@@ -3614,7 +3613,7 @@
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Tz</span>: <span class="ident">TimeZone</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">TsSeconds</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span> {
         <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Tz</span><span class="op">&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
+        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
         }
     }
@@ -3651,26 +3650,26 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_encodable</span>() {
-        <span class="kw">super</span><span class="ident">::test_encodable_json</span>(<span class="ident">json::encode</span>, <span class="ident">json::encode</span>);
+        <span class="ident"><span class="kw">super</span>::test_encodable_json</span>(<span class="ident">json::encode</span>, <span class="ident">json::encode</span>);
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_decodable</span>() {
-        <span class="kw">super</span><span class="ident">::test_decodable_json</span>(<span class="ident">json::decode</span>, <span class="ident">json::decode</span>, <span class="ident">json::decode</span>);
+        <span class="ident"><span class="kw">super</span>::test_decodable_json</span>(<span class="ident">json::decode</span>, <span class="ident">json::decode</span>, <span class="ident">json::decode</span>);
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_decodable_timestamps</span>() {
-        <span class="kw">super</span><span class="ident">::test_decodable_json_timestamps</span>(<span class="ident">json::decode</span>, <span class="ident">json::decode</span>, <span class="ident">json::decode</span>);
+        <span class="ident"><span class="kw">super</span>::test_decodable_json_timestamps</span>(<span class="ident">json::decode</span>, <span class="ident">json::decode</span>, <span class="ident">json::decode</span>);
     }
 }
 
 <span class="doccomment">/// documented at re-export site</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serde</span> {
-    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::DateTime</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
     <span class="kw">use</span> <span class="ident">core::fmt</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="kw">use</span> <span class="ident">offset::Local</span>;
@@ -3901,7 +3900,7 @@
 
         <span class="kw">use</span> {<span class="ident">DateTime</span>, <span class="ident">Utc</span>};
 
-        <span class="kw">use</span> <span class="kw">super</span><span class="ident">::NanoSecondsTimestampVisitor</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::NanoSecondsTimestampVisitor</span>;
 
         <span class="doccomment">/// Serialize a UTC datetime into an integer number of nanoseconds since the epoch or none</span>
         <span class="doccomment">///</span>
@@ -4207,7 +4206,7 @@
 
         <span class="kw">use</span> {<span class="ident">DateTime</span>, <span class="ident">Utc</span>};
 
-        <span class="kw">use</span> <span class="kw">super</span><span class="ident">::MilliSecondsTimestampVisitor</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::MilliSecondsTimestampVisitor</span>;
 
         <span class="doccomment">/// Serialize a UTC datetime into an integer number of milliseconds since the epoch or none</span>
         <span class="doccomment">///</span>
@@ -4520,7 +4519,7 @@
 
         <span class="kw">use</span> {<span class="ident">DateTime</span>, <span class="ident">Utc</span>};
 
-        <span class="kw">use</span> <span class="kw">super</span><span class="ident">::SecondsTimestampVisitor</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SecondsTimestampVisitor</span>;
 
         <span class="doccomment">/// Serialize a UTC datetime into an integer number of seconds since the epoch or none</span>
         <span class="doccomment">///</span>
@@ -4730,16 +4729,16 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_serialize</span>() {
-        <span class="kw">super</span><span class="ident">::test_encodable_json</span>(<span class="self">self</span><span class="ident">::serde_json::to_string</span>, <span class="self">self</span><span class="ident">::serde_json::to_string</span>);
+        <span class="ident"><span class="kw">super</span>::test_encodable_json</span>(<span class="ident"><span class="self">self</span>::serde_json::to_string</span>, <span class="ident"><span class="self">self</span>::serde_json::to_string</span>);
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_deserialize</span>() {
-        <span class="kw">super</span><span class="ident">::test_decodable_json</span>(
-            <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="self">self</span><span class="ident">::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>),
-            <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="self">self</span><span class="ident">::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>),
-            <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="self">self</span><span class="ident">::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>),
+        <span class="ident"><span class="kw">super</span>::test_decodable_json</span>(
+            <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="ident"><span class="self">self</span>::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>),
+            <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="ident"><span class="self">self</span>::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>),
+            <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="ident"><span class="self">self</span>::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>),
         );
     }
 
@@ -4747,7 +4746,7 @@
     <span class="kw">fn</span> <span class="ident">test_serde_bincode</span>() {
         <span class="comment">// Bincode is relevant to test separately from JSON because</span>
         <span class="comment">// it is not self-describing.</span>
-        <span class="kw">use</span> <span class="self">self</span><span class="ident">::bincode</span>::{<span class="ident">deserialize</span>, <span class="ident">serialize</span>, <span class="ident">Infinite</span>};
+        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::bincode</span>::{<span class="ident">deserialize</span>, <span class="ident">serialize</span>, <span class="ident">Infinite</span>};
 
         <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">Utc</span>.<span class="ident">ymd</span>(<span class="number">2014</span>, <span class="number">7</span>, <span class="number">24</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">6</span>);
         <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">dt</span>, <span class="ident">Infinite</span>).<span class="ident">unwrap</span>();
@@ -4759,7 +4758,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::DateTime</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
     <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveTime</span>};
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clock&quot;</span>)]</span>
     <span class="kw">use</span> <span class="ident">offset::Local</span>;
@@ -5177,7 +5176,7 @@
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot; {} &quot;</span>, <span class="ident">ymd_formatted</span>), <span class="macro">format!</span>(<span class="string">&quot;{:^17}&quot;</span>, <span class="ident">ymd</span>));
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="chrono" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

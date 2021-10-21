@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;syntax&#x2F;parser&#x2F;error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa&#x2F;src&#x2F;syntax&#x2F;parser&#x2F;error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;boa-dev&#x2F;boa&#x2F;main&#x2F;assets&#x2F;logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -185,11 +185,10 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-</pre><pre class="rust">
-<span class="doccomment">//! Error and result implementation for the parser.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax::ast</span>::{<span class="ident">position::Position</span>, <span class="ident">Node</span>};
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax::lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">position::Position</span>, <span class="ident">Node</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="doccomment">/// Result of a parsing operation.</span>
@@ -245,9 +244,9 @@
     <span class="doccomment">/// Changes the context of the error, if any.</span>
     <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">new_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Expected</span> {
+            <span class="ident"><span class="self">Self</span>::Expected</span> {
                 <span class="ident">expected</span>, <span class="ident">found</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">new_context</span>),
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::expected</span>(<span class="ident">expected</span>, <span class="ident">found</span>, <span class="ident">new_context</span>),
             <span class="ident">e</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
         }
     }
@@ -257,7 +256,7 @@
     <span class="kw">where</span>
         <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TokenKind</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span><span class="ident">::Expected</span> {
+        <span class="ident"><span class="self">Self</span>::Expected</span> {
             <span class="ident">expected</span>: <span class="ident">expected</span>.<span class="ident">into</span>(),
             <span class="ident">found</span>,
             <span class="ident">context</span>,
@@ -269,7 +268,7 @@
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span><span class="ident">::Unexpected</span> {
+        <span class="ident"><span class="self">Self</span>::Unexpected</span> {
             <span class="ident">found</span>,
             <span class="ident">message</span>: <span class="ident">message</span>.<span class="ident">into</span>(),
         }
@@ -277,12 +276,12 @@
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">general</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::General</span> { <span class="ident">message</span>, <span class="ident">position</span> }
+        <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> }
     }
 
     <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration in non-strict mode.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrong_function_declaration_non_strict</span>(<span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::General</span> {
+        <span class="ident"><span class="self">Self</span>::General</span> {
             <span class="ident">message</span>: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
             <span class="ident">position</span>
         }
@@ -290,20 +289,20 @@
 
     <span class="doccomment">/// Creates a parsing error from a lexing error.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lex</span>(<span class="ident">e</span>: <span class="ident">LexError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Lex</span> { <span class="ident">err</span>: <span class="ident">e</span> }
+        <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span>: <span class="ident">e</span> }
     }
 
     <span class="doccomment">/// Creates a new `Unimplemented` parsing error.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unimplemented</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> }
+        <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Expected</span> {
+            <span class="ident"><span class="self">Self</span>::Expected</span> {
                 <span class="ident">expected</span>,
                 <span class="ident">found</span>,
                 <span class="ident">context</span>,
@@ -342,7 +341,7 @@
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
-            <span class="self">Self</span><span class="ident">::Unexpected</span> { <span class="ident">found</span>, <span class="ident">message</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::Unexpected</span> { <span class="ident">found</span>, <span class="ident">message</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;unexpected token &#39;{}&#39;{} at line {}, col {}&quot;</span>,
                 <span class="ident">found</span>,
@@ -354,16 +353,16 @@
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">line_number</span>(),
                 <span class="ident">found</span>.<span class="ident">span</span>().<span class="ident">start</span>().<span class="ident">column_number</span>()
             ),
-            <span class="self">Self</span><span class="ident">::AbruptEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
-            <span class="self">Self</span><span class="ident">::General</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::AbruptEnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;abrupt end&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::General</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;{} at line {}, col {}&quot;</span>,
                 <span class="ident">message</span>,
                 <span class="ident">position</span>.<span class="ident">line_number</span>(),
                 <span class="ident">position</span>.<span class="ident">column_number</span>()
             ),
-            <span class="self">Self</span><span class="ident">::Lex</span> { <span class="ident">err</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt::Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="self">Self</span><span class="ident">::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+            <span class="ident"><span class="self">Self</span>::Lex</span> { <span class="ident">err</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt::Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Unimplemented</span> { <span class="ident">message</span>, <span class="ident">position</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;{} not yet implemented at line {}, col {}&quot;</span>,
                 <span class="ident">message</span>,
@@ -373,7 +372,7 @@
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
 </body></html>

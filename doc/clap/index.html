@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`clap` is a simple-to-use, efficient, and full-featured library for parsing command line arguments and subcommands when writing console&#x2F;terminal applications."><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate clap</h2><div class="block version"><div class="narrow-helper"></div><p>Version 2.33.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">clap</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-639" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>clap</code> is a simple-to-use, efficient, and full-featured library for parsing command line
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`clap` is a simple-to-use, efficient, and full-featured library for parsing command line arguments and subcommands when writing console&#x2F;terminal applications."><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate clap</h2><div class="block version"><div class="narrow-helper"></div><p>Version 2.33.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">clap</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-639" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>clap</code> is a simple-to-use, efficient, and full-featured library for parsing command line
 arguments and subcommands when writing console/terminal applications.</p>
 <h2 id="about" class="section-header"><a href="#about">About</a></h2>
 <p><code>clap</code> is used to parse <em>and validate</em> the string of command line arguments provided by the user
@@ -25,8 +25,7 @@ use <code>clap</code></p>
 this small example), or even dynamically generating arguments when desired. The downside is it’s
 more verbose.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="comment">// (Full example with detailed comments in examples/01b_quick_example.rs)</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// (Full example with detailed comments in examples/01b_quick_example.rs)</span>
 <span class="comment">//</span>
 <span class="comment">// This example demonstrates clap&#39;s full &#39;builder pattern&#39; style of creating arguments which is</span>
 <span class="comment">// more verbose, but allows easier editing, and at times more advanced options, or the possibility</span>
@@ -90,13 +89,12 @@ more verbose.</p>
     }
 
     <span class="comment">// more program logic goes here...</span>
-}</pre></div>
+}</code></pre></div>
 <p>The next example shows a far less verbose method, but sacrifices some of the advanced
 configuration options (not shown in this small example). This method also takes a <em>very</em> minor
 runtime penalty.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="comment">// (Full example with detailed comments in examples/01a_quick_example.rs)</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// (Full example with detailed comments in examples/01a_quick_example.rs)</span>
 <span class="comment">//</span>
 <span class="comment">// This example demonstrates clap&#39;s &quot;usage strings&quot; method of creating arguments</span>
 <span class="comment">// which is less verbose</span>
@@ -120,13 +118,13 @@ runtime penalty.</p>
                           .<span class="ident">get_matches</span>();
 
     <span class="comment">// Same as previous example...</span>
-}</pre></div>
+}</code></pre></div>
 <p>This third method shows how you can use a YAML file to build your CLI and keep your Rust source
 tidy or support multiple localized translations by having different YAML files for each
 localization.</p>
 <p>First, create the <code>cli.yml</code> file to hold your CLI options, but it could be called anything we
 like:</p>
-<div class="example-wrap"><pre class="language-yaml">name: myapp
+<div class="example-wrap"><pre class="language-yaml"><code>name: myapp
 version: &quot;1.0&quot;
 author: Kevin K. &lt;kbknapp@gmail.com&gt;
 about: Does awesome things
@@ -153,14 +151,13 @@ subcommands:
         args:
             - debug:
                 short: d
-                help: print debug information</pre></div>
+                help: print debug information</code></pre></div>
 <p>Since this feature requires additional dependencies that not everyone may want, it is <em>not</em>
 compiled in by default and we need to enable a feature flag in Cargo.toml:</p>
 <p>Simply change your <code>clap = &quot;~2.27.0&quot;</code> to <code>clap = {version = &quot;~2.27.0&quot;, features = [&quot;yaml&quot;]}</code>.</p>
 <p>At last we create our <code>main.rs</code> file just like we would have with the previous two examples:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
-<span class="comment">// (Full example with detailed comments in examples/17_yaml.rs)</span>
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="comment">// (Full example with detailed comments in examples/17_yaml.rs)</span>
 <span class="comment">//</span>
 <span class="comment">// This example demonstrates clap&#39;s building from YAML style of creating arguments which is far</span>
 <span class="comment">// more clean, but takes a very small performance hit compared to the other two methods.</span>
@@ -174,12 +171,11 @@ compiled in by default and we need to enable a feature flag in Cargo.toml:</p>
     <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App::from_yaml</span>(<span class="ident">yaml</span>).<span class="ident">get_matches</span>();
 
     <span class="comment">// Same as previous examples...</span>
-}</pre></div>
+}</code></pre></div>
 <p>Finally there is a macro version, which is like a hybrid approach offering the speed of the
 builder pattern (the first example), but without all the verbosity.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">clap</span>;
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
@@ -199,10 +195,10 @@ builder pattern (the first example), but without all the verbosity.</p>
     ).<span class="ident">get_matches</span>();
 
     <span class="comment">// Same as before...</span>
-}</pre></div>
+}</code></pre></div>
 <p>If you were to compile any of the above programs and run them with the flag <code>--help</code> or <code>-h</code> (or
 <code>help</code> subcommand, since we defined <code>test</code> as a subcommand) the following would be output</p>
-<div class="example-wrap"><pre class="language-text">$ myprog --help
+<div class="example-wrap"><pre class="language-text"><code>$ myprog --help
 My Super Program 1.0
 Kevin K. &lt;kbknapp@gmail.com&gt;
 Does awesome things
@@ -223,7 +219,7 @@ ARGS:
 
 SUBCOMMANDS:
     help    Prints this message
-    test    Controls testing features</pre></div>
+    test    Controls testing features</code></pre></div>
 <p><strong>NOTE:</strong> You could also run <code>myapp test --help</code> to see similar output and options for the
 <code>test</code> subcommand.</p>
 <h2 id="try-it" class="section-header"><a href="#try-it">Try it!</a></h2><h3 id="pre-built-test" class="section-header"><a href="#pre-built-test">Pre-Built Test</a></h3>
@@ -240,19 +236,18 @@ SUBCOMMANDS:
 <li>Create a new cargo project <code>$ cargo new fake --bin &amp;&amp; cd fake</code></li>
 <li>Add <code>clap</code> to your <code>Cargo.toml</code></li>
 </ul>
-<div class="example-wrap"><pre class="language-toml">[dependencies]
-clap = &quot;2&quot;</pre></div>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+clap = &quot;2&quot;</code></pre></div>
 <ul>
 <li>Add the following to your <code>src/main.rs</code></li>
 </ul>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">clap</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">clap</span>;
 <span class="kw">use</span> <span class="ident">clap::App</span>;
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
   <span class="ident">App::new</span>(<span class="string">&quot;fake&quot;</span>).<span class="ident">version</span>(<span class="string">&quot;v1.0-beta&quot;</span>).<span class="ident">get_matches</span>();
-}</pre></div>
+}</code></pre></div>
 <ul>
 <li>Build your program <code>$ cargo build --release</code></li>
 <li>Run with help or version <code>$ ./target/release/fake --help</code> or <code>$ ./target/release/fake --version</code></li>
@@ -261,11 +256,11 @@ clap = &quot;2&quot;</pre></div>
 <p>For full usage, add <code>clap</code> as a dependency in your <code>Cargo.toml</code> (it is <strong>highly</strong> recommended to
 use the <code>~major.minor.patch</code> style versions in your <code>Cargo.toml</code>, for more information see
 <a href="#compatibility-policy">Compatibility Policy</a>) to use from crates.io:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies]
-clap = &quot;~2.27.0&quot;</pre></div>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+clap = &quot;~2.27.0&quot;</code></pre></div>
 <p>Or get the latest changes from the master branch at github:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies.clap]
-git = &quot;https://github.com/clap-rs/clap.git&quot;</pre></div>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.clap]
+git = &quot;https://github.com/clap-rs/clap.git&quot;</code></pre></div>
 <p>Add <code>extern crate clap;</code> to your crate root.</p>
 <p>Define a list of valid arguments for your program (see the
 <a href="https://docs.rs/clap/">documentation</a> or <a href="https://github.com/clap-rs/clap/tree/v2.33.1/examples">examples/</a> directory of this repo)</p>
@@ -279,15 +274,15 @@ available, instead of 120 characters. (builds dependency <code>textwrap</code>
 with feature <code>term_size</code>)</li>
 </ul>
 <p>To disable these, add this to your <code>Cargo.toml</code>:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies.clap]
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.clap]
 version = &quot;~2.27.0&quot;
-default-features = false</pre></div>
+default-features = false</code></pre></div>
 <p>You can also selectively enable only the features you’d like to include, by adding:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies.clap]
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.clap]
 version = &quot;~2.27.0&quot;
 default-features = false
 
-features = [ &quot;suggestions&quot;, &quot;color&quot; ]</pre></div><h4 id="opt-in-features" class="section-header"><a href="#opt-in-features">Opt-in features</a></h4>
+features = [ &quot;suggestions&quot;, &quot;color&quot; ]</code></pre></div><h4 id="opt-in-features" class="section-header"><a href="#opt-in-features">Opt-in features</a></h4>
 <ul>
 <li><strong>“yaml”</strong>: Enables building CLIs from YAML documents. (builds dependency <code>yaml-rust</code>)</li>
 <li><strong>“unstable”</strong>: Enables unstable <code>clap</code> features that may change from release to release</li>
@@ -318,36 +313,36 @@ me. I’m all about giving credit where credit is due :)</p>
 <p>Please read <a href="https://github.com/clap-rs/clap/blob/v2.33.1/.github/CONTRIBUTING.md">CONTRIBUTING.md</a> before you start contributing.</p>
 <h3 id="testing-code" class="section-header"><a href="#testing-code">Testing Code</a></h3>
 <p>To test with all features both enabled and disabled, you can run theese commands:</p>
-<div class="example-wrap"><pre class="language-text">$ cargo test --no-default-features
-$ cargo test --features &quot;yaml unstable&quot;</pre></div>
+<div class="example-wrap"><pre class="language-text"><code>$ cargo test --no-default-features
+$ cargo test --features &quot;yaml unstable&quot;</code></pre></div>
 <p>Alternatively, if you have <a href="https://github.com/casey/just"><code>just</code></a> installed you can run the
 prebuilt recipes. <em>Not</em> using <code>just</code> is perfectly fine as well, it simply bundles commands
 automatically.</p>
 <p>For example, to test the code, as above simply run:</p>
-<div class="example-wrap"><pre class="language-text">$ just run-tests</pre></div>
+<div class="example-wrap"><pre class="language-text"><code>$ just run-tests</code></pre></div>
 <p>From here on, I will list the appropriate <code>cargo</code> command as well as the <code>just</code> command.</p>
 <p>Sometimes it’s helpful to only run a subset of the tests, which can be done via:</p>
-<div class="example-wrap"><pre class="language-text">$ cargo test --test &lt;test_name&gt;
+<div class="example-wrap"><pre class="language-text"><code>$ cargo test --test &lt;test_name&gt;
 
 
-$ just run-test &lt;test_name&gt;</pre></div><h3 id="linting-code" class="section-header"><a href="#linting-code">Linting Code</a></h3>
+$ just run-test &lt;test_name&gt;</code></pre></div><h3 id="linting-code" class="section-header"><a href="#linting-code">Linting Code</a></h3>
 <p>During the CI process <code>clap</code> runs against many different lints using
 <a href="https://github.com/Manishearth/rust-clippy"><code>clippy</code></a>. In order to check if these lints pass on
 your own computer prior to submitting a PR you’ll need a nightly compiler.</p>
 <p>In order to check the code for lints run either:</p>
-<div class="example-wrap"><pre class="language-text">$ rustup override add nightly
+<div class="example-wrap"><pre class="language-text"><code>$ rustup override add nightly
 $ cargo build --features lints
 $ rustup override remove
 
 
-$ just lint</pre></div><h3 id="debugging-code" class="section-header"><a href="#debugging-code">Debugging Code</a></h3>
+$ just lint</code></pre></div><h3 id="debugging-code" class="section-header"><a href="#debugging-code">Debugging Code</a></h3>
 <p>Another helpful technique is to see the <code>clap</code> debug output while developing features. In order
 to see the debug output while running the full test suite or individual tests, run:</p>
-<div class="example-wrap"><pre class="language-text">$ cargo test --features debug
+<div class="example-wrap"><pre class="language-text"><code>$ cargo test --features debug
 
 $ cargo test --test &lt;test_name&gt; --features debug
 
-$ just debug &lt;test_name&gt;</pre></div><h3 id="goals" class="section-header"><a href="#goals">Goals</a></h3>
+$ just debug &lt;test_name&gt;</code></pre></div><h3 id="goals" class="section-header"><a href="#goals">Goals</a></h3>
 <p>There are a few goals of <code>clap</code> that I’d like to maintain throughout contributions. If your
 proposed changes break, or go against any of these goals we’ll discuss the changes further
 before merging (but will <em>not</em> be ignored, all contributes are welcome!). These are by no means
@@ -383,7 +378,7 @@ version of Rust is considered a minor breaking change, meaning <em>at a minimum<
 of <code>clap</code> will be bumped.</p>
 <p>In order to keep from being surprised by breaking changes, it is <strong>highly</strong> recommended to use
 the <code>~major.minor.patch</code> style in your <code>Cargo.toml</code>:</p>
-<div class="example-wrap"><pre class="language-toml">[dependencies] clap = &quot;~2.27.0&quot;</pre></div>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies] clap = &quot;~2.27.0&quot;</code></pre></div>
 <p>This will cause <em>only</em> the patch version to be updated upon a <code>cargo update</code> call, and therefore
 cannot break due to new features, or bumped minimum versions of Rust.</p>
 <h4 id="minimum-version-of-rust" class="section-header"><a href="#minimum-version-of-rust">Minimum Version of Rust</a></h4>

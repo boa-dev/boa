@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rayon-1.5.1&#x2F;src&#x2F;slice&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rayon/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rayon-1.5.1&#x2F;src&#x2F;slice&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rayon/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1183,8 +1183,7 @@
 <span id="1183">1183</span>
 <span id="1184">1184</span>
 <span id="1185">1185</span>
-</pre><pre class="rust">
-<span class="doccomment">//! Parallel iterator types for [slices][std::slice]</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Parallel iterator types for [slices][std::slice]</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! You will rarely need to interact with this module directly unless you need</span>
 <span class="doccomment">//! to name one of the iterator types.</span>
@@ -1196,16 +1195,16 @@
 
 <span class="kw">mod</span> <span class="ident">test</span>;
 
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::mergesort::par_mergesort</span>;
-<span class="kw">use</span> <span class="self">self</span><span class="ident">::quicksort::par_quicksort</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::iter::plumbing</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::iter</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::split_producer</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::mergesort::par_mergesort</span>;
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::quicksort::par_quicksort</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::iter::plumbing</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::iter</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::split_producer</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::cmp</span>;
 <span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
 
-<span class="kw">use</span> <span class="kw">super</span><span class="ident">::math::div_round_up</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::math::div_round_up</span>;
 
 <span class="doccomment">/// Parallel extensions for slices.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ParallelSlice</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sync</span><span class="op">&gt;</span> {
@@ -1651,7 +1650,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_par_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span> {
+    <span class="kw">fn</span> <span class="ident">into_par_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span> {
         <span class="ident">Iter</span> { <span class="ident">slice</span>: <span class="self">self</span> }
     }
 }
@@ -1660,7 +1659,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">Iter</span> <span class="op">=</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_par_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Iter</span> {
+    <span class="kw">fn</span> <span class="ident">into_par_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Iter</span> {
         <span class="ident">IterMut</span> { <span class="ident">slice</span>: <span class="self">self</span> }
     }
 }
@@ -1682,7 +1681,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1695,7 +1694,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1706,7 +1705,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">IterProducer</span> { <span class="ident">slice</span>: <span class="self">self</span>.<span class="ident">slice</span> })
     }
@@ -1720,7 +1719,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">iter</span>()
     }
 
@@ -1748,7 +1747,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1761,7 +1760,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">Chunks</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1772,7 +1771,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">ChunksProducer</span> {
             <span class="ident">chunk_size</span>: <span class="self">self</span>.<span class="ident">chunk_size</span>,
@@ -1790,7 +1789,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">T</span>];
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::Chunks</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">chunks</span>(<span class="self">self</span>.<span class="ident">chunk_size</span>)
     }
 
@@ -1838,7 +1837,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1851,7 +1850,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">ChunksExact</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1862,7 +1861,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">ChunksExactProducer</span> {
             <span class="ident">chunk_size</span>: <span class="self">self</span>.<span class="ident">chunk_size</span>,
@@ -1880,7 +1879,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">T</span>];
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::ChunksExact</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">chunks_exact</span>(<span class="self">self</span>.<span class="ident">chunk_size</span>)
     }
 
@@ -1918,7 +1917,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1931,7 +1930,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">Windows</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -1943,7 +1942,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">WindowsProducer</span> {
             <span class="ident">window_size</span>: <span class="self">self</span>.<span class="ident">window_size</span>,
@@ -1961,7 +1960,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">T</span>];
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::Windows</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">windows</span>(<span class="self">self</span>.<span class="ident">window_size</span>)
     }
 
@@ -1993,7 +1992,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -2006,7 +2005,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -2017,7 +2016,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">IterMutProducer</span> { <span class="ident">slice</span>: <span class="self">self</span>.<span class="ident">slice</span> })
     }
@@ -2031,7 +2030,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> <span class="ident">T</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">iter_mut</span>()
     }
 
@@ -2056,7 +2055,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -2069,7 +2068,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">ChunksMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -2080,7 +2079,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">ChunksMutProducer</span> {
             <span class="ident">chunk_size</span>: <span class="self">self</span>.<span class="ident">chunk_size</span>,
@@ -2098,7 +2097,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> [<span class="ident">T</span>];
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::ChunksMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">chunks_mut</span>(<span class="self">self</span>.<span class="ident">chunk_size</span>)
     }
 
@@ -2163,7 +2162,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -2176,7 +2175,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="ident">IndexedParallelIterator</span> <span class="kw">for</span> <span class="ident">ChunksExactMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drive</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">Consumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">bridge</span>(<span class="self">self</span>, <span class="ident">consumer</span>)
     }
@@ -2187,7 +2186,7 @@
 
     <span class="kw">fn</span> <span class="ident">with_producer</span><span class="op">&lt;</span><span class="ident">CB</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">CB</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CB::Output</span>
     <span class="kw">where</span>
-        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">CB</span>: <span class="ident">ProducerCallback</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="ident">callback</span>.<span class="ident">callback</span>(<span class="ident">ChunksExactMutProducer</span> {
             <span class="ident">chunk_size</span>: <span class="self">self</span>.<span class="ident">chunk_size</span>,
@@ -2205,7 +2204,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="kw-2">mut</span> [<span class="ident">T</span>];
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">::std::slice::ChunksExactMut</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">slice</span>.<span class="ident">chunks_exact_mut</span>(<span class="self">self</span>.<span class="ident">chunk_size</span>)
     }
 
@@ -2255,7 +2254,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">producer</span> <span class="op">=</span> <span class="ident">SplitProducer::new</span>(<span class="self">self</span>.<span class="ident">slice</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">separator</span>);
         <span class="ident">bridge_unindexed</span>(<span class="ident">producer</span>, <span class="ident">consumer</span>)
@@ -2324,7 +2323,7 @@
 
     <span class="kw">fn</span> <span class="ident">drive_unindexed</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">consumer</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">C::Result</span>
     <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>,
+        <span class="ident">C</span>: <span class="ident">UnindexedConsumer</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">producer</span> <span class="op">=</span> <span class="ident">SplitProducer::new</span>(<span class="self">self</span>.<span class="ident">slice</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">separator</span>);
         <span class="ident">bridge_unindexed</span>(<span class="ident">producer</span>, <span class="ident">consumer</span>)
@@ -2369,7 +2368,7 @@
         <span class="ident">folder</span>.<span class="ident">consume_iter</span>(<span class="ident">split</span>)
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rayon" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

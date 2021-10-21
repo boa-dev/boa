@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;proc-macro2-1.0.29&#x2F;src&#x2F;parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;proc-macro2-1.0.29&#x2F;src&#x2F;parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -864,8 +864,7 @@
 <span id="864">864</span>
 <span id="865">865</span>
 <span id="866">866</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::fallback</span>::{
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fallback</span>::{
     <span class="ident">is_ident_continue</span>, <span class="ident">is_ident_start</span>, <span class="ident">Group</span>, <span class="ident">LexError</span>, <span class="ident">Literal</span>, <span class="ident">Span</span>, <span class="ident">TokenStream</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Delimiter</span>, <span class="ident">Punct</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
@@ -1084,13 +1083,13 @@
                 <span class="ident">hi</span>: <span class="ident">input</span>.<span class="ident">off</span>,
             });
             <span class="ident">trees</span> <span class="op">=</span> <span class="ident">outer</span>;
-            <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">TokenTree::Group</span>(<span class="kw">crate</span><span class="ident">::Group::_new_stable</span>(<span class="ident">g</span>)));
+            <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">TokenTree::Group</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">g</span>)));
         } <span class="kw">else</span> {
             <span class="kw">let</span> (<span class="ident">rest</span>, <span class="kw-2">mut</span> <span class="ident">tt</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>) {
                 <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">rest</span>, <span class="ident">tt</span>),
                 <span class="prelude-val">Err</span>(<span class="ident">Reject</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lex_error</span>(<span class="ident">input</span>)),
             };
-            <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="kw">crate</span><span class="ident">::Span::_new_stable</span>(<span class="ident">Span</span> {
+            <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<span class="ident">Span</span> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <span class="ident">lo</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
@@ -1118,7 +1117,7 @@
 <span class="kw">fn</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">l</span>)) <span class="op">=</span> <span class="ident">literal</span>(<span class="ident">input</span>) {
         <span class="comment">// must be parsed before ident</span>
-        <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">TokenTree::Literal</span>(<span class="kw">crate</span><span class="ident">::Literal::_new_stable</span>(<span class="ident">l</span>))))
+        <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">TokenTree::Literal</span>(<span class="ident"><span class="kw">crate</span>::Literal::_new_stable</span>(<span class="ident">l</span>))))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">p</span>)) <span class="op">=</span> <span class="ident">punct</span>(<span class="ident">input</span>) {
         <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">TokenTree::Punct</span>(<span class="ident">p</span>)))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">i</span>)) <span class="op">=</span> <span class="ident">ident</span>(<span class="ident">input</span>) {
@@ -1128,7 +1127,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::Ident</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Ident</span><span class="op">&gt;</span> {
     <span class="kw">if</span> [<span class="string">&quot;r\&quot;&quot;</span>, <span class="string">&quot;r#\&quot;&quot;</span>, <span class="string">&quot;r##&quot;</span>, <span class="string">&quot;b\&quot;&quot;</span>, <span class="string">&quot;b\&#39;&quot;</span>, <span class="string">&quot;br\&quot;&quot;</span>, <span class="string">&quot;br#&quot;</span>]
         .<span class="ident">iter</span>()
         .<span class="ident">any</span>(<span class="op">|</span><span class="ident">prefix</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="ident">prefix</span>))
@@ -1139,14 +1138,14 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ident_any</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw">crate</span><span class="ident">::Ident</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ident_any</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Ident</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;r#&quot;</span>);
     <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>((<span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>);
 
     <span class="kw">let</span> (<span class="ident">rest</span>, <span class="ident">sym</span>) <span class="op">=</span> <span class="ident">ident_not_raw</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="op">!</span><span class="ident">raw</span> {
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::Ident::new</span>(<span class="ident">sym</span>, <span class="kw">crate</span><span class="ident">::Span::call_site</span>());
+        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Ident::new</span>(<span class="ident">sym</span>, <span class="ident"><span class="kw">crate</span>::Span::call_site</span>());
         <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">ident</span>));
     }
 
@@ -1154,7 +1153,7 @@
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Reject</span>);
     }
 
-    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::Ident::_new_raw</span>(<span class="ident">sym</span>, <span class="kw">crate</span><span class="ident">::Span::call_site</span>());
+    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Ident::_new_raw</span>(<span class="ident">sym</span>, <span class="ident"><span class="kw">crate</span>::Span::call_site</span>());
     <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">ident</span>))
 }
 
@@ -1658,7 +1657,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">off</span>;
     <span class="kw">let</span> (<span class="ident">rest</span>, (<span class="ident">comment</span>, <span class="ident">inner</span>)) <span class="op">=</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::Span::_new_stable</span>(<span class="ident">Span</span> {
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<span class="ident">Span</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
         <span class="ident">lo</span>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
@@ -1680,15 +1679,15 @@
         <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;!&#39;</span>, <span class="ident">Spacing::Alone</span>).<span class="ident">into</span>());
     }
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="macro">vec!</span>[
-        <span class="ident">TokenTree::Ident</span>(<span class="kw">crate</span><span class="ident">::Ident::new</span>(<span class="string">&quot;doc&quot;</span>, <span class="ident">span</span>)),
+        <span class="ident">TokenTree::Ident</span>(<span class="ident"><span class="kw">crate</span>::Ident::new</span>(<span class="string">&quot;doc&quot;</span>, <span class="ident">span</span>)),
         <span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;=&#39;</span>, <span class="ident">Spacing::Alone</span>)),
-        <span class="ident">TokenTree::Literal</span>(<span class="kw">crate</span><span class="ident">::Literal::string</span>(<span class="ident">comment</span>)),
+        <span class="ident">TokenTree::Literal</span>(<span class="ident"><span class="kw">crate</span>::Literal::string</span>(<span class="ident">comment</span>)),
     ];
     <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="ident">stream</span>.<span class="ident">iter_mut</span>() {
         <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
     }
     <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group::new</span>(<span class="ident">Delimiter::Bracket</span>, <span class="ident">stream</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>());
-    <span class="ident">trees</span>.<span class="ident">push</span>(<span class="kw">crate</span><span class="ident">::Group::_new_stable</span>(<span class="ident">group</span>).<span class="ident">into</span>());
+    <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">group</span>).<span class="ident">into</span>());
     <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="ident">trees</span>.<span class="ident">iter_mut</span>() {
         <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
     }
@@ -1731,7 +1730,7 @@
 
     (<span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">input</span>.<span class="ident">len</span>()), <span class="ident">input</span>.<span class="ident">rest</span>)
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

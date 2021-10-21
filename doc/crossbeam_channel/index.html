@@ -1,8 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Multi-producer multi-consumer channels for message passing."><meta name="keywords" content="rust, rustlang, rust-lang, crossbeam_channel"><title>crossbeam_channel - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../crossbeam_channel/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate crossbeam_channel</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.5.1</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all crossbeam_channel's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="crossbeam_channel" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">crossbeam_channel</a><button id="copy-path" onclick="copy_path(this)" title="copy path"><img src="../clipboard.svg" width="19" height="18" alt="Copy item import" title="Copy item import to clipboard"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/crossbeam_channel/lib.rs.html#1-371" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Multi-producer multi-consumer channels for message passing.</p>
-<p>This crate is an alternative to <a href="https://doc.rust-lang.org/1.55.0/std/sync/mpsc/index.html" title="std::sync::mpsc"><code>std::sync::mpsc</code></a> with more features and better performance.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Multi-producer multi-consumer channels for message passing."><meta name="keywords" content="rust, rustlang, rust-lang, crossbeam_channel"><title>crossbeam_channel - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../crossbeam_channel/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><h2 class="location">Crate crossbeam_channel</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.5.1</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all crossbeam_channel's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="crossbeam_channel" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">crossbeam_channel</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/crossbeam_channel/lib.rs.html#1-371" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Multi-producer multi-consumer channels for message passing.</p>
+<p>This crate is an alternative to <a href="https://doc.rust-lang.org/1.56.0/std/sync/mpsc/index.html" title="std::sync::mpsc"><code>std::sync::mpsc</code></a> with more features and better performance.</p>
 <h1 id="hello-world" class="section-header"><a href="#hello-world">Hello, world!</a></h1>
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
 
 <span class="comment">// Create a channel of unbounded capacity.</span>
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">unbounded</span>();
@@ -11,7 +10,7 @@
 <span class="ident">s</span>.<span class="ident">send</span>(<span class="string">&quot;Hello, world!&quot;</span>).<span class="ident">unwrap</span>();
 
 <span class="comment">// Receive the message from the channel.</span>
-<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="string">&quot;Hello, world!&quot;</span>));</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="string">&quot;Hello, world!&quot;</span>));</code></pre></div>
 <h1 id="channel-types" class="section-header"><a href="#channel-types">Channel types</a></h1>
 <p>Channels can be created using two functions:</p>
 <ul>
@@ -28,8 +27,7 @@ messages at a time.</p>
 of a channel.</p>
 <p>Creating a bounded channel:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel::bounded</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel::bounded</span>;
 
 <span class="comment">// Create a channel that can hold at most 5 messages at a time.</span>
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">bounded</span>(<span class="number">5</span>);
@@ -40,11 +38,10 @@ of a channel.</p>
 }
 
 <span class="comment">// Another call to `send` would block because the channel is full.</span>
-<span class="comment">// s.send(5).unwrap();</span></pre></div>
+<span class="comment">// s.send(5).unwrap();</span></code></pre></div>
 <p>Creating an unbounded channel:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
 
 <span class="comment">// Create an unbounded channel.</span>
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">unbounded</span>();
@@ -52,12 +49,11 @@ of a channel.</p>
 <span class="comment">// Can send any number of messages into the channel without blocking.</span>
 <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
     <span class="ident">s</span>.<span class="ident">send</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>();
-}</pre></div>
+}</code></pre></div>
 <p>A special case is zero-capacity channel, which cannot hold any messages. Instead, send and
 receive operations must appear at the same time in order to pair up and pass the message over:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::thread</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::thread</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel::bounded</span>;
 
 <span class="comment">// Create a zero-capacity channel.</span>
@@ -67,12 +63,11 @@ receive operations must appear at the same time in order to pair up and pass the
 <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">send</span>(<span class="string">&quot;Hi!&quot;</span>).<span class="ident">unwrap</span>());
 
 <span class="comment">// Receiving blocks until a send operation appears on the other side.</span>
-<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="string">&quot;Hi!&quot;</span>));</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="string">&quot;Hi!&quot;</span>));</code></pre></div>
 <h1 id="sharing-channels" class="section-header"><a href="#sharing-channels">Sharing channels</a></h1>
 <p>Senders and receivers can be cloned and sent to other threads:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::thread</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::thread</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel::bounded</span>;
 
 <span class="kw">let</span> (<span class="ident">s1</span>, <span class="ident">r1</span>) <span class="op">=</span> <span class="ident">bounded</span>(<span class="number">0</span>);
@@ -86,12 +81,11 @@ receive operations must appear at the same time in order to pair up and pass the
 
 <span class="comment">// Send a message and then receive one.</span>
 <span class="ident">s1</span>.<span class="ident">send</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
-<span class="ident">r1</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>();</pre></div>
+<span class="ident">r1</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>();</code></pre></div>
 <p>Note that cloning only creates a new handle to the same sending or receiving side. It does not
 create a separate stream of messages in any way:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
 
 <span class="kw">let</span> (<span class="ident">s1</span>, <span class="ident">r1</span>) <span class="op">=</span> <span class="ident">unbounded</span>();
 <span class="kw">let</span> (<span class="ident">s2</span>, <span class="ident">r2</span>) <span class="op">=</span> (<span class="ident">s1</span>.<span class="ident">clone</span>(), <span class="ident">r1</span>.<span class="ident">clone</span>());
@@ -103,11 +97,10 @@ create a separate stream of messages in any way:</p>
 
 <span class="macro">assert_eq!</span>(<span class="ident">r3</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="number">10</span>));
 <span class="macro">assert_eq!</span>(<span class="ident">r1</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="number">20</span>));
-<span class="macro">assert_eq!</span>(<span class="ident">r2</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="number">30</span>));</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">r2</span>.<span class="ident">recv</span>(), <span class="prelude-val">Ok</span>(<span class="number">30</span>));</code></pre></div>
 <p>It’s also possible to share senders and receivers by reference:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel::bounded</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel::bounded</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_utils::thread::scope</span>;
 
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">bounded</span>(<span class="number">0</span>);
@@ -122,14 +115,13 @@ create a separate stream of messages in any way:</p>
     <span class="comment">// Send a message and then receive one.</span>
     <span class="ident">s</span>.<span class="ident">send</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
     <span class="ident">r</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>();
-}).<span class="ident">unwrap</span>();</pre></div>
+}).<span class="ident">unwrap</span>();</code></pre></div>
 <h1 id="disconnection" class="section-header"><a href="#disconnection">Disconnection</a></h1>
 <p>When all senders or all receivers associated with a channel get dropped, the channel becomes
 disconnected. No more messages can be sent, but any remaining messages can still be received.
 Send and receive operations on a disconnected channel never block.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">unbounded</span>, <span class="ident">RecvError</span>};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">unbounded</span>, <span class="ident">RecvError</span>};
 
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">unbounded</span>();
 <span class="ident">s</span>.<span class="ident">send</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
@@ -149,7 +141,7 @@ Send and receive operations on a disconnected channel never block.</p>
 
 <span class="comment">// Note that calling `r.recv()` does not block.</span>
 <span class="comment">// Instead, `Err(RecvError)` is returned immediately.</span>
-<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>));</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>));</code></pre></div>
 <h1 id="blocking-operations" class="section-header"><a href="#blocking-operations">Blocking operations</a></h1>
 <p>Send and receive operations come in three flavors:</p>
 <ul>
@@ -159,8 +151,7 @@ Send and receive operations on a disconnected channel never block.</p>
 </ul>
 <p>A simple example showing the difference between non-blocking and blocking operations:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">bounded</span>, <span class="ident">RecvError</span>, <span class="ident">TryRecvError</span>};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">bounded</span>, <span class="ident">RecvError</span>, <span class="ident">TryRecvError</span>};
 
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">bounded</span>(<span class="number">1</span>);
 
@@ -183,14 +174,13 @@ Send and receive operations on a disconnected channel never block.</p>
 <span class="ident">drop</span>(<span class="ident">s</span>);
 
 <span class="comment">// This call doesn&#39;t block because the channel is now disconnected.</span>
-<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>));</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">recv</span>(), <span class="prelude-val">Err</span>(<span class="ident">RecvError</span>));</code></pre></div>
 <h1 id="iteration" class="section-header"><a href="#iteration">Iteration</a></h1>
 <p>Receivers can be used as iterators. For example, method <a href="struct.Receiver.html#method.iter"><code>iter</code></a> creates an iterator that
 receives messages until the channel becomes empty and disconnected. Note that iteration may
 block waiting for next message to arrive.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::thread</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::thread</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
 
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">unbounded</span>();
@@ -206,12 +196,11 @@ block waiting for next message to arrive.</p>
 <span class="comment">// Note that the call to `collect` blocks until the sender is dropped.</span>
 <span class="kw">let</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">iter</span>().<span class="ident">collect</span>();
 
-<span class="macro">assert_eq!</span>(<span class="ident">v</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">v</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</code></pre></div>
 <p>A non-blocking iterator can be created using <a href="struct.Receiver.html#method.try_iter"><code>try_iter</code></a>, which receives all available
 messages without blocking:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">crossbeam_channel::unbounded</span>;
 
 <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">r</span>) <span class="op">=</span> <span class="ident">unbounded</span>();
 <span class="ident">s</span>.<span class="ident">send</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
@@ -222,7 +211,7 @@ messages without blocking:</p>
 <span class="comment">// Receive all messages currently in the channel.</span>
 <span class="kw">let</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">try_iter</span>().<span class="ident">collect</span>();
 
-<span class="macro">assert_eq!</span>(<span class="ident">v</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</pre></div>
+<span class="macro">assert_eq!</span>(<span class="ident">v</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</code></pre></div>
 <h1 id="selection" class="section-header"><a href="#selection">Selection</a></h1>
 <p>The <a href="macro.select.html" title="select!"><code>select!</code></a> macro allows you to define a set of channel operations, wait until any one of
 them becomes ready, and finally execute it. If multiple operations are ready at the same time,
@@ -233,8 +222,7 @@ ready, either right away or for a certain duration of time.</p>
 when it will simply return an error because the channel is disconnected.</p>
 <p>An example of receiving a message from two channels:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::thread</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::thread</span>;
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">select</span>, <span class="ident">unbounded</span>};
 
@@ -249,7 +237,7 @@ when it will simply return an error because the channel is disconnected.</p>
     <span class="ident">recv</span>(<span class="ident">r1</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">msg</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">msg</span>, <span class="prelude-val">Ok</span>(<span class="number">10</span>)),
     <span class="ident">recv</span>(<span class="ident">r2</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">msg</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">msg</span>, <span class="prelude-val">Ok</span>(<span class="number">20</span>)),
     <span class="ident">default</span>(<span class="ident">Duration::from_secs</span>(<span class="number">1</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;timed out&quot;</span>),
-}</pre></div>
+}</code></pre></div>
 <p>If you need to select over a dynamically created list of channel operations, use <a href="struct.Select.html" title="Select"><code>Select</code></a>
 instead. The <a href="macro.select.html" title="select!"><code>select!</code></a> macro is just a convenience wrapper around <a href="struct.Select.html" title="Select"><code>Select</code></a>.</p>
 <h1 id="extra-channels" class="section-header"><a href="#extra-channels">Extra channels</a></h1>
@@ -263,8 +251,7 @@ handle:</p>
 <p>These channels are very efficient because messages get lazily generated on receive operations.</p>
 <p>An example that prints elapsed time every 50 milliseconds for the duration of 1 second:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">after</span>, <span class="ident">select</span>, <span class="ident">tick</span>};
 
 <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
@@ -276,7 +263,7 @@ handle:</p>
         <span class="ident">recv</span>(<span class="ident">ticker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;elapsed: {:?}&quot;</span>, <span class="ident">start</span>.<span class="ident">elapsed</span>()),
         <span class="ident">recv</span>(<span class="ident">timeout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
     }
-}</pre></div>
+}</code></pre></div>
 </div></details><h2 id="macros" class="section-header"><a href="#macros">Macros</a></h2>
 <div class="item-table"><div class="item-left module-item"><a class="macro" href="macro.select.html" title="crossbeam_channel::select macro">select</a></div><div class="item-right docblock-short"><p>Selects from a set of channel operations.</p>
 </div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>

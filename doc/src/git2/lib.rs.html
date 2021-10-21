@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.23&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;git2-0.13.23&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1548,8 +1548,7 @@
 <span id="1548">1548</span>
 <span id="1549">1549</span>
 <span id="1550">1550</span>
-</pre><pre class="rust">
-<span class="doccomment">//! # libgit2 bindings for Rust</span>
+</pre><pre class="rust"><code><span class="doccomment">//! # libgit2 bindings for Rust</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This library contains bindings to the [libgit2][1] C library which is used</span>
 <span class="doccomment">//! to manage git repositories. The library itself is a work in progress and is</span>
@@ -1630,64 +1629,64 @@
 <span class="kw">use</span> <span class="ident">std::str</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Once</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::apply</span>::{<span class="ident">ApplyLocation</span>, <span class="ident">ApplyOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::attr::AttrValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::blame</span>::{<span class="ident">Blame</span>, <span class="ident">BlameHunk</span>, <span class="ident">BlameIter</span>, <span class="ident">BlameOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::blob</span>::{<span class="ident">Blob</span>, <span class="ident">BlobWriter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::branch</span>::{<span class="ident">Branch</span>, <span class="ident">Branches</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::buf::Buf</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cherrypick::CherrypickOptions</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::commit</span>::{<span class="ident">Commit</span>, <span class="ident">Parents</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::config</span>::{<span class="ident">Config</span>, <span class="ident">ConfigEntries</span>, <span class="ident">ConfigEntry</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cred</span>::{<span class="ident">Cred</span>, <span class="ident">CredentialHelper</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::describe</span>::{<span class="ident">Describe</span>, <span class="ident">DescribeFormatOptions</span>, <span class="ident">DescribeOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::diff</span>::{<span class="ident">Deltas</span>, <span class="ident">Diff</span>, <span class="ident">DiffDelta</span>, <span class="ident">DiffFile</span>, <span class="ident">DiffOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::diff</span>::{<span class="ident">DiffBinary</span>, <span class="ident">DiffBinaryFile</span>, <span class="ident">DiffBinaryKind</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::diff</span>::{<span class="ident">DiffFindOptions</span>, <span class="ident">DiffHunk</span>, <span class="ident">DiffLine</span>, <span class="ident">DiffLineType</span>, <span class="ident">DiffStats</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::Error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::index</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::apply</span>::{<span class="ident">ApplyLocation</span>, <span class="ident">ApplyOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attr::AttrValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::blame</span>::{<span class="ident">Blame</span>, <span class="ident">BlameHunk</span>, <span class="ident">BlameIter</span>, <span class="ident">BlameOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::blob</span>::{<span class="ident">Blob</span>, <span class="ident">BlobWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::branch</span>::{<span class="ident">Branch</span>, <span class="ident">Branches</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf::Buf</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cherrypick::CherrypickOptions</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::commit</span>::{<span class="ident">Commit</span>, <span class="ident">Parents</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::config</span>::{<span class="ident">Config</span>, <span class="ident">ConfigEntries</span>, <span class="ident">ConfigEntry</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cred</span>::{<span class="ident">Cred</span>, <span class="ident">CredentialHelper</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::describe</span>::{<span class="ident">Describe</span>, <span class="ident">DescribeFormatOptions</span>, <span class="ident">DescribeOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diff</span>::{<span class="ident">Deltas</span>, <span class="ident">Diff</span>, <span class="ident">DiffDelta</span>, <span class="ident">DiffFile</span>, <span class="ident">DiffOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diff</span>::{<span class="ident">DiffBinary</span>, <span class="ident">DiffBinaryFile</span>, <span class="ident">DiffBinaryKind</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diff</span>::{<span class="ident">DiffFindOptions</span>, <span class="ident">DiffHunk</span>, <span class="ident">DiffLine</span>, <span class="ident">DiffLineType</span>, <span class="ident">DiffStats</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::index</span>::{
     <span class="ident">Index</span>, <span class="ident">IndexConflict</span>, <span class="ident">IndexConflicts</span>, <span class="ident">IndexEntries</span>, <span class="ident">IndexEntry</span>, <span class="ident">IndexMatchedPath</span>,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::indexer</span>::{<span class="ident">IndexerProgress</span>, <span class="ident">Progress</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::mailmap::Mailmap</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::mempack::Mempack</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::merge</span>::{<span class="ident">AnnotatedCommit</span>, <span class="ident">MergeOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::message</span>::{<span class="ident">message_prettify</span>, <span class="ident">DEFAULT_COMMENT_CHAR</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::note</span>::{<span class="ident">Note</span>, <span class="ident">Notes</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::object::Object</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::odb</span>::{<span class="ident">Odb</span>, <span class="ident">OdbObject</span>, <span class="ident">OdbPackwriter</span>, <span class="ident">OdbReader</span>, <span class="ident">OdbWriter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::oid::Oid</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::packbuilder</span>::{<span class="ident">PackBuilder</span>, <span class="ident">PackBuilderStage</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::patch::Patch</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::pathspec</span>::{<span class="ident">Pathspec</span>, <span class="ident">PathspecFailedEntries</span>, <span class="ident">PathspecMatchList</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::pathspec</span>::{<span class="ident">PathspecDiffEntries</span>, <span class="ident">PathspecEntries</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::proxy_options::ProxyOptions</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::rebase</span>::{<span class="ident">Rebase</span>, <span class="ident">RebaseOperation</span>, <span class="ident">RebaseOperationType</span>, <span class="ident">RebaseOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::reference</span>::{<span class="ident">Reference</span>, <span class="ident">ReferenceNames</span>, <span class="ident">References</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::reflog</span>::{<span class="ident">Reflog</span>, <span class="ident">ReflogEntry</span>, <span class="ident">ReflogIter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::refspec::Refspec</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::remote</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::indexer</span>::{<span class="ident">IndexerProgress</span>, <span class="ident">Progress</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mailmap::Mailmap</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mempack::Mempack</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::merge</span>::{<span class="ident">AnnotatedCommit</span>, <span class="ident">MergeOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::message</span>::{<span class="ident">message_prettify</span>, <span class="ident">DEFAULT_COMMENT_CHAR</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::note</span>::{<span class="ident">Note</span>, <span class="ident">Notes</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::object::Object</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::odb</span>::{<span class="ident">Odb</span>, <span class="ident">OdbObject</span>, <span class="ident">OdbPackwriter</span>, <span class="ident">OdbReader</span>, <span class="ident">OdbWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::oid::Oid</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::packbuilder</span>::{<span class="ident">PackBuilder</span>, <span class="ident">PackBuilderStage</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::patch::Patch</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pathspec</span>::{<span class="ident">Pathspec</span>, <span class="ident">PathspecFailedEntries</span>, <span class="ident">PathspecMatchList</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pathspec</span>::{<span class="ident">PathspecDiffEntries</span>, <span class="ident">PathspecEntries</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::proxy_options::ProxyOptions</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rebase</span>::{<span class="ident">Rebase</span>, <span class="ident">RebaseOperation</span>, <span class="ident">RebaseOperationType</span>, <span class="ident">RebaseOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reference</span>::{<span class="ident">Reference</span>, <span class="ident">ReferenceNames</span>, <span class="ident">References</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::reflog</span>::{<span class="ident">Reflog</span>, <span class="ident">ReflogEntry</span>, <span class="ident">ReflogIter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::refspec::Refspec</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::remote</span>::{
     <span class="ident">FetchOptions</span>, <span class="ident">PushOptions</span>, <span class="ident">Refspecs</span>, <span class="ident">Remote</span>, <span class="ident">RemoteConnection</span>, <span class="ident">RemoteHead</span>,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::remote_callbacks</span>::{<span class="ident">Credentials</span>, <span class="ident">RemoteCallbacks</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::remote_callbacks</span>::{<span class="ident">TransportMessage</span>, <span class="ident">UpdateTips</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::repo</span>::{<span class="ident">Repository</span>, <span class="ident">RepositoryInitOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::revert::RevertOptions</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::revspec::Revspec</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::revwalk::Revwalk</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::signature::Signature</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stash</span>::{<span class="ident">StashApplyOptions</span>, <span class="ident">StashApplyProgressCb</span>, <span class="ident">StashCb</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::status</span>::{<span class="ident">StatusEntry</span>, <span class="ident">StatusIter</span>, <span class="ident">StatusOptions</span>, <span class="ident">StatusShow</span>, <span class="ident">Statuses</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::submodule</span>::{<span class="ident">Submodule</span>, <span class="ident">SubmoduleUpdateOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tag::Tag</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::time</span>::{<span class="ident">IndexTime</span>, <span class="ident">Time</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tracing</span>::{<span class="ident">trace_set</span>, <span class="ident">TraceLevel</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::transaction::Transaction</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tree</span>::{<span class="ident">Tree</span>, <span class="ident">TreeEntry</span>, <span class="ident">TreeIter</span>, <span class="ident">TreeWalkMode</span>, <span class="ident">TreeWalkResult</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::treebuilder::TreeBuilder</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::IntoCString</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::version::Version</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::worktree</span>::{<span class="ident">Worktree</span>, <span class="ident">WorktreeAddOptions</span>, <span class="ident">WorktreeLockStatus</span>, <span class="ident">WorktreePruneOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::remote_callbacks</span>::{<span class="ident">Credentials</span>, <span class="ident">RemoteCallbacks</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::remote_callbacks</span>::{<span class="ident">TransportMessage</span>, <span class="ident">UpdateTips</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::repo</span>::{<span class="ident">Repository</span>, <span class="ident">RepositoryInitOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::revert::RevertOptions</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::revspec::Revspec</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::revwalk::Revwalk</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::signature::Signature</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stash</span>::{<span class="ident">StashApplyOptions</span>, <span class="ident">StashApplyProgressCb</span>, <span class="ident">StashCb</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::status</span>::{<span class="ident">StatusEntry</span>, <span class="ident">StatusIter</span>, <span class="ident">StatusOptions</span>, <span class="ident">StatusShow</span>, <span class="ident">Statuses</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::submodule</span>::{<span class="ident">Submodule</span>, <span class="ident">SubmoduleUpdateOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tag::Tag</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time</span>::{<span class="ident">IndexTime</span>, <span class="ident">Time</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tracing</span>::{<span class="ident">trace_set</span>, <span class="ident">TraceLevel</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::transaction::Transaction</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tree</span>::{<span class="ident">Tree</span>, <span class="ident">TreeEntry</span>, <span class="ident">TreeIter</span>, <span class="ident">TreeWalkMode</span>, <span class="ident">TreeWalkResult</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::treebuilder::TreeBuilder</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::IntoCString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::version::Version</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::worktree</span>::{<span class="ident">Worktree</span>, <span class="ident">WorktreeAddOptions</span>, <span class="ident">WorktreeLockStatus</span>, <span class="ident">WorktreePruneOptions</span>};
 
 <span class="comment">// Create a convinience method on bitflag struct which checks the given flag</span>
 <span class="macro">macro_rules!</span> <span class="ident">is_bit_set</span> {
@@ -3099,7 +3098,7 @@
         <span class="macro">assert_eq!</span>(<span class="ident">u32::from</span>(<span class="ident">FileMode::BlobExecutable</span>), <span class="number">0o100755</span>);
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

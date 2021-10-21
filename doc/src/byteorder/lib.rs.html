@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;byteorder-1.4.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../byteorder/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;byteorder-1.4.3&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../byteorder/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -4050,8 +4050,7 @@
 <span id="4050">4050</span>
 <span id="4051">4051</span>
 <span id="4052">4052</span>
-</pre><pre class="rust">
-<span class="doccomment">/*!
+</pre><pre class="rust"><code><span class="doccomment">/*!
 This crate provides convenience methods for encoding and decoding numbers in
 either [big-endian or little-endian order].
 
@@ -4128,7 +4127,7 @@ cases.
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::io</span>::{<span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<span class="ident">ReadBytesExt</span>, <span class="ident">WriteBytesExt</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">io</span>;
@@ -4219,8 +4218,8 @@ cases.
     <span class="doccomment">/// Sealed stops crates other than byteorder from implementing any traits</span>
     <span class="doccomment">/// that use it.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="kw">super</span><span class="ident">::LittleEndian</span> {}
-    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="kw">super</span><span class="ident">::BigEndian</span> {}
+    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident"><span class="kw">super</span>::LittleEndian</span> {}
+    <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident"><span class="kw">super</span>::BigEndian</span> {}
 }
 
 <span class="doccomment">/// `ByteOrder` describes types that can serialize integers as bytes.</span>
@@ -4295,7 +4294,7 @@ cases.
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_u24(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">read_u24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-        <span class="self">Self</span><span class="ident">::read_uint</span>(<span class="ident">buf</span>, <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u32</span>
+        <span class="ident"><span class="self">Self</span>::read_uint</span>(<span class="ident">buf</span>, <span class="number">3</span>) <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="doccomment">/// Reads an unsigned 32 bit integer from `buf`.</span>
@@ -4335,7 +4334,7 @@ cases.
     <span class="doccomment">/// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">read_u48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="self">Self</span><span class="ident">::read_uint</span>(<span class="ident">buf</span>, <span class="number">6</span>) <span class="kw">as</span> <span class="ident">u64</span>
+        <span class="ident"><span class="self">Self</span>::read_uint</span>(<span class="ident">buf</span>, <span class="number">6</span>) <span class="kw">as</span> <span class="ident">u64</span>
     }
 
     <span class="doccomment">/// Reads an unsigned 64 bit integer from `buf`.</span>
@@ -4453,7 +4452,7 @@ cases.
     <span class="doccomment">/// assert_eq!(1_000_000, LittleEndian::read_u24(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">write_u24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u32</span>) {
-        <span class="self">Self</span><span class="ident">::write_uint</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">3</span>)
+        <span class="ident"><span class="self">Self</span>::write_uint</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">3</span>)
     }
 
     <span class="doccomment">/// Writes an unsigned 32 bit integer `n` to `buf`.</span>
@@ -4493,7 +4492,7 @@ cases.
     <span class="doccomment">/// assert_eq!(1_000_000_000_000, LittleEndian::read_u48(&amp;buf));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">write_u48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">u64</span>) {
-        <span class="self">Self</span><span class="ident">::write_uint</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">6</span>)
+        <span class="ident"><span class="self">Self</span>::write_uint</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">6</span>)
     }
 
     <span class="doccomment">/// Writes an unsigned 64 bit integer `n` to `buf`.</span>
@@ -4593,7 +4592,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_i16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i16</span> {
-        <span class="self">Self</span><span class="ident">::read_u16</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i16</span>
+        <span class="ident"><span class="self">Self</span>::read_u16</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i16</span>
     }
 
     <span class="doccomment">/// Reads a signed 24 bit integer from `buf`, stored in i32.</span>
@@ -4615,7 +4614,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_i24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="self">Self</span><span class="ident">::read_int</span>(<span class="ident">buf</span>, <span class="number">3</span>) <span class="kw">as</span> <span class="ident">i32</span>
+        <span class="ident"><span class="self">Self</span>::read_int</span>(<span class="ident">buf</span>, <span class="number">3</span>) <span class="kw">as</span> <span class="ident">i32</span>
     }
 
     <span class="doccomment">/// Reads a signed 32 bit integer from `buf`.</span>
@@ -4637,7 +4636,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_i32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="self">Self</span><span class="ident">::read_u32</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i32</span>
+        <span class="ident"><span class="self">Self</span>::read_u32</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i32</span>
     }
 
     <span class="doccomment">/// Reads a signed 48 bit integer from `buf`, stored in i64.</span>
@@ -4659,7 +4658,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_i48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
-        <span class="self">Self</span><span class="ident">::read_int</span>(<span class="ident">buf</span>, <span class="number">6</span>) <span class="kw">as</span> <span class="ident">i64</span>
+        <span class="ident"><span class="self">Self</span>::read_int</span>(<span class="ident">buf</span>, <span class="number">6</span>) <span class="kw">as</span> <span class="ident">i64</span>
     }
 
     <span class="doccomment">/// Reads a signed 64 bit integer from `buf`.</span>
@@ -4681,7 +4680,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_i64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
-        <span class="self">Self</span><span class="ident">::read_u64</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i64</span>
+        <span class="ident"><span class="self">Self</span>::read_u64</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i64</span>
     }
 
     <span class="doccomment">/// Reads a signed 128 bit integer from `buf`.</span>
@@ -4703,7 +4702,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_i128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i128</span> {
-        <span class="self">Self</span><span class="ident">::read_u128</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i128</span>
+        <span class="ident"><span class="self">Self</span>::read_u128</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">i128</span>
     }
 
     <span class="doccomment">/// Reads a signed n-bytes integer from `buf`.</span>
@@ -4726,7 +4725,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_int</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">nbytes</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
-        <span class="ident">extend_sign</span>(<span class="self">Self</span><span class="ident">::read_uint</span>(<span class="ident">buf</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
+        <span class="ident">extend_sign</span>(<span class="ident"><span class="self">Self</span>::read_uint</span>(<span class="ident">buf</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
     }
 
     <span class="doccomment">/// Reads a signed n-bytes integer from `buf`.</span>
@@ -4749,7 +4748,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_int128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">nbytes</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i128</span> {
-        <span class="ident">extend_sign128</span>(<span class="self">Self</span><span class="ident">::read_uint128</span>(<span class="ident">buf</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
+        <span class="ident">extend_sign128</span>(<span class="ident"><span class="self">Self</span>::read_uint128</span>(<span class="ident">buf</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
     }
 
     <span class="doccomment">/// Reads a IEEE754 single-precision (4 bytes) floating point number.</span>
@@ -4772,7 +4771,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_f32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span> {
-        <span class="ident">f32::from_bits</span>(<span class="self">Self</span><span class="ident">::read_u32</span>(<span class="ident">buf</span>))
+        <span class="ident">f32::from_bits</span>(<span class="ident"><span class="self">Self</span>::read_u32</span>(<span class="ident">buf</span>))
     }
 
     <span class="doccomment">/// Reads a IEEE754 double-precision (8 bytes) floating point number.</span>
@@ -4795,7 +4794,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">read_f64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
-        <span class="ident">f64::from_bits</span>(<span class="self">Self</span><span class="ident">::read_u64</span>(<span class="ident">buf</span>))
+        <span class="ident">f64::from_bits</span>(<span class="ident"><span class="self">Self</span>::read_u64</span>(<span class="ident">buf</span>))
     }
 
     <span class="doccomment">/// Writes a signed 16 bit integer `n` to `buf`.</span>
@@ -4817,7 +4816,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_i16</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i16</span>) {
-        <span class="self">Self</span><span class="ident">::write_u16</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u16</span>)
+        <span class="ident"><span class="self">Self</span>::write_u16</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u16</span>)
     }
 
     <span class="doccomment">/// Writes a signed 24 bit integer `n` to `buf`, stored in i32.</span>
@@ -4839,7 +4838,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_i24</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i32</span>) {
-        <span class="self">Self</span><span class="ident">::write_int</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">3</span>)
+        <span class="ident"><span class="self">Self</span>::write_int</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">3</span>)
     }
 
     <span class="doccomment">/// Writes a signed 32 bit integer `n` to `buf`.</span>
@@ -4861,7 +4860,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_i32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i32</span>) {
-        <span class="self">Self</span><span class="ident">::write_u32</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>)
+        <span class="ident"><span class="self">Self</span>::write_u32</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>)
     }
 
     <span class="doccomment">/// Writes a signed 48 bit integer `n` to `buf`, stored in i64.</span>
@@ -4883,7 +4882,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_i48</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>) {
-        <span class="self">Self</span><span class="ident">::write_int</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">6</span>)
+        <span class="ident"><span class="self">Self</span>::write_int</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">6</span>)
     }
 
     <span class="doccomment">/// Writes a signed 64 bit integer `n` to `buf`.</span>
@@ -4905,7 +4904,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_i64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>) {
-        <span class="self">Self</span><span class="ident">::write_u64</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>)
+        <span class="ident"><span class="self">Self</span>::write_u64</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>)
     }
 
     <span class="doccomment">/// Writes a signed 128 bit integer `n` to `buf`.</span>
@@ -4927,7 +4926,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_i128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i128</span>) {
-        <span class="self">Self</span><span class="ident">::write_u128</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u128</span>)
+        <span class="ident"><span class="self">Self</span>::write_u128</span>(<span class="ident">buf</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u128</span>)
     }
 
     <span class="doccomment">/// Writes a signed integer `n` to `buf` using only `nbytes`.</span>
@@ -4950,7 +4949,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_int</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i64</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
-        <span class="self">Self</span><span class="ident">::write_uint</span>(<span class="ident">buf</span>, <span class="ident">unextend_sign</span>(<span class="ident">n</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
+        <span class="ident"><span class="self">Self</span>::write_uint</span>(<span class="ident">buf</span>, <span class="ident">unextend_sign</span>(<span class="ident">n</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
     }
 
     <span class="doccomment">/// Writes a signed integer `n` to `buf` using only `nbytes`.</span>
@@ -4973,7 +4972,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_int128</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">i128</span>, <span class="ident">nbytes</span>: <span class="ident">usize</span>) {
-        <span class="self">Self</span><span class="ident">::write_uint128</span>(<span class="ident">buf</span>, <span class="ident">unextend_sign128</span>(<span class="ident">n</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
+        <span class="ident"><span class="self">Self</span>::write_uint128</span>(<span class="ident">buf</span>, <span class="ident">unextend_sign128</span>(<span class="ident">n</span>, <span class="ident">nbytes</span>), <span class="ident">nbytes</span>)
     }
 
     <span class="doccomment">/// Writes a IEEE754 single-precision (4 bytes) floating point number.</span>
@@ -4996,7 +4995,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_f32</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">f32</span>) {
-        <span class="self">Self</span><span class="ident">::write_u32</span>(<span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">to_bits</span>())
+        <span class="ident"><span class="self">Self</span>::write_u32</span>(<span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">to_bits</span>())
     }
 
     <span class="doccomment">/// Writes a IEEE754 double-precision (8 bytes) floating point number.</span>
@@ -5019,7 +5018,7 @@ cases.
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">write_f64</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">n</span>: <span class="ident">f64</span>) {
-        <span class="self">Self</span><span class="ident">::write_u64</span>(<span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">to_bits</span>())
+        <span class="ident"><span class="self">Self</span>::write_u64</span>(<span class="ident">buf</span>, <span class="ident">n</span>.<span class="ident">to_bits</span>())
     }
 
     <span class="doccomment">/// Reads unsigned 16 bit integers from `src` into `dst`.</span>
@@ -5140,7 +5139,7 @@ cases.
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u16</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::read_u16_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>)
+        <span class="ident"><span class="self">Self</span>::read_u16_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>)
     }
 
     <span class="doccomment">/// Reads signed 32 bit integers from `src` into `dst`.</span>
@@ -5169,7 +5168,7 @@ cases.
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::read_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Reads signed 64 bit integers from `src` into `dst`.</span>
@@ -5198,7 +5197,7 @@ cases.
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::read_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Reads signed 128 bit integers from `src` into `dst`.</span>
@@ -5227,7 +5226,7 @@ cases.
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u128</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::read_u128_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_u128_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Reads IEEE754 single-precision (4 bytes) floating point numbers from</span>
@@ -5257,7 +5256,7 @@ cases.
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::read_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// **DEPRECATED**.</span>
@@ -5288,7 +5287,7 @@ cases.
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;1.3.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;please use `read_f32_into` instead&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">read_f32_into_unchecked</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f32</span>]) {
-        <span class="self">Self</span><span class="ident">::read_f32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_f32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Reads IEEE754 single-precision (4 bytes) floating point numbers from</span>
@@ -5318,7 +5317,7 @@ cases.
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span>, <span class="ident">dst</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::read_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// **DEPRECATED**.</span>
@@ -5350,7 +5349,7 @@ cases.
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;1.3.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;please use `read_f64_into` instead&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">read_f64_into_unchecked</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">f64</span>]) {
-        <span class="self">Self</span><span class="ident">::read_f64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::read_f64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Writes unsigned 16 bit integers from `src` into `dst`.</span>
@@ -5504,7 +5503,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u16</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::write_u16_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::write_u16_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Writes signed 32 bit integers from `src` into `dst`.</span>
@@ -5532,7 +5531,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::write_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::write_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Writes signed 64 bit integers from `src` into `dst`.</span>
@@ -5560,7 +5559,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::write_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::write_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Writes signed 128 bit integers from `src` into `dst`.</span>
@@ -5588,7 +5587,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u128</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::write_u128_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::write_u128_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Writes IEEE754 single-precision (4 bytes) floating point numbers from</span>
@@ -5617,7 +5616,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::write_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::write_u32_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Writes IEEE754 double-precision (8 bytes) floating point numbers from</span>
@@ -5646,7 +5645,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::write_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
+        <span class="ident"><span class="self">Self</span>::write_u64_into</span>(<span class="ident">src</span>, <span class="ident">dst</span>);
     }
 
     <span class="doccomment">/// Converts the given slice of unsigned 16 bit integers to a particular</span>
@@ -5747,7 +5746,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u16</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::from_slice_u16</span>(<span class="ident">src</span>);
+        <span class="ident"><span class="self">Self</span>::from_slice_u16</span>(<span class="ident">src</span>);
     }
 
     <span class="doccomment">/// Converts the given slice of signed 32 bit integers to a particular</span>
@@ -5772,7 +5771,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::from_slice_u32</span>(<span class="ident">src</span>);
+        <span class="ident"><span class="self">Self</span>::from_slice_u32</span>(<span class="ident">src</span>);
     }
 
     <span class="doccomment">/// Converts the given slice of signed 64 bit integers to a particular</span>
@@ -5797,7 +5796,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u64</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::from_slice_u64</span>(<span class="ident">src</span>);
+        <span class="ident"><span class="self">Self</span>::from_slice_u64</span>(<span class="ident">src</span>);
     }
 
     <span class="doccomment">/// Converts the given slice of signed 128 bit integers to a particular</span>
@@ -5822,7 +5821,7 @@ cases.
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">src</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u128</span>, <span class="ident">src</span>.<span class="ident">len</span>())
         };
-        <span class="self">Self</span><span class="ident">::from_slice_u128</span>(<span class="ident">src</span>);
+        <span class="ident"><span class="self">Self</span>::from_slice_u128</span>(<span class="ident">src</span>);
     }
 
     <span class="doccomment">/// Converts the given slice of IEEE754 single-precision (4 bytes) floating</span>
@@ -6144,7 +6143,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>, <span class="number">2</span>, <span class="self">Self</span><span class="ident">::write_u16</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>, <span class="number">2</span>, <span class="ident"><span class="self">Self</span>::write_u16</span>);
         }
     }
 
@@ -6153,7 +6152,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>, <span class="number">4</span>, <span class="self">Self</span><span class="ident">::write_u32</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>, <span class="number">4</span>, <span class="ident"><span class="self">Self</span>::write_u32</span>);
         }
     }
 
@@ -6162,7 +6161,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>, <span class="number">8</span>, <span class="self">Self</span><span class="ident">::write_u64</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>, <span class="number">8</span>, <span class="ident"><span class="self">Self</span>::write_u64</span>);
         }
     }
 
@@ -6171,7 +6170,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>, <span class="number">16</span>, <span class="self">Self</span><span class="ident">::write_u128</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>, <span class="number">16</span>, <span class="ident"><span class="self">Self</span>::write_u128</span>);
         }
     }
 
@@ -6344,7 +6343,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>, <span class="number">2</span>, <span class="self">Self</span><span class="ident">::write_u16</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u16</span>, <span class="number">2</span>, <span class="ident"><span class="self">Self</span>::write_u16</span>);
         }
     }
 
@@ -6353,7 +6352,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>, <span class="number">4</span>, <span class="self">Self</span><span class="ident">::write_u32</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u32</span>, <span class="number">4</span>, <span class="ident"><span class="self">Self</span>::write_u32</span>);
         }
     }
 
@@ -6362,7 +6361,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>, <span class="number">8</span>, <span class="self">Self</span><span class="ident">::write_u64</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u64</span>, <span class="number">8</span>, <span class="ident"><span class="self">Self</span>::write_u64</span>);
         }
     }
 
@@ -6371,7 +6370,7 @@ cases.
         <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
             <span class="macro">unsafe_write_slice_native!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>);
         } <span class="kw">else</span> {
-            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>, <span class="number">16</span>, <span class="self">Self</span><span class="ident">::write_u128</span>);
+            <span class="macro">write_slice!</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="ident">u128</span>, <span class="number">16</span>, <span class="ident"><span class="self">Self</span>::write_u128</span>);
         }
     }
 
@@ -6603,14 +6602,14 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_u24</span>,
         <span class="ident">u32</span>,
-        <span class="kw">crate</span><span class="ident">::test::U24_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
+        <span class="ident"><span class="kw">crate</span>::test::U24_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">read_u24</span>,
         <span class="ident">write_u24</span>
     );
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_i24</span>,
         <span class="ident">i32</span>,
-        <span class="kw">crate</span><span class="ident">::test::I24_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
+        <span class="ident"><span class="kw">crate</span>::test::I24_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">read_i24</span>,
         <span class="ident">write_i24</span>
     );
@@ -6631,14 +6630,14 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_u48</span>,
         <span class="ident">u64</span>,
-        <span class="kw">crate</span><span class="ident">::test::U48_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
+        <span class="ident"><span class="kw">crate</span>::test::U48_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">read_u48</span>,
         <span class="ident">write_u48</span>
     );
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_i48</span>,
         <span class="ident">i64</span>,
-        <span class="kw">crate</span><span class="ident">::test::I48_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
+        <span class="ident"><span class="kw">crate</span>::test::I48_MAX</span> <span class="kw">as</span> <span class="ident">u64</span>,
         <span class="ident">read_i48</span>,
         <span class="ident">write_i48</span>
     );
@@ -6677,7 +6676,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_1</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">1</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">1</span>),
         <span class="number">1</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6685,7 +6684,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_2</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">2</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">2</span>),
         <span class="number">2</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6693,7 +6692,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_3</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">3</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">3</span>),
         <span class="number">3</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6701,7 +6700,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_4</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">4</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">4</span>),
         <span class="number">4</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6709,7 +6708,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_5</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">5</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">5</span>),
         <span class="number">5</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6717,7 +6716,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_6</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">6</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">6</span>),
         <span class="number">6</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6725,7 +6724,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_7</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">7</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">7</span>),
         <span class="number">7</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6733,7 +6732,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_uint_8</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::U64_MAX</span>, <span class="number">8</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::U64_MAX</span>, <span class="number">8</span>),
         <span class="number">8</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_uint</span>
@@ -6871,7 +6870,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_1</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">1</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">1</span>),
         <span class="number">1</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6879,7 +6878,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_2</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">2</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">2</span>),
         <span class="number">2</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6887,7 +6886,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_3</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">3</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">3</span>),
         <span class="number">3</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6895,7 +6894,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_4</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">4</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">4</span>),
         <span class="number">4</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6903,7 +6902,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_5</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">5</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">5</span>),
         <span class="number">5</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6911,7 +6910,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_6</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">6</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">6</span>),
         <span class="number">6</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6919,7 +6918,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_7</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">7</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">7</span>),
         <span class="number">7</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -6927,7 +6926,7 @@ cases.
     <span class="macro">qc_byte_order!</span>(
         <span class="ident">prop_int_8</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">super</span><span class="ident">::I64_MAX</span>, <span class="number">8</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">super</span>::I64_MAX</span>, <span class="number">8</span>),
         <span class="number">8</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_int</span>
@@ -7438,8 +7437,8 @@ cases.
     <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">quickcheck</span>;
     <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rand</span>;
 
-    <span class="kw">use</span> <span class="self">self</span><span class="ident">::quickcheck</span>::{<span class="ident">QuickCheck</span>, <span class="ident">StdGen</span>, <span class="ident">Testable</span>};
-    <span class="kw">use</span> <span class="self">self</span><span class="ident">::rand::thread_rng</span>;
+    <span class="kw">use</span> <span class="ident"><span class="self">self</span>::quickcheck</span>::{<span class="ident">QuickCheck</span>, <span class="ident">StdGen</span>, <span class="ident">Testable</span>};
+    <span class="kw">use</span> <span class="ident"><span class="self">self</span>::rand::thread_rng</span>;
 
     <span class="kw">fn</span> <span class="ident">qc_unsized</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Testable</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">A</span>) {
         <span class="ident">QuickCheck::new</span>()
@@ -7460,7 +7459,7 @@ cases.
          <span class="macro-nonterminal">$</span><span class="macro-nonterminal">bytes</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-                <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::test</span>::{<span class="ident">qc_sized</span>, <span class="ident">Wi128</span>};
+                <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test</span>::{<span class="ident">qc_sized</span>, <span class="ident">Wi128</span>};
                 <span class="kw">use</span> <span class="kw">crate</span>::{
                     <span class="ident">BigEndian</span>, <span class="ident">LittleEndian</span>, <span class="ident">NativeEndian</span>, <span class="ident">ReadBytesExt</span>,
                     <span class="ident">WriteBytesExt</span>,
@@ -7510,7 +7509,7 @@ cases.
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">max</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-                <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::test</span>::{<span class="ident">qc_sized</span>, <span class="ident">Wi128</span>};
+                <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test</span>::{<span class="ident">qc_sized</span>, <span class="ident">Wi128</span>};
                 <span class="kw">use</span> <span class="kw">crate</span>::{
                     <span class="ident">BigEndian</span>, <span class="ident">LittleEndian</span>, <span class="ident">NativeEndian</span>, <span class="ident">ReadBytesExt</span>,
                     <span class="ident">WriteBytesExt</span>,
@@ -7616,7 +7615,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_1</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">1</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">1</span>),
         <span class="number">1</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7624,7 +7623,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_2</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">2</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">2</span>),
         <span class="number">2</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7632,7 +7631,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_3</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">3</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">3</span>),
         <span class="number">3</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7640,7 +7639,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_4</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">4</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">4</span>),
         <span class="number">4</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7648,7 +7647,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_5</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">5</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">5</span>),
         <span class="number">5</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7656,7 +7655,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_6</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">6</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">6</span>),
         <span class="number">6</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7664,7 +7663,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_7</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">7</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">7</span>),
         <span class="number">7</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7672,7 +7671,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_uint_8</span>,
         <span class="ident">u64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::U64_MAX</span>, <span class="number">8</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::U64_MAX</span>, <span class="number">8</span>),
         <span class="number">8</span>,
         <span class="ident">read_uint</span>,
         <span class="ident">write_u64</span>
@@ -7810,7 +7809,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_1</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">1</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">1</span>),
         <span class="number">1</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7818,7 +7817,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_2</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">2</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">2</span>),
         <span class="number">2</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7826,7 +7825,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_3</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">3</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">3</span>),
         <span class="number">3</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7834,7 +7833,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_4</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">4</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">4</span>),
         <span class="number">4</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7842,7 +7841,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_5</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">5</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">5</span>),
         <span class="number">5</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7850,7 +7849,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_6</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">6</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">6</span>),
         <span class="number">6</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7858,7 +7857,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_7</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">1</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">1</span>),
         <span class="number">7</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -7866,7 +7865,7 @@ cases.
     <span class="macro">qc_bytes_ext!</span>(
         <span class="ident">prop_ext_int_8</span>,
         <span class="ident">i64</span>,
-        <span class="macro">calc_max!</span>(<span class="kw">crate</span><span class="ident">::test::I64_MAX</span>, <span class="number">8</span>),
+        <span class="macro">calc_max!</span>(<span class="ident"><span class="kw">crate</span>::test::I64_MAX</span>, <span class="number">8</span>),
         <span class="number">8</span>,
         <span class="ident">read_int</span>,
         <span class="ident">write_i64</span>
@@ -8005,9 +8004,9 @@ cases.
     <span class="macro">macro_rules!</span> <span class="ident">qc_slice</span> {
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty_int</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">read</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">write</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">zero</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">use</span> <span class="kw">super</span><span class="ident">::qc_unsized</span>;
+                <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::qc_unsized</span>;
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-                <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::test::Wi128</span>;
+                <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::test::Wi128</span>;
                 <span class="kw">use</span> <span class="kw">crate</span>::{
                     <span class="ident">BigEndian</span>, <span class="ident">ByteOrder</span>, <span class="ident">LittleEndian</span>, <span class="ident">NativeEndian</span>,
                 };
@@ -8103,7 +8102,7 @@ cases.
     <span class="macro">qc_slice!</span>(<span class="ident">prop_slice_f32</span>, <span class="ident">f32</span>, <span class="ident">read_f32_into</span>, <span class="ident">write_f32_into</span>, <span class="number">0.0</span>);
     <span class="macro">qc_slice!</span>(<span class="ident">prop_slice_f64</span>, <span class="ident">f64</span>, <span class="ident">read_f64_into</span>, <span class="ident">write_f64_into</span>, <span class="number">0.0</span>);
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="byteorder" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

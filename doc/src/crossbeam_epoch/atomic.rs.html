@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;crossbeam-epoch-0.9.5&#x2F;src&#x2F;atomic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../crossbeam_epoch/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;crossbeam-epoch-0.9.5&#x2F;src&#x2F;atomic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../crossbeam_epoch/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1557,8 +1557,7 @@
 <span id="1557">1557</span>
 <span id="1558">1558</span>
 <span id="1559">1559</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="ident">core::borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>};
 <span class="kw">use</span> <span class="ident">core::cmp</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
@@ -1567,17 +1566,17 @@
 <span class="kw">use</span> <span class="ident">core::slice</span>;
 <span class="kw">use</span> <span class="ident">core::sync::atomic::Ordering</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::alloc::alloc</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::alloc::boxed::Box</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::guard::Guard</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::primitive::sync::atomic::AtomicUsize</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alloc::alloc</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alloc::boxed::Box</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::guard::Guard</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::primitive::sync::atomic::AtomicUsize</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_utils::atomic::AtomicConsume</span>;
 
 <span class="doccomment">/// Given ordering for the success case in a compare-exchange operation, returns the strongest</span>
 <span class="doccomment">/// appropriate ordering for the failure case.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">strongest_failure_ordering</span>(<span class="ident">ord</span>: <span class="ident">Ordering</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
-    <span class="kw">use</span> <span class="self">self</span><span class="ident">::Ordering</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident"><span class="self">self</span>::Ordering</span>::<span class="kw-2">*</span>;
     <span class="kw">match</span> <span class="ident">ord</span> {
         <span class="ident">Relaxed</span> <span class="op">|</span> <span class="ident">Release</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Relaxed</span>,
         <span class="ident">Acquire</span> <span class="op">|</span> <span class="ident">AcqRel</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Acquire</span>,
@@ -1719,7 +1718,7 @@
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The result should be a multiple of `ALIGN`.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="self">Self</span><span class="ident">::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="ident"><span class="self">Self</span>::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
 
     <span class="doccomment">/// Dereferences the given pointer.</span>
     <span class="doccomment">///</span>
@@ -1756,7 +1755,7 @@
 
     <span class="kw">type</span> <span class="ident">Init</span> <span class="op">=</span> <span class="ident">T</span>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="self">Self</span><span class="ident">::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="ident"><span class="self">Self</span>::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">init</span>)) <span class="kw">as</span> <span class="ident">usize</span>
     }
 
@@ -1808,7 +1807,7 @@
 
     <span class="kw">type</span> <span class="ident">Init</span> <span class="op">=</span> <span class="ident">usize</span>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">len</span>: <span class="self">Self</span><span class="ident">::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">len</span>: <span class="ident"><span class="self">Self</span>::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">+</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">len</span>;
         <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">mem::align_of</span>::<span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">alloc::Layout::from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>).<span class="ident">unwrap</span>();
@@ -1867,7 +1866,7 @@
     <span class="doccomment">/// let a = Atomic::new(1234);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::init</span>(<span class="ident">init</span>)
+        <span class="ident"><span class="self">Self</span>::init</span>(<span class="ident">init</span>)
     }
 }
 
@@ -1882,7 +1881,7 @@
     <span class="doccomment">/// let a = Atomic::&lt;i32&gt;::init(1234);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="ident">T::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::from</span>(<span class="ident">Owned::init</span>(<span class="ident">init</span>))
+        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">Owned::init</span>(<span class="ident">init</span>))
     }
 
     <span class="doccomment">/// Returns a new atomic pointer pointing to the tagged pointer `data`.</span>
@@ -2422,19 +2421,19 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">owned</span>: <span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">owned</span>.<span class="ident">data</span>;
         <span class="ident">mem::forget</span>(<span class="ident">owned</span>);
-        <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">data</span>)
+        <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">data</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::from</span>(<span class="ident">Owned::from</span>(<span class="ident">b</span>))
+        <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">Owned::from</span>(<span class="ident">b</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">t</span>)
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">t</span>)
     }
 }
 
@@ -2449,7 +2448,7 @@
     <span class="doccomment">/// let a = Atomic::&lt;i32&gt;::from(Shared::&lt;i32&gt;::null());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">ptr</span>.<span class="ident">data</span>)
+        <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">ptr</span>.<span class="ident">data</span>)
     }
 }
 
@@ -2465,7 +2464,7 @@
     <span class="doccomment">/// let a = Atomic::&lt;i32&gt;::from(ptr::null::&lt;i32&gt;());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
 }
 
@@ -2543,7 +2542,7 @@
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="ident">ensure_aligned</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">raw</span>);
-        <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">raw</span>)
+        <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">raw</span>)
     }
 
     <span class="doccomment">/// Converts the owned pointer into a `Box`.</span>
@@ -2573,7 +2572,7 @@
     <span class="doccomment">/// let o = Owned::new(1234);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">Self</span><span class="ident">::init</span>(<span class="ident">init</span>)
+        <span class="ident"><span class="self">Self</span>::init</span>(<span class="ident">init</span>)
     }
 }
 
@@ -2588,7 +2587,7 @@
     <span class="doccomment">/// let o = Owned::&lt;i32&gt;::init(1234);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="ident">T::Init</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">T::init</span>(<span class="ident">init</span>)) }
+        <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">T::init</span>(<span class="ident">init</span>)) }
     }
 
     <span class="doccomment">/// Converts the owned pointer into a [`Shared`].</span>
@@ -2636,7 +2635,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_tag</span>(<span class="self">self</span>, <span class="ident">tag</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_usize</span>();
-        <span class="kw">unsafe</span> { <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">compose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">data</span>, <span class="ident">tag</span>)) }
+        <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">compose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">data</span>, <span class="ident">tag</span>)) }
     }
 }
 
@@ -2703,7 +2702,7 @@
     <span class="doccomment">/// let o = unsafe { Owned::from_raw(Box::into_raw(Box::new(1234))) };</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">unsafe</span> { <span class="self">Self</span><span class="ident">::from_raw</span>(<span class="ident">Box::into_raw</span>(<span class="ident">b</span>)) }
+        <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">Box::into_raw</span>(<span class="ident">b</span>)) }
     }
 }
 
@@ -3019,7 +3018,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::trivially_copy_pass_by_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tag</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">compose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>, <span class="ident">tag</span>)) }
+        <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">compose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>, <span class="ident">tag</span>)) }
     }
 }
 
@@ -3041,7 +3040,7 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="ident">ensure_aligned</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">raw</span>);
-        <span class="kw">unsafe</span> { <span class="self">Self</span><span class="ident">::from_usize</span>(<span class="ident">raw</span>) }
+        <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">raw</span>) }
     }
 }
 
@@ -3106,7 +3105,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">const_atomic_null</span>() {
-        <span class="kw">use</span> <span class="kw">super</span><span class="ident">::Atomic</span>;
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Atomic</span>;
         <span class="kw">static</span> <span class="ident">_U</span>: <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Atomic</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="ident">::null</span>();
     }
 
@@ -3117,7 +3116,7 @@
         <span class="macro">assert_eq!</span>(<span class="ident">arr</span>.<span class="ident">len</span>(), <span class="number">10</span>);
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_epoch" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>
