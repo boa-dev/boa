@@ -259,8 +259,6 @@ impl BigInt {
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
     fn calculate_as_uint_n(args: &[JsValue], context: &mut Context) -> JsResult<(JsBigInt, u32)> {
-        use std::convert::TryFrom;
-
         let bits_arg = args.get_or_undefined(0);
         let bigint_arg = args.get_or_undefined(1);
 
