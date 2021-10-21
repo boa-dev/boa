@@ -8,7 +8,7 @@ keywords = ["javascript", "compiler", "lexer", "parser", "js", "cli"]
 categories = ["command-line-utilities"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2018"
+edition = "2021"
 default-run = "boa"
 
 [dependencies]
