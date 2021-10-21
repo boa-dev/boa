@@ -193,6 +193,7 @@ where
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
+        //Async [AsyncMethod, AsyncGeneratorMethod] object methods
         if cursor.next_if(Keyword::Async)?.is_some() {
             cursor.peek_expect_no_lineterminator(0, "Async object methods")?;
 
