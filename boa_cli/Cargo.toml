@@ -9,6 +9,7 @@ categories = ["command-line-utilities"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2021"
+rust-version = "1.56"
 default-run = "boa"
 
 [dependencies]
