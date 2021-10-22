@@ -52,11 +52,14 @@ impl PartialEq<Punctuator> for Keyword {
 }
 
 /// Generates an expression parser for a number of expressions whose production rules are of the following pattern.
+///
+/// ```text
 /// <TargetExpression>[allowed_identifiers]
 ///     => <InnerExpression>[?allowed_identifiers]
 ///     => <TargetExpression>[?allowed_identifiers] <op1> <InnerExpression>[?allowed_identifiers]
 ///     => <TargetExpression>[?allowed_identifiers] <op2> <InnerExpression>[?allowed_identifiers]
 ///     ...
+/// ```
 ///
 /// This macro has 2 mandatory identifiers:
 ///  - The `$name` identifier is the name of the TargetExpression struct that the parser will be implemented for.
