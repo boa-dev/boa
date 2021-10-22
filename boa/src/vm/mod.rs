@@ -3,22 +3,18 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::Array, environment::lexical_environment::VariableScope, BoaProfiler, Context,
-    JsResult, JsValue,
+    builtins::Array, environment::lexical_environment::VariableScope, property::PropertyDescriptor,
+    vm::code_block::Readable, BoaProfiler, Context, JsResult, JsValue,
 };
+use std::{convert::TryInto, mem::size_of, time::Instant};
 
 mod call_frame;
 mod code_block;
 mod opcode;
 
 pub use call_frame::CallFrame;
-pub use code_block::CodeBlock;
-pub use code_block::JsVmFunction;
+pub use code_block::{CodeBlock, JsVmFunction};
 pub use opcode::Opcode;
-
-use std::{convert::TryInto, mem::size_of, time::Instant};
-
-use self::code_block::Readable;
 
 #[cfg(test)]
 mod tests;
@@ -404,6 +400,99 @@ impl Context {
 
                 let key = key.to_property_key(self)?;
                 object.set(key, value, true, self)?;
+            }
+            Opcode::SetPropertyGetterByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+
+                let name = self.vm.frame().code.variables[index as usize]
+                    .clone()
+                    .into();
+                let set = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.set())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_get(Some(value))
+                        .maybe_set(set)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPropertyGetterByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = key.to_property_key(self)?;
+                let set = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.set())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_get(Some(value))
+                        .maybe_set(set)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPropertySetterByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = self.vm.frame().code.variables[index as usize]
+                    .clone()
+                    .into();
+                let get = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.get())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_set(Some(value))
+                        .maybe_get(get)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPropertySetterByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = key.to_property_key(self)?;
+                let get = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.get())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_set(Some(value))
+                        .maybe_get(get)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();

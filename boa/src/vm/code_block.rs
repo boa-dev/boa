@@ -160,6 +160,8 @@ impl CodeBlock {
             | Opcode::SetName
             | Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
+            | Opcode::SetPropertyGetterByName
+            | Opcode::SetPropertySetterByName
             | Opcode::DeletePropertyByName => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
@@ -210,6 +212,8 @@ impl CodeBlock {
             | Opcode::Dec
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
+            | Opcode::SetPropertyGetterByValue
+            | Opcode::SetPropertySetterByValue
             | Opcode::DeletePropertyByValue
             | Opcode::ToBoolean
             | Opcode::Throw
