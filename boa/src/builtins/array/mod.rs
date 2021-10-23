@@ -101,6 +101,8 @@ impl BuiltIn for Array {
         .method(Self::every, "every", 1)
         .method(Self::find, "find", 1)
         .method(Self::find_index, "findIndex", 1)
+        .method(Self::find_last, "findLast", 1)
+        .method(Self::find_last_index, "findLastIndex", 1)
         .method(Self::flat, "flat", 0)
         .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
@@ -1343,7 +1345,7 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.reduce: predicate is not callable")
+            context.construct_type_error("Array.prototype.findIndex: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1366,6 +1368,106 @@ impl Array {
             }
             // e. Set k to k + 1.
             k += 1;
+        }
+        // 6. Return -1𝔽.
+        Ok(JsValue::new(-1))
+    }
+
+    /// `Array.prototype.findLast( predicate, [thisArg] )`
+    ///
+    /// findLast calls predicate once for each element of the array, in descending order,
+    /// until it finds one where predicate returns true. If such an element is found, findLast
+    /// immediately returns that element value. Otherwise, findLast returns undefined.
+    ///
+    /// More information:
+    ///  - [ECMAScript proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-find-from-last/#sec-array.prototype.findlast
+    pub(crate) fn find_last(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.findLast: predicate is not callable")
+        })?;
+
+        let this_arg = args.get_or_undefined(1);
+
+        // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
+        // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
+        for k in (0..len).rev() {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kValue be ? Get(O, Pk).
+            let k_value = o.get(k, context)?;
+            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
+            let test_result = predicate
+                .call(
+                    this_arg,
+                    &[k_value.clone(), k.into(), this.clone()],
+                    context,
+                )?
+                .to_boolean();
+            // d. If testResult is true, return kValue.
+            if test_result {
+                return Ok(k_value);
+            }
+            // e. Set k to k - 1.
+        }
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`
+    ///
+    /// findLastIndex calls predicate once for each element of the array, in descending order,
+    /// until it finds one where predicate returns true. If such an element is found, findLastIndex
+    /// immediately returns the index of that element value. Otherwise, findLastIndex returns -1.
+    ///
+    /// More information:
+    ///  - [ECMAScript proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-find-from-last/#sec-array.prototype.findlastindex
+    pub(crate) fn find_last_index(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.findLastIndex: predicate is not callable")
+        })?;
+
+        let this_arg = args.get_or_undefined(1);
+
+        // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
+        // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
+        for k in (0..len).rev() {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kValue be ? Get(O, Pk).
+            let k_value = o.get(k, context)?;
+            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
+            let test_result = predicate
+                .call(this_arg, &[k_value, k.into(), this.clone()], context)?
+                .to_boolean();
+            // d. If testResult is true, return 𝔽(k).
+            if test_result {
+                return Ok(JsValue::new(k));
+            }
+            // e. Set k to k - 1.
         }
         // 6. Return -1𝔽.
         Ok(JsValue::new(-1))
