@@ -49,37 +49,30 @@ impl CallableDeclaration for AsyncGeneratorDeclaration {
         "async generator declaration"
     }
 
-    #[inline]
     fn is_default(&self) -> bool {
         self.is_default.0
     }
 
-    #[inline]
     fn name_allow_yield(&self) -> bool {
         self.allow_yield.0
     }
 
-    #[inline]
     fn name_allow_await(&self) -> bool {
         self.allow_await.0
     }
 
-    #[inline]
     fn parameters_allow_yield(&self) -> bool {
         true
     }
 
-    #[inline]
     fn parameters_allow_await(&self) -> bool {
         true
     }
 
-    #[inline]
     fn body_allow_yield(&self) -> bool {
         true
     }
 
-    #[inline]
     fn body_allow_await(&self) -> bool {
         true
     }
