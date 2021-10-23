@@ -1,18 +1,18 @@
-//! Generator expression parsing.
+//! Async Generator Expression Parser
 //!
-//! More information:
-//!  - [MDN documentation][mdn]
+//! Implements TokenParser for AsyncGeneratorExpression and outputs
+//! an AsyncGeneratorExpr ast node
+//!
+//!  More information:
 //!  - [ECMAScript specification][spec]
 //!
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
-//! [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
-
+//! [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[cfg(test)]
-mod tests;
+mod test;
 
 use crate::{
     syntax::{
-        ast::{node::GeneratorExpr, Punctuator},
+        ast::{node::AsyncGeneratorExpr, Keyword, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -25,42 +25,43 @@ use crate::{
 
 use std::io::Read;
 
-/// Generator expression parsing.
+/// Async Generator Expression Parsing
 ///
 /// More information:
-///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
-/// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct GeneratorExpression;
+pub(super) struct AsyncGeneratorExpression;
 
-impl<R> TokenParser<R> for GeneratorExpression
+impl<R> TokenParser<R> for AsyncGeneratorExpression
 where
     R: Read,
 {
-    type Output = GeneratorExpr;
+    //The below needs to be implemented in ast::node
+    type Output = AsyncGeneratorExpr;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        let _timer = BoaProfiler::global().start_event("GeneratorExpression", "Parsing");
+        let _timer = BoaProfiler::global().start_event("AsyncGeneratorExpression", "Parsing");
 
+        cursor.peek_expect_no_lineterminator(0, "async generator expression")?;
+        cursor.expect(Keyword::Function, "async generator expression")?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::Mul),
-            "generator expression",
+            "async generator expression",
         )?;
 
         let name = if let Some(token) = cursor.peek(0)? {
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(true, false).parse(cursor)?),
+                _ => Some(BindingIdentifier::new(true, true).parse(cursor)?),
             }
         } else {
             return Err(ParseError::AbruptEnd);
         };
 
-        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
-        // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+        // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict
+        // mode code, it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
         if let Some(name) = &name {
             if cursor.strict_mode() && ["eval", "arguments"].contains(&name.as_ref()) {
                 return Err(ParseError::lex(LexError::Syntax(
@@ -74,18 +75,18 @@ where
         }
 
         let params_start_position = cursor
-            .expect(Punctuator::OpenParen, "generator expression")?
+            .expect(Punctuator::OpenParen, "async generator expression")?
             .span()
             .end();
 
-        let params = FormalParameters::new(true, false).parse(cursor)?;
+        let params = FormalParameters::new(true, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "generator expression")?;
-        cursor.expect(Punctuator::OpenBlock, "generator expression")?;
+        cursor.expect(Punctuator::CloseParen, "async generator expression")?;
+        cursor.expect(Punctuator::OpenBlock, "async generator expression")?;
 
-        let body = FunctionBody::new(true, false).parse(cursor)?;
+        let body = FunctionBody::new(true, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "generator expression")?;
+        cursor.expect(Punctuator::CloseBlock, "async generator expression")?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -107,7 +108,6 @@ where
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
         {
             let lexically_declared_names = body.lexically_declared_names();
             for param in params.parameters.as_ref() {
@@ -123,6 +123,7 @@ where
             }
         }
 
-        Ok(GeneratorExpr::new(name, params.parameters, body))
+        //implement the below AsyncGeneratorExpr in ast::node
+        Ok(AsyncGeneratorExpr::new(name, params.parameters, body))
     }
 }

@@ -1,8 +1,13 @@
+//! Async Generator Declaration parsing
+//!
+//! Implements TokenParser for AsyncGeneratorDeclaration and outputs an
+//! AsyncGeneratorDecl ast node
+//!
+
 #[cfg(test)]
 mod tests;
-
 use crate::syntax::{
-    ast::{node::AsyncFunctionDecl, Keyword},
+    ast::{node::AsyncGeneratorDecl, Keyword, Punctuator},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
@@ -10,23 +15,21 @@ use crate::syntax::{
 };
 use std::io::Read;
 
-/// Async Function declaration parsing.
+/// Async Generator Declaration Parser
 ///
 /// More information:
-///  - [MDN documentation][mdn]
-///  - [ECMAScript specification][spec]
+/// - [ECMAScript specification][spec]
 ///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
-/// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#prod-AsyncFunctionDeclaration
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncFunctionDeclaration {
+pub(super) struct AsyncGeneratorDeclaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_default: AllowDefault,
 }
 
-impl AsyncFunctionDeclaration {
-    /// Creates a new `FunctionDeclaration` parser.
+impl AsyncGeneratorDeclaration {
+    /// Creates a new `AsyncGeneratorDeclaration` parser.
     pub(super) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
@@ -41,46 +44,62 @@ impl AsyncFunctionDeclaration {
     }
 }
 
-impl CallableDeclaration for AsyncFunctionDeclaration {
+impl CallableDeclaration for AsyncGeneratorDeclaration {
+    #[inline]
     fn error_context(&self) -> &'static str {
-        "async function declaration"
+        "async generator declaration"
     }
+
+    #[inline]
     fn is_default(&self) -> bool {
         self.is_default.0
     }
+
+    #[inline]
     fn name_allow_yield(&self) -> bool {
         self.allow_yield.0
     }
+
+    #[inline]
     fn name_allow_await(&self) -> bool {
         self.allow_await.0
     }
+
+    #[inline]
     fn parameters_allow_yield(&self) -> bool {
-        false
+        true
     }
+
+    #[inline]
     fn parameters_allow_await(&self) -> bool {
         true
     }
+
+    #[inline]
     fn body_allow_yield(&self) -> bool {
-        false
+        true
     }
+
+    #[inline]
     fn body_allow_await(&self) -> bool {
         true
     }
 }
 
-impl<R> TokenParser<R> for AsyncFunctionDeclaration
+impl<R> TokenParser<R> for AsyncGeneratorDeclaration
 where
     R: Read,
 {
-    type Output = AsyncFunctionDecl;
+    type Output = AsyncGeneratorDecl;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Async, "async hoistable declaration")?;
         cursor.peek_expect_no_lineterminator(0, "async hoistable declaration")?;
         cursor.expect(Keyword::Function, "async hoistable declaration")?;
+        cursor.expect(Punctuator::Mul, "async generator declaration")?;
 
         let result = parse_callable_declaration(&self, cursor)?;
 
-        Ok(AsyncFunctionDecl::new(result.0, result.1, result.2))
+        Ok(AsyncGeneratorDecl::new(result.0, result.1, result.2))
     }
 }
