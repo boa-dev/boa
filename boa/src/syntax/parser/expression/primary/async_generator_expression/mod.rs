@@ -1,6 +1,7 @@
 //! Async Generator Expression Parser
 //!
-//! Implements TokenParser for the AsyncGeneratorExpression Struct
+//! Implements TokenParser for AsyncGeneratorExpression and outputs
+//! an AsyncGeneratorExpr ast node
 //!
 //!  More information:
 //!  - [ECMAScript specification][spec]
