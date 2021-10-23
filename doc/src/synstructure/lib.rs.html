@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;synstructure-0.12.5&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;synstructure-0.12.6&#x2F;src&#x2F;lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2440,6 +2440,52 @@
 <span id="2440">2440</span>
 <span id="2441">2441</span>
 <span id="2442">2442</span>
+<span id="2443">2443</span>
+<span id="2444">2444</span>
+<span id="2445">2445</span>
+<span id="2446">2446</span>
+<span id="2447">2447</span>
+<span id="2448">2448</span>
+<span id="2449">2449</span>
+<span id="2450">2450</span>
+<span id="2451">2451</span>
+<span id="2452">2452</span>
+<span id="2453">2453</span>
+<span id="2454">2454</span>
+<span id="2455">2455</span>
+<span id="2456">2456</span>
+<span id="2457">2457</span>
+<span id="2458">2458</span>
+<span id="2459">2459</span>
+<span id="2460">2460</span>
+<span id="2461">2461</span>
+<span id="2462">2462</span>
+<span id="2463">2463</span>
+<span id="2464">2464</span>
+<span id="2465">2465</span>
+<span id="2466">2466</span>
+<span id="2467">2467</span>
+<span id="2468">2468</span>
+<span id="2469">2469</span>
+<span id="2470">2470</span>
+<span id="2471">2471</span>
+<span id="2472">2472</span>
+<span id="2473">2473</span>
+<span id="2474">2474</span>
+<span id="2475">2475</span>
+<span id="2476">2476</span>
+<span id="2477">2477</span>
+<span id="2478">2478</span>
+<span id="2479">2479</span>
+<span id="2480">2480</span>
+<span id="2481">2481</span>
+<span id="2482">2482</span>
+<span id="2483">2483</span>
+<span id="2484">2484</span>
+<span id="2485">2485</span>
+<span id="2486">2486</span>
+<span id="2487">2487</span>
+<span id="2488">2488</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This crate provides helper types for matching against enum variants, and</span>
 <span class="doccomment">//! extracting bindings to each of the fields in the deriving Struct or Enum in</span>
 <span class="doccomment">//! a generic way.</span>
@@ -2788,6 +2834,9 @@
     <span class="comment">// These are used to determine which type parameters are avaliable.</span>
     <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>,
     <span class="ident">seen_generics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="comment">// The original index of the binding</span>
+    <span class="comment">// this will not change when .filter() is called</span>
+    <span class="ident">index</span>: <span class="ident">usize</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -2876,9 +2925,10 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span>,
     <span class="ident">bindings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">omitted_fields</span>: <span class="ident">bool</span>,
     <span class="ident">ast</span>: <span class="ident">VariantAst</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>,
+    <span class="comment">// The original length of `bindings` before any `.filter()` calls</span>
+    <span class="ident">original_length</span>: <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// Helper function used by the VariantInfo constructor. Walks all of the types</span>
@@ -2945,18 +2995,20 @@
                             <span class="ident">field</span>,
                             <span class="ident">generics</span>,
                             <span class="ident">seen_generics</span>: <span class="ident">get_ty_params</span>(<span class="ident">field</span>, <span class="ident">generics</span>),
+                            <span class="ident">index</span>: <span class="ident">i</span>,
                         }
                     })
                     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
             }
         };
 
+        <span class="kw">let</span> <span class="ident">original_length</span> <span class="op">=</span> <span class="ident">bindings</span>.<span class="ident">len</span>();
         <span class="ident">VariantInfo</span> {
             <span class="ident">prefix</span>,
             <span class="ident">bindings</span>,
-            <span class="ident">omitted_fields</span>: <span class="bool-val">false</span>,
             <span class="ident">ast</span>,
             <span class="ident">generics</span>,
+            <span class="ident">original_length</span>,
         }
     }
 
@@ -2978,7 +3030,7 @@
 
     <span class="doccomment">/// True if any bindings were omitted due to a `filter` call.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">omitted_bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">omitted_fields</span>
+        <span class="self">self</span>.<span class="ident">original_length</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// Generates the match-arm pattern which could be used to match against this Variant.</span>
@@ -3013,11 +3065,17 @@
                 <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">is_empty</span>());
             }
             <span class="ident">Fields::Unnamed</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token::Paren</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_index</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
+                    <span class="kw">while</span> <span class="ident">expected_index</span> <span class="op">&lt;</span> <span class="ident">binding</span>.<span class="ident">index</span> {
+                        <span class="macro">quote!</span>(<span class="kw">_</span>,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                        <span class="ident">expected_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    }
                     <span class="ident">binding</span>.<span class="ident">pat</span>().<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                     <span class="macro">quote!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                    <span class="ident">expected_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_fields</span> {
+                <span class="kw">if</span> <span class="ident">expected_index</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">original_length</span> {
                     <span class="macro">quote!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
             }),
@@ -3028,7 +3086,7 @@
                     <span class="ident">binding</span>.<span class="ident">pat</span>().<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                     <span class="macro">quote!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_fields</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_bindings</span>() {
                     <span class="macro">quote!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
             }),
@@ -3229,11 +3287,7 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
     {
-        <span class="kw">let</span> <span class="ident">before_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">len</span>();
         <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">retain</span>(<span class="ident">f</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">before_len</span> {
-            <span class="self">self</span>.<span class="ident">omitted_fields</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        }
         <span class="self">self</span>
     }
 
@@ -3244,7 +3298,6 @@
     <span class="doccomment">/// Panics if the index is out of range.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">remove</span>(<span class="ident">idx</span>);
-        <span class="self">self</span>.<span class="ident">omitted_fields</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="self">self</span>
     }
 
@@ -4777,7 +4830,7 @@
 <span class="doccomment">///     }),</span>
 <span class="doccomment">///     &quot;# [</span>
 <span class="doccomment">///     allow (</span>
-<span class="doccomment">///         non_upper_case_globals)</span>
+<span class="doccomment">///         non_upper_case_globals )</span>
 <span class="doccomment">///     ]</span>
 <span class="doccomment">/// const _DERIVE_krate_Trait_FOR_A : (</span>
 <span class="doccomment">///     )</span>
@@ -4880,6 +4933,45 @@
             <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>.<span class="ident">into_result</span>(),
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
         }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+    <span class="comment">// Regression test for #48</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_each_enum</span>() {
+        <span class="kw">let</span> <span class="ident">di</span>: <span class="ident">syn::DeriveInput</span> <span class="op">=</span> <span class="macro">syn::parse_quote!</span> {
+         <span class="kw">enum</span> <span class="ident">A</span> {
+             <span class="ident">Foo</span>(<span class="ident">usize</span>, <span class="ident">bool</span>),
+             <span class="ident">Bar</span>(<span class="ident">bool</span>, <span class="ident">usize</span>),
+             <span class="ident">Baz</span>(<span class="ident">usize</span>, <span class="ident">bool</span>, <span class="ident">usize</span>),
+             <span class="ident">Quux</span>(<span class="ident">bool</span>, <span class="ident">usize</span>, <span class="ident">bool</span>)
+         }
+        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Structure::new</span>(<span class="kw-2">&amp;</span><span class="ident">di</span>);
+
+        <span class="ident">s</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> <span class="ident">bi</span>.<span class="ident">ast</span>().<span class="ident">ty</span>.<span class="ident">to_token_stream</span>().<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;bool&quot;</span>);
+
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">s</span>.<span class="ident">each</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> <span class="macro">quote!</span>(<span class="ident">do_something</span>(#<span class="ident">bi</span>))).<span class="ident">to_string</span>(),
+            <span class="macro">quote!</span> {
+                <span class="ident">A::Foo</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_1</span>,) <span class="op">=</span><span class="op">&gt;</span> { { <span class="ident">do_something</span>(<span class="ident">__binding_1</span>) } }
+                <span class="ident">A::Bar</span>(<span class="kw-2">ref</span> <span class="ident">__binding_0</span>, ..) <span class="op">=</span><span class="op">&gt;</span> { { <span class="ident">do_something</span>(<span class="ident">__binding_0</span>) } }
+                <span class="ident">A::Baz</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_1</span>, ..) <span class="op">=</span><span class="op">&gt;</span> { { <span class="ident">do_something</span>(<span class="ident">__binding_1</span>) } }
+                <span class="ident">A::Quux</span>(<span class="kw-2">ref</span> <span class="ident">__binding_0</span>, <span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">__binding_2</span>,) <span class="op">=</span><span class="op">&gt;</span> {
+                    {
+                        <span class="ident">do_something</span>(<span class="ident">__binding_0</span>)
+                    }
+                    {
+                        <span class="ident">do_something</span>(<span class="ident">__binding_2</span>)
+                    }
+                }
+            }
+            .<span class="ident">to_string</span>()
+        );
     }
 }
 </code></pre></div>

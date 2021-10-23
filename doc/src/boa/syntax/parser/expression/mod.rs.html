@@ -638,6 +638,9 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -692,11 +695,14 @@
 }
 
 <span class="doccomment">/// Generates an expression parser for a number of expressions whose production rules are of the following pattern.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```text</span>
 <span class="doccomment">/// &lt;TargetExpression&gt;[allowed_identifiers]</span>
 <span class="doccomment">///     =&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
 <span class="doccomment">///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op1&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
 <span class="doccomment">///     =&gt; &lt;TargetExpression&gt;[?allowed_identifiers] &lt;op2&gt; &lt;InnerExpression&gt;[?allowed_identifiers]</span>
 <span class="doccomment">///     ...</span>
+<span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This macro has 2 mandatory identifiers:</span>
 <span class="doccomment">///  - The `$name` identifier is the name of the TargetExpression struct that the parser will be implemented for.</span>
