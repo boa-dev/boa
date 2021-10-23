@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod test;
 
-///Async Generator Expression Parsing
-///
-/// Implements TokenParser for an AsyncGeneratorExpression and outputs
-/// an AsyncGeneratorExpr ast node.
-///
 use crate::{
     syntax::{
         ast::{node::AsyncGeneratorExpr, Keyword, Punctuator},
@@ -21,6 +16,12 @@ use crate::{
 
 use std::io::Read;
 
+/// Async Generator Expression Parsing
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncGeneratorExpression;
 
@@ -34,6 +35,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("AsyncGeneratorExpression", "Parsing");
 
+        cursor.peek_expect_no_lineterminator(0, "async generator expression")?;
+        cursor.expect(Keyword::Function, "async generator expression")?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::Mul),
             "async generator expression",
@@ -41,15 +44,11 @@ where
 
         let name = if let Some(token) = cursor.peek(0)? {
             match token.kind() {
-                TokenKind::Identifier(_)
-                | TokenKind::Keyword(Keyword::Yield)
-                | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(true, true).parse(cursor)?)
-                }
-                _ => None,
+                TokenKind::Punctuator(Punctuator::OpenParen) => None,
+                _ => Some(BindingIdentifier::new(true, true).parse(cursor)?),
             }
         } else {
-            None
+            return Err(ParseError::AbruptEnd);
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict

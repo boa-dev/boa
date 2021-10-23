@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::node::AsyncFunctionDecl,
+    ast::{node::AsyncFunctionDecl, Keyword},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
@@ -75,6 +75,10 @@ where
     type Output = AsyncFunctionDecl;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.expect(Keyword::Async, "async hoistable declaration")?;
+        cursor.peek_expect_no_lineterminator(0, "async hoistable declaration")?;
+        cursor.expect(Keyword::Function, "async hoistable declaration")?;
+
         let result = parse_callable_declaration(&self, cursor)?;
 
         Ok(AsyncFunctionDecl::new(result.0, result.1, result.2))

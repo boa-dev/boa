@@ -12,7 +12,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node::GeneratorExpr, Keyword, Punctuator},
+        ast::{node::GeneratorExpr, Punctuator},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -52,15 +52,11 @@ where
 
         let name = if let Some(token) = cursor.peek(0)? {
             match token.kind() {
-                TokenKind::Identifier(_)
-                | TokenKind::Keyword(Keyword::Yield)
-                | TokenKind::Keyword(Keyword::Await) => {
-                    Some(BindingIdentifier::new(true, false).parse(cursor)?)
-                }
-                _ => None,
+                TokenKind::Punctuator(Punctuator::OpenParen) => None,
+                _ => Some(BindingIdentifier::new(true, false).parse(cursor)?),
             }
         } else {
-            None
+            return Err(ParseError::AbruptEnd);
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,

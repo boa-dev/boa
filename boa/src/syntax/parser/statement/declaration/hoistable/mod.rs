@@ -86,10 +86,7 @@ where
                 }
             }
             TokenKind::Keyword(Keyword::Async) => {
-                cursor.expect(Keyword::Async, "async hoistable declaration")?;
-                cursor.peek_expect_no_lineterminator(0, "async hoistable declaration")?;
-                cursor.expect(Keyword::Function, "async hoistable declaration")?;
-                let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+                let next_token = cursor.peek(2)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     AsyncGeneratorDeclaration::new(
                         self.allow_yield,

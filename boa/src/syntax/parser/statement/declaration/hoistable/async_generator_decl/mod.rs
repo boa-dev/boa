@@ -7,7 +7,7 @@ mod tests;
 /// AsyncGeneratorDecl ast node
 ///
 use crate::syntax::{
-    ast::{node::declaration::async_generator_decl::AsyncGeneratorDecl, Punctuator},
+    ast::{node::AsyncGeneratorDecl, Keyword, Punctuator},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
@@ -72,6 +72,9 @@ where
     type Output = AsyncGeneratorDecl;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        cursor.expect(Keyword::Async, "async hoistable declaration")?;
+        cursor.peek_expect_no_lineterminator(0, "async hoistable declaration")?;
+        cursor.expect(Keyword::Function, "async hoistable declaration")?;
         cursor.expect(Punctuator::Mul, "async generator declaration")?;
 
         let result = parse_callable_declaration(&self, cursor)?;

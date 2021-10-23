@@ -91,10 +91,8 @@ where
                 }
             }
             TokenKind::Keyword(Keyword::Async) => {
-                cursor.peek_expect_no_lineterminator(0, "primary expression")?;
-                cursor.expect(Keyword::Function, "primary expression")?;
-                let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
-                if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                let mul_peek = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                if mul_peek.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     AsyncGeneratorExpression.parse(cursor).map(Node::from)
                 } else {
                     AsyncFunctionExpression::new(self.allow_yield)
