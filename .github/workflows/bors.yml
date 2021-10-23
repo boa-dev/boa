@@ -1,12 +1,10 @@
+name: bors
+
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
-      - main
-
-name: Continuous integration
+      - staging
+      - trying
 
 jobs:
   test_on_linux:
@@ -27,12 +25,10 @@ jobs:
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
+      - uses: actions-rs/cargo@v1
         with:
-          args: --ignore-tests
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
+          command: test
+          args: -v
   test_vm_on_linux:
     name: Tests on Linux with vm enabled
     runs-on: ubuntu-latest
