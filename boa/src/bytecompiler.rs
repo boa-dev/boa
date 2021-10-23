@@ -672,6 +672,38 @@ impl ByteCompiler {
                                         }
                                     }
                                 }
+                                MethodDefinitionKind::Async => {
+                                    // TODO: Implement async
+                                    self.emit_opcode(Opcode::PushUndefined);
+                                    self.emit_opcode(Opcode::Swap);
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            let index = self.get_or_insert_name(name);
+                                            self.emit(Opcode::SetPropertyByName, &[index])
+                                        }
+                                        PropertyName::Computed(name_node) => {
+                                            self.compile_stmt(name_node, true);
+                                            self.emit_opcode(Opcode::Swap);
+                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                        }
+                                    }
+                                }
+                                MethodDefinitionKind::AsyncGenerator => {
+                                    // TODO: Implement async generators
+                                    self.emit_opcode(Opcode::PushUndefined);
+                                    self.emit_opcode(Opcode::Swap);
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            let index = self.get_or_insert_name(name);
+                                            self.emit(Opcode::SetPropertyByName, &[index])
+                                        }
+                                        PropertyName::Computed(name_node) => {
+                                            self.compile_stmt(name_node, true);
+                                            self.emit_opcode(Opcode::Swap);
+                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                        }
+                                    }
+                                }
                             }
                         }
                         // TODO: Spread Object

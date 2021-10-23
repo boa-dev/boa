@@ -1,3 +1,11 @@
+//! Async Generator Expression Parser
+//!
+//! Implements TokenParser for the AsyncGeneratorExpression Struct
+//!
+//!  More information:
+//!  - [ECMAScript specification][spec]
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[cfg(test)]
 mod test;
 
