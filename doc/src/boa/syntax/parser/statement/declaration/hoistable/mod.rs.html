@@ -193,6 +193,19 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -204,10 +217,12 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">mod</span> <span class="ident">async_function_decl</span>;
+<span class="kw">mod</span> <span class="ident">async_generator_decl</span>;
 <span class="kw">mod</span> <span class="ident">function_decl</span>;
 <span class="kw">mod</span> <span class="ident">generator_decl</span>;
 
 <span class="kw">use</span> <span class="ident">async_function_decl::AsyncFunctionDeclaration</span>;
+<span class="kw">use</span> <span class="ident">async_generator_decl::AsyncGeneratorDeclaration</span>;
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> <span class="ident">function_decl::FunctionDeclaration</span>;
 <span class="kw">use</span> <span class="ident">generator_decl::GeneratorDeclaration</span>;
 
@@ -279,9 +294,20 @@
                 }
             }
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">AsyncFunctionDeclaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
+                <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) <span class="op">=</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
+                    <span class="ident">AsyncGeneratorDeclaration::new</span>(
+                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
+                        <span class="self">self</span>.<span class="ident">allow_await</span>,
+                        <span class="self">self</span>.<span class="ident">is_default</span>,
+                    )
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">AsyncFunctionDeclaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                        .<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;unknown token found: {:?}&quot;</span>, <span class="ident">tok</span>),
         }

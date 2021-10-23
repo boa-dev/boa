@@ -1067,6 +1067,9 @@
 <span id="1067">1067</span>
 <span id="1068">1068</span>
 <span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration nodes</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
@@ -1084,6 +1087,8 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">arrow_function_decl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_function_decl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_function_expr</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_generator_decl</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_generator_expr</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function_decl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function_expr</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generator_decl</span>;
@@ -1091,7 +1096,8 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">arrow_function_decl::ArrowFunctionDecl</span>, <span class="ident">async_function_decl::AsyncFunctionDecl</span>,
-    <span class="ident">async_function_expr::AsyncFunctionExpr</span>, <span class="ident">function_decl::FunctionDecl</span>,
+    <span class="ident">async_function_expr::AsyncFunctionExpr</span>, <span class="ident">async_generator_decl::AsyncGeneratorDecl</span>,
+    <span class="ident">async_generator_expr::AsyncGeneratorExpr</span>, <span class="ident">function_decl::FunctionDecl</span>,
     <span class="ident">function_expr::FunctionExpr</span>,
 };
 

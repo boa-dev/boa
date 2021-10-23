@@ -193,6 +193,16 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -204,6 +214,7 @@
 
 <span class="kw">mod</span> <span class="ident">array_initializer</span>;
 <span class="kw">mod</span> <span class="ident">async_function_expression</span>;
+<span class="kw">mod</span> <span class="ident">async_generator_expression</span>;
 <span class="kw">mod</span> <span class="ident">function_expression</span>;
 <span class="kw">mod</span> <span class="ident">generator_expression</span>;
 <span class="kw">mod</span> <span class="ident">object_initializer</span>;
@@ -213,8 +224,8 @@
 
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array_initializer::ArrayLiteral</span>, <span class="ident">async_function_expression::AsyncFunctionExpression</span>,
-    <span class="ident">function_expression::FunctionExpression</span>, <span class="ident">generator_expression::GeneratorExpression</span>,
-    <span class="ident">object_initializer::ObjectLiteral</span>,
+    <span class="ident">async_generator_expression::AsyncGeneratorExpression</span>, <span class="ident">function_expression::FunctionExpression</span>,
+    <span class="ident">generator_expression::GeneratorExpression</span>, <span class="ident">object_initializer::ObjectLiteral</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Expression</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -272,6 +283,8 @@
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PrimaryExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
+        <span class="comment">// TODO: tok currently consumes the token instead of peeking, so the token</span>
+        <span class="comment">// isn&#39;t passed and consumed by parsers according to spec (EX: GeneratorExpression)</span>
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>()<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
@@ -284,9 +297,16 @@
                     <span class="ident">FunctionExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AsyncFunctionExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>)
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>)
-                .<span class="ident">map</span>(<span class="ident">Node::from</span>),
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">mul_peek</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">mul_peek</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) {
+                    <span class="ident">AsyncGeneratorExpression</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>).<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">AsyncFunctionExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)
+                        .<span class="ident">map</span>(<span class="ident">Node::from</span>)
+                }
+            }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span>

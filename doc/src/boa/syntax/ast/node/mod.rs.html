@@ -718,6 +718,37 @@
 <span id="718">718</span>
 <span id="719">719</span>
 <span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -750,6 +781,7 @@
     <span class="ident">call::Call</span>,
     <span class="ident">conditional</span>::{<span class="ident">ConditionalOp</span>, <span class="ident">If</span>},
     <span class="ident">declaration</span>::{
+        <span class="ident">async_generator_decl::AsyncGeneratorDecl</span>, <span class="ident">async_generator_expr::AsyncGeneratorExpr</span>,
         <span class="ident">generator_decl::GeneratorDecl</span>, <span class="ident">generator_expr::GeneratorExpr</span>, <span class="ident">ArrowFunctionDecl</span>,
         <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>, <span class="ident">FunctionDecl</span>,
         <span class="ident">FunctionExpr</span>,
@@ -801,6 +833,12 @@
 
     <span class="doccomment">/// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).</span>
     <span class="ident">AsyncFunctionExpr</span>(<span class="ident">AsyncFunctionExpr</span>),
+
+    <span class="doccomment">/// An async generator expression node.</span>
+    <span class="ident">AsyncGeneratorExpr</span>(<span class="ident">AsyncGeneratorExpr</span>),
+
+    <span class="doccomment">/// An async generator declaration node.</span>
+    <span class="ident">AsyncGeneratorDecl</span>(<span class="ident">AsyncGeneratorDecl</span>),
 
     <span class="doccomment">/// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).</span>
     <span class="ident">AwaitExpr</span>(<span class="ident">AwaitExpr</span>),
@@ -1037,6 +1075,8 @@
             <span class="ident"><span class="self">Self</span>::Yield</span>(<span class="kw-2">ref</span> <span class="ident">y</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">y</span>, <span class="ident">f</span>),
             <span class="ident"><span class="self">Self</span>::GeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
             <span class="ident"><span class="self">Self</span>::GeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
         }
     }
 }
@@ -1047,6 +1087,8 @@
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::Const</span>(<span class="ident">Const::Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::null</span>()),
@@ -1345,6 +1387,26 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods</span>
     <span class="ident">Generator</span>,
+
+    <span class="doccomment">/// Async generators can be used to define a method</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_generator_methods</span>
+    <span class="ident">AsyncGenerator</span>,
+
+    <span class="doccomment">/// Async function can be used to define a method</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_methods</span>
+    <span class="ident">Async</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">MethodDefinitionKind</span> {
