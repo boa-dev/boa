@@ -3374,6 +3374,13 @@
 <span id="3374">3374</span>
 <span id="3375">3375</span>
 <span id="3376">3376</span>
+<span id="3377">3377</span>
+<span id="3378">3378</span>
+<span id="3379">3379</span>
+<span id="3380">3380</span>
+<span id="3381">3381</span>
+<span id="3382">3382</span>
+<span id="3383">3383</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -6728,6 +6735,13 @@
             <span class="ident">TypedArrayName::Float32Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Float32Array&quot;</span>,
             <span class="ident">TypedArrayName::Float64Array</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Float64Array&quot;</span>,
         }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_big_int_element_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            <span class="ident">TypedArrayName::BigUint64Array</span> <span class="op">|</span> <span class="ident">TypedArrayName::BigInt64Array</span>
+        )
     }
 }
 
