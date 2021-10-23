@@ -15,7 +15,7 @@ use crate::{
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        Date, RegExp,
+        DataView, Date, RegExp,
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
@@ -116,6 +116,7 @@ pub enum ObjectKind {
     RegExpStringIterator(RegExpStringIterator),
     BigInt(JsBigInt),
     Boolean(bool),
+    DataView(DataView),
     ForInIterator(ForInIterator),
     Function(Function),
     BoundFunction(BoundFunction),
@@ -204,6 +205,14 @@ impl ObjectData {
     pub fn boolean(boolean: bool) -> Self {
         Self {
             kind: ObjectKind::Boolean(boolean),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `DataView` object data
+    pub fn data_view(data_view: DataView) -> Self {
+        Self {
+            kind: ObjectKind::DataView(data_view),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -392,6 +401,7 @@ impl Display for ObjectKind {
             Self::Arguments(_) => "Arguments",
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
+            Self::DataView(_) => "DataView",
         })
     }
 }
@@ -909,6 +919,28 @@ impl Object {
                 ..
             }
         )
+    }
+
+    #[inline]
+    pub fn as_data_view(&self) -> Option<&DataView> {
+        match &self.data {
+            ObjectData {
+                kind: ObjectKind::DataView(data_view),
+                ..
+            } => Some(data_view),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_data_view_mut(&mut self) -> Option<&mut DataView> {
+        match &mut self.data {
+            ObjectData {
+                kind: ObjectKind::DataView(data_view),
+                ..
+            } => Some(data_view),
+            _ => None,
+        }
     }
 
     /// Checks if it is an `Arguments` object.

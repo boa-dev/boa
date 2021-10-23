@@ -6,6 +6,7 @@ pub mod bigint;
 pub mod boolean;
 #[cfg(feature = "console")]
 pub mod console;
+pub mod dataview;
 pub mod date;
 pub mod error;
 pub mod function;
@@ -32,6 +33,7 @@ pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
+    dataview::DataView,
     date::Date,
     error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError},
     function::BuiltInFunctionObject,
@@ -129,6 +131,7 @@ pub fn init(context: &mut Context) {
         BigInt,
         Boolean,
         Date,
+        DataView,
         Map,
         Number,
         Set,
