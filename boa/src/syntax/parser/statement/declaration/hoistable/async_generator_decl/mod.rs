@@ -1,11 +1,11 @@
+//! Async Generator Declaration parsing
+//!
+//! Implements TokenParser for AsyncGeneratorDeclaration and outputs an
+//! AsyncGeneratorDecl ast node
+//! 
+
 #[cfg(test)]
 mod tests;
-
-/// Async Generator Declaration Parser
-///
-/// Implements TokenParser for AsyncGeneratorDeclaration and outputs an
-/// AsyncGeneratorDecl ast node
-///
 use crate::syntax::{
     ast::{node::AsyncGeneratorDecl, Keyword, Punctuator},
     parser::{
@@ -15,6 +15,13 @@ use crate::syntax::{
 };
 use std::io::Read;
 
+
+/// Async Generator Declaration Parser
+///
+/// More information:
+/// - [ECMAScript specification][spec]
+/// 
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorDeclaration
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncGeneratorDeclaration {
     allow_yield: AllowYield,
