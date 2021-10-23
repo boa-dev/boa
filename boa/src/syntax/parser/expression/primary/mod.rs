@@ -78,6 +78,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
+        // TODO: tok currently consumes the token instead of peeking, so the token
+        // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
