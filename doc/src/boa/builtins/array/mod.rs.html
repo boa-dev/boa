@@ -2622,6 +2622,108 @@
 <span id="2622">2622</span>
 <span id="2623">2623</span>
 <span id="2624">2624</span>
+<span id="2625">2625</span>
+<span id="2626">2626</span>
+<span id="2627">2627</span>
+<span id="2628">2628</span>
+<span id="2629">2629</span>
+<span id="2630">2630</span>
+<span id="2631">2631</span>
+<span id="2632">2632</span>
+<span id="2633">2633</span>
+<span id="2634">2634</span>
+<span id="2635">2635</span>
+<span id="2636">2636</span>
+<span id="2637">2637</span>
+<span id="2638">2638</span>
+<span id="2639">2639</span>
+<span id="2640">2640</span>
+<span id="2641">2641</span>
+<span id="2642">2642</span>
+<span id="2643">2643</span>
+<span id="2644">2644</span>
+<span id="2645">2645</span>
+<span id="2646">2646</span>
+<span id="2647">2647</span>
+<span id="2648">2648</span>
+<span id="2649">2649</span>
+<span id="2650">2650</span>
+<span id="2651">2651</span>
+<span id="2652">2652</span>
+<span id="2653">2653</span>
+<span id="2654">2654</span>
+<span id="2655">2655</span>
+<span id="2656">2656</span>
+<span id="2657">2657</span>
+<span id="2658">2658</span>
+<span id="2659">2659</span>
+<span id="2660">2660</span>
+<span id="2661">2661</span>
+<span id="2662">2662</span>
+<span id="2663">2663</span>
+<span id="2664">2664</span>
+<span id="2665">2665</span>
+<span id="2666">2666</span>
+<span id="2667">2667</span>
+<span id="2668">2668</span>
+<span id="2669">2669</span>
+<span id="2670">2670</span>
+<span id="2671">2671</span>
+<span id="2672">2672</span>
+<span id="2673">2673</span>
+<span id="2674">2674</span>
+<span id="2675">2675</span>
+<span id="2676">2676</span>
+<span id="2677">2677</span>
+<span id="2678">2678</span>
+<span id="2679">2679</span>
+<span id="2680">2680</span>
+<span id="2681">2681</span>
+<span id="2682">2682</span>
+<span id="2683">2683</span>
+<span id="2684">2684</span>
+<span id="2685">2685</span>
+<span id="2686">2686</span>
+<span id="2687">2687</span>
+<span id="2688">2688</span>
+<span id="2689">2689</span>
+<span id="2690">2690</span>
+<span id="2691">2691</span>
+<span id="2692">2692</span>
+<span id="2693">2693</span>
+<span id="2694">2694</span>
+<span id="2695">2695</span>
+<span id="2696">2696</span>
+<span id="2697">2697</span>
+<span id="2698">2698</span>
+<span id="2699">2699</span>
+<span id="2700">2700</span>
+<span id="2701">2701</span>
+<span id="2702">2702</span>
+<span id="2703">2703</span>
+<span id="2704">2704</span>
+<span id="2705">2705</span>
+<span id="2706">2706</span>
+<span id="2707">2707</span>
+<span id="2708">2708</span>
+<span id="2709">2709</span>
+<span id="2710">2710</span>
+<span id="2711">2711</span>
+<span id="2712">2712</span>
+<span id="2713">2713</span>
+<span id="2714">2714</span>
+<span id="2715">2715</span>
+<span id="2716">2716</span>
+<span id="2717">2717</span>
+<span id="2718">2718</span>
+<span id="2719">2719</span>
+<span id="2720">2720</span>
+<span id="2721">2721</span>
+<span id="2722">2722</span>
+<span id="2723">2723</span>
+<span id="2724">2724</span>
+<span id="2725">2725</span>
+<span id="2726">2726</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -2725,6 +2827,8 @@
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::every</span>, <span class="string">&quot;every&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::find</span>, <span class="string">&quot;find&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::find_index</span>, <span class="string">&quot;findIndex&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::find_last</span>, <span class="string">&quot;findLast&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::find_last_index</span>, <span class="string">&quot;findLastIndex&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::flat</span>, <span class="string">&quot;flat&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::flat_map</span>, <span class="string">&quot;flatMap&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::slice</span>, <span class="string">&quot;slice&quot;</span>, <span class="number">2</span>)
@@ -3967,7 +4071,7 @@
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.reduce: predicate is not callable&quot;</span>)
+            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.findIndex: predicate is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -3990,6 +4094,106 @@
             }
             <span class="comment">// e. Set k to k + 1.</span>
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        }
+        <span class="comment">// 6. Return -1𝔽.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
+    }
+
+    <span class="doccomment">/// `Array.prototype.findLast( predicate, [thisArg] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// findLast calls predicate once for each element of the array, in descending order,</span>
+    <span class="doccomment">/// until it finds one where predicate returns true. If such an element is found, findLast</span>
+    <span class="doccomment">/// immediately returns that element value. Otherwise, findLast returns undefined.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript proposal][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/proposal-array-find-from-last/#sec-array.prototype.findlast</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_last</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
+        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.findLast: predicate is not callable&quot;</span>)
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+
+        <span class="comment">// 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)</span>
+        <span class="comment">// 5. Repeat, while k &gt;= 0, (implementation differs slightly from spec because k is unsigned)</span>
+        <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">len</span>).<span class="ident">rev</span>() {
+            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).</span>
+            <span class="comment">// b. Let kValue be ? Get(O, Pk).</span>
+            <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).</span>
+            <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">predicate</span>
+                .<span class="ident">call</span>(
+                    <span class="ident">this_arg</span>,
+                    <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>.<span class="ident">clone</span>(), <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>()],
+                    <span class="ident">context</span>,
+                )<span class="question-mark">?</span>
+                .<span class="ident">to_boolean</span>();
+            <span class="comment">// d. If testResult is true, return kValue.</span>
+            <span class="kw">if</span> <span class="ident">test_result</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">k_value</span>);
+            }
+            <span class="comment">// e. Set k to k - 1.</span>
+        }
+        <span class="comment">// 6. Return undefined.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+    }
+
+    <span class="doccomment">/// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// findLastIndex calls predicate once for each element of the array, in descending order,</span>
+    <span class="doccomment">/// until it finds one where predicate returns true. If such an element is found, findLastIndex</span>
+    <span class="doccomment">/// immediately returns the index of that element value. Otherwise, findLastIndex returns -1.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript proposal][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/proposal-array-find-from-last/#sec-array.prototype.findlastindex</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_last_index</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
+        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.findLastIndex: predicate is not callable&quot;</span>)
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
+
+        <span class="comment">// 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)</span>
+        <span class="comment">// 5. Repeat, while k &gt;= 0, (implementation differs slightly from spec because k is unsigned)</span>
+        <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">len</span>).<span class="ident">rev</span>() {
+            <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).</span>
+            <span class="comment">// b. Let kValue be ? Get(O, Pk).</span>
+            <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).</span>
+            <span class="kw">let</span> <span class="ident">test_result</span> <span class="op">=</span> <span class="ident">predicate</span>
+                .<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">to_boolean</span>();
+            <span class="comment">// d. If testResult is true, return 𝔽(k).</span>
+            <span class="kw">if</span> <span class="ident">test_result</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">k</span>));
+            }
+            <span class="comment">// e. Set k to k - 1.</span>
         }
         <span class="comment">// 6. Return -1𝔽.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
