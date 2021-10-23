@@ -7,12 +7,10 @@ feature:json-modules
 feature:SharedArrayBuffer
 feature:resizable-arraybuffer
 feature:Temporal
-feature: tail-call-optimization
+feature:tail-call-optimization
 //feature:generators
 //feature:async-iteration
 //feature:class
-
-// These seem to run forever:
 
 // These generate a stack overflow
 tco-call

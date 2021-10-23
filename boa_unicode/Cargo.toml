@@ -9,6 +9,7 @@ categories = ["parsing"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2021"
+rust-version = "1.56"
 
 [dependencies]
 unicode-general-category = "0.4.0"

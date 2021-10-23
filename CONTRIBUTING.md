@@ -89,7 +89,8 @@ This will run the test suite in verbose mode (you can remove the `-v` part to ru
 and output nice colorings in the terminal. It will also output any panic information into the `error.log` file.
 
 You can get some more verbose information that tells you the exact name of each test that is being run, useful
-for debugging purposes by setting up the verbose flag twice, for example `-vv`.
+for debugging purposes by setting up the verbose flag twice, for example `-vv`. If you want to know the output of
+each test that is executed, you can use the triple verbose (`-vvv`) flag.
 
 Finally, if you want to only run one sub-suite or even one test (to just check if you fixed/broke something specific),
 you can do it with the `-s` parameter, and then passing the path to the sub-suite or test that you want to run.
