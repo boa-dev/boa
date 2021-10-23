@@ -223,7 +223,7 @@ impl DataView {
         _args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Let O be the this value.
+        // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         let dataview = this.as_object().map(|obj| obj.borrow());
         let dataview = dataview
