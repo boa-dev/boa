@@ -184,6 +184,9 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -198,6 +201,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">infinity</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">iterable</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json</span>;
@@ -225,6 +229,7 @@
     <span class="ident">function::BuiltInFunctionObject</span>,
     <span class="ident">global_this::GlobalThis</span>,
     <span class="ident">infinity::Infinity</span>,
+    <span class="ident">intl::Intl</span>,
     <span class="ident">json::Json</span>,
     <span class="ident">map::map_iterator::MapIterator</span>,
     <span class="ident">map::Map</span>,
@@ -310,6 +315,7 @@
         <span class="ident">BuiltInFunctionObject</span>,
         <span class="ident">BuiltInObjectObject</span>,
         <span class="ident">Math</span>,
+        <span class="ident">Intl</span>,
         <span class="ident">Json</span>,
         <span class="ident">Array</span>,
         <span class="ident">Proxy</span>,
