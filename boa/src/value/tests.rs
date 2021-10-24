@@ -7,13 +7,6 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
 #[test]
-fn is_object() {
-    let context = Context::new();
-    let val = JsValue::new_object(&context);
-    assert!(val.is_object());
-}
-
-#[test]
 fn string_to_value() {
     let s = String::from("Hello");
     let v = JsValue::new(s);
@@ -31,15 +24,12 @@ fn undefined() {
 #[test]
 fn get_set_field() {
     let mut context = Context::new();
-    let obj = JsValue::new_object(&context);
+    let obj = &context.construct_object();
     // Create string and convert it to a Value
     let s = JsValue::new("bar");
-    obj.set_field("foo", s, false, &mut context).unwrap();
+    obj.set("foo", s, false, &mut context).unwrap();
     assert_eq!(
-        obj.get_field("foo", &mut context)
-            .unwrap()
-            .display()
-            .to_string(),
+        obj.get("foo", &mut context).unwrap().display().to_string(),
         "\"bar\""
     );
 }
@@ -142,11 +132,11 @@ fn hash_rational() {
 #[test]
 #[allow(clippy::eq_op)]
 fn hash_object() {
-    let object1 = JsValue::new(Object::default());
+    let object1 = JsValue::new(JsObject::empty());
     assert_eq!(object1, object1);
     assert_eq!(object1, object1.clone());
 
-    let object2 = JsValue::new(Object::default());
+    let object2 = JsValue::new(JsObject::empty());
     assert_ne!(object1, object2);
 
     assert_eq!(hash_value(&object1), hash_value(&object1.clone()));

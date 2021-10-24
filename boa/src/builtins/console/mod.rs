@@ -568,7 +568,6 @@ impl Console {
             LogMessage::Info(display_obj(args.get_or_undefined(0), true)),
             context.console(),
         );
-
         Ok(JsValue::undefined())
     }
 }

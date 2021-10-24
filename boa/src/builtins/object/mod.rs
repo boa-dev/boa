@@ -14,15 +14,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::{map, BuiltIn, JsArgs},
     context::StandardObjects,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, IntegrityLevel,
-        JsObject, Object as BuiltinObject, ObjectData, ObjectInitializer, ObjectKind,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
-    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::{JsValue, Type},
+    value::JsValue,
     BoaProfiler, Context, JsResult,
 };
 
@@ -53,8 +53,8 @@ impl BuiltIn for Object {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .inherit(JsValue::null())
-        .method(Self::has_own_property, "hasOwnProperty", 0)
+        .inherit(None)
+        .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
         .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
@@ -87,6 +87,8 @@ impl BuiltIn for Object {
         )
         .static_method(Self::get_own_property_names, "getOwnPropertyNames", 1)
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
+        .static_method(Self::has_own, "hasOwn", 2)
+        .static_method(Self::from_entries, "fromEntries", 1)
         .build();
 
         object.into()
@@ -107,20 +109,15 @@ impl Object {
                 StandardObjects::object_object,
                 context,
             )?;
-            let object = JsValue::new_object(context);
-
-            object
-                .as_object()
-                .expect("this should be an object")
-                .set_prototype_instance(prototype.into());
-            return Ok(object);
+            let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+            return Ok(object.into());
         }
         if let Some(arg) = args.get(0) {
             if !arg.is_null_or_undefined() {
                 return Ok(arg.to_object(context)?.into());
             }
         }
-        Ok(JsValue::new_object(context))
+        Ok(context.construct_object().into())
     }
 
     /// `Object.create( proto, [propertiesObject] )`
@@ -138,10 +135,10 @@ impl Object {
         let properties = args.get_or_undefined(1);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::new(BuiltinObject::with_prototype(
-                prototype.clone(),
+            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data(
+                prototype.as_object().cloned(),
                 ObjectData::ordinary(),
-            )),
+            ),
             _ => {
                 return context.throw_type_error(format!(
                     "Object prototype may only be an Object or null: {}",
@@ -173,16 +170,17 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args.get_or_undefined(0).to_object(context)?;
-        if let Some(key) = args.get(1) {
-            let key = key.to_property_key(context)?;
+        // 1. Let obj be ? ToObject(O).
+        let obj = args.get_or_undefined(0).to_object(context)?;
 
-            if let Some(desc) = object.__get_own_property__(&key, context)? {
-                return Ok(Self::from_property_descriptor(desc, context));
-            }
-        }
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(1).to_property_key(context)?;
 
-        Ok(JsValue::undefined())
+        // 3. Let desc be ? obj.[[GetOwnProperty]](key).
+        let desc = obj.__get_own_property__(&key, context)?;
+
+        // 4. Return FromPropertyDescriptor(desc).
+        Ok(Self::from_property_descriptor(desc, context))
     }
 
     /// `Object.getOwnPropertyDescriptors( object )`
@@ -200,17 +198,12 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args
-            .get(0)
-            .unwrap_or(&JsValue::undefined())
-            .to_object(context)?;
+        let object = args.get_or_undefined(0).to_object(context)?;
         let descriptors = context.construct_object();
 
         for key in object.borrow().properties().keys() {
             let descriptor = {
-                let desc = object
-                    .__get_own_property__(&key, context)?
-                    .expect("Expected property to be on object.");
+                let desc = object.__get_own_property__(&key, context)?;
                 Self::from_property_descriptor(desc, context)
             };
 
@@ -234,40 +227,64 @@ impl Object {
     /// [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
-    fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> JsValue {
-        let mut descriptor = ObjectInitializer::new(context);
+    pub(crate) fn from_property_descriptor(
+        desc: Option<PropertyDescriptor>,
+        context: &mut Context,
+    ) -> JsValue {
+        match desc {
+            // 1. If Desc is undefined, return undefined.
+            None => JsValue::undefined(),
+            Some(desc) => {
+                // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+                // 3. Assert: obj is an extensible ordinary object with no own properties.
+                let obj = context.construct_object();
 
-        // TODO: use CreateDataPropertyOrThrow
+                // 4. If Desc has a [[Value]] field, then
+                if let Some(value) = desc.value() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
+                    obj.create_data_property_or_throw("value", value, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
 
-        match desc.kind() {
-            DescriptorKind::Data { value, writable } => {
-                if let Some(value) = value {
-                    descriptor.property("value", value.clone(), Attribute::all());
+                // 5. If Desc has a [[Writable]] field, then
+                if let Some(writable) = desc.writable() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
+                    obj.create_data_property_or_throw("writable", writable, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
                 }
-                if let Some(writable) = writable {
-                    descriptor.property("writable", *writable, Attribute::all());
+
+                // 6. If Desc has a [[Get]] field, then
+                if let Some(get) = desc.get() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
+                    obj.create_data_property_or_throw("get", get, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
                 }
+
+                // 7. If Desc has a [[Set]] field, then
+                if let Some(set) = desc.set() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
+                    obj.create_data_property_or_throw("set", set, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
+
+                // 8. If Desc has an [[Enumerable]] field, then
+                if let Some(enumerable) = desc.enumerable() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
+                    obj.create_data_property_or_throw("enumerable", enumerable, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
+
+                // 9. If Desc has a [[Configurable]] field, then
+                if let Some(configurable) = desc.configurable() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
+                    obj.create_data_property_or_throw("configurable", configurable, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
+
+                // 10. Return obj.
+                obj.into()
             }
-            DescriptorKind::Accessor { get, set } => {
-                if let Some(get) = get {
-                    descriptor.property("get", get.clone(), Attribute::all());
-                }
-                if let Some(set) = set {
-                    descriptor.property("set", set.clone(), Attribute::all());
-                }
-            }
-            _ => {}
         }
-
-        if let Some(enumerable) = desc.enumerable() {
-            descriptor.property("enumerable", enumerable, Attribute::all());
-        }
-
-        if let Some(configurable) = desc.configurable() {
-            descriptor.property("configurable", configurable, Attribute::all());
-        }
-
-        descriptor.build().into()
     }
 
     /// Uses the SameValue algorithm to check equality of objects
@@ -279,6 +296,10 @@ impl Object {
     }
 
     /// Get the `prototype` of an object.
+    ///
+    /// [More information][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
     pub fn get_prototype_of(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
         if args.is_empty() {
             return ctx.throw_type_error(
@@ -290,7 +311,9 @@ impl Object {
         let obj = args[0].clone().to_object(ctx)?;
 
         // 2. Return ? obj.[[GetPrototypeOf]]().
-        Ok(obj.prototype_instance())
+        Ok(obj
+            .__get_prototype_of__(ctx)?
+            .map_or(JsValue::Null, JsValue::new))
     }
 
     /// Set the `prototype` of an object.
@@ -307,32 +330,32 @@ impl Object {
         }
 
         // 1. Set O to ? RequireObjectCoercible(O).
-        let obj = args
+        let o = args
             .get(0)
             .cloned()
             .unwrap_or_default()
             .require_object_coercible(ctx)?
             .clone();
 
-        // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
-        let proto = args.get_or_undefined(1);
-        if !matches!(proto.get_type(), Type::Object | Type::Null) {
-            return ctx.throw_type_error(format!(
-                "expected an object or null, got {}",
-                proto.type_of()
-            ));
-        }
+        let proto = match args.get_or_undefined(1) {
+            JsValue::Object(obj) => Some(obj.clone()),
+            JsValue::Null => None,
+            // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
+            val => {
+                return ctx
+                    .throw_type_error(format!("expected an object or null, got {}", val.type_of()))
+            }
+        };
 
-        // 3. If Type(O) is not Object, return O.
-        if !obj.is_object() {
-            return Ok(obj);
-        }
+        let obj = if let Some(obj) = o.as_object() {
+            obj
+        } else {
+            // 3. If Type(O) is not Object, return O.
+            return Ok(o);
+        };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj
-            .as_object()
-            .expect("obj was not an object")
-            .__set_prototype_of__(proto.clone(), ctx)?;
+        let status = obj.__set_prototype_of__(proto, ctx)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -340,7 +363,7 @@ impl Object {
         }
 
         // 6. Return O.
-        Ok(obj)
+        Ok(o)
     }
 
     /// `Object.prototype.isPrototypeOf( proto )`
@@ -382,7 +405,7 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let object = args.get_or_undefined(0);
-        if let Some(object) = object.as_object() {
+        if let JsValue::Object(object) = object {
             let key = args
                 .get(1)
                 .unwrap_or(&JsValue::Undefined)
@@ -394,7 +417,7 @@ impl Object {
 
             object.define_property_or_throw(key, desc, context)?;
 
-            Ok(object.into())
+            Ok(object.clone().into())
         } else {
             context.throw_type_error("Object.defineProperty called on non-object")
         }
@@ -416,10 +439,9 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
-        let arg_obj = arg.as_object();
-        if let Some(obj) = arg_obj {
+        if let JsValue::Object(obj) = arg {
             let props = args.get_or_undefined(1);
-            object_define_properties(&obj, props.clone(), context)?;
+            object_define_properties(obj, props.clone(), context)?;
             Ok(arg.clone())
         } else {
             context.throw_type_error("Expected an object")
@@ -477,7 +499,7 @@ impl Object {
             let o = o.borrow();
             match o.kind() {
                 ObjectKind::Array => "Array",
-                // TODO: Arguments Exotic Objects are currently not supported
+                ObjectKind::Arguments(_) => "Arguments",
                 ObjectKind::Function(_) => "Function",
                 ObjectKind::Error => "Error",
                 ObjectKind::Boolean(_) => "Boolean",
@@ -499,7 +521,7 @@ impl Object {
         Ok(format!("[object {}]", tag_str).into())
     }
 
-    /// `Object.prototype.hasOwnPrototype( property )`
+    /// `Object.prototype.hasOwnProperty( property )`
     ///
     /// The method returns a boolean indicating whether the object has the specified property
     /// as its own property (as opposed to inheriting it).
@@ -515,12 +537,13 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let key = args
-            .get(0)
-            .unwrap_or(&JsValue::undefined())
-            .to_property_key(context)?;
+        // 1. Let P be ? ToPropertyKey(V).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 2. Let O be ? ToObject(this value).
         let object = this.to_object(context)?;
 
+        // 3. Return ? HasOwnProperty(O, P).
         Ok(object.has_own_property(key, context)?.into())
     }
 
@@ -861,6 +884,68 @@ impl Object {
         // 1. Return ? GetOwnPropertyKeys(O, symbol).
         let o = args.get_or_undefined(0);
         get_own_property_keys(o, PropertyKeyType::Symbol, context)
+    }
+
+    /// `Object.hasOwn( object, property )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.hasown
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn
+    pub fn has_own(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let obj be ? ToObject(O).
+        let obj = args.get_or_undefined(0).to_object(context)?;
+
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(1).to_property_key(context)?;
+
+        // 3. Return ? HasOwnProperty(obj, key).
+        Ok(obj.has_own_property(key, context)?.into())
+    }
+
+    /// `Object.fromEntries( iterable )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.fromentries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries
+    pub fn from_entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Perform ? RequireObjectCoercible(iterable).
+        let iterable = args.get_or_undefined(0).require_object_coercible(context)?;
+
+        // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+        // 3. Assert: obj is an extensible ordinary object with no own properties.
+        let obj = context.construct_object();
+
+        // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
+        // obj and performs the following steps when called:
+        let mut closure = FunctionBuilder::closure_with_captures(
+            context,
+            |_, args, obj, context| {
+                let key = args.get_or_undefined(0);
+                let value = args.get_or_undefined(1);
+
+                // a. Let propertyKey be ? ToPropertyKey(key).
+                let property_key = key.to_property_key(context)?;
+
+                // b. Perform ! CreateDataPropertyOrThrow(obj, propertyKey, value).
+                obj.create_data_property_or_throw(property_key, value, context)?;
+
+                // c. Return undefined.
+                Ok(JsValue::undefined())
+            },
+            obj.clone(),
+        );
+
+        // 5. Let adder be ! CreateBuiltinFunction(closure, 2, "", « »).
+        let adder = closure.length(2).name("").build();
+
+        // 6. Return ? AddEntriesFromIterable(obj, iterable, adder).
+        map::add_entries_from_iterable(&obj, iterable, &adder.into(), context)
     }
 }
 

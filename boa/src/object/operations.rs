@@ -1,5 +1,6 @@
 use crate::{
     builtins::Array,
+    context::{StandardConstructor, StandardObjects},
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -211,35 +212,6 @@ impl JsObject {
         Ok(success)
     }
 
-    /// Retrieves value of specific property, when the value of the property is expected to be a function.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    #[inline]
-    pub(crate) fn get_method<K>(&self, context: &mut Context, key: K) -> JsResult<Option<JsObject>>
-    where
-        K: Into<PropertyKey>,
-    {
-        // 1. Assert: IsPropertyKey(P) is true.
-        // 2. Let func be ? GetV(V, P).
-        let value = self.get(key, context)?;
-
-        // 3. If func is either undefined or null, return undefined.
-        if value.is_null_or_undefined() {
-            return Ok(None);
-        }
-
-        // 4. If IsCallable(func) is false, throw a TypeError exception.
-        // 5. Return func.
-        match value.as_object() {
-            Some(object) if object.is_callable() => Ok(Some(object)),
-            _ => Err(context
-                .construct_type_error("value returned for property of object is not a function")),
-        }
-    }
-
     /// Check if object has property.
     ///
     /// More information:
@@ -294,7 +266,13 @@ impl JsObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        self.call_construct(this, args, context, false)
+        // 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. If IsCallable(F) is false, throw a TypeError exception.
+        if !self.is_callable() {
+            return context.throw_type_error("not a function");
+        }
+        // 3. Return ? F.[[Call]](V, argumentsList).
+        self.__call__(this, args, context)
     }
 
     /// Construct an instance of this object with the specified arguments.
@@ -312,7 +290,10 @@ impl JsObject {
         new_target: &JsValue,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        self.call_construct(new_target, args, context, true)
+        // 1. If newTarget is not present, set newTarget to F.
+        // 2. If argumentsList is not present, set argumentsList to a new empty List.
+        // 3. Return ? F.[[Construct]](argumentsList, newTarget).
+        self.__construct__(args, new_target, context)
     }
 
     /// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
@@ -452,24 +433,27 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
-    pub(crate) fn species_constructor(
+    pub(crate) fn species_constructor<F>(
         &self,
-        default_constructor: JsValue,
+        default_constructor: F,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject>
+    where
+        F: FnOnce(&StandardObjects) -> &StandardConstructor,
+    {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").
-        let c = self.clone().get("constructor", context)?;
+        let c = self.get("constructor", context)?;
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
-            return Ok(default_constructor);
+            return Ok(default_constructor(context.standard_objects()).constructor());
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
         if !c.is_object() {
-            return context.throw_type_error("property 'constructor' is not an object");
+            return Err(context.construct_type_error("property 'constructor' is not an object"));
         }
 
         // 5. Let S be ? Get(C, @@species).
@@ -477,19 +461,14 @@ impl JsObject {
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {
-            return Ok(default_constructor);
+            return Ok(default_constructor(context.standard_objects()).constructor());
         }
 
         // 7. If IsConstructor(S) is true, return S.
         // 8. Throw a TypeError exception.
-        if let Some(obj) = s.as_object() {
-            if obj.is_constructable() {
-                Ok(s)
-            } else {
-                context.throw_type_error("property 'constructor' is not a constructor")
-            }
-        } else {
-            context.throw_type_error("property 'constructor' is not an object")
+        match s.as_object() {
+            Some(obj) if obj.is_constructor() => Ok(obj.clone()),
+            _ => Err(context.construct_type_error("property 'constructor' is not a constructor")),
         }
     }
 
@@ -555,6 +534,34 @@ impl JsObject {
         Ok(properties)
     }
 
+    /// Abstract operation `GetMethod ( V, P )`
+    ///
+    /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
+    where
+        K: Into<PropertyKey>,
+    {
+        // Note: The spec specifies this function for JsValue.
+        // It is implemented for JsObject for convenience.
+
+        // 1. Assert: IsPropertyKey(P) is true.
+        // 2. Let func be ? GetV(V, P).
+        match &self.__get__(&key.into(), self.clone().into(), context)? {
+            // 3. If func is either undefined or null, return undefined.
+            JsValue::Undefined | JsValue::Null => Ok(None),
+            // 5. Return func.
+            JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            // 4. If IsCallable(func) is false, throw a TypeError exception.
+            _ => Err(context
+                .construct_type_error("value returned for property of object is not a function")),
+        }
+    }
+
     // todo: GetFunctionRealm
 
     // todo: CopyDataProperties
@@ -575,9 +582,45 @@ impl JsObject {
 }
 
 impl JsValue {
-    // todo: GetV
+    /// Abstract operation `GetV ( V, P )`.
+    ///
+    /// Retrieves the value of a specific property of an ECMAScript language value. If the value is
+    /// not an object, the property lookup is performed using a wrapper object appropriate for the
+    /// type of the value.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    #[inline]
+    pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. Let O be ? ToObject(V).
+        let o = self.to_object(context)?;
 
-    // todo: GetMethod
+        // 2. Return ? O.[[Get]](P, V).
+        o.__get__(&key.into(), self.clone(), context)
+    }
+
+    /// Abstract operation `GetMethod ( V, P )`
+    ///
+    /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    #[inline]
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
+    where
+        K: Into<PropertyKey>,
+    {
+        // Note: The spec specifies this function for JsValue.
+        // The main part of the function is implemented for JsObject.
+        self.to_object(context)?.get_method(key, context)
+    }
 
     /// It is used to create List value whose elements are provided by the indexed properties of
     /// self.
@@ -635,5 +678,93 @@ impl JsValue {
 
         // 7. Return list.
         Ok(list)
+    }
+
+    /// Abstract operation `( V, P [ , argumentsList ] )
+    ///
+    /// Calls a method property of an ECMAScript language value.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    pub(crate) fn invoke<K>(
+        &self,
+        key: K,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. Let func be ? GetV(V, P).
+        let func = self.get_v(key, context)?;
+
+        // 3. Return ? Call(func, V, argumentsList)
+        context.call(&func, self, args)
+    }
+
+    /// Abstract operation `OrdinaryHasInstance ( C, O )`
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
+    pub fn ordinary_has_instance(
+        function: &JsValue,
+        object: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<bool> {
+        // 1. If IsCallable(C) is false, return false.
+        let function = if let Some(function) = function.as_callable() {
+            function
+        } else {
+            return Ok(false);
+        };
+
+        // 2. If C has a [[BoundTargetFunction]] internal slot, then
+        if let Some(bound_function) = function.borrow().as_bound_function() {
+            // a. Let BC be C.[[BoundTargetFunction]].
+            // b. Return ? InstanceofOperator(O, BC).
+            return JsValue::instance_of(
+                object,
+                &bound_function.target_function().clone().into(),
+                context,
+            );
+        }
+
+        let mut object = if let Some(obj) = object.as_object() {
+            obj.clone()
+        } else {
+            // 3. If Type(O) is not Object, return false.
+            return Ok(false);
+        };
+
+        // 4. Let P be ? Get(C, "prototype").
+        let prototype = function.get("prototype", context)?;
+
+        let prototype = if let Some(obj) = prototype.as_object() {
+            obj
+        } else {
+            // 5. If Type(P) is not Object, throw a TypeError exception.
+            return Err(context
+                .construct_type_error("function has non-object prototype in instanceof check"));
+        };
+
+        // 6. Repeat,
+        loop {
+            // a. Set O to ? O.[[GetPrototypeOf]]().
+            object = match object.__get_prototype_of__(context)? {
+                Some(obj) => obj,
+                // b. If O is null, return false.
+                None => return Ok(false),
+            };
+
+            // c. If SameValue(P, O) is true, return true.
+            if JsObject::equals(&object, prototype) {
+                return Ok(true);
+            }
+        }
     }
 }

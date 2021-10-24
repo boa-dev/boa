@@ -2,16 +2,25 @@
 
 use crate::{
     builtins::{
-        array::array_iterator::ArrayIterator, map::map_iterator::MapIterator,
-        map::ordered_map::OrderedMap, regexp::regexp_string_iterator::RegExpStringIterator,
-        set::ordered_set::OrderedSet, set::set_iterator::SetIterator,
-        string::string_iterator::StringIterator, Date, RegExp,
+        array::array_iterator::ArrayIterator,
+        array_buffer::ArrayBuffer,
+        function::arguments::{Arguments, MappedArguments},
+        function::{BoundFunction, Captures, Function, NativeFunctionSignature},
+        map::map_iterator::MapIterator,
+        map::ordered_map::OrderedMap,
+        object::for_in_iterator::ForInIterator,
+        proxy::Proxy,
+        regexp::regexp_string_iterator::RegExpStringIterator,
+        set::ordered_set::OrderedSet,
+        set::set_iterator::SetIterator,
+        string::string_iterator::StringIterator,
+        typed_array::integer_indexed_object::IntegerIndexed,
+        DataView, Date, RegExp,
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
-    object::function::{Captures, Function, NativeFunctionSignature},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    BoaProfiler, Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 use std::{
     any::Any,
@@ -19,28 +28,38 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-#[cfg(test)]
-mod tests;
-
-pub mod function;
-mod gcobject;
-pub(crate) mod internal_methods;
-mod operations;
-mod property_map;
-
-use crate::builtins::object::for_in_iterator::ForInIterator;
-pub use gcobject::{JsObject, RecursionLimiter, Ref, RefMut};
-use internal_methods::InternalObjectMethods;
+pub use jsobject::{JsObject, RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
 
 use self::internal_methods::{
-    array::ARRAY_EXOTIC_INTERNAL_METHODS, string::STRING_EXOTIC_INTERNAL_METHODS,
-    ORDINARY_INTERNAL_METHODS,
+    arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
+    array::ARRAY_EXOTIC_INTERNAL_METHODS,
+    bound_function::{
+        BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
+    },
+    function::{CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS},
+    integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+    proxy::{
+        PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
+        PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
+    },
+    string::STRING_EXOTIC_INTERNAL_METHODS,
+    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
+
+#[cfg(test)]
+mod tests;
+
+pub(crate) mod internal_methods;
+mod jsobject;
+mod operations;
+mod property_map;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
+
+pub type JsPrototype = Option<JsObject>;
 
 /// This trait allows Rust types to be passed around as objects.
 ///
@@ -65,14 +84,15 @@ impl<T: Any + Debug + Trace> NativeObject for T {
     }
 }
 
-/// The internal representation of an JavaScript object.
+/// The internal representation of a JavaScript object.
 #[derive(Debug, Trace, Finalize)]
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
+    /// The collection of properties contained in the object
     properties: PropertyMap,
     /// Instance prototype `__proto__`.
-    prototype: JsValue,
+    prototype: JsPrototype,
     /// Whether it can have new properties added to it.
     extensible: bool,
 }
@@ -89,14 +109,17 @@ pub struct ObjectData {
 pub enum ObjectKind {
     Array,
     ArrayIterator(ArrayIterator),
+    ArrayBuffer(ArrayBuffer),
     Map(OrderedMap<JsValue>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
     RegExpStringIterator(RegExpStringIterator),
     BigInt(JsBigInt),
     Boolean(bool),
+    DataView(DataView),
     ForInIterator(ForInIterator),
     Function(Function),
+    BoundFunction(BoundFunction),
     Set(OrderedSet<JsValue>),
     SetIterator(SetIterator),
     String(JsString),
@@ -105,9 +128,12 @@ pub enum ObjectKind {
     Symbol(JsSymbol),
     Error,
     Ordinary,
+    Proxy(Proxy),
     Date(Date),
     Global,
+    Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
+    IntegerIndexed(IntegerIndexed),
 }
 
 impl ObjectData {
@@ -123,6 +149,14 @@ impl ObjectData {
     pub fn array_iterator(array_iterator: ArrayIterator) -> Self {
         Self {
             kind: ObjectKind::ArrayIterator(array_iterator),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `ArrayBuffer` object data
+    pub fn array_buffer(array_buffer: ArrayBuffer) -> Self {
+        Self {
+            kind: ObjectKind::ArrayBuffer(array_buffer),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -175,6 +209,14 @@ impl ObjectData {
         }
     }
 
+    /// Create the `DataView` object data
+    pub fn data_view(data_view: DataView) -> Self {
+        Self {
+            kind: ObjectKind::DataView(data_view),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `ForInIterator` object data
     pub fn for_in_iterator(for_in_iterator: ForInIterator) -> Self {
         Self {
@@ -186,8 +228,24 @@ impl ObjectData {
     /// Create the `Function` object data
     pub fn function(function: Function) -> Self {
         Self {
+            internal_methods: if function.is_constructor() {
+                &CONSTRUCTOR_INTERNAL_METHODS
+            } else {
+                &FUNCTION_INTERNAL_METHODS
+            },
             kind: ObjectKind::Function(function),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `BoundFunction` object data
+    pub fn bound_function(bound_function: BoundFunction, constructor: bool) -> Self {
+        Self {
+            kind: ObjectKind::BoundFunction(bound_function),
+            internal_methods: if constructor {
+                &BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS
+            } else {
+                &BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS
+            },
         }
     }
 
@@ -255,6 +313,20 @@ impl ObjectData {
         }
     }
 
+    /// Create the `Proxy` object data
+    pub fn proxy(proxy: Proxy, call: bool, construct: bool) -> Self {
+        Self {
+            kind: ObjectKind::Proxy(proxy),
+            internal_methods: if call && construct {
+                &PROXY_EXOTIC_INTERNAL_METHODS_ALL
+            } else if call {
+                &PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL
+            } else {
+                &PROXY_EXOTIC_INTERNAL_METHODS_BASIC
+            },
+        }
+    }
+
     /// Create the `Date` object data
     pub fn date(date: Date) -> Self {
         Self {
@@ -271,6 +343,18 @@ impl ObjectData {
         }
     }
 
+    /// Create the `Arguments` object data
+    pub fn arguments(arguments: Arguments) -> Self {
+        Self {
+            internal_methods: if matches!(arguments, Arguments::Unmapped) {
+                &ORDINARY_INTERNAL_METHODS
+            } else {
+                &ARGUMENTS_EXOTIC_INTERNAL_METHODS
+            },
+            kind: ObjectKind::Arguments(arguments),
+        }
+    }
+
     /// Create the `NativeObject` object data
     pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
         Self {
@@ -278,37 +362,47 @@ impl ObjectData {
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
+
+    /// Creates the `IntegerIndexed` object data
+    pub fn integer_indexed(integer_indexed: IntegerIndexed) -> Self {
+        Self {
+            kind: ObjectKind::IntegerIndexed(integer_indexed),
+            internal_methods: &INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Display for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Array => "Array",
-                Self::ArrayIterator(_) => "ArrayIterator",
-                Self::ForInIterator(_) => "ForInIterator",
-                Self::Function(_) => "Function",
-                Self::RegExp(_) => "RegExp",
-                Self::RegExpStringIterator(_) => "RegExpStringIterator",
-                Self::Map(_) => "Map",
-                Self::MapIterator(_) => "MapIterator",
-                Self::Set(_) => "Set",
-                Self::SetIterator(_) => "SetIterator",
-                Self::String(_) => "String",
-                Self::StringIterator(_) => "StringIterator",
-                Self::Symbol(_) => "Symbol",
-                Self::Error => "Error",
-                Self::Ordinary => "Ordinary",
-                Self::Boolean(_) => "Boolean",
-                Self::Number(_) => "Number",
-                Self::BigInt(_) => "BigInt",
-                Self::Date(_) => "Date",
-                Self::Global => "Global",
-                Self::NativeObject(_) => "NativeObject",
-            }
-        )
+        f.write_str(match self {
+            Self::Array => "Array",
+            Self::ArrayIterator(_) => "ArrayIterator",
+            Self::ArrayBuffer(_) => "ArrayBuffer",
+            Self::ForInIterator(_) => "ForInIterator",
+            Self::Function(_) => "Function",
+            Self::BoundFunction(_) => "BoundFunction",
+            Self::RegExp(_) => "RegExp",
+            Self::RegExpStringIterator(_) => "RegExpStringIterator",
+            Self::Map(_) => "Map",
+            Self::MapIterator(_) => "MapIterator",
+            Self::Set(_) => "Set",
+            Self::SetIterator(_) => "SetIterator",
+            Self::String(_) => "String",
+            Self::StringIterator(_) => "StringIterator",
+            Self::Symbol(_) => "Symbol",
+            Self::Error => "Error",
+            Self::Ordinary => "Ordinary",
+            Self::Proxy(_) => "Proxy",
+            Self::Boolean(_) => "Boolean",
+            Self::Number(_) => "Number",
+            Self::BigInt(_) => "BigInt",
+            Self::Date(_) => "Date",
+            Self::Global => "Global",
+            Self::Arguments(_) => "Arguments",
+            Self::NativeObject(_) => "NativeObject",
+            Self::IntegerIndexed(_) => "TypedArray",
+            Self::DataView(_) => "DataView",
+        })
     }
 }
 
@@ -328,7 +422,7 @@ impl Default for Object {
         Self {
             data: ObjectData::ordinary(),
             properties: PropertyMap::default(),
-            prototype: JsValue::null(),
+            prototype: None,
             extensible: true,
         }
     }
@@ -336,133 +430,8 @@ impl Default for Object {
 
 impl Object {
     #[inline]
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    /// Return a new ObjectData struct, with `kind` set to Ordinary
-    #[inline]
-    pub fn function(function: Function, prototype: JsValue) -> Self {
-        let _timer = BoaProfiler::global().start_event("Object::Function", "object");
-
-        Self {
-            data: ObjectData::function(function),
-            properties: PropertyMap::default(),
-            prototype,
-            extensible: true,
-        }
-    }
-
-    /// ObjectCreate is used to specify the runtime creation of new ordinary objects.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-objectcreate
-    // TODO: proto should be a &Value here
-    #[inline]
-    pub fn create(proto: JsValue) -> Self {
-        let mut obj = Self::new();
-        obj.prototype = proto;
-        obj
-    }
-
-    /// Return a new Boolean object whose `[[BooleanData]]` internal slot is set to argument.
-    #[inline]
-    pub fn boolean(value: bool) -> Self {
-        Self {
-            data: ObjectData::boolean(value),
-            properties: PropertyMap::default(),
-            prototype: JsValue::null(),
-            extensible: true,
-        }
-    }
-
-    /// Return a new `Number` object whose `[[NumberData]]` internal slot is set to argument.
-    #[inline]
-    pub fn number(value: f64) -> Self {
-        Self {
-            data: ObjectData::number(value),
-            properties: PropertyMap::default(),
-            prototype: JsValue::null(),
-            extensible: true,
-        }
-    }
-
-    /// Return a new `String` object whose `[[StringData]]` internal slot is set to argument.
-    #[inline]
-    pub fn string<S>(value: S) -> Self
-    where
-        S: Into<JsString>,
-    {
-        Self {
-            data: ObjectData::string(value.into()),
-            properties: PropertyMap::default(),
-            prototype: JsValue::null(),
-            extensible: true,
-        }
-    }
-
-    /// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.
-    #[inline]
-    pub fn bigint(value: JsBigInt) -> Self {
-        Self {
-            data: ObjectData::big_int(value),
-            properties: PropertyMap::default(),
-            prototype: JsValue::null(),
-            extensible: true,
-        }
-    }
-
-    /// Create a new native object of type `T`.
-    #[inline]
-    pub fn native_object<T>(value: T) -> Self
-    where
-        T: NativeObject,
-    {
-        Self {
-            data: ObjectData::native_object(Box::new(value)),
-            properties: PropertyMap::default(),
-            prototype: JsValue::null(),
-            extensible: true,
-        }
-    }
-
-    #[inline]
     pub fn kind(&self) -> &ObjectKind {
         &self.data.kind
-    }
-
-    /// It determines if Object is a callable function with a `[[Call]]` internal method.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
-    #[inline]
-    // todo: functions are not the only objects that are callable.
-    // todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
-    pub fn is_callable(&self) -> bool {
-        matches!(
-            self.data,
-            ObjectData {
-                kind: ObjectKind::Function(_),
-                ..
-            }
-        )
-    }
-
-    /// It determines if Object is a function object with a `[[Construct]]` internal method.
-    ///
-    /// More information:
-    /// - [EcmaScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
-    #[inline]
-    // todo: functions are not the only objects that are constructable.
-    // todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
-    pub fn is_constructable(&self) -> bool {
-        matches!(self.data, ObjectData{kind: ObjectKind::Function(ref f), ..} if f.is_constructable())
     }
 
     /// Checks if it an `Array` object.
@@ -507,6 +476,40 @@ impl Object {
                 kind: ObjectKind::ArrayIterator(ref iter),
                 ..
             } => Some(iter),
+            _ => None,
+        }
+    }
+
+    /// Checks if it an `ArrayBuffer` object.
+    #[inline]
+    pub fn is_array_buffer(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer(_),
+                ..
+            }
+        )
+    }
+
+    #[inline]
+    pub fn as_array_buffer(&self) -> Option<&ArrayBuffer> {
+        match &self.data {
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer(buffer),
+                ..
+            } => Some(buffer),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_array_buffer_mut(&mut self) -> Option<&mut ArrayBuffer> {
+        match &mut self.data {
+            ObjectData {
+                kind: ObjectKind::ArrayBuffer(buffer),
+                ..
+            } => Some(buffer),
             _ => None,
         }
     }
@@ -723,6 +726,28 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn as_function_mut(&mut self) -> Option<&mut Function> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Function(ref mut function),
+                ..
+            } => Some(function),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_bound_function(&self) -> Option<&BoundFunction> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::BoundFunction(ref bound_function),
+                ..
+            } => Some(bound_function),
+            _ => None,
+        }
+    }
+
     /// Checks if it a Symbol object.
     #[inline]
     pub fn is_symbol(&self) -> bool {
@@ -849,6 +874,7 @@ impl Object {
         )
     }
 
+    #[inline]
     pub fn as_date(&self) -> Option<&Date> {
         match self.data {
             ObjectData {
@@ -871,6 +897,7 @@ impl Object {
         )
     }
 
+    /// Gets the regexp data if the object is a regexp.
     #[inline]
     pub fn as_regexp(&self) -> Option<&RegExp> {
         match self.data {
@@ -878,6 +905,88 @@ impl Object {
                 kind: ObjectKind::RegExp(ref regexp),
                 ..
             } => Some(regexp),
+            _ => None,
+        }
+    }
+
+    /// Checks if it a `TypedArray` object.
+    #[inline]
+    pub fn is_typed_array(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::IntegerIndexed(_),
+                ..
+            }
+        )
+    }
+
+    #[inline]
+    pub fn as_data_view(&self) -> Option<&DataView> {
+        match &self.data {
+            ObjectData {
+                kind: ObjectKind::DataView(data_view),
+                ..
+            } => Some(data_view),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_data_view_mut(&mut self) -> Option<&mut DataView> {
+        match &mut self.data {
+            ObjectData {
+                kind: ObjectKind::DataView(data_view),
+                ..
+            } => Some(data_view),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is an `Arguments` object.
+    #[inline]
+    pub fn is_arguments(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Arguments(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the mapped arguments data if this is a mapped arguments object.
+    #[inline]
+    pub fn as_mapped_arguments(&self) -> Option<&MappedArguments> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Arguments(Arguments::Mapped(ref args)),
+                ..
+            } => Some(args),
+            _ => None,
+        }
+    }
+
+    /// Gets the typed array data (integer indexed object) if this is a typed array.
+    #[inline]
+    pub fn as_typed_array(&self) -> Option<&IntegerIndexed> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::IntegerIndexed(ref integer_indexed_object),
+                ..
+            } => Some(integer_indexed_object),
+            _ => None,
+        }
+    }
+
+    /// Gets the typed array data (integer indexed object) if this is a typed array.
+    #[inline]
+    pub fn as_typed_array_mut(&mut self) -> Option<&mut IntegerIndexed> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::IntegerIndexed(ref mut integer_indexed_object),
+                ..
+            } => Some(integer_indexed_object),
             _ => None,
         }
     }
@@ -894,8 +1003,43 @@ impl Object {
         )
     }
 
+    /// Checks if it's an proxy object.
     #[inline]
-    pub fn prototype_instance(&self) -> &JsValue {
+    pub fn is_proxy(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Proxy(_),
+                ..
+            }
+        )
+    }
+
+    #[inline]
+    pub fn as_proxy(&self) -> Option<&Proxy> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Proxy(ref proxy),
+                ..
+            } => Some(proxy),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_proxy_mut(&mut self) -> Option<&mut Proxy> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Proxy(ref mut proxy),
+                ..
+            } => Some(proxy),
+            _ => None,
+        }
+    }
+
+    /// Gets the prototype instance of this object.
+    #[inline]
+    pub fn prototype(&self) -> &JsPrototype {
         &self.prototype
     }
 
@@ -906,25 +1050,16 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&mut self, prototype: JsValue) -> bool {
-        assert!(prototype.is_null() || prototype.is_object());
+    pub fn set_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> bool {
+        let prototype = prototype.into();
         if self.extensible {
             self.prototype = prototype;
             true
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            JsValue::same_value(&prototype, &self.prototype)
+            self.prototype == prototype
         }
-    }
-
-    /// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind
-    #[inline]
-    pub fn with_prototype(proto: JsValue, data: ObjectData) -> Object {
-        let mut object = Object::new();
-        object.data = data;
-        object.set_prototype_instance(proto);
-        object
     }
 
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.
@@ -950,7 +1085,7 @@ impl Object {
         }
     }
 
-    /// Reeturn `true` if it is a native object and the native type is `T`.
+    /// Return `true` if it is a native object and the native type is `T`.
     #[inline]
     pub fn is<T>(&self) -> bool
     where
@@ -1021,7 +1156,7 @@ impl Object {
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name that a `Some` is returned
-    /// with that field, otherwise None is retuned.
+    /// with that field, otherwise None is returned.
     #[inline]
     pub fn insert_property<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
@@ -1116,7 +1251,7 @@ impl<'context> FunctionBuilder<'context> {
             context,
             function: Some(Function::Native {
                 function,
-                constructable: false,
+                constructor: false,
             }),
             name: JsString::default(),
             length: 0,
@@ -1133,7 +1268,7 @@ impl<'context> FunctionBuilder<'context> {
             context,
             function: Some(Function::Closure {
                 function: Box::new(move |this, args, _, context| function(this, args, context)),
-                constructable: false,
+                constructor: false,
                 captures: Captures::new(()),
             }),
             name: JsString::default(),
@@ -1155,16 +1290,19 @@ impl<'context> FunctionBuilder<'context> {
     ) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut C, &mut Context) -> JsResult<JsValue> + Copy + 'static,
-        C: NativeObject + Clone,
+        C: NativeObject,
     {
         Self {
             context,
             function: Some(Function::Closure {
-                function: Box::new(move |this, args, mut captures: Captures, context| {
-                    let data = captures.try_downcast_mut::<C>(context)?;
-                    function(this, args, data, context)
+                function: Box::new(move |this, args, captures: Captures, context| {
+                    let mut captures = captures.as_mut_any();
+                    let captures = captures.downcast_mut::<C>().ok_or_else(|| {
+                        context.construct_type_error("cannot downcast `Captures` to given type")
+                    })?;
+                    function(this, args, captures, context)
                 }),
-                constructable: false,
+                constructor: false,
                 captures: Captures::new(captures),
             }),
             name: JsString::default(),
@@ -1195,14 +1333,14 @@ impl<'context> FunctionBuilder<'context> {
         self
     }
 
-    /// Specify the whether the object function object can be called with `new` keyword.
+    /// Specify whether the object function object can be called with `new` keyword.
     ///
     /// The default is `false`.
     #[inline]
-    pub fn constructable(&mut self, yes: bool) -> &mut Self {
+    pub fn constructor(&mut self, yes: bool) -> &mut Self {
         match self.function.as_mut() {
-            Some(Function::Native { constructable, .. }) => *constructable = yes,
-            Some(Function::Closure { constructable, .. }) => *constructable = yes,
+            Some(Function::Native { constructor, .. }) => *constructor = yes,
+            Some(Function::Closure { constructor, .. }) => *constructor = yes,
             _ => unreachable!(),
         }
         self
@@ -1211,35 +1349,28 @@ impl<'context> FunctionBuilder<'context> {
     /// Build the function object.
     #[inline]
     pub fn build(&mut self) -> JsObject {
-        let mut function = Object::function(
-            self.function.take().unwrap(),
+        let function = JsObject::from_proto_and_data(
             self.context
                 .standard_objects()
                 .function_object()
-                .prototype()
-                .into(),
+                .prototype(),
+            ObjectData::function(self.function.take().unwrap()),
         );
         let property = PropertyDescriptor::builder()
             .writable(false)
             .enumerable(false)
             .configurable(true);
-        function.insert_property("name", property.clone().value(self.name.clone()));
-        function.insert_property("length", property.value(self.length));
+        function.insert_property("length", property.clone().value(self.length));
+        function.insert_property("name", property.value(self.name.clone()));
 
-        JsObject::new(function)
+        function
     }
 
     /// Initializes the `Function.prototype` function object.
     pub(crate) fn build_function_prototype(&mut self, object: &JsObject) {
         let mut object = object.borrow_mut();
         object.data = ObjectData::function(self.function.take().unwrap());
-        object.set_prototype_instance(
-            self.context
-                .standard_objects()
-                .object_object()
-                .prototype()
-                .into(),
-        );
+        object.set_prototype(self.context.standard_objects().object_object().prototype());
 
         let property = PropertyDescriptor::builder()
             .writable(false)
@@ -1309,7 +1440,7 @@ impl<'context> ObjectInitializer<'context> {
         let function = FunctionBuilder::native(self.context, function)
             .name(binding.name)
             .length(length)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         self.object.borrow_mut().insert_property(
@@ -1351,12 +1482,14 @@ pub struct ConstructorBuilder<'context> {
     context: &'context mut Context,
     constructor_function: NativeFunctionSignature,
     constructor_object: JsObject,
+    constructor_has_prototype: bool,
     prototype: JsObject,
     name: JsString,
     length: usize,
     callable: bool,
-    constructable: bool,
-    inherit: Option<JsValue>,
+    constructor: bool,
+    inherit: Option<JsPrototype>,
+    custom_prototype: Option<JsPrototype>,
 }
 
 impl Debug for ConstructorBuilder<'_> {
@@ -1365,10 +1498,11 @@ impl Debug for ConstructorBuilder<'_> {
             .field("name", &self.name)
             .field("length", &self.length)
             .field("constructor", &self.constructor_object)
+            .field("constructor_has_prototype", &self.constructor_has_prototype)
             .field("prototype", &self.prototype)
             .field("inherit", &self.inherit)
             .field("callable", &self.callable)
-            .field("constructable", &self.constructable)
+            .field("constructor", &self.constructor)
             .finish()
     }
 }
@@ -1380,13 +1514,15 @@ impl<'context> ConstructorBuilder<'context> {
         Self {
             context,
             constructor_function: constructor,
-            constructor_object: JsObject::new(Object::default()),
-            prototype: JsObject::new(Object::default()),
+            constructor_object: JsObject::empty(),
+            prototype: JsObject::empty(),
             length: 0,
             name: JsString::default(),
             callable: true,
-            constructable: true,
+            constructor: true,
             inherit: None,
+            custom_prototype: None,
+            constructor_has_prototype: true,
         }
     }
 
@@ -1400,12 +1536,14 @@ impl<'context> ConstructorBuilder<'context> {
             context,
             constructor_function: constructor,
             constructor_object: object.constructor,
+            constructor_has_prototype: true,
             prototype: object.prototype,
             length: 0,
             name: JsString::default(),
             callable: true,
-            constructable: true,
+            constructor: true,
             inherit: None,
+            custom_prototype: None,
         }
     }
 
@@ -1424,7 +1562,7 @@ impl<'context> ConstructorBuilder<'context> {
         let function = FunctionBuilder::native(self.context, function)
             .name(binding.name)
             .length(length)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         self.prototype.borrow_mut().insert_property(
@@ -1453,7 +1591,7 @@ impl<'context> ConstructorBuilder<'context> {
         let function = FunctionBuilder::native(self.context, function)
             .name(binding.name)
             .length(length)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         self.constructor_object.borrow_mut().insert_property(
@@ -1599,8 +1737,8 @@ impl<'context> ConstructorBuilder<'context> {
     ///
     /// Default is `true`
     #[inline]
-    pub fn constructable(&mut self, constructable: bool) -> &mut Self {
-        self.constructable = constructable;
+    pub fn constructor(&mut self, constructor: bool) -> &mut Self {
+        self.constructor = constructor;
         self
     }
 
@@ -1608,9 +1746,26 @@ impl<'context> ConstructorBuilder<'context> {
     ///
     /// Default is `Object.prototype`
     #[inline]
-    pub fn inherit(&mut self, prototype: JsValue) -> &mut Self {
-        assert!(prototype.is_object() || prototype.is_null());
-        self.inherit = Some(prototype);
+    pub fn inherit<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
+        self.inherit = Some(prototype.into());
+        self
+    }
+
+    /// Specify the __proto__ for this constructor.
+    ///
+    /// Default is `Function.prototype`
+    #[inline]
+    pub fn custom_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> &mut Self {
+        self.custom_prototype = Some(prototype.into());
+        self
+    }
+
+    /// Specify whether the constructor function has a 'prototype' property.
+    ///
+    /// Default is `true`
+    #[inline]
+    pub fn constructor_has_prototype(&mut self, constructor_has_prototype: bool) -> &mut Self {
+        self.constructor_has_prototype = constructor_has_prototype;
         self
     }
 
@@ -1625,7 +1780,7 @@ impl<'context> ConstructorBuilder<'context> {
         // Create the native function
         let function = Function::Native {
             function: self.constructor_function,
-            constructable: self.constructable,
+            constructor: self.constructor,
         };
 
         let length = PropertyDescriptor::builder()
@@ -1645,22 +1800,27 @@ impl<'context> ConstructorBuilder<'context> {
             constructor.insert("length", length);
             constructor.insert("name", name);
 
-            constructor.set_prototype_instance(
-                self.context
-                    .standard_objects()
-                    .function_object()
-                    .prototype()
-                    .into(),
-            );
+            if let Some(proto) = self.custom_prototype.take() {
+                constructor.set_prototype(proto);
+            } else {
+                constructor.set_prototype(
+                    self.context
+                        .standard_objects()
+                        .function_object()
+                        .prototype(),
+                );
+            }
 
-            constructor.insert_property(
-                PROTOTYPE,
-                PropertyDescriptor::builder()
-                    .value(self.prototype.clone())
-                    .writable(false)
-                    .enumerable(false)
-                    .configurable(false),
-            );
+            if self.constructor_has_prototype {
+                constructor.insert_property(
+                    PROTOTYPE,
+                    PropertyDescriptor::builder()
+                        .value(self.prototype.clone())
+                        .writable(false)
+                        .enumerable(false)
+                        .configurable(false),
+                );
+            }
         }
 
         {
@@ -1675,15 +1835,10 @@ impl<'context> ConstructorBuilder<'context> {
             );
 
             if let Some(proto) = self.inherit.take() {
-                prototype.set_prototype_instance(proto);
+                prototype.set_prototype(proto);
             } else {
-                prototype.set_prototype_instance(
-                    self.context
-                        .standard_objects()
-                        .object_object()
-                        .prototype()
-                        .into(),
-                );
+                prototype
+                    .set_prototype(self.context.standard_objects().object_object().prototype());
             }
         }
 

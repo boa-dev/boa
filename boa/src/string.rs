@@ -305,6 +305,7 @@ impl Inner {
 /// on the stack and a pointer to the data (this is also known as fat pointers).
 /// The `JsString` length and data is stored on the heap. and just an non-null
 /// pointer is kept, so its size is the size of a pointer.
+#[derive(Finalize)]
 pub struct JsString {
     inner: NonNull<Inner>,
     _marker: PhantomData<std::rc::Rc<str>>,
@@ -486,8 +487,6 @@ impl JsString {
         }
     }
 }
-
-impl Finalize for JsString {}
 
 // Safety: [`JsString`] does not contain any objects which recquire trace,
 // so this is safe.

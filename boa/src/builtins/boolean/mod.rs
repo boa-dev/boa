@@ -15,7 +15,9 @@ mod tests;
 use crate::{
     builtins::BuiltIn,
     context::StandardObjects,
-    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    },
     property::Attribute,
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -69,15 +71,9 @@ impl Boolean {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::boolean_object, context)?;
-        let boolean = JsValue::new_object(context);
+        let boolean = JsObject::from_proto_and_data(prototype, ObjectData::boolean(data));
 
-        boolean
-            .as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        boolean.set_data(ObjectData::boolean(data));
-
-        Ok(boolean)
+        Ok(boolean.into())
     }
 
     /// An Utility function used to get the internal `[[BooleanData]]`.
@@ -87,18 +83,10 @@ impl Boolean {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
     fn this_boolean_value(value: &JsValue, context: &mut Context) -> JsResult<bool> {
-        match value {
-            JsValue::Boolean(boolean) => return Ok(*boolean),
-            JsValue::Object(ref object) => {
-                let object = object.borrow();
-                if let Some(boolean) = object.as_boolean() {
-                    return Ok(boolean);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a boolean"))
+        value
+            .as_boolean()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_boolean()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a boolean"))
     }
 
     /// The `toString()` method returns a string representing the specified `Boolean` object.

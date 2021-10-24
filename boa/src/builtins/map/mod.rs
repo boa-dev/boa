@@ -13,10 +13,7 @@
 #![allow(clippy::mutable_key_type)]
 
 use crate::{
-    builtins::{
-        iterable::{get_iterator, IteratorResult},
-        BuiltIn,
-    },
+    builtins::{iterable::IteratorResult, BuiltIn},
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -53,19 +50,19 @@ impl BuiltIn for Map {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let get_size = FunctionBuilder::native(context, Self::get_size)
             .name("get size")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let entries_function = FunctionBuilder::native(context, Self::entries)
             .name("entries")
             .length(0)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let map_object = ConstructorBuilder::with_standard_object(
@@ -136,13 +133,10 @@ impl Map {
         }
 
         // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%Map.prototype%", « [[MapData]] »).
+        // 3. Set map.[[MapData]] to a new empty List.
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::map_object, context)?;
-        let map = context.construct_object();
-        map.set_prototype_instance(prototype.into());
-
-        // 3. Set map.[[MapData]] to a new empty List.
-        map.borrow_mut().data = ObjectData::map(OrderedMap::new());
+        let map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
 
         // 4. If iterable is either undefined or null, return map.
         let iterable = match args.get_or_undefined(0) {
@@ -456,19 +450,16 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = match this {
-            JsValue::Object(obj) if obj.is_map() => obj,
-            _ => return context.throw_type_error("`this` is not a Map"),
-        };
+        let map = this
+            .as_object()
+            .filter(|obj| obj.is_map())
+            .ok_or_else(|| context.construct_type_error("`this` is not a Map"))?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = match args.get_or_undefined(0) {
-            JsValue::Object(obj) if obj.is_callable() => obj,
-            val => {
-                let name = val.to_string(context)?;
-                return context.throw_type_error(format!("{} is not a function", name));
-            }
-        };
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
+            context.construct_type_error(format!("{} is not a function", callback.display()))
+        })?;
 
         let this_arg = args.get_or_undefined(1);
 
@@ -549,13 +540,12 @@ pub(crate) fn add_entries_from_iterable(
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsCallable(adder) is false, throw a TypeError exception.
-    let adder = match adder {
-        JsValue::Object(obj) if obj.is_callable() => obj,
-        _ => return context.throw_type_error("property `set` of `NewTarget` is not callable"),
-    };
+    let adder = adder.as_callable().ok_or_else(|| {
+        context.construct_type_error("property `set` of `NewTarget` is not callable")
+    })?;
 
     // 2. Let iteratorRecord be ? GetIterator(iterable).
-    let iterator_record = get_iterator(iterable, context)?;
+    let iterator_record = iterable.get_iterator(context, None, None)?;
 
     // 3. Repeat,
     loop {

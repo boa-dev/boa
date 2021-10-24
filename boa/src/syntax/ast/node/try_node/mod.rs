@@ -5,7 +5,7 @@ use crate::{
     },
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::{Block, Identifier, Node},
+    syntax::ast::node::{Block, Declaration, Node},
     BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
@@ -100,13 +100,33 @@ impl Executable for Try {
         let res = self.block().run(context).map_or_else(
             |err| {
                 if let Some(catch) = self.catch() {
-                    {
-                        let env = context.get_current_environment();
-                        context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
+                    let env = context.get_current_environment();
+                    context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
 
-                        if let Some(param) = catch.parameter() {
-                            context.create_mutable_binding(param, false, VariableScope::Block)?;
-                            context.initialize_binding(param, err)?;
+                    if let Some(param) = catch.parameter() {
+                        match param {
+                            Declaration::Identifier { ident, init } => {
+                                debug_assert!(init.is_none());
+
+                                context.create_mutable_binding(
+                                    ident.as_ref(),
+                                    false,
+                                    VariableScope::Block,
+                                )?;
+                                context.initialize_binding(ident.as_ref(), err)?;
+                            }
+                            Declaration::Pattern(pattern) => {
+                                debug_assert!(pattern.init().is_none());
+
+                                for (ident, value) in pattern.run(Some(err), context)? {
+                                    context.create_mutable_binding(
+                                        ident.as_ref(),
+                                        false,
+                                        VariableScope::Block,
+                                    )?;
+                                    context.initialize_binding(ident.as_ref(), value)?;
+                                }
+                            }
                         }
                     }
 
@@ -147,27 +167,27 @@ impl From<Try> for Node {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Catch {
-    parameter: Option<Identifier>,
+    parameter: Option<Box<Declaration>>,
     block: Block,
 }
 
 impl Catch {
     /// Creates a new catch block.
-    pub(in crate::syntax) fn new<OI, I, B>(parameter: OI, block: B) -> Self
+    pub(in crate::syntax) fn new<OD, D, B>(parameter: OD, block: B) -> Self
     where
-        OI: Into<Option<I>>,
-        I: Into<Identifier>,
+        OD: Into<Option<D>>,
+        D: Into<Declaration>,
         B: Into<Block>,
     {
         Self {
-            parameter: parameter.into().map(I::into),
+            parameter: parameter.into().map(|d| Box::new(d.into())),
             block: block.into(),
         }
     }
 
     /// Gets the parameter of the catch block.
-    pub fn parameter(&self) -> Option<&str> {
-        self.parameter.as_ref().map(Identifier::as_ref)
+    pub fn parameter(&self) -> Option<&Declaration> {
+        self.parameter.as_deref()
     }
 
     /// Retrieves the catch execution block.

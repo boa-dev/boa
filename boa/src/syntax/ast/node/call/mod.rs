@@ -1,5 +1,4 @@
 use crate::{
-    builtins::iterable,
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
@@ -66,7 +65,7 @@ impl Executable for Call {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
                 if !obj.is_object() {
-                    obj = JsValue::Object(obj.to_object(context)?);
+                    obj = JsValue::from(obj.to_object(context)?);
                 }
                 (
                     obj.clone(),
@@ -76,7 +75,7 @@ impl Executable for Call {
             Node::GetField(ref get_field) => {
                 let mut obj = get_field.obj().run(context)?;
                 if !obj.is_object() {
-                    obj = JsValue::Object(obj.to_object(context)?);
+                    obj = JsValue::from(obj.to_object(context)?);
                 }
                 let field = get_field.field().run(context)?;
                 (
@@ -94,7 +93,7 @@ impl Executable for Call {
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
                 let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(&val, context)?;
+                let iterator_record = val.get_iterator(context, None, None)?;
                 loop {
                     let next = iterator_record.next(context)?;
                     if next.done {

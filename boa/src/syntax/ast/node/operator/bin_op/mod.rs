@@ -1,7 +1,6 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    symbol::WellKnownSymbols,
     syntax::ast::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
@@ -146,30 +145,7 @@ impl Executable for BinOp {
                         let key = x.to_property_key(context)?;
                         context.has_property(&y, &key)?
                     }
-                    CompOp::InstanceOf => {
-                        if let Some(object) = y.as_object() {
-                            let key = WellKnownSymbols::has_instance();
-
-                            match object.get_method(context, key)? {
-                                Some(instance_of_handler) => {
-                                    instance_of_handler.call(&y, &[x], context)?.to_boolean()
-                                }
-                                None if object.is_callable() => {
-                                    object.ordinary_has_instance(context, &x)?
-                                }
-                                None => {
-                                    return context.throw_type_error(
-                                        "right-hand side of 'instanceof' is not callable",
-                                    );
-                                }
-                            }
-                        } else {
-                            return context.throw_type_error(format!(
-                                "right-hand side of 'instanceof' should be an object, got {}",
-                                y.type_of()
-                            ));
-                        }
-                    }
+                    CompOp::InstanceOf => x.instance_of(&y, context)?,
                 }))
             }
             op::BinOp::Log(op) => Ok(match op {

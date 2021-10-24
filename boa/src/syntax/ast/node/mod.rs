@@ -20,6 +20,7 @@ pub mod switch;
 pub mod template;
 pub mod throw;
 pub mod try_node;
+pub mod r#yield;
 
 pub use self::{
     array::ArrayDecl,
@@ -29,8 +30,10 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
-        FunctionDecl, FunctionExpr,
+        async_generator_decl::AsyncGeneratorDecl, async_generator_expr::AsyncGeneratorExpr,
+        generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
+        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, FunctionDecl,
+        FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -38,6 +41,7 @@ pub use self::{
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
+    r#yield::Yield,
     return_smt::Return,
     spread::Spread,
     statement_list::{RcStatementList, StatementList},
@@ -78,6 +82,12 @@ pub enum Node {
 
     /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
     AsyncFunctionExpr(AsyncFunctionExpr),
+
+    /// An async generator expression node.
+    AsyncGeneratorExpr(AsyncGeneratorExpr),
+
+    /// An async generator declaration node.
+    AsyncGeneratorDecl(AsyncGeneratorDecl),
 
     /// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).
     AwaitExpr(AwaitExpr),
@@ -209,6 +219,15 @@ pub enum Node {
     /// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty
     Empty,
+
+    /// A `yield` node. [More information](./yield/struct.Yield.html).
+    Yield(Yield),
+
+    /// A generator function declaration node. [More information](./declaration/struct.GeneratorDecl.html).
+    GeneratorDecl(GeneratorDecl),
+
+    /// A generator function expression node. [More information](./declaration/struct.GeneratorExpr.html).
+    GeneratorExpr(GeneratorExpr),
 }
 
 impl Display for Node {
@@ -302,6 +321,11 @@ impl Node {
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
             Self::Empty => write!(f, ";"),
+            Self::Yield(ref y) => Display::fmt(y, f),
+            Self::GeneratorDecl(ref decl) => Display::fmt(decl, f),
+            Self::GeneratorExpr(ref expr) => expr.display(f, indentation),
+            Self::AsyncGeneratorExpr(ref expr) => expr.display(f, indentation),
+            Self::AsyncGeneratorDecl(ref decl) => decl.display(f, indentation),
         }
     }
 }
@@ -312,6 +336,8 @@ impl Executable for Node {
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
+            Node::AsyncGeneratorExpr(ref expr) => expr.run(context),
+            Node::AsyncGeneratorDecl(ref decl) => decl.run(context),
             Node::AwaitExpr(ref expr) => expr.run(context),
             Node::Call(ref call) => call.run(context),
             Node::Const(Const::Null) => Ok(JsValue::null()),
@@ -363,6 +389,9 @@ impl Executable for Node {
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
             Node::Empty => Ok(JsValue::undefined()),
+            Node::Yield(ref y) => y.run(context),
+            Node::GeneratorDecl(ref decl) => decl.run(context),
+            Node::GeneratorExpr(ref expr) => expr.run(context),
         }
     }
 }
@@ -597,7 +626,36 @@ pub enum MethodDefinitionKind {
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
     Ordinary,
-    // TODO: support other method definition kinds, like `Generator`.
+
+    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods
+    Generator,
+
+    /// Async generators can be used to define a method
+    ///
+    /// More information
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_generator_methods
+    AsyncGenerator,
+
+    /// Async function can be used to define a method
+    ///
+    /// More information
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_methods
+    Async,
 }
 
 unsafe impl Trace for MethodDefinitionKind {

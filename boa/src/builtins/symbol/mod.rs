@@ -87,7 +87,7 @@ impl BuiltIn for Symbol {
         let symbol_has_instance = WellKnownSymbols::has_instance();
         let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
         let symbol_iterator = WellKnownSymbols::iterator();
-        let symbol_match = WellKnownSymbols::match_();
+        let symbol_match = WellKnownSymbols::r#match();
         let symbol_match_all = WellKnownSymbols::match_all();
         let symbol_replace = WellKnownSymbols::replace();
         let symbol_search = WellKnownSymbols::search();
@@ -99,9 +99,15 @@ impl BuiltIn for Symbol {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
+        let to_primitive = FunctionBuilder::native(context, Self::to_primitive)
+            .name("[Symbol.toPrimitive]")
+            .length(1)
+            .constructor(false)
+            .build();
+
         let get_description = FunctionBuilder::native(context, Self::get_description)
             .name("get description")
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let symbol_object = ConstructorBuilder::with_standard_object(
@@ -123,7 +129,7 @@ impl BuiltIn for Symbol {
         .static_property("search", symbol_search, attribute)
         .static_property("species", symbol_species, attribute)
         .static_property("split", symbol_split, attribute)
-        .static_property("toPrimitive", symbol_to_primitive, attribute)
+        .static_property("toPrimitive", symbol_to_primitive.clone(), attribute)
         .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
         .static_property("unscopables", symbol_unscopables, attribute)
         .method(Self::to_string, "toString", 0)
@@ -135,10 +141,15 @@ impl BuiltIn for Symbol {
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .callable(true)
-        .constructable(false)
+        .constructor(false)
         .property(
             symbol_to_string_tag,
             Self::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            symbol_to_primitive,
+            to_primitive,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build();
@@ -179,18 +190,10 @@ impl Symbol {
     }
 
     fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
-        match value {
-            JsValue::Symbol(ref symbol) => return Ok(symbol.clone()),
-            JsValue::Object(ref object) => {
-                let object = object.borrow();
-                if let Some(symbol) = object.as_symbol() {
-                    return Ok(symbol);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a Symbol"))
+        value
+            .as_symbol()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a Symbol"))
     }
 
     /// `Symbol.prototype.toString()`
@@ -315,5 +318,26 @@ impl Symbol {
         } else {
             context.throw_type_error("Symbol.keyFor: sym is not a symbol")
         }
+    }
+
+    /// `Symbol.prototype [ @@toPrimitive ]`
+    ///
+    /// This function is called by ECMAScript language operators to convert a Symbol object to a primitive value.
+    /// NOTE: The argument is ignored
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/multipage/#sec-symbol.prototype-@@toprimitive
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/@@toPrimitive
+    pub(crate) fn to_primitive(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let sym = Self::this_symbol_value(this, context)?;
+        // 1. Return ? thisSymbolValue(this value).
+        Ok(sym.into())
     }
 }

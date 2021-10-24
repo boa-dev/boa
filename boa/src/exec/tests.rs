@@ -791,9 +791,14 @@ mod in_operator {
         let bar_val = forward_val(&mut context, "bar").unwrap();
         let bar_obj = bar_val.as_object().unwrap();
         let foo_val = forward_val(&mut context, "Foo").unwrap();
-        assert!(bar_obj
-            .prototype_instance()
-            .strict_equals(&foo_val.get_field("prototype", &mut context).unwrap()));
+        assert_eq!(
+            *bar_obj.prototype(),
+            foo_val.as_object().and_then(|obj| obj
+                .get("prototype", &mut context)
+                .unwrap()
+                .as_object()
+                .cloned())
+        );
     }
 }
 
@@ -912,8 +917,8 @@ fn to_bigint() {
 
     assert!(JsValue::null().to_bigint(&mut context).is_err());
     assert!(JsValue::undefined().to_bigint(&mut context).is_err());
-    assert!(JsValue::new(55).to_bigint(&mut context).is_ok());
-    assert!(JsValue::new(10.0).to_bigint(&mut context).is_ok());
+    assert!(JsValue::new(55).to_bigint(&mut context).is_err());
+    assert!(JsValue::new(10.0).to_bigint(&mut context).is_err());
     assert!(JsValue::new("100").to_bigint(&mut context).is_ok());
 }
 
@@ -1262,9 +1267,9 @@ fn not_a_function() {
 
     check_output(&[
         TestAction::Execute(init),
-        TestAction::TestEq(scenario1, "\"TypeError: not a function\""),
-        TestAction::TestEq(scenario2, "\"TypeError: not a function\""),
-        TestAction::TestEq(scenario3, "\"TypeError: not a function\""),
+        TestAction::TestEq(scenario1, "\"TypeError: Value is not callable\""),
+        TestAction::TestEq(scenario2, "\"TypeError: Value is not callable\""),
+        TestAction::TestEq(scenario3, "\"TypeError: Value is not callable\""),
     ]);
 }
 

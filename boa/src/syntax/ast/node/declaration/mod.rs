@@ -1,6 +1,6 @@
 //! Declaration nodes
 use crate::{
-    builtins::{iterable::get_iterator, Array},
+    builtins::Array,
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
@@ -15,12 +15,17 @@ use serde::{Deserialize, Serialize};
 pub mod arrow_function_decl;
 pub mod async_function_decl;
 pub mod async_function_expr;
+pub mod async_generator_decl;
+pub mod async_generator_expr;
 pub mod function_decl;
 pub mod function_expr;
+pub mod generator_decl;
+pub mod generator_expr;
 
 pub use self::{
     arrow_function_decl::ArrowFunctionDecl, async_function_decl::AsyncFunctionDecl,
-    async_function_expr::AsyncFunctionExpr, function_decl::FunctionDecl,
+    async_function_expr::AsyncFunctionExpr, async_generator_decl::AsyncGeneratorDecl,
+    async_generator_expr::AsyncGeneratorExpr, function_decl::FunctionDecl,
     function_expr::FunctionExpr,
 };
 
@@ -517,7 +522,7 @@ impl DeclarationPatternObject {
                     // 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).
 
                     // 2. Let restObj be ! OrdinaryObjectCreate(%Object.prototype%).
-                    let mut rest_obj = context.construct_object();
+                    let rest_obj = context.construct_object();
 
                     // 3. Perform ? CopyDataProperties(restObj, value, excludedNames).
                     rest_obj.copy_data_properties(value, excluded_keys.clone(), context)?;
@@ -673,7 +678,7 @@ impl DeclarationPatternArray {
         }
 
         // 1. Let iteratorRecord be ? GetIterator(value).
-        let iterator = get_iterator(&value, context)?;
+        let iterator = value.get_iterator(context, None, None)?;
         let mut result = Vec::new();
 
         // 2. Let result be IteratorBindingInitialization of ArrayBindingPattern with arguments iteratorRecord and environment.

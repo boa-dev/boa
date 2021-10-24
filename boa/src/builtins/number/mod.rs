@@ -16,12 +16,10 @@
 use super::string::is_trimmable_whitespace;
 use super::JsArgs;
 use crate::context::StandardObjects;
+use crate::object::JsObject;
 use crate::{
-    builtins::BuiltIn,
-    object::{
-        function::make_builtin_fn, internal_methods::get_prototype_from_constructor,
-        ConstructorBuilder, ObjectData,
-    },
+    builtins::{function::make_builtin_fn, BuiltIn},
+    object::{internal_methods::get_prototype_from_constructor, ConstructorBuilder, ObjectData},
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult,
@@ -172,13 +170,8 @@ impl Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
-        let this = JsValue::new_object(context);
-        this.as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        this.set_data(ObjectData::number(data));
-
-        Ok(this)
+        let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
+        Ok(this.into())
     }
 
     /// This function returns a `JsResult` of the number `Value`.
@@ -191,27 +184,10 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
     fn this_number_value(value: &JsValue, context: &mut Context) -> JsResult<f64> {
-        match *value {
-            JsValue::Integer(integer) => return Ok(f64::from(integer)),
-            JsValue::Rational(rational) => return Ok(rational),
-            JsValue::Object(ref object) => {
-                if let Some(number) = object.borrow().as_number() {
-                    return Ok(number);
-                }
-            }
-            _ => {}
-        }
-
-        Err(context.construct_type_error("'this' is not a number"))
-    }
-
-    /// Helper function that formats a float as a ES6-style exponential number string.
-    fn num_to_exponential(n: f64) -> String {
-        match n.abs() {
-            x if x > 1.0 => format!("{:e}", n).replace("e", "e+"),
-            x if x == 0.0 => format!("{:e}", n).replace("e", "e+"),
-            _ => format!("{:e}", n),
-        }
+        value
+            .as_number()
+            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_number()))
+            .ok_or_else(|| context.construct_type_error("'this' is not a number"))
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`
@@ -227,11 +203,32 @@ impl Number {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_exponential(
         this: &JsValue,
-        _: &[JsValue],
+        args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
-        let this_str_num = Self::num_to_exponential(this_num);
+        let precision = match args.get(0) {
+            None | Some(JsValue::Undefined) => None,
+            // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
+            Some(n) => Some(n.to_integer(context)? as i32),
+        };
+        // 4. If x is not finite, return ! Number::toString(x).
+        if !this_num.is_finite() {
+            return Ok(JsValue::new(Self::to_native_string(this_num)));
+        }
+        // Get rid of the '-' sign for -0.0
+        let this_num = if this_num == 0. { 0. } else { this_num };
+        let this_str_num = if let Some(precision) = precision {
+            // 5. If f < 0 or f > 100, throw a RangeError exception.
+            if !(0..=100).contains(&precision) {
+                return Err(context
+                    .construct_range_error("toExponential() argument must be between 0 and 100"));
+            }
+            f64_to_exponential_with_precision(this_num, precision as usize)
+        } else {
+            f64_to_exponential(this_num)
+        };
         Ok(JsValue::new(this_str_num))
     }
 
@@ -251,16 +248,34 @@ impl Number {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let this_num be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
+            // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => match n.to_integer(context)? as i32 {
-                x if x > 0 => n.to_integer(context)? as usize,
-                _ => 0,
+                0..=100 => n.to_integer(context)? as usize,
+                // 4, 5. If f < 0 or f > 100, throw a RangeError exception.
+                _ => {
+                    return Err(context.construct_range_error(
+                        "toFixed() digits argument must be between 0 and 100",
+                    ))
+                }
             },
+            // 3. If fractionDigits is undefined, then f is 0.
             None => 0,
         };
-        let this_fixed_num = format!("{:.*}", precision, this_num);
-        Ok(JsValue::new(this_fixed_num))
+        // 6. If x is not finite, return ! Number::toString(x).
+        if !this_num.is_finite() {
+            Ok(JsValue::new(Self::to_native_string(this_num)))
+        // 10. If x ≥ 10^21, then let m be ! ToString(𝔽(x)).
+        } else if this_num >= 1.0e21 {
+            Ok(JsValue::new(f64_to_exponential(this_num)))
+        } else {
+            // Get rid of the '-' sign for -0.0 because of 9. If x < 0, then set s to "-".
+            let this_num = if this_num == 0. { 0. } else { this_num };
+            let this_fixed_num = format!("{:.*}", precision, this_num);
+            Ok(JsValue::new(this_fixed_num))
+        }
     }
 
     /// `Number.prototype.toLocaleString( [locales [, options]] )`
@@ -610,7 +625,6 @@ impl Number {
 
         let integer_cursor = int_iter.next().unwrap().0 + 1;
         let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
-        // dbg!("Number: {}, Radix: {}, Cursors: {}, {}", value, radix, integer_cursor, fraction_cursor);
         String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
     }
 
@@ -1123,4 +1137,25 @@ impl Number {
         let x = f64_to_int32(x);
         !x
     }
+}
+
+/// Helper function that formats a float as a ES6-style exponential number string.
+fn f64_to_exponential(n: f64) -> String {
+    match n.abs() {
+        x if x >= 1.0 || x == 0.0 => format!("{:e}", n).replace("e", "e+"),
+        _ => format!("{:e}", n),
+    }
+}
+
+/// Helper function that formats a float as a ES6-style exponential number string with a given precision.
+// We can't use the same approach as in `f64_to_exponential`
+// because in cases like (0.999).toExponential(0) the result will be 1e0.
+// Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
+fn f64_to_exponential_with_precision(n: f64, prec: usize) -> String {
+    let mut res = format!("{:.*e}", prec, n);
+    let idx = res.find('e').expect("'e' not found in exponential string");
+    if res.as_bytes()[idx + 1] != b'-' {
+        res.insert(idx + 1, '+');
+    }
+    res
 }

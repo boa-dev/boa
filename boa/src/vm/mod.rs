@@ -2,38 +2,22 @@
 //! This module will provide an instruction set for the AST to use, various traits,
 //! plus an interpreter to execute those instructions
 
-use crate::environment::lexical_environment::Environment;
 use crate::{
-    builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsResult, JsValue,
+    builtins::Array, environment::lexical_environment::VariableScope, property::PropertyDescriptor,
+    vm::code_block::Readable, BoaProfiler, Context, JsResult, JsValue,
 };
+use std::{convert::TryInto, mem::size_of, time::Instant};
 
+mod call_frame;
 mod code_block;
 mod opcode;
 
-pub use code_block::CodeBlock;
-pub use code_block::JsVmFunction;
-use gc::Gc;
+pub use call_frame::CallFrame;
+pub use code_block::{CodeBlock, JsVmFunction};
 pub use opcode::Opcode;
-
-use std::{convert::TryInto, mem::size_of, time::Instant};
-
-use self::code_block::Readable;
 
 #[cfg(test)]
 mod tests;
-
-#[derive(Debug)]
-pub struct CallFrame {
-    pub(crate) prev: Option<Box<Self>>,
-    pub(crate) code: Gc<CodeBlock>,
-    pub(crate) pc: usize,
-    pub(crate) fp: usize,
-    pub(crate) exit_on_return: bool,
-    pub(crate) this: JsValue,
-    pub(crate) environment: Environment,
-}
-
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {
@@ -155,22 +139,21 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::PushNaN => self.vm.push(JsValue::nan()),
-            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_inifnity()),
-            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_inifnity()),
+            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_infinity()),
+            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_infinity()),
             Opcode::PushLiteral => {
                 let index = self.vm.read::<u32>() as usize;
                 let value = self.vm.frame().code.literals[index].clone();
                 self.vm.push(value)
             }
-            Opcode::PushEmptyObject => self.vm.push(JsValue::new_object(self)),
+            Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
             Opcode::PushNewArray => {
                 let count = self.vm.read::<u32>();
                 let mut elements = Vec::with_capacity(count as usize);
                 for _ in 0..count {
                     elements.push(self.vm.pop());
                 }
-                let array = Array::new_array(self);
-                Array::add_to_array_object(&array, &elements, self)?;
+                let array = Array::create_array_from_list(elements, self);
                 self.vm.push(array);
             }
             Opcode::Add => bin_op!(add),
@@ -226,28 +209,9 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::InstanceOf => {
-                let y = self.vm.pop();
-                let x = self.vm.pop();
-                let value = if let Some(object) = y.as_object() {
-                    let key = WellKnownSymbols::has_instance();
-
-                    match object.get_method(self, key)? {
-                        Some(instance_of_handler) => {
-                            instance_of_handler.call(&y, &[x], self)?.to_boolean()
-                        }
-                        None if object.is_callable() => object.ordinary_has_instance(self, &x)?,
-                        None => {
-                            return Err(self.construct_type_error(
-                                "right-hand side of 'instanceof' is not callable",
-                            ));
-                        }
-                    }
-                } else {
-                    return Err(self.construct_type_error(format!(
-                        "right-hand side of 'instanceof' should be an object, got {}",
-                        y.type_of()
-                    )));
-                };
+                let target = self.vm.pop();
+                let v = self.vm.pop();
+                let value = v.instance_of(&target, self)?;
 
                 self.vm.push(value);
             }
@@ -266,6 +230,14 @@ impl Context {
             }
             Opcode::Neg => {
                 let value = self.vm.pop().neg(self)?;
+                self.vm.push(value);
+            }
+            Opcode::Inc => {
+                let value = self.vm.pop().add(&JsValue::Integer(1), self)?;
+                self.vm.push(value);
+            }
+            Opcode::Dec => {
+                let value = self.vm.pop().sub(&JsValue::Integer(1), self)?;
                 self.vm.push(value);
             }
             Opcode::LogicalNot => {
@@ -377,7 +349,7 @@ impl Context {
 
                 let value = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object
+                    object.clone()
                 } else {
                     value.to_object(self)?
                 };
@@ -391,7 +363,7 @@ impl Context {
                 let value = self.vm.pop();
                 let key = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object
+                    object.clone()
                 } else {
                     value.to_object(self)?
                 };
@@ -407,7 +379,7 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object
+                    object.clone()
                 } else {
                     object.to_object(self)?
                 };
@@ -421,13 +393,121 @@ impl Context {
                 let key = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object
+                    object.clone()
                 } else {
                     object.to_object(self)?
                 };
 
                 let key = key.to_property_key(self)?;
                 object.set(key, value, true, self)?;
+            }
+            Opcode::SetPropertyGetterByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+
+                let name = self.vm.frame().code.variables[index as usize]
+                    .clone()
+                    .into();
+                let set = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.set())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_get(Some(value))
+                        .maybe_set(set)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPropertyGetterByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = key.to_property_key(self)?;
+                let set = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.set())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_get(Some(value))
+                        .maybe_set(set)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPropertySetterByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = self.vm.frame().code.variables[index as usize]
+                    .clone()
+                    .into();
+                let get = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.get())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_set(Some(value))
+                        .maybe_get(get)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPropertySetterByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = key.to_property_key(self)?;
+                let get = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(|a| a.get())
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_set(Some(value))
+                        .maybe_get(get)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::DeletePropertyByName => {
+                let index = self.vm.read::<u32>();
+                let key = self.vm.frame().code.variables[index as usize].clone();
+                let object = self.vm.pop();
+                let result = object.to_object(self)?.__delete__(&key.into(), self)?;
+                self.vm.push(result);
+            }
+            Opcode::DeletePropertyByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let result = object
+                    .to_object(self)?
+                    .__delete__(&key.to_property_key(self)?, self)?;
+                self.vm.push(result);
             }
             Opcode::Throw => {
                 let value = self.vm.pop();
@@ -521,11 +601,17 @@ impl Context {
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
 
+        let msg = if self.vm.frame().exit_on_return {
+            " VM Start"
+        } else {
+            " Call Frame "
+        };
+
         if self.vm.trace {
             println!("{}\n", self.vm.frame().code);
             println!(
                 "{:-^width$}",
-                " Vm Start ",
+                msg,
                 width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - 10
             );
             println!(
@@ -558,7 +644,7 @@ impl Context {
                     match self.vm.stack.last() {
                         None => "<empty>".to_string(),
                         Some(value) => {
-                            if value.is_function() {
+                            if value.is_callable() {
                                 "[function]".to_string()
                             } else if value.is_object() {
                                 "[object]".to_string()
@@ -603,7 +689,7 @@ impl Context {
                         "{:04}{:<width$} {}",
                         i,
                         "",
-                        if value.is_function() {
+                        if value.is_callable() {
                             "[function]".to_string()
                         } else if value.is_object() {
                             "[object]".to_string()

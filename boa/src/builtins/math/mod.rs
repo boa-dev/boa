@@ -64,7 +64,7 @@ impl BuiltIn for Math {
             .function(Self::floor, "floor", 1)
             .function(Self::fround, "fround", 1)
             .function(Self::hypot, "hypot", 2)
-            .function(Self::imul, "imul", 1)
+            .function(Self::imul, "imul", 2)
             .function(Self::log, "log", 1)
             .function(Self::log1p, "log1p", 1)
             .function(Self::log10, "log10", 1)
@@ -632,9 +632,12 @@ impl Math {
                 // a. If number is NaN, return NaN.
                 f64::NAN
             } else {
-                // b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
-                // c. If number > highest, set highest to number.
-                highest.max(num)
+                match (highest, num) {
+                    // b. When x and y are +0𝔽 -0𝔽, return +0𝔽.
+                    (x, y) if x == 0f64 && y == 0f64 && x.signum() != y.signum() => 0f64,
+                    // c. Otherwise, return the maximum value.
+                    (x, y) => x.max(y),
+                }
             };
         }
         // 5. Return highest.
@@ -667,9 +670,12 @@ impl Math {
                 // a. If number is NaN, return NaN.
                 f64::NAN
             } else {
-                // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
-                // c. If number < lowest, set lowest to number.
-                lowest.min(num)
+                match (lowest, num) {
+                    // b. When x and y are +0𝔽 -0𝔽, return -0𝔽.
+                    (x, y) if x == 0f64 && y == 0f64 && x.signum() != y.signum() => -0f64,
+                    // c. Otherwise, return the minimum value.
+                    (x, y) => x.min(y),
+                }
             };
         }
         // 5. Return lowest.
@@ -684,6 +690,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.pow
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
+    #[allow(clippy::float_cmp)]
     pub(crate) fn pow(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Set base to ? ToNumber(base).
         let x = args.get_or_undefined(0).to_number(context)?;
@@ -691,7 +698,12 @@ impl Math {
         // 2. Set exponent to ? ToNumber(exponent).
         let y = args.get_or_undefined(1).to_number(context)?;
 
-        // 3. Return ! Number::exponentiate(base, exponent).
+        // 3. If |x| = 1 and the exponent is infinite, return NaN.
+        if f64::abs(x) == 1f64 && y.is_infinite() {
+            return Ok(f64::NAN.into());
+        }
+
+        // 4. Return ! Number::exponentiate(base, exponent).
         Ok(x.powf(y).into())
     }
 
@@ -716,17 +728,23 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
+    #[allow(clippy::float_cmp)]
     pub(crate) fn round(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
+        let num = args
             .get_or_undefined(0)
             //1. Let n be ? ToNumber(x).
-            .to_number(context)?
-            //2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.
-            //3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
-            //4. If n < +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
-            //5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
-            .round()
-            .into())
+            .to_number(context)?;
+
+        //2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.
+        //3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
+        //4. If n < +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
+        //5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
+
+        if num.fract() == -0.5 {
+            Ok(num.ceil().into())
+        } else {
+            Ok(num.round().into())
+        }
     }
 
     /// Get the sign of a number.
@@ -742,7 +760,7 @@ impl Math {
         let n = args.get_or_undefined(0).to_number(context)?;
 
         // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
-        if n == 0.0 {
+        if n == 0f64 {
             return Ok(n.into());
         }
         // 3. If n < +0𝔽, return -1𝔽.

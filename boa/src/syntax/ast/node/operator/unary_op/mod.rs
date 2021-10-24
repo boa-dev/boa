@@ -57,8 +57,11 @@ impl Executable for UnaryOp {
             op::UnaryOp::IncrementPost => {
                 let x = self.target().run(context)?;
                 let ret = x.clone();
-                let result = x.to_number(context)? + 1.0;
-                context.set_value(self.target(), result.into())?;
+                let result = match x.to_numeric(context)? {
+                    Numeric::Number(n) => (n + 1.0).into(),
+                    Numeric::BigInt(b) => (JsBigInt::add(&b, &JsBigInt::from(1))).into(),
+                };
+                context.set_value(self.target(), result)?;
                 ret
             }
             op::UnaryOp::IncrementPre => {
@@ -106,21 +109,18 @@ impl Executable for UnaryOp {
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
-                    let res = obj
+                    let delete_status = obj
                         .to_object(context)?
                         .__delete__(&field.to_property_key(context)?, context)?;
-                    return Ok(JsValue::new(res));
+                    if !delete_status && context.strict() {
+                        return context.throw_type_error("Cannot delete property");
+                    } else {
+                        JsValue::new(delete_status)
+                    }
                 }
+                // TODO: implement delete on references.
                 Node::Identifier(_) => JsValue::new(false),
-                Node::ArrayDecl(_)
-                | Node::Block(_)
-                | Node::Const(_)
-                | Node::FunctionDecl(_)
-                | Node::FunctionExpr(_)
-                | Node::New(_)
-                | Node::Object(_)
-                | Node::UnaryOp(_) => JsValue::new(true),
-                _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
+                _ => JsValue::new(true),
             },
             op::UnaryOp::TypeOf => JsValue::new(self.target().run(context)?.type_of()),
         })

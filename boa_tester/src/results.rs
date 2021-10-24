@@ -151,7 +151,7 @@ fn update_gh_pages_repo(path: &Path, verbose: u8) {
             .expect("could not update GitHub Pages");
 
         // Copy the full results file
-        let from = Path::new("../gh-pages/test262/refs/heads/master/").join(RESULTS_FILE_NAME);
+        let from = Path::new("../gh-pages/test262/refs/heads/main/").join(RESULTS_FILE_NAME);
         let to = path.join(RESULTS_FILE_NAME);
 
         if verbose != 0 {
@@ -162,7 +162,7 @@ fn update_gh_pages_repo(path: &Path, verbose: u8) {
             );
         }
 
-        fs::copy(from, to).expect("could not copy the master results file");
+        fs::copy(from, to).expect("could not copy the main results file");
     }
 }
 
@@ -219,7 +219,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
         }
 
         println!("### Test262 conformance changes:");
-        println!("| Test result | master count | PR count | difference |");
+        println!("| Test result | main count | PR count | difference |");
         println!("| :---------: | :----------: | :------: | :--------: |");
         println!(
             "| Total | {} | {} | {} |",
@@ -329,7 +329,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
         }
     } else {
         println!("Test262 conformance changes:");
-        println!("| Test result | master |    PR   | difference |");
+        println!("| Test result | main |    PR   | difference |");
         println!(
             "|    Passed   | {:^6} | {:^5} | {:^10} |",
             base_passed,
@@ -426,7 +426,7 @@ fn compute_result_diff(
         {
             let test_name = format!(
                 "test/{}/{}.js {}(previously {:?})",
-                base.strip_prefix("../gh-pages/test262/refs/heads/master/latest.json")
+                base.strip_prefix("../gh-pages/test262/refs/heads/main/latest.json")
                     .expect("error removing prefix")
                     .display(),
                 new_test.name,
@@ -441,6 +441,7 @@ fn compute_result_diff(
 
             match (base_test.result, new_test.result) {
                 (a, b) if a == b => {}
+                (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
 
                 (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
                 (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),

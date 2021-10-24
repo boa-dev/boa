@@ -72,7 +72,10 @@ impl Object {
                     match &kind {
                         MethodDefinitionKind::Get => write!(f, "get ")?,
                         MethodDefinitionKind::Set => write!(f, "set ")?,
-                        MethodDefinitionKind::Ordinary => (),
+                        MethodDefinitionKind::Ordinary
+                        | MethodDefinitionKind::Generator
+                        | MethodDefinitionKind::Async
+                        | MethodDefinitionKind::AsyncGenerator => (),
                     }
                     write!(f, "{}(", key)?;
                     join_nodes(f, node.parameters())?;
@@ -89,7 +92,7 @@ impl Object {
 impl Executable for Object {
     fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("object", "exec");
-        let obj = JsValue::new_object(context);
+        let obj = context.construct_object();
 
         // TODO: Implement the rest of the property types.
         for property in self.properties().iter() {
@@ -101,14 +104,16 @@ impl Executable for Object {
                             node.run(context)?.to_property_key(context)?
                         }
                     };
-                    obj.set_property(
+                    obj.__define_own_property__(
                         name,
                         PropertyDescriptor::builder()
                             .value(value.run(context)?)
                             .writable(true)
                             .enumerable(true)
-                            .configurable(true),
-                    );
+                            .configurable(true)
+                            .build(),
+                        context,
+                    )?;
                 }
                 PropertyDefinition::MethodDefinition(kind, name, func) => {
                     let name = match name {
@@ -119,44 +124,88 @@ impl Executable for Object {
                     };
                     match kind {
                         MethodDefinitionKind::Ordinary => {
-                            obj.set_property(
+                            obj.__define_own_property__(
                                 name,
                                 PropertyDescriptor::builder()
                                     .value(func.run(context)?)
                                     .writable(true)
                                     .enumerable(true)
-                                    .configurable(true),
-                            );
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
                         }
                         MethodDefinitionKind::Get => {
                             let set = obj
-                                .get_property(name.clone())
+                                .__get_own_property__(&name, context)?
                                 .as_ref()
                                 .and_then(|a| a.set())
                                 .cloned();
-                            obj.set_property(
+                            obj.__define_own_property__(
                                 name,
                                 PropertyDescriptor::builder()
-                                    .maybe_get(func.run(context)?.as_object())
+                                    .maybe_get(func.run(context)?.as_object().cloned())
                                     .maybe_set(set)
                                     .enumerable(true)
-                                    .configurable(true),
-                            )
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
                         }
                         MethodDefinitionKind::Set => {
                             let get = obj
-                                .get_property(name.clone())
+                                .__get_own_property__(&name, context)?
                                 .as_ref()
                                 .and_then(|a| a.get())
                                 .cloned();
-                            obj.set_property(
+                            obj.__define_own_property__(
                                 name,
                                 PropertyDescriptor::builder()
                                     .maybe_get(get)
-                                    .maybe_set(func.run(context)?.as_object())
+                                    .maybe_set(func.run(context)?.as_object().cloned())
                                     .enumerable(true)
-                                    .configurable(true),
-                            )
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
+                        }
+                        &MethodDefinitionKind::Generator => {
+                            // TODO: Implement generator method definition execution.
+                            obj.__define_own_property__(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .value(JsValue::undefined())
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
+                        }
+                        &MethodDefinitionKind::AsyncGenerator => {
+                            // TODO: Implement async generator method definition execution.
+                            obj.__define_own_property__(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .value(JsValue::undefined())
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
+                        }
+                        &MethodDefinitionKind::Async => {
+                            obj.__define_own_property__(
+                                name,
+                                PropertyDescriptor::builder()
+                                    .value(JsValue::undefined())
+                                    .writable(true)
+                                    .enumerable(true)
+                                    .configurable(true)
+                                    .build(),
+                                context,
+                            )?;
                         }
                     }
                 }
@@ -168,17 +217,13 @@ impl Executable for Object {
                         continue;
                     }
 
-                    obj.as_object().unwrap().copy_data_properties::<String>(
-                        &val,
-                        vec![],
-                        context,
-                    )?;
+                    obj.copy_data_properties::<String>(&val, vec![], context)?;
                 }
                 _ => {} // unimplemented!("{:?} type of property", i),
             }
         }
 
-        Ok(obj)
+        Ok(obj.into())
     }
 }
 

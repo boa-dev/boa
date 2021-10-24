@@ -8,7 +8,7 @@ use crate::{
     gc::{Finalize, Trace},
     BoaProfiler, Context, JsResult, JsValue,
 };
-use std::fmt;
+use std::{collections::HashSet, fmt};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -43,6 +43,14 @@ impl Block {
     /// Gets the list of statements and declarations in this block.
     pub(crate) fn items(&self) -> &[Node] {
         self.statements.items()
+    }
+
+    pub(crate) fn lexically_declared_names(&self) -> HashSet<&str> {
+        self.statements.lexically_declared_names()
+    }
+
+    pub(crate) fn var_declared_named(&self) -> HashSet<&str> {
+        self.statements.var_declared_names()
     }
 
     /// Implements the display formatting with indentation.

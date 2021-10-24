@@ -110,12 +110,12 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
         let args_list = args.get_or_undefined(1);
 
-        if !target.is_constructable() {
+        if !target.is_constructor() {
             return context.throw_type_error("target must be a constructor");
         }
 
         let new_target = if let Some(new_target) = args.get(2) {
-            if new_target.as_object().map(|o| o.is_constructable()) != Some(true) {
+            if new_target.as_object().map(|o| o.is_constructor()) != Some(true) {
                 return context.throw_type_error("newTarget must be constructor");
             }
             new_target.clone()
@@ -147,7 +147,7 @@ impl Reflect {
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
             .get(2)
-            .and_then(|v| v.as_object())
+            .and_then(|v| v.as_object().cloned())
             .ok_or_else(|| context.construct_type_error("property descriptor must be an object"))?
             .into();
 
@@ -218,13 +218,17 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        match args.get(0) {
-            Some(v) if v.is_object() => (),
-            _ => return context.throw_type_error("target must be an object"),
+        if args.get_or_undefined(0).is_object() {
+            // This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
+            // it is invoked here.
+            builtins::object::Object::get_own_property_descriptor(
+                &JsValue::undefined(),
+                args,
+                context,
+            )
+        } else {
+            context.throw_type_error("target must be an object")
         }
-        // This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
-        // it is invoked here.
-        builtins::object::Object::get_own_property_descriptor(&JsValue::undefined(), args, context)
     }
 
     /// Gets the prototype of an object.
@@ -244,7 +248,9 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        target.__get_prototype_of__(context)
+        Ok(target
+            .__get_prototype_of__(context)?
+            .map_or(JsValue::Null, JsValue::new))
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -373,14 +379,15 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let proto = args.get_or_undefined(1);
-        if !proto.is_null() && !proto.is_object() {
-            return context.throw_type_error("proto must be an object or null");
-        }
-        Ok(target.__set_prototype_of__(proto.clone(), context)?.into())
+        let proto = match args.get_or_undefined(1) {
+            JsValue::Object(obj) => Some(obj.clone()),
+            JsValue::Null => None,
+            _ => return context.throw_type_error("proto must be an object or null"),
+        };
+        Ok(target.__set_prototype_of__(proto, context)?.into())
     }
 }

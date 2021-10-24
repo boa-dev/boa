@@ -9,7 +9,9 @@
 
 mod array_initializer;
 mod async_function_expression;
+mod async_generator_expression;
 mod function_expression;
+mod generator_expression;
 mod object_initializer;
 mod template;
 #[cfg(test)]
@@ -17,7 +19,8 @@ mod tests;
 
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
-    function_expression::FunctionExpression, object_initializer::ObjectLiteral,
+    async_generator_expression::AsyncGeneratorExpression, function_expression::FunctionExpression,
+    generator_expression::GeneratorExpression, object_initializer::ObjectLiteral,
 };
 use super::Expression;
 use crate::{
@@ -75,16 +78,30 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
+        // TODO: tok currently consumes the token instead of peeking, so the token
+        // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
             TokenKind::Keyword(Keyword::Function) => {
-                FunctionExpression.parse(cursor).map(Node::from)
+                let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+                if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                    GeneratorExpression.parse(cursor).map(Node::from)
+                } else {
+                    FunctionExpression.parse(cursor).map(Node::from)
+                }
             }
-            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
-                .parse(cursor)
-                .map(Node::from),
+            TokenKind::Keyword(Keyword::Async) => {
+                let mul_peek = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                if mul_peek.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                    AsyncGeneratorExpression.parse(cursor).map(Node::from)
+                } else {
+                    AsyncFunctionExpression::new(self.allow_yield)
+                        .parse(cursor)
+                        .map(Node::from)
+                }
+            }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
@@ -106,7 +123,39 @@ where
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
-            TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
+            TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()),
+            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
+                Err(ParseError::general(
+                    "Unexpected identifier",
+                    tok.span().start(),
+                ))
+            }
+            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+                if cursor.strict_mode() {
+                    return Err(ParseError::general(
+                        "Unexpected strict mode reserved word",
+                        tok.span().start(),
+                    ));
+                }
+                Ok(Identifier::from("yield").into())
+            }
+            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+                // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
+                Err(ParseError::general(
+                    "Unexpected identifier",
+                    tok.span().start(),
+                ))
+            }
+            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+                if cursor.strict_mode() {
+                    return Err(ParseError::general(
+                        "Unexpected strict mode reserved word",
+                        tok.span().start(),
+                    ));
+                }
+                Ok(Identifier::from("await").into())
+            }
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
             TokenKind::TemplateNoSubstitution(template_string) => {
                 Ok(Const::from(template_string.to_owned_cooked().map_err(ParseError::lex)?).into())

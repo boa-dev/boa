@@ -1,5 +1,4 @@
 use crate::{
-    builtins::iterable,
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
@@ -56,7 +55,7 @@ impl Executable for New {
         for arg in self.args() {
             if let Node::Spread(ref x) = arg {
                 let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(&val, context)?;
+                let iterator_record = val.get_iterator(context, None, None)?;
                 loop {
                     let next = iterator_record.next(context)?;
                     if next.done {
@@ -71,13 +70,15 @@ impl Executable for New {
             }
         }
 
-        match func_object {
-            JsValue::Object(ref object) => {
-                object.construct(&v_args, &object.clone().into(), context)
-            }
-            _ => context
-                .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
-        }
+        func_object
+            .as_constructor()
+            .ok_or_else(|| {
+                context.construct_type_error(format!(
+                    "{} is not a constructor",
+                    self.expr().to_string(),
+                ))
+            })
+            .and_then(|cons| cons.construct(&v_args, &cons.clone().into(), context))
     }
 }
 

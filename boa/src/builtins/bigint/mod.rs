@@ -17,9 +17,11 @@ use crate::{
     object::ConstructorBuilder,
     property::Attribute,
     symbol::WellKnownSymbols,
-    value::IntegerOrInfinity,
+    value::{IntegerOrInfinity, PreferredType},
     BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
+use num_bigint::ToBigInt;
+
 #[cfg(test)]
 mod tests;
 
@@ -51,7 +53,7 @@ impl BuiltIn for BigInt {
         .static_method(Self::as_int_n, "asIntN", 2)
         .static_method(Self::as_uint_n, "asUintN", 2)
         .callable(true)
-        .constructable(false)
+        .constructor(false)
         .property(
             to_string_tag,
             Self::NAME,
@@ -78,11 +80,35 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let data = match args.get(0) {
-            Some(value) => value.to_bigint(context)?,
-            None => JsBigInt::zero(),
-        };
-        Ok(JsValue::new(data))
+        let value = args.get_or_undefined(0);
+
+        // 2. Let prim be ? ToPrimitive(value, number).
+        let prim = value.to_primitive(context, PreferredType::Number)?;
+
+        // 3. If Type(prim) is Number, return ? NumberToBigInt(prim).
+        if let Some(number) = prim.as_number() {
+            return Self::number_to_bigint(number, context);
+        }
+
+        // 4. Otherwise, return ? ToBigInt(value).
+        Ok(value.to_bigint(context)?.into())
+    }
+
+    /// `NumberToBigInt ( number )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
+    #[inline]
+    fn number_to_bigint(number: f64, context: &mut Context) -> JsResult<JsValue> {
+        // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
+        if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
+            return context.throw_range_error(format!("Cannot convert {} to BigInt", number));
+        }
+
+        // 2. Return the BigInt value that represents ℝ(number).
+        Ok(JsBigInt::from(number.to_bigint().expect("This conversion must be safe")).into())
     }
 
     /// The abstract operation thisBigIntValue takes argument value.
@@ -97,23 +123,20 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
     fn this_bigint_value(value: &JsValue, context: &mut Context) -> JsResult<JsBigInt> {
-        match value {
+        value
             // 1. If Type(value) is BigInt, return value.
-            JsValue::BigInt(ref bigint) => return Ok(bigint.clone()),
-
+            .as_bigint()
+            .cloned()
             // 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
             //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
             //    b. Return value.[[BigIntData]].
-            JsValue::Object(ref object) => {
-                if let Some(bigint) = object.borrow().as_bigint() {
-                    return Ok(bigint.clone());
-                }
-            }
-            _ => {}
-        }
-
-        // 3. Throw a TypeError exception.
-        Err(context.construct_type_error("'this' is not a BigInt"))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.borrow().as_bigint().cloned())
+            })
+            // 3. Throw a TypeError exception.
+            .ok_or_else(|| context.construct_type_error("'this' is not a BigInt"))
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -236,8 +259,6 @@ impl BigInt {
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
     fn calculate_as_uint_n(args: &[JsValue], context: &mut Context) -> JsResult<(JsBigInt, u32)> {
-        use std::convert::TryFrom;
-
         let bits_arg = args.get_or_undefined(0);
         let bigint_arg = args.get_or_undefined(1);
 

@@ -62,10 +62,8 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    object::{
-        function::NativeFunctionSignature, ConstructorBuilder, JsObject, NativeObject, ObjectData,
-        PROTOTYPE,
-    },
+    builtins::function::NativeFunctionSignature,
+    object::{ConstructorBuilder, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -112,18 +110,18 @@ impl<T: Class> ClassConstructor for T {
             ));
         }
 
-        let class_constructor =
-            if let Some(obj) = context.global_object().get(T::NAME, context)?.as_object() {
-                obj
-            } else {
-                return context.throw_type_error(format!(
-                    "invalid constructor for native class `{}` ",
-                    T::NAME
-                ));
-            };
+        let class_constructor = context.global_object().get(T::NAME, context)?;
+        let class_constructor = if let JsValue::Object(ref obj) = class_constructor {
+            obj
+        } else {
+            return context.throw_type_error(format!(
+                "invalid constructor for native class `{}` ",
+                T::NAME
+            ));
+        };
         let class_prototype =
-            if let Some(obj) = class_constructor.get(PROTOTYPE, context)?.as_object() {
-                obj
+            if let JsValue::Object(ref obj) = class_constructor.get(PROTOTYPE, context)? {
+                obj.clone()
             } else {
                 return context.throw_type_error(format!(
                     "invalid default prototype for native class `{}`",
@@ -133,18 +131,20 @@ impl<T: Class> ClassConstructor for T {
 
         let prototype = this
             .as_object()
-            .and_then(|obj| {
+            .cloned()
+            .map(|obj| {
                 obj.get(PROTOTYPE, context)
-                    .map(|o| o.as_object())
-                    .transpose()
+                    .map(|val| val.as_object().cloned())
             })
             .transpose()?
+            .flatten()
             .unwrap_or(class_prototype);
 
         let native_instance = Self::constructor(this, args, context)?;
-        let object_instance = context.construct_object();
-        object_instance.set_prototype_instance(prototype.into());
-        object_instance.borrow_mut().data = ObjectData::native_object(Box::new(native_instance));
+        let object_instance = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::native_object(Box::new(native_instance)),
+        );
         Ok(object_instance.into())
     }
 }

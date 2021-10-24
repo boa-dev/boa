@@ -8,14 +8,15 @@ keywords = ["javascript", "compiler", "lexer", "parser", "js", "cli"]
 categories = ["command-line-utilities"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.56"
 default-run = "boa"
 
 [dependencies]
 Boa = { path = "../boa", features = ["deser", "console"] }
 rustyline = "9.0.0"
 rustyline-derive = "0.5.0"
-structopt = "0.3.23"
+structopt = "0.3.25"
 serde_json = "1.0.68"
 colored = "2.0.0"
 regex = "1.5.4"

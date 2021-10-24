@@ -10,7 +10,9 @@
 mod arrow_function;
 mod conditional;
 mod exponentiation;
+mod r#yield;
 
+use self::r#yield::YieldExpression;
 use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
 use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
 use crate::{
@@ -82,9 +84,12 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
-        // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
-            // a=>{}
+            // [+Yield]YieldExpression[?In, ?Await]
+            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                return YieldExpression::new(self.allow_in, self.allow_await).parse(cursor)
+            }
+            // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)
             | TokenKind::Keyword(Keyword::Await) => {
@@ -100,8 +105,7 @@ where
                     }
                 }
             }
-
-            // (a,b)=>{} or (a,b) or (Expression)
+            // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> CoverParenthesizedExpressionAndArrowParameterList[?Yield, ?Await]
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 if let Some(next_token) = cursor.peek(1)? {
                     match *next_token.kind() {

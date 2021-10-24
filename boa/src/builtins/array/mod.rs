@@ -49,14 +49,10 @@ impl BuiltIn for Array {
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
-            .constructable(false)
+            .constructor(false)
             .build();
 
-        let values_function = FunctionBuilder::native(context, Self::values)
-            .name("values")
-            .length(0)
-            .constructable(false)
-            .build();
+        let values_function = Self::values_intrinsic(context);
 
         let array = ConstructorBuilder::with_standard_object(
             context,
@@ -105,6 +101,8 @@ impl BuiltIn for Array {
         .method(Self::every, "every", 1)
         .method(Self::find, "find", 1)
         .method(Self::find_index, "findIndex", 1)
+        .method(Self::find_last, "findLast", 1)
+        .method(Self::find_last_index, "findLastIndex", 1)
         .method(Self::flat, "flat", 0)
         .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
@@ -223,12 +221,7 @@ impl Array {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
         };
-        let array = context.construct_object();
-
-        array.set_prototype_instance(prototype.into());
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
-        array.borrow_mut().data = ObjectData::array();
+        let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         crate::object::internal_methods::ordinary_define_own_property(
@@ -275,22 +268,9 @@ impl Array {
 
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(context: &mut Context) -> JsValue {
-        let array = JsValue::new_object(context);
-        array.set_data(ObjectData::array());
-        array
-            .as_object()
-            .expect("'array' should be an object")
-            .set_prototype_instance(context.standard_objects().array_object().prototype().into());
-        array.set_property(
-            "length",
-            PropertyDescriptor::builder()
-                .value(0)
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
-        array
+        Self::array_create(0, None, context)
+            .expect("creating an empty array with the default prototype must not fail")
+            .into()
     }
 
     /// Utility function for concatenating array objects.
@@ -376,14 +356,12 @@ impl Array {
         }
 
         // 7. If IsConstructor(C) is false, throw a TypeError exception.
-        if let Some(c) = c.as_object() {
-            if !c.is_constructable() {
-                return Err(context.construct_type_error("Symbol.species must be a constructor"));
-            }
+        if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
             Ok(
                 c.construct(&[JsValue::new(length)], &c.clone().into(), context)?
                     .as_object()
+                    .cloned()
                     .unwrap(),
             )
         } else {
@@ -434,10 +412,12 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.isarray
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
     pub(crate) fn is_array(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        match args.get(0).and_then(|x| x.as_object()) {
-            Some(object) => Ok(JsValue::new(object.borrow().is_array())),
-            None => Ok(JsValue::new(false)),
-        }
+        Ok(args
+            .get_or_undefined(0)
+            .as_object()
+            .map(|obj| obj.borrow().is_array())
+            .unwrap_or_default()
+            .into())
     }
 
     /// `Array.of(...items)`
@@ -461,10 +441,11 @@ impl Array {
         //     a. Let A be ? Construct(C, « lenNumber »).
         // 5. Else,
         //     a. Let A be ? ArrayCreate(len).
-        let a = match this.as_object() {
-            Some(object) if object.is_constructable() => object
+        let a = match this.as_constructor() {
+            Some(constructor) => constructor
                 .construct(&[len.into()], this, context)?
                 .as_object()
+                .cloned()
                 .ok_or_else(|| {
                     context.construct_type_error("object constructor didn't return an object")
                 })?,
@@ -705,15 +686,9 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = if let Some(arg) = args
-            .get(0)
-            .and_then(JsValue::as_object)
-            .filter(JsObject::is_callable)
-        {
-            arg
-        } else {
-            return context.throw_type_error("Array.prototype.forEach: invalid callback function");
-        };
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.forEach: invalid callback function")
+        })?;
         // 4. Let k be 0.
         // 5. Repeat, while k < len,
         for k in 0..len {
@@ -758,10 +733,11 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If separator is undefined, let sep be the single-element String ",".
         // 4. Else, let sep be ? ToString(separator).
-        let separator = if let Some(separator) = args.get(0) {
-            separator.to_string(context)?
-        } else {
+        let separator = args.get_or_undefined(0);
+        let separator = if separator.is_undefined() {
             JsString::new(",")
+        } else {
+            separator.to_string(context)?
         };
 
         // 5. Let R be the empty String.
@@ -813,7 +789,7 @@ impl Array {
         let func = array.get("join", context)?;
         // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
         // 4. Return ? Call(func, array).
-        if let Some(func) = func.as_object().filter(JsObject::is_callable) {
+        if let Some(func) = func.as_callable() {
             func.call(&array.into(), &[], context)
         } else {
             crate::builtins::object::Object::to_string(&array.into(), &[], context)
@@ -1051,15 +1027,9 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = if let Some(arg) = args
-            .get(0)
-            .and_then(JsValue::as_object)
-            .filter(JsObject::is_callable)
-        {
-            arg
-        } else {
-            return context.throw_type_error("Array.prototype.every: callback is not callable");
-        };
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.every: callback is not callable")
+        })?;
 
         let this_arg = args.get_or_undefined(1);
 
@@ -1109,10 +1079,9 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0);
-        if !callback.is_function() {
-            return context.throw_type_error("Array.prototype.map: Callbackfn is not callable");
-        }
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.map: Callbackfn is not callable")
+        })?;
 
         // 4. Let A be ? ArraySpeciesCreate(O, len).
         let a = Self::array_species_create(&o, len, context)?;
@@ -1131,7 +1100,7 @@ impl Array {
                 let k_value = o.get(k, context)?;
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let mapped_value =
-                    context.call(callback, this_arg, &[k_value, k.into(), this.into()])?;
+                    callback.call(this_arg, &[k_value, k.into(), this.into()], context)?;
                 // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
                 a.create_data_property_or_throw(k, mapped_value, context)?;
             }
@@ -1318,12 +1287,9 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get(0).and_then(JsValue::as_object) {
-            Some(predicate) if predicate.is_callable() => predicate,
-            _ => {
-                return context.throw_type_error("Array.prototype.find: predicate is not callable")
-            }
-        };
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.find: predicate is not callable")
+        })?;
 
         let this_arg = args.get_or_undefined(1);
 
@@ -1378,13 +1344,9 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get(0).and_then(JsValue::as_object) {
-            Some(predicate) if predicate.is_callable() => predicate,
-            _ => {
-                return context
-                    .throw_type_error("Array.prototype.reduce: predicate is not callable")
-            }
-        };
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.findIndex: predicate is not callable")
+        })?;
 
         let this_arg = args.get_or_undefined(1);
 
@@ -1406,6 +1368,106 @@ impl Array {
             }
             // e. Set k to k + 1.
             k += 1;
+        }
+        // 6. Return -1𝔽.
+        Ok(JsValue::new(-1))
+    }
+
+    /// `Array.prototype.findLast( predicate, [thisArg] )`
+    ///
+    /// findLast calls predicate once for each element of the array, in descending order,
+    /// until it finds one where predicate returns true. If such an element is found, findLast
+    /// immediately returns that element value. Otherwise, findLast returns undefined.
+    ///
+    /// More information:
+    ///  - [ECMAScript proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-find-from-last/#sec-array.prototype.findlast
+    pub(crate) fn find_last(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.findLast: predicate is not callable")
+        })?;
+
+        let this_arg = args.get_or_undefined(1);
+
+        // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
+        // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
+        for k in (0..len).rev() {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kValue be ? Get(O, Pk).
+            let k_value = o.get(k, context)?;
+            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
+            let test_result = predicate
+                .call(
+                    this_arg,
+                    &[k_value.clone(), k.into(), this.clone()],
+                    context,
+                )?
+                .to_boolean();
+            // d. If testResult is true, return kValue.
+            if test_result {
+                return Ok(k_value);
+            }
+            // e. Set k to k - 1.
+        }
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `Array.prototype.findLastIndex( predicate [ , thisArg ] )`
+    ///
+    /// findLastIndex calls predicate once for each element of the array, in descending order,
+    /// until it finds one where predicate returns true. If such an element is found, findLastIndex
+    /// immediately returns the index of that element value. Otherwise, findLastIndex returns -1.
+    ///
+    /// More information:
+    ///  - [ECMAScript proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-find-from-last/#sec-array.prototype.findlastindex
+    pub(crate) fn find_last_index(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.findLastIndex: predicate is not callable")
+        })?;
+
+        let this_arg = args.get_or_undefined(1);
+
+        // 4. Let k be len - 1. (implementation differs slightly from spec because k is unsigned)
+        // 5. Repeat, while k >= 0, (implementation differs slightly from spec because k is unsigned)
+        for k in (0..len).rev() {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kValue be ? Get(O, Pk).
+            let k_value = o.get(k, context)?;
+            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
+            let test_result = predicate
+                .call(this_arg, &[k_value, k.into(), this.clone()], context)?
+                .to_boolean();
+            // d. If testResult is true, return 𝔽(k).
+            if test_result {
+                return Ok(JsValue::new(k));
+            }
+            // e. Set k to k - 1.
         }
         // 6. Return -1𝔽.
         Ok(JsValue::new(-1))
@@ -1490,10 +1552,9 @@ impl Array {
         let source_len = o.length_of_array_like(context)?;
 
         // 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.
-        let mapper_function = args.get_or_undefined(0);
-        if !mapper_function.is_function() {
-            return context.throw_type_error("flatMap mapper function is not callable");
-        }
+        let mapper_function = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("flatMap mapper function is not callable")
+        })?;
 
         // 4. Let A be ? ArraySpeciesCreate(O, 0).
         let a = Self::array_species_create(&o, 0, context)?;
@@ -1505,7 +1566,7 @@ impl Array {
             source_len as u64,
             0,
             1,
-            Some(mapper_function.as_object().unwrap()),
+            Some(mapper_function.clone()),
             args.get_or_undefined(1),
             context,
         )?;
@@ -1595,7 +1656,7 @@ impl Array {
                     // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
                         target,
-                        &element,
+                        element,
                         element_len as u64,
                         target_index,
                         new_depth,
@@ -2020,20 +2081,10 @@ impl Array {
         let length = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args
-            .get(0)
-            .map(|a| a.to_object(context))
-            .transpose()?
-            .ok_or_else(|| {
-                context.construct_type_error(
-                    "missing argument 0 when calling function Array.prototype.filter",
-                )
-            })?;
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.filter: `callback` must be callable")
+        })?;
         let this_arg = args.get_or_undefined(1);
-
-        if !callback.is_callable() {
-            return context.throw_type_error("the callback must be callable");
-        }
 
         // 4. Let A be ? ArraySpeciesCreate(O, 0).
         let a = Self::array_species_create(&o, 0, context)?;
@@ -2094,15 +2145,9 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = if let Some(arg) = args
-            .get(0)
-            .and_then(JsValue::as_object)
-            .filter(JsObject::is_callable)
-        {
-            arg
-        } else {
-            return context.throw_type_error("Array.prototype.some: callback is not callable");
-        };
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error("Array.prototype.some: callback is not callable")
+        })?;
 
         // 4. Let k be 0.
         // 5. Repeat, while k < len,
@@ -2148,10 +2193,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get(0).cloned() {
-            // todo: change to `is_callable` inside `JsValue`
-            Some(fun) if fun.is_function() => fun,
-            None => JsValue::undefined(),
+        let comparefn = match args.get_or_undefined(0) {
+            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
+            JsValue::Undefined => None,
             _ => {
                 return context.throw_type_error(
                     "The comparison function must be either a function or undefined",
@@ -2178,11 +2222,11 @@ impl Array {
                 }
 
                 // 4. If comparefn is not undefined, then
-                if !comparefn.is_undefined() {
+                if let Some(cmp) = comparefn {
                     let args = [x.clone(), y.clone()];
                     // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
-                    let v = context
-                        .call(&comparefn, &JsValue::Undefined, &args)?
+                    let v = cmp
+                        .call(&JsValue::Undefined, &args, context)?
                         .to_number(context)?;
                     // b. If v is NaN, return +0𝔽.
                     // c. Return v.
@@ -2286,13 +2330,10 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = match args.get(0).and_then(JsValue::as_object) {
-            Some(callback) if callback.is_callable() => callback,
-            _ => {
-                return context
-                    .throw_type_error("Array.prototype.reduce: callback function is not callable")
-            }
-        };
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context
+                .construct_type_error("Array.prototype.reduce: callback function is not callable")
+        })?;
 
         // 4. If len = 0 and initialValue is not present, throw a TypeError exception.
         if len == 0 && args.get(1).is_none() {
@@ -2384,14 +2425,11 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = match args.get(0).and_then(JsValue::as_object) {
-            Some(callback) if callback.is_callable() => callback,
-            _ => {
-                return context.throw_type_error(
-                    "Array.prototype.reduceRight: callback function is not callable",
-                )
-            }
-        };
+        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+            context.construct_type_error(
+                "Array.prototype.reduceRight: callback function is not callable",
+            )
+        })?;
 
         // 4. If len is 0 and initialValue is not present, throw a TypeError exception.
         if len == 0 && args.get(1).is_none() {
@@ -2565,8 +2603,12 @@ impl Array {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, value).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::Value,
             context,
         ))
@@ -2580,11 +2622,15 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, key).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::Key,
             context,
         ))
@@ -2598,15 +2644,19 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn entries(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Return CreateArrayIterator(O, key+value).
         Ok(ArrayIterator::create_array_iterator(
-            this.clone(),
+            o,
             PropertyNameKind::KeyAndValue,
             context,
         ))
@@ -2664,5 +2714,13 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
             }
         }
+    }
+
+    pub(crate) fn values_intrinsic(context: &mut Context) -> JsObject {
+        FunctionBuilder::native(context, Self::values)
+            .name("values")
+            .length(0)
+            .constructor(false)
+            .build()
     }
 }

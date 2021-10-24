@@ -1,16 +1,19 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
 pub mod array;
+pub mod array_buffer;
 pub mod bigint;
 pub mod boolean;
 #[cfg(feature = "console")]
 pub mod console;
+pub mod dataview;
 pub mod date;
 pub mod error;
 pub mod function;
 pub mod global_this;
 pub mod infinity;
 pub mod intl;
+pub mod intrinsics;
 pub mod iterable;
 pub mod json;
 pub mod map;
@@ -18,17 +21,20 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod proxy;
 pub mod reflect;
 pub mod regexp;
 pub mod set;
 pub mod string;
 pub mod symbol;
+pub mod typed_array;
 pub mod undefined;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
+    dataview::DataView,
     date::Date,
     error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError},
     function::BuiltInFunctionObject,
@@ -43,15 +49,22 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    proxy::Proxy,
     reflect::Reflect,
     regexp::RegExp,
     set::set_iterator::SetIterator,
     set::Set,
     string::String,
     symbol::Symbol,
+    typed_array::{
+        BigInt64Array, BigUint64Array, Float32Array, Float64Array, Int16Array, Int32Array,
+        Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
+    },
     undefined::Undefined,
 };
+
 use crate::{
+    builtins::array_buffer::ArrayBuffer,
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
 };
@@ -116,14 +129,28 @@ pub fn init(context: &mut Context) {
         Intl,
         Json,
         Array,
+        Proxy,
+        ArrayBuffer,
         BigInt,
         Boolean,
         Date,
+        DataView,
         Map,
         Number,
         Set,
         String,
         RegExp,
+        Int8Array,
+        Uint8Array,
+        Uint8ClampedArray,
+        Int16Array,
+        Uint16Array,
+        Int32Array,
+        Uint32Array,
+        BigInt64Array,
+        BigUint64Array,
+        Float32Array,
+        Float64Array,
         Symbol,
         Error,
         RangeError,

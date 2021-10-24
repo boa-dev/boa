@@ -1,7 +1,7 @@
 use crate::{
+    builtins::function::ThisMode,
     exec::Executable,
     gc::{Finalize, Trace},
-    object::function::ThisMode,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     Context, JsResult, JsValue,
 };
