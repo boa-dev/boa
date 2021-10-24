@@ -64,7 +64,7 @@ jobs:
       - name: Run the test262 test suite for VM
         run: |
           cd boa
-          mkdir ../results
+          mkdir -p ../results
           cargo run --release --features vm --bin boa_tester -- run -v -o ../results/test262/vm
           cd ..
 
