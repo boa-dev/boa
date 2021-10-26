@@ -202,8 +202,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
     let new_conformance = (new_passed as f64 / new_total as f64) * 100_f64;
     let conformance_diff = new_conformance - base_conformance;
 
-    let test_diff =
-        compute_result_diff(&Path::new(""), &base_results.results, &new_results.results);
+    let test_diff = compute_result_diff(Path::new(""), &base_results.results, &new_results.results);
 
     if markdown {
         use num_format::{Locale, ToFormattedString};
