@@ -100,7 +100,11 @@ jobs:
         continue-on-error: true
         with:
           comment-id: ${{ steps.previous-comment.outputs.comment-id }}
-          body: '### Test262 conformance changes\n\n${{ steps.compare-non-vm.outputs.comment }}\n${{ steps.compare-vm.outputs.comment }}'
+          body: |
+            \### Test262 conformance changes
+
+            ${{ steps.compare-non-vm.outputs.comment }}
+            ${{ steps.compare-vm.outputs.comment }}
           edit-mode: replace
 
       - name: Write a new comment
@@ -109,7 +113,11 @@ jobs:
         continue-on-error: true
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
-          body: '### Test262 conformance changes\n\n${{ steps.compare-non-vm.outputs.comment }}\n${{ steps.compare-vm.outputs.comment }}'
+          body: |
+            \### Test262 conformance changes
+
+            ${{ steps.compare-non-vm.outputs.comment }}
+            ${{ steps.compare-vm.outputs.comment }}
 
       # Commit changes to GitHub pages.
       - name: Commit files
