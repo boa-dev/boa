@@ -109,7 +109,7 @@ jobs:
         continue-on-error: true
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
-          body: \### Test262 conformance changes%0A%0A${{ steps.compare-non-vm.outputs.comment }}%0A%0A${{ steps.compare-vm.outputs.comment }}
+          body: "\### Test262 conformance changes\n\n${{ steps.compare-non-vm.outputs.comment }}\n\n${{ steps.compare-vm.outputs.comment }}"
 
       # Commit changes to GitHub pages.
       - name: Commit files
