@@ -314,6 +314,7 @@ impl Console {
 
     #[cfg(not(feature = "vm"))]
     fn get_stack_trace(_: &mut Context) -> Vec<String> {
+        // TODO: Implement stack trace retrieval when "vm" feature is not available
         vec![]
     }
 
