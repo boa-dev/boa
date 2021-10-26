@@ -299,6 +299,25 @@ impl Console {
         Ok(JsValue::undefined())
     }
 
+    #[cfg(feature = "vm")]
+    fn get_stack_trace(context: &mut Context) -> Vec<String> {
+        let mut stack_trace: Vec<String> = vec![];
+        let mut prev_frame = context.vm.frame.as_ref();
+
+        while let Some(frame) = prev_frame {
+            stack_trace.push(frame.code.name.to_string());
+            prev_frame = frame.prev.as_ref();
+        }
+
+        stack_trace
+    }
+
+    #[cfg(not(feature = "vm"))]
+    fn get_stack_trace(_: &mut Context) -> Vec<String> {
+        // TODO: Implement stack trace retrieval when "vm" feature is not available
+        vec![]
+    }
+
     /// `console.trace(...data)`
     ///
     /// Prints a stack trace with "trace" logLevel, optionally labelled by data.
@@ -316,11 +335,8 @@ impl Console {
                 context.console(),
             );
 
-            /* TODO: get and print stack trace */
-            logger(
-                LogMessage::Log("Not implemented: <stack trace>".to_string()),
-                context.console(),
-            )
+            let stack_trace_dump = Self::get_stack_trace(context).join("\n");
+            logger(LogMessage::Log(stack_trace_dump), context.console())
         }
 
         Ok(JsValue::undefined())
