@@ -571,6 +571,22 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `console` object can be accessed from any global object.</span>
@@ -872,6 +888,25 @@
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">get_stack_trace</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack_trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_frame</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>.<span class="ident">as_ref</span>();
+
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">prev_frame</span> {
+            <span class="ident">stack_trace</span>.<span class="ident">push</span>(<span class="ident">frame</span>.<span class="ident">code</span>.<span class="ident">name</span>.<span class="ident">to_string</span>());
+            <span class="ident">prev_frame</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">prev</span>.<span class="ident">as_ref</span>();
+        }
+
+        <span class="ident">stack_trace</span>
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">get_stack_trace</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="comment">// TODO: Implement stack trace retrieval when &quot;vm&quot; feature is not available</span>
+        <span class="macro">vec!</span>[]
+    }
+
     <span class="doccomment">/// `console.trace(...data)`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Prints a stack trace with &quot;trace&quot; logLevel, optionally labelled by data.</span>
@@ -889,11 +924,8 @@
                 <span class="ident">context</span>.<span class="ident">console</span>(),
             );
 
-            <span class="comment">/* TODO: get and print stack trace */</span>
-            <span class="ident">logger</span>(
-                <span class="ident">LogMessage::Log</span>(<span class="string">&quot;Not implemented: &lt;stack trace&gt;&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">context</span>.<span class="ident">console</span>(),
-            )
+            <span class="kw">let</span> <span class="ident">stack_trace_dump</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_stack_trace</span>(<span class="ident">context</span>).<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
+            <span class="ident">logger</span>(<span class="ident">LogMessage::Log</span>(<span class="ident">stack_trace_dump</span>), <span class="ident">context</span>.<span class="ident">console</span>())
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
