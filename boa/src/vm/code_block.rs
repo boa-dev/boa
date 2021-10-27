@@ -34,6 +34,7 @@ unsafe impl Readable for i64 {}
 unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 
+/// The internal representation of a JavaScript function.
 #[derive(Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
