@@ -34,6 +34,8 @@ use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
 
 pub mod integer_indexed_object;
+#[cfg(test)]
+mod tests;
 
 macro_rules! typed_array {
     ($ty:ident, $name:literal, $global_object_name:ident) => {
