@@ -117,13 +117,15 @@ fn of() {
     assert_eq!(context.eval("a.length").unwrap(), JsValue::new(3));
 }
 
-#[ignore]
 #[test]
 fn concat() {
     let mut context = Context::new();
     let init = r#"
-    var empty = [];
-    var one = [1];
+        var empty = [];
+        var one = [1];
+        var spreadableLengthOutOfRange = {};
+        spreadableLengthOutOfRange.length = Number.MAX_SAFE_INTEGER;
+        spreadableLengthOutOfRange[Symbol.isConcatSpreadable] = true;
     "#;
     context.eval(init).unwrap();
     // Empty ++ Empty
@@ -154,6 +156,15 @@ fn concat() {
         .display()
         .to_string();
     assert_eq!(nn, "[ 1, 1 ]");
+    // not spreadable
+    let ns = context.eval("one.concat(1)").unwrap().display().to_string();
+    assert_eq!(ns, "[ 1, 1 ]");
+    // spreadable error
+    let err_s = forward(
+        &mut context,
+        r#"try { one.concat(spreadableLengthOutOfRange); } catch (e) { if (e instanceof TypeError) {true;} else {false;} }"#,
+    );
+    assert_eq!(err_s, String::from("true"));
 }
 
 #[test]

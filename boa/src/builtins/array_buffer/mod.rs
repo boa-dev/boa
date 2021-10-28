@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::{
     builtins::{typed_array::TypedArrayName, BuiltIn, JsArgs},
     context::StandardObjects,
@@ -43,6 +46,12 @@ impl BuiltIn for ArrayBuffer {
             .constructor(false)
             .build();
 
+        let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
+
+        let get_byte_length = FunctionBuilder::native(context, Self::byte_length)
+            .name("get byteLength")
+            .build();
+
         ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
@@ -50,6 +59,7 @@ impl BuiltIn for ArrayBuffer {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
         .static_accessor(
             WellKnownSymbols::species(),
             Some(get_species),
@@ -57,7 +67,6 @@ impl BuiltIn for ArrayBuffer {
             Attribute::CONFIGURABLE,
         )
         .static_method(Self::is_view, "isView", 1)
-        .method(Self::byte_length, "byteLength", 0)
         .method(Self::slice, "slice", 2)
         .property(
             WellKnownSymbols::to_string_tag(),

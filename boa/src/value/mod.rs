@@ -206,12 +206,12 @@ impl JsValue {
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
         // If it can fit in a i32 and the trucated version is
-        // equal to the original then it is an integer.
-        let is_racional_intiger = |n: f64| n == ((n as i32) as f64);
+        // is_rational_integer to the original then it is an integer.
+        let is_rational_integer = |n: f64| n == ((n as i32) as f64);
 
         match *self {
             Self::Integer(_) => true,
-            Self::Rational(n) if is_racional_intiger(n) => true,
+            Self::Rational(n) if is_rational_integer(n) => true,
             _ => false,
         }
     }
