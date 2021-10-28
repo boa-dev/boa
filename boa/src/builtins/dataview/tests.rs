@@ -1,4 +1,5 @@
 use crate::{forward, forward_val, Context};
+use num_traits::Zero;
 use std::f32;
 use std::f64;
 
@@ -144,4 +145,120 @@ fn get_float64() {
         zero.to_number(&mut context).unwrap(),
         0_f64
     ));
+}
+
+#[test]
+fn get_int8() {
+    let mut context = Context::new();
+    let init = r#"
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setInt8(1, 127);
+        "#;
+    forward(&mut context, init);
+    let zero = forward_val(&mut context, "view.getInt8(0)")
+        .unwrap()
+        .to_int8(&mut context)
+        .unwrap();
+    assert!(zero.is_zero());
+    let max = forward_val(&mut context, "view.getInt8(1)")
+        .unwrap()
+        .to_int8(&mut context)
+        .unwrap();
+    assert_eq!(max, 127);
+}
+
+#[test]
+fn get_int16() {
+    let mut context = Context::new();
+    let init = r#"
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setInt16(1, 32767);
+        "#;
+    forward(&mut context, init);
+    let small = forward_val(&mut context, "view.getInt16(0)")
+        .unwrap()
+        .to_int16(&mut context)
+        .unwrap();
+    assert_eq!(small, 127);
+    let max = forward_val(&mut context, "view.getInt16(1)")
+        .unwrap()
+        .to_int16(&mut context)
+        .unwrap();
+    assert_eq!(max, 32767);
+}
+
+#[test]
+fn get_int32() {
+    let mut context = Context::new();
+    let init = r#"
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setInt32(1, 2147483647);
+        "#;
+    forward(&mut context, init);
+    let max = forward_val(&mut context, "view.getInt32(1)")
+        .unwrap()
+        .to_i32(&mut context)
+        .unwrap();
+    assert_eq!(max, 2147483647);
+}
+
+#[test]
+fn get_uint8() {
+    let mut context = Context::new();
+    let init = r#"
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setUint8(1, 255);
+        "#;
+    forward(&mut context, init);
+    let zero = forward_val(&mut context, "view.getUint8(0)")
+        .unwrap()
+        .to_uint8(&mut context)
+        .unwrap();
+    assert!(zero.is_zero());
+    let max = forward_val(&mut context, "view.getUint8(1)")
+        .unwrap()
+        .to_uint8(&mut context)
+        .unwrap();
+    assert_eq!(max, 255);
+}
+
+#[test]
+fn get_uint16() {
+    let mut context = Context::new();
+    let init = r#"
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setUint16(1, 65535);
+        "#;
+    forward(&mut context, init);
+    let small = forward_val(&mut context, "view.getUint16(0)")
+        .unwrap()
+        .to_uint16(&mut context)
+        .unwrap();
+    assert_eq!(small, 255);
+    let max = forward_val(&mut context, "view.getUint16(1)")
+        .unwrap()
+        .to_uint16(&mut context)
+        .unwrap();
+    assert_eq!(max, 65535);
+}
+
+#[test]
+fn get_uint32() {
+    let mut context = Context::new();
+    let init = r#"
+        const buffer = new ArrayBuffer(16);
+        const view = new DataView(buffer);
+        view.setUint32(1, 4294967295);
+        "#;
+    forward(&mut context, init);
+    let max = forward_val(&mut context, "view.getUint32(1)")
+        .unwrap()
+        .to_u32(&mut context)
+        .unwrap();
+    assert_eq!(max, 4294967295);
 }
