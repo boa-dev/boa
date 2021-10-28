@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayName, BuiltIn, JsArgs},
     context::StandardObjects,

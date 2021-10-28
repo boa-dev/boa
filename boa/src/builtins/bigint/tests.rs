@@ -1,6 +1,22 @@
 use crate::{forward, Context};
 
 #[test]
+fn constructor() {
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "BigInt(123);"), "123n");
+}
+
+#[test]
+fn value_of() {
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "typeof Object(1n)"), "\"object\"");
+    assert_eq!(
+        forward(&mut context, "typeof Object(1n).valueOf()"),
+        "\"bigint\""
+    );
+}
+
+#[test]
 fn equality() {
     let mut context = Context::new();
 
@@ -240,7 +256,13 @@ fn shr_out_of_range() {
 #[test]
 fn to_string() {
     let mut context = Context::new();
-
+    assert_eq!(forward(&mut context, "1024n.toString()"), "\"1024\"");
+    assert_eq!(forward(&mut context, "1024n.toString(10)"), "\"1024\"");
+    assert_eq!(
+        forward(&mut context, "1024n.toString(2)"),
+        "\"10000000000\""
+    );
+    assert_eq!(forward(&mut context, "1024n.toString(16)"), "\"400\"");
     assert_eq!(forward(&mut context, "1000n.toString()"), "\"1000\"");
     assert_eq!(forward(&mut context, "1000n.toString(2)"), "\"1111101000\"");
     assert_eq!(forward(&mut context, "255n.toString(16)"), "\"ff\"");

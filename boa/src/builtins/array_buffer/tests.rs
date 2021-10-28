@@ -1,5 +1,4 @@
-use super::ArrayBuffer;
-use crate::{forward, Context, JsValue};
+use crate::{forward, Context};
 
 #[test]
 fn constructor() {
@@ -18,7 +17,10 @@ fn is_view() {
         const buffer = new ArrayBuffer(16);
         "#;
     forward(&mut context, init);
-    assert_eq!(forward(&mut context, "ArrayBuffer.isView(new Int32Array())"), "true");
+    assert_eq!(
+        forward(&mut context, "ArrayBuffer.isView(new Int32Array())"),
+        "true"
+    );
 }
 
 #[test]
