@@ -109,6 +109,7 @@ impl JsObject {
     pub fn equals(lhs: &Self, rhs: &Self) -> bool {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
     }
+
     /// Converts an object to a primitive.
     ///
     /// Diverges from the spec to prevent a stack overflow when the object is recursive.

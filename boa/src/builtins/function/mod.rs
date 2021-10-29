@@ -16,7 +16,6 @@ use std::{
     borrow::Cow,
     fmt,
     ops::{Deref, DerefMut},
-    option::Option,
 };
 
 use dyn_clone::DynClone;

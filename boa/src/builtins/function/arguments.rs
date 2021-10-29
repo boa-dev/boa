@@ -269,7 +269,6 @@ impl Arguments {
         .expect("DefinePropertyOrThrow must not fail per the spec");
 
         // 22. Return obj.
-
         obj
     }
 }

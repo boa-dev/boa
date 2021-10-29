@@ -92,7 +92,6 @@ where
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
                 .context("arrow function")?;
-
             (
                 FormalParameterList {
                     parameters: Box::new([FormalParameter::new(
@@ -133,7 +132,6 @@ where
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
         {
             let lexically_declared_names = body.lexically_declared_names();
-
             for param in params.parameters.as_ref() {
                 for param_name in param.names().iter() {
                     if lexically_declared_names.contains(param_name) {

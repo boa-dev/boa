@@ -723,7 +723,6 @@ unsafe impl Trace for PropertyName {
 /// are using different indents in their source files. This fixes
 /// any strings which may have been changed in a different indent
 /// level.
-
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
     // Remove preceding newline.

@@ -109,7 +109,6 @@ where
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
         {
             let lexically_declared_names = body.lexically_declared_names();
-
             for param in params.parameters.as_ref() {
                 for param_name in param.names().iter() {
                     if lexically_declared_names.contains(param_name) {

@@ -84,7 +84,6 @@ where
                 has_duplicates,
             });
         }
-
         let start_position = next_token.span().start();
 
         let mut parameter_names = FxHashSet::default();
@@ -271,7 +270,6 @@ where
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
-
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct FormalParameter {
     allow_yield: AllowYield,
