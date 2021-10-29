@@ -534,6 +534,34 @@ impl JsObject {
         Ok(properties)
     }
 
+    /// Abstract operation `GetMethod ( V, P )`
+    ///
+    /// Retrieves the value of a specific property, when the value of the property is expected to be a function.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
+    where
+        K: Into<PropertyKey>,
+    {
+        // Note: The spec specifies this function for JsValue.
+        // It is implemented for JsObject for convenience.
+
+        // 1. Assert: IsPropertyKey(P) is true.
+        // 2. Let func be ? GetV(V, P).
+        match &self.__get__(&key.into(), self.clone().into(), context)? {
+            // 3. If func is either undefined or null, return undefined.
+            JsValue::Undefined | JsValue::Null => Ok(None),
+            // 5. Return func.
+            JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            // 4. If IsCallable(func) is false, throw a TypeError exception.
+            _ => Err(context
+                .construct_type_error("value returned for property of object is not a function")),
+        }
+    }
+
     // todo: GetFunctionRealm
 
     // todo: CopyDataProperties
@@ -584,21 +612,14 @@ impl JsValue {
     /// - [EcmaScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    #[inline]
     pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsObject>>
     where
         K: Into<PropertyKey>,
     {
-        // 1. Assert: IsPropertyKey(P) is true.
-        // 2. Let func be ? GetV(V, P).
-        match &self.get_v(key, context)? {
-            // 3. If func is either undefined or null, return undefined.
-            JsValue::Undefined | JsValue::Null => Ok(None),
-            // 5. Return func.
-            JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
-            // 4. If IsCallable(func) is false, throw a TypeError exception.
-            _ => Err(context
-                .construct_type_error("value returned for property of object is not a function")),
-        }
+        // Note: The spec specifies this function for JsValue.
+        // The main part of the function is implemented for JsObject.
+        self.to_object(context)?.get_method(key, context)
     }
 
     /// It is used to create List value whose elements are provided by the indexed properties of

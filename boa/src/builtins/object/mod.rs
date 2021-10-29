@@ -18,9 +18,9 @@ use crate::{
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        IntegrityLevel, JsObject, ObjectData, ObjectInitializer, ObjectKind,
+        IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
-    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
     BoaProfiler, Context, JsResult,
@@ -170,16 +170,17 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args.get_or_undefined(0).to_object(context)?;
-        if let Some(key) = args.get(1) {
-            let key = key.to_property_key(context)?;
+        // 1. Let obj be ? ToObject(O).
+        let obj = args.get_or_undefined(0).to_object(context)?;
 
-            if let Some(desc) = object.__get_own_property__(&key, context)? {
-                return Ok(Self::from_property_descriptor(desc, context));
-            }
-        }
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(1).to_property_key(context)?;
 
-        Ok(JsValue::undefined())
+        // 3. Let desc be ? obj.[[GetOwnProperty]](key).
+        let desc = obj.__get_own_property__(&key, context)?;
+
+        // 4. Return FromPropertyDescriptor(desc).
+        Ok(Self::from_property_descriptor(desc, context))
     }
 
     /// `Object.getOwnPropertyDescriptors( object )`
@@ -202,9 +203,7 @@ impl Object {
 
         for key in object.borrow().properties().keys() {
             let descriptor = {
-                let desc = object
-                    .__get_own_property__(&key, context)?
-                    .expect("Expected property to be on object.");
+                let desc = object.__get_own_property__(&key, context)?;
                 Self::from_property_descriptor(desc, context)
             };
 
@@ -228,40 +227,64 @@ impl Object {
     /// [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
-    fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> JsValue {
-        let mut descriptor = ObjectInitializer::new(context);
+    pub(crate) fn from_property_descriptor(
+        desc: Option<PropertyDescriptor>,
+        context: &mut Context,
+    ) -> JsValue {
+        match desc {
+            // 1. If Desc is undefined, return undefined.
+            None => JsValue::undefined(),
+            Some(desc) => {
+                // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+                // 3. Assert: obj is an extensible ordinary object with no own properties.
+                let obj = context.construct_object();
 
-        // TODO: use CreateDataPropertyOrThrow
+                // 4. If Desc has a [[Value]] field, then
+                if let Some(value) = desc.value() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
+                    obj.create_data_property_or_throw("value", value, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
 
-        match desc.kind() {
-            DescriptorKind::Data { value, writable } => {
-                if let Some(value) = value {
-                    descriptor.property("value", value.clone(), Attribute::all());
+                // 5. If Desc has a [[Writable]] field, then
+                if let Some(writable) = desc.writable() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
+                    obj.create_data_property_or_throw("writable", writable, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
                 }
-                if let Some(writable) = writable {
-                    descriptor.property("writable", *writable, Attribute::all());
+
+                // 6. If Desc has a [[Get]] field, then
+                if let Some(get) = desc.get() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
+                    obj.create_data_property_or_throw("get", get, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
                 }
+
+                // 7. If Desc has a [[Set]] field, then
+                if let Some(set) = desc.set() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
+                    obj.create_data_property_or_throw("set", set, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
+
+                // 8. If Desc has an [[Enumerable]] field, then
+                if let Some(enumerable) = desc.enumerable() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
+                    obj.create_data_property_or_throw("enumerable", enumerable, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
+
+                // 9. If Desc has a [[Configurable]] field, then
+                if let Some(configurable) = desc.configurable() {
+                    // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
+                    obj.create_data_property_or_throw("configurable", configurable, context)
+                        .expect("CreateDataPropertyOrThrow cannot fail here");
+                }
+
+                // 10. Return obj.
+                obj.into()
             }
-            DescriptorKind::Accessor { get, set } => {
-                if let Some(get) = get {
-                    descriptor.property("get", get.clone(), Attribute::all());
-                }
-                if let Some(set) = set {
-                    descriptor.property("set", set.clone(), Attribute::all());
-                }
-            }
-            _ => {}
         }
-
-        if let Some(enumerable) = desc.enumerable() {
-            descriptor.property("enumerable", enumerable, Attribute::all());
-        }
-
-        if let Some(configurable) = desc.configurable() {
-            descriptor.property("configurable", configurable, Attribute::all());
-        }
-
-        descriptor.build().into()
     }
 
     /// Uses the SameValue algorithm to check equality of objects
@@ -273,6 +296,10 @@ impl Object {
     }
 
     /// Get the `prototype` of an object.
+    ///
+    /// [More information][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
     pub fn get_prototype_of(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
         if args.is_empty() {
             return ctx.throw_type_error(

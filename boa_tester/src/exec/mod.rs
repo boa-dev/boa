@@ -252,7 +252,7 @@ impl Test {
             (TestOutcomeResult::Ignored, String::new())
         };
 
-        if verbose > 1 {
+        if verbose > 2 {
             println!("Result text:");
             println!("{}", result_text);
             println!();

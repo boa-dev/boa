@@ -74,16 +74,10 @@ where
             if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                 cursor.expect(TokenKind::Punctuator(Punctuator::Mul), "token disappeared")?;
                 delegate = true;
-                expr = Some(
-                    AssignmentExpression::new(self.allow_in, true, self.allow_await)
-                        .parse(cursor)?,
-                );
-            } else {
-                expr = Some(
-                    AssignmentExpression::new(self.allow_in, true, self.allow_await)
-                        .parse(cursor)?,
-                );
             }
+            expr = Some(
+                AssignmentExpression::new(self.allow_in, true, self.allow_await).parse(cursor)?,
+            );
         }
 
         Ok(Node::Yield(Yield::new::<Node, Option<Node>>(

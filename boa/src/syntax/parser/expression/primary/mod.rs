@@ -9,6 +9,7 @@
 
 mod array_initializer;
 mod async_function_expression;
+mod async_generator_expression;
 mod function_expression;
 mod generator_expression;
 mod object_initializer;
@@ -18,8 +19,8 @@ mod tests;
 
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
-    function_expression::FunctionExpression, generator_expression::GeneratorExpression,
-    object_initializer::ObjectLiteral,
+    async_generator_expression::AsyncGeneratorExpression, function_expression::FunctionExpression,
+    generator_expression::GeneratorExpression, object_initializer::ObjectLiteral,
 };
 use super::Expression;
 use crate::{
@@ -77,6 +78,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
+        // TODO: tok currently consumes the token instead of peeking, so the token
+        // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
@@ -89,9 +92,16 @@ where
                     FunctionExpression.parse(cursor).map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
-                .parse(cursor)
-                .map(Node::from),
+            TokenKind::Keyword(Keyword::Async) => {
+                let mul_peek = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                if mul_peek.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
+                    AsyncGeneratorExpression.parse(cursor).map(Node::from)
+                } else {
+                    AsyncFunctionExpression::new(self.allow_yield)
+                        .parse(cursor)
+                        .map(Node::from)
+                }
+            }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =

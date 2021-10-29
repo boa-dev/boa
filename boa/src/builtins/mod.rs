@@ -6,11 +6,13 @@ pub mod bigint;
 pub mod boolean;
 #[cfg(feature = "console")]
 pub mod console;
+pub mod dataview;
 pub mod date;
 pub mod error;
 pub mod function;
 pub mod global_this;
 pub mod infinity;
+pub mod intl;
 pub mod intrinsics;
 pub mod iterable;
 pub mod json;
@@ -19,6 +21,7 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod proxy;
 pub mod reflect;
 pub mod regexp;
 pub mod set;
@@ -31,11 +34,13 @@ pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
     boolean::Boolean,
+    dataview::DataView,
     date::Date,
     error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError},
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
+    intl::Intl,
     json::Json,
     map::map_iterator::MapIterator,
     map::Map,
@@ -44,6 +49,7 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    proxy::Proxy,
     reflect::Reflect,
     regexp::RegExp,
     set::set_iterator::SetIterator,
@@ -120,12 +126,15 @@ pub fn init(context: &mut Context) {
         BuiltInFunctionObject,
         BuiltInObjectObject,
         Math,
+        Intl,
         Json,
         Array,
+        Proxy,
         ArrayBuffer,
         BigInt,
         Boolean,
         Date,
+        DataView,
         Map,
         Number,
         Set,

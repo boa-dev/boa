@@ -6,7 +6,7 @@ use crate::syntax::{
         },
         Const,
     },
-    parser::tests::check_parser,
+    parser::tests::{check_invalid, check_parser},
 };
 
 /// Checks object literal parsing.
@@ -299,4 +299,74 @@ fn check_object_spread() {
         )
         .into()],
     );
+}
+
+#[test]
+fn check_async_method() {
+    let object_properties = vec![PropertyDefinition::method_definition(
+        MethodDefinitionKind::Async,
+        "dive",
+        FunctionExpr::new(None, vec![], vec![]),
+    )];
+
+    check_parser(
+        "const x = {
+            async dive() {}
+        };
+        ",
+        vec![DeclarationList::Const(
+            vec![Declaration::new_with_identifier(
+                "x",
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn check_async_generator_method() {
+    let object_properties = vec![PropertyDefinition::method_definition(
+        MethodDefinitionKind::AsyncGenerator,
+        "vroom",
+        FunctionExpr::new(None, vec![], vec![]),
+    )];
+
+    check_parser(
+        "const x = {
+            async* vroom() {}
+        };
+        ",
+        vec![DeclarationList::Const(
+            vec![Declaration::new_with_identifier(
+                "x",
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn check_async_method_lineterminator() {
+    check_invalid(
+        "const x = {
+            async
+            dive(){}
+        };
+        ",
+    )
+}
+
+#[test]
+fn check_async_gen_method_lineterminator() {
+    check_invalid(
+        "const x = {
+            async
+            * vroom() {}
+        };
+        ",
+    )
 }

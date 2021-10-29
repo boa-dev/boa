@@ -364,6 +364,20 @@ pub enum Opcode {
     /// Stack: value **=>** (-value)
     Neg,
 
+    /// Unary `++` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** (value + 1)
+    Inc,
+
+    /// Unary `--` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** (value - 1)
+    Dec,
+
     /// Declate `var` type variable.
     ///
     /// Operands: name_index: `u32`
@@ -441,6 +455,42 @@ pub enum Opcode {
     ///
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
+
+    /// Sets a getter property by name of an object.
+    ///
+    /// Like `get name() value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    SetPropertyGetterByName,
+
+    /// Sets a getter property by value of an object.
+    ///
+    /// Like `get [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, key, object **=>**
+    SetPropertyGetterByValue,
+
+    /// Sets a setter property by name of an object.
+    ///
+    /// Like `set name() value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    SetPropertySetterByName,
+
+    /// Sets a setter property by value of an object.
+    ///
+    /// Like `set [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, key, object **=>**
+    SetPropertySetterByValue,
 
     /// Deletes a property by name of an object.
     ///
@@ -613,6 +663,8 @@ impl Opcode {
             Opcode::Coalesce => "Coalesce",
             Opcode::Pos => "Pos",
             Opcode::Neg => "Neg",
+            Opcode::Inc => "Inc",
+            Opcode::Dec => "Dec",
             Opcode::DefVar => "DefVar",
             Opcode::DefLet => "DefLet",
             Opcode::DefConst => "DefConst",
@@ -623,6 +675,10 @@ impl Opcode {
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
+            Opcode::SetPropertyGetterByName => "SetPropertyGetterByName",
+            Opcode::SetPropertyGetterByValue => "SetPropertyGetterByValue",
+            Opcode::SetPropertySetterByName => "SetPropertySetterByName",
+            Opcode::SetPropertySetterByValue => "SetPropertySetterByValue",
             Opcode::DeletePropertyByName => "DeletePropertyByName",
             Opcode::DeletePropertyByValue => "DeletePropertyByValue",
             Opcode::Jump => "Jump",

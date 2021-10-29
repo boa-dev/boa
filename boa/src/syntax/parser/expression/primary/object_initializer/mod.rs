@@ -193,6 +193,140 @@ where
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
 
+        //Async [AsyncMethod, AsyncGeneratorMethod] object methods
+        if cursor.next_if(Keyword::Async)?.is_some() {
+            cursor.peek_expect_no_lineterminator(0, "Async object methods")?;
+
+            let mul_check = cursor.next_if(Punctuator::Mul)?;
+            let property_name =
+                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+            if mul_check.is_some() {
+                // MethodDefinition[?Yield, ?Await] -> AsyncGeneratorMethod[?Yield, ?Await]
+
+                let params_start_position = cursor
+                    .expect(Punctuator::OpenParen, "async generator method definition")?
+                    .span()
+                    .start();
+                let params = FormalParameters::new(true, true).parse(cursor)?;
+                cursor.expect(Punctuator::CloseParen, "async generator method definition")?;
+
+                // Early Error: UniqueFormalParameters : FormalParameters
+                // NOTE: does not appear to formally be in ECMAScript specs for method
+                if params.has_duplicates {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Duplicate parameter name not allowed in this context".into(),
+                        params_start_position,
+                    )));
+                }
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenBlock),
+                    "async generator method definition",
+                )?;
+                let body = FunctionBody::new(true, true).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseBlock),
+                    "async generator method definition",
+                )?;
+
+                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+                // and IsSimpleParameterList of UniqueFormalParameters is false.
+                if body.strict() && !params.is_simple {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Illegal 'use strict' directive in function with non-simple parameter list"
+                            .into(),
+                        params_start_position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+                // occurs in the LexicallyDeclaredNames of GeneratorBody.
+                {
+                    let lexically_declared_names = body.lexically_declared_names();
+                    for param in params.parameters.as_ref() {
+                        if lexically_declared_names.contains(param.name()) {
+                            return Err(ParseError::lex(LexError::Syntax(
+                                format!("Redeclaration of formal parameter `{}`", param.name())
+                                    .into(),
+                                match cursor.peek(0)? {
+                                    Some(token) => token.span().end(),
+                                    None => Position::new(1, 1),
+                                },
+                            )));
+                        }
+                    }
+                }
+
+                return Ok(node::PropertyDefinition::method_definition(
+                    MethodDefinitionKind::AsyncGenerator,
+                    property_name,
+                    FunctionExpr::new(None, params.parameters, body),
+                ));
+            } else {
+                // MethodDefinition[?Yield, ?Await] -> AsyncMethod[?Yield, ?Await]
+
+                let params_start_position = cursor
+                    .expect(Punctuator::OpenParen, "async method definition")?
+                    .span()
+                    .start();
+                let params = FormalParameters::new(false, true).parse(cursor)?;
+                cursor.expect(Punctuator::CloseParen, "async method definition")?;
+
+                // Early Error: UniqueFormalParameters : FormalParameters
+                // NOTE: does not appear to be in ECMAScript specs
+                if params.has_duplicates {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Duplicate parameter name not allowed in this context".into(),
+                        params_start_position,
+                    )));
+                }
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::OpenBlock),
+                    "async method definition",
+                )?;
+                let body = FunctionBody::new(true, true).parse(cursor)?;
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::CloseBlock),
+                    "async method definition",
+                )?;
+
+                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+                // and IsSimpleParameterList of UniqueFormalParameters is false.
+                if body.strict() && !params.is_simple {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Illegal 'use strict' directive in function with non-simple parameter list"
+                            .into(),
+                        params_start_position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+                // occurs in the LexicallyDeclaredNames of GeneratorBody.
+                {
+                    let lexically_declared_names = body.lexically_declared_names();
+                    for param in params.parameters.as_ref() {
+                        if lexically_declared_names.contains(param.name()) {
+                            return Err(ParseError::lex(LexError::Syntax(
+                                format!("Redeclaration of formal parameter `{}`", param.name())
+                                    .into(),
+                                match cursor.peek(0)? {
+                                    Some(token) => token.span().end(),
+                                    None => Position::new(1, 1),
+                                },
+                            )));
+                        }
+                    }
+                }
+                return Ok(node::PropertyDefinition::method_definition(
+                    MethodDefinitionKind::Async,
+                    property_name,
+                    FunctionExpr::new(None, params.parameters, body),
+                ));
+            }
+        }
+
         // MethodDefinition[?Yield, ?Await] -> GeneratorMethod[?Yield, ?Await]
         if cursor.next_if(Punctuator::Mul)?.is_some() {
             let property_name =
@@ -206,6 +340,7 @@ where
             cursor.expect(Punctuator::CloseParen, "generator method definition")?;
 
             // Early Error: UniqueFormalParameters : FormalParameters
+            // NOTE: does not appear to be in ECMAScript specs for GeneratorMethod
             if params.has_duplicates {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Duplicate parameter name not allowed in this context".into(),

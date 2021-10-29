@@ -473,7 +473,7 @@ impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
-#[derive(Trace, Finalize, PartialEq, Debug, Clone)]
+#[derive(Trace, Finalize, PartialEq, Debug, Clone, Eq, Hash)]
 pub enum PropertyKey {
     String(JsString),
     Symbol(JsSymbol),

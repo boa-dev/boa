@@ -8,7 +8,8 @@ keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["wasm"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.56"
 
 [dependencies]
 Boa = { path = "../boa", features = ["console"] }
