@@ -11,6 +11,9 @@ exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2021"
 rust-version = "1.56"
 
+[features]
+vm = ["Boa/vm"]
+
 [dependencies]
 Boa = { path = "../boa" }
 structopt = "0.3.25"

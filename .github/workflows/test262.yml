@@ -51,11 +51,31 @@ jobs:
       # Run the results comparison
       - name: Compare results
         if: github.event_name == 'pull_request'
-        id: compare
+        id: compare-non-vm
         shell: bash
         run: |
           cd boa
           comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
+          comment="${comment//'%'/'%25'}"
+          comment="${comment//$'\n'/'%0A'}"
+          comment="${comment//$'\r'/'%0D'}"
+          echo "::set-output name=comment::$comment"
+
+      - name: Run the test262 test suite for VM
+        run: |
+          cd boa
+          mkdir -p ../results
+          cargo run --release --features vm --bin boa_tester -- run -v -o ../results/test262/vm
+          cd ..
+
+      # Run the results comparison for VM
+      - name: Compare results for VM
+        if: github.event_name == 'pull_request'
+        id: compare-vm
+        shell: bash
+        run: |
+          cd boa
+          comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/main/vm-latest.json ../results/test262/vm/pull/latest.json -m)"
           comment="${comment//'%'/'%25'}"
           comment="${comment//$'\n'/'%0A'}"
           comment="${comment//$'\r'/'%0D'}"
@@ -80,7 +100,11 @@ jobs:
         continue-on-error: true
         with:
           comment-id: ${{ steps.previous-comment.outputs.comment-id }}
-          body: ${{ steps.compare.outputs.comment }}
+          body: |
+            ### Test262 conformance changes
+
+            ${{ steps.compare-non-vm.outputs.comment }}
+            ${{ steps.compare-vm.outputs.comment }}
           edit-mode: replace
 
       - name: Write a new comment
@@ -89,7 +113,11 @@ jobs:
         continue-on-error: true
         with:
           issue-number: ${{ steps.pr-number.outputs.pr }}
-          body: ${{ steps.compare.outputs.comment }}
+          body: |
+            ### Test262 conformance changes
+
+            ${{ steps.compare-non-vm.outputs.comment }}
+            ${{ steps.compare-vm.outputs.comment }}
 
       # Commit changes to GitHub pages.
       - name: Commit files
