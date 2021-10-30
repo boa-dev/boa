@@ -172,9 +172,9 @@ pub(super) fn call_construct(
                         has_parameter_expressions =
                             has_parameter_expressions || param.init().is_some();
 
-                        for param_name in param.names().iter() {
+                        for param_name in param.names() {
                             arguments_in_parameter_names =
-                                arguments_in_parameter_names || *param_name == "arguments";
+                                arguments_in_parameter_names || param_name == "arguments";
                         }
 
                         is_simple_parameter_list = is_simple_parameter_list

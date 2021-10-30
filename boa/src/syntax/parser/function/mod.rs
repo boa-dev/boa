@@ -112,11 +112,11 @@ where
             {
                 is_simple = false;
             }
-            for param_name in next_param.names().iter() {
-                if parameter_names.contains(*param_name) {
+            for param_name in next_param.names() {
+                if parameter_names.contains(param_name) {
                     has_duplicates = true;
                 }
-                parameter_names.insert(Box::from(*param_name));
+                parameter_names.insert(Box::from(param_name));
             }
             params.push(next_param);
 
@@ -207,20 +207,17 @@ where
                     let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
 
-                    let init = if let Some(t) = cursor.peek(0)? {
-                        // Check that this is an initilizer before attempting parse.
-                        if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(
-                                Initializer::new(true, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?,
-                            )
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    };
-
+                    let init = cursor
+                        .peek(0)?
+                        .cloned()
+                        .filter(|t| {
+                            // Check that this is an initializer before attempting parse.
+                            *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
+                        })
+                        .map(|_| {
+                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                        })
+                        .transpose()?;
                     Declaration::new_with_object_pattern(param, init)
                 }
 
@@ -235,19 +232,17 @@ where
                 _ => {
                     let params =
                         BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                    let init = if let Some(t) = cursor.peek(0)? {
-                        // Check that this is an initilizer before attempting parse.
-                        if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(
-                                Initializer::new(true, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?,
-                            )
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    };
+                    let init = cursor
+                        .peek(0)?
+                        .cloned()
+                        .filter(|t| {
+                            // Check that this is an initializer before attempting parse.
+                            *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
+                        })
+                        .map(|_| {
+                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                        })
+                        .transpose()?;
 
                     Declaration::new_with_identifier(params, init)
                 }
@@ -305,19 +300,17 @@ where
                     let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
 
-                    let init = if let Some(t) = cursor.peek(0)? {
-                        // Check that this is an initilizer before attempting parse.
-                        if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(
-                                Initializer::new(true, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?,
-                            )
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    };
+                    let init = cursor
+                        .peek(0)?
+                        .cloned()
+                        .filter(|t| {
+                            // Check that this is an initializer before attempting parse.
+                            *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
+                        })
+                        .map(|_| {
+                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                        })
+                        .transpose()?;
 
                     Declaration::new_with_object_pattern(param, init)
                 }
@@ -333,19 +326,17 @@ where
                 _ => {
                     let params =
                         BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                    let init = if let Some(t) = cursor.peek(0)? {
-                        // Check that this is an initilizer before attempting parse.
-                        if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                            Some(
-                                Initializer::new(true, self.allow_yield, self.allow_await)
-                                    .parse(cursor)?,
-                            )
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    };
+                    let init = cursor
+                        .peek(0)?
+                        .cloned()
+                        .filter(|t| {
+                            // Check that this is an initializer before attempting parse.
+                            *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
+                        })
+                        .map(|_| {
+                            Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)
+                        })
+                        .transpose()?;
 
                     Declaration::new_with_identifier(params, init)
                 }
