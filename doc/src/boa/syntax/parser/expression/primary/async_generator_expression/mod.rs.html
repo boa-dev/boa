@@ -127,6 +127,8 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Expression Parser</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Implements TokenParser for AsyncGeneratorExpression and outputs</span>
@@ -240,14 +242,16 @@
         {
             <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
             <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
-                <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">param</span>.<span class="ident">name</span>()) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param</span>.<span class="ident">name</span>()).<span class="ident">into</span>(),
-                        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
-                            <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-                        },
-                    )));
+                <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
+                    <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="ident">param_name</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                            <span class="macro">format!</span>(<span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>, <span class="ident">param_name</span>).<span class="ident">into</span>(),
+                            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+                                <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
+                                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                            },
+                        )));
+                    }
                 }
             }
         }

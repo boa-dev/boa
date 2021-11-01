@@ -749,6 +749,36 @@
 <span id="749">749</span>
 <span id="750">750</span>
 <span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -783,8 +813,8 @@
     <span class="ident">declaration</span>::{
         <span class="ident">async_generator_decl::AsyncGeneratorDecl</span>, <span class="ident">async_generator_expr::AsyncGeneratorExpr</span>,
         <span class="ident">generator_decl::GeneratorDecl</span>, <span class="ident">generator_expr::GeneratorExpr</span>, <span class="ident">ArrowFunctionDecl</span>,
-        <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>, <span class="ident">FunctionDecl</span>,
-        <span class="ident">FunctionExpr</span>,
+        <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>, <span class="ident">DeclarationPattern</span>,
+        <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>,
     },
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">identifier::Identifier</span>,
@@ -1181,37 +1211,70 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormalParameter</span> {
-    <span class="ident">name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="ident">declaration</span>: <span class="ident">Declaration</span>,
     <span class="ident">is_rest_param</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FormalParameter</span> {
     <span class="doccomment">/// Creates a new formal parameter.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">is_rest_param</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">declaration</span>: <span class="ident">D</span>, <span class="ident">is_rest_param</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">D</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Declaration</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
-            <span class="ident">init</span>,
+            <span class="ident">declaration</span>: <span class="ident">declaration</span>.<span class="ident">into</span>(),
             <span class="ident">is_rest_param</span>,
         }
     }
 
     <span class="doccomment">/// Gets the name of the formal parameter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">declaration</span> {
+            <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">as_ref</span>()],
+            <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">pattern</span> {
+                <span class="ident">DeclarationPattern::Object</span>(<span class="ident">object_pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object_pattern</span>.<span class="ident">idents</span>(),
+
+                <span class="ident">DeclarationPattern::Array</span>(<span class="ident">array_pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">array_pattern</span>.<span class="ident">idents</span>(),
+            },
+        }
+    }
+
+    <span class="doccomment">/// Get the declaration of the formal parameter</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Declaration</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">declaration</span>
     }
 
     <span class="doccomment">/// Gets the initialization node of the formal parameter, if any.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">as_ref</span>()
+        <span class="self">self</span>.<span class="ident">declaration</span>.<span class="ident">init</span>()
     }
 
     <span class="doccomment">/// Gets wether the parameter is a rest parameter.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rest_param</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">is_rest_param</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">JsValue</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">declaration</span> {
+            <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[(
+                <span class="ident">ident</span>.<span class="ident">as_ref</span>().<span class="ident">to_string</span>().<span class="ident">into_boxed_str</span>(),
+                <span class="ident">init</span>.<span class="ident">unwrap</span>(),
+            )]),
+
+            <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">pattern</span> {
+                <span class="ident">DeclarationPattern::Object</span>(<span class="ident">object_pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object_pattern</span>.<span class="ident">run</span>(<span class="ident">init</span>, <span class="ident">context</span>),
+
+                <span class="ident">DeclarationPattern::Array</span>(<span class="ident">array_pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">array_pattern</span>.<span class="ident">run</span>(<span class="ident">init</span>, <span class="ident">context</span>),
+            },
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">declaration</span>, <span class="ident">Declaration::Identifier</span> { .. })
     }
 }
 
@@ -1220,10 +1283,7 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rest_param</span> {
             <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;...&quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">as_ref</span>() {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; = {}&quot;</span>, <span class="ident">n</span>)<span class="question-mark">?</span>;
-        }
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">declaration</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.104&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;gnu&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script src="../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.106&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;gnu&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script src="../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1353,6 +1353,25 @@
 <span id="1353">1353</span>
 <span id="1354">1354</span>
 <span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">type</span> <span class="ident">pthread_t</span> <span class="op">=</span> <span class="ident">c_ulong</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__priority_which_t</span> <span class="op">=</span> <span class="ident">::c_uint</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">__rlimit_resource_t</span> <span class="op">=</span> <span class="ident">::c_uint</span>;
@@ -2310,6 +2329,25 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCM_RTS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0x004</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCM_CD</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="ident">TIOCM_CAR</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCM_RI</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="ident">TIOCM_RNG</span>;
+
+<span class="comment">// elf.h</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PRSTATUS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PRFPREG</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_FPREGSET</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PRPSINFO</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PRXREG</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_TASKSTRUCT</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PLATFORM</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_AUXV</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_GWINDOWS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_ASRS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PSTATUS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PSINFO</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PRCRED</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_UTSNAME</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">15</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_LWPSTATUS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_LWPSINFO</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">17</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NT_PRFPXREG</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">20</span>;
 
 <span class="comment">// linux/keyctl.h</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KEYCTL_DH_COMPUTE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">23</span>;
