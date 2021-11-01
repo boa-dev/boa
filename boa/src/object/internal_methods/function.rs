@@ -171,10 +171,15 @@ pub(super) fn call_construct(
                     for param in params.iter() {
                         has_parameter_expressions =
                             has_parameter_expressions || param.init().is_some();
-                        arguments_in_parameter_names =
-                            arguments_in_parameter_names || param.name() == "arguments";
+
+                        for param_name in param.names() {
+                            arguments_in_parameter_names =
+                                arguments_in_parameter_names || param_name == "arguments";
+                        }
+
                         is_simple_parameter_list = is_simple_parameter_list
                             && !param.is_rest_param()
+                            && param.is_identifier()
                             && param.init().is_none()
                     }
 

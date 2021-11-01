@@ -11,7 +11,10 @@ use super::AssignmentExpression;
 use crate::{
     syntax::{
         ast::{
-            node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
+            node::{
+                declaration::Declaration, ArrowFunctionDecl, FormalParameter, Node, Return,
+                StatementList,
+            },
             Punctuator,
         },
         lexer::{Error as LexError, Position, TokenKind},
@@ -91,7 +94,10 @@ where
                 .context("arrow function")?;
             (
                 FormalParameterList {
-                    parameters: Box::new([FormalParameter::new(param, None, false)]),
+                    parameters: Box::new([FormalParameter::new(
+                        Declaration::new_with_identifier(param, None),
+                        false,
+                    )]),
                     is_simple: true,
                     has_duplicates: false,
                 },
@@ -127,14 +133,16 @@ where
         {
             let lexically_declared_names = body.lexically_declared_names();
             for param in params.parameters.as_ref() {
-                if lexically_declared_names.contains(param.name()) {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        format!("Redeclaration of formal parameter `{}`", param.name()).into(),
-                        match cursor.peek(0)? {
-                            Some(token) => token.span().end(),
-                            None => Position::new(1, 1),
-                        },
-                    )));
+                for param_name in param.names() {
+                    if lexically_declared_names.contains(param_name) {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            format!("Redeclaration of formal parameter `{}`", param_name).into(),
+                            match cursor.peek(0)? {
+                                Some(token) => token.span().end(),
+                                None => Position::new(1, 1),
+                            },
+                        )));
+                    }
                 }
             }
         }

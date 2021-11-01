@@ -30,6 +30,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, NativeObject, ObjectData},
     property::Attribute,
     property::PropertyDescriptor,
+    syntax::ast::node::declaration::Declaration,
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
@@ -220,16 +221,22 @@ impl Function {
         Array::add_to_array_object(&array, args_list.get(index..).unwrap_or_default(), context)
             .unwrap();
 
-        // Create binding
-        local_env
-            // Function parameters can share names in JavaScript...
-            .create_mutable_binding(param.name(), false, true, context)
-            .expect("Failed to create binding for rest param");
+        let binding_params = param.run(Some(array), context).unwrap_or_default();
+        for binding_items in binding_params.iter() {
+            // Create binding
+            local_env
+                .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
+                .expect("Failed to create binding");
 
-        // Set Binding to value
-        local_env
-            .initialize_binding(param.name(), array, context)
-            .expect("Failed to initialize rest param");
+            // Set binding to value
+            local_env
+                .initialize_binding(
+                    binding_items.0.as_ref(),
+                    JsValue::new(binding_items.1.clone()),
+                    context,
+                )
+                .expect("Failed to intialize binding");
+        }
     }
 
     // Adds an argument to the environment
@@ -239,15 +246,22 @@ impl Function {
         local_env: &Environment,
         context: &mut Context,
     ) {
-        // Create binding
-        local_env
-            .create_mutable_binding(param.name(), false, true, context)
-            .expect("Failed to create binding");
+        let binding_params = param.run(Some(value), context).unwrap_or_default();
+        for binding_items in binding_params.iter() {
+            // Create binding
+            local_env
+                .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
+                .expect("Failed to create binding");
 
-        // Set Binding to value
-        local_env
-            .initialize_binding(param.name(), value, context)
-            .expect("Failed to intialize binding");
+            // Set binding to value
+            local_env
+                .initialize_binding(
+                    binding_items.0.as_ref(),
+                    JsValue::new(binding_items.1.clone()),
+                    context,
+                )
+                .expect("Failed to intialize binding");
+        }
     }
 
     /// Returns true if the function object is a constructor.
@@ -520,11 +534,19 @@ impl BuiltInFunctionObject {
                 Some(name),
             ) => Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into()),
             (Function::Ordinary { body, params, .. }, Some(name)) => {
-                let arguments: String = params
-                    .iter()
-                    .map(|param| param.name())
-                    .collect::<Vec<&str>>()
-                    .join(", ");
+                let arguments: String = {
+                    let mut argument_list: Vec<Cow<'_, str>> = Vec::new();
+                    for params_item in params.iter() {
+                        let argument_item = match &params_item.declaration() {
+                            Declaration::Identifier { ident, .. } => Cow::Borrowed(ident.as_ref()),
+                            Declaration::Pattern(pattern) => {
+                                Cow::Owned(format!("{{{}}}", pattern.idents().join(",")))
+                            }
+                        };
+                        argument_list.push(argument_item);
+                    }
+                    argument_list.join(",")
+                };
 
                 let statement_list = &*body;
                 // This is a kluge. The implementaion in browser seems to suggest that
