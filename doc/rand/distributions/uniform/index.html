@@ -4,12 +4,12 @@ e.g. <code>Uniform::new_inclusive(1, 6)</code> can sample integers from 1 to 6, 
 standard die. <a href="../../trait.Rng.html#method.gen_range" title="Rng::gen_range"><code>Rng::gen_range</code></a> supports any type supported by
 <a href="../struct.Uniform.html" title="Uniform"><code>Uniform</code></a>.</p>
 <p>This distribution is provided with support for several primitive types
-(all integer and floating-point types) as well as <a href="https://doc.rust-lang.org/1.56.0/core/time/struct.Duration.html" title="std::time::Duration"><code>std::time::Duration</code></a>,
+(all integer and floating-point types) as well as <a href="https://doc.rust-lang.org/1.56.1/core/time/struct.Duration.html" title="std::time::Duration"><code>std::time::Duration</code></a>,
 and supports extension to user-defined types via a type-specific <em>back-end</em>
 implementation.</p>
 <p>The types <a href="struct.UniformInt.html"><code>UniformInt</code></a>, <a href="struct.UniformFloat.html"><code>UniformFloat</code></a> and <a href="struct.UniformDuration.html"><code>UniformDuration</code></a> are the
 back-ends supporting sampling from primitive integer and floating-point
-ranges as well as from <a href="https://doc.rust-lang.org/1.56.0/core/time/struct.Duration.html" title="std::time::Duration"><code>std::time::Duration</code></a>; these types do not normally
+ranges as well as from <a href="https://doc.rust-lang.org/1.56.1/core/time/struct.Duration.html" title="std::time::Duration"><code>std::time::Duration</code></a>; these types do not normally
 need to be used directly (unless implementing a derived back-end).</p>
 <h1 id="example-usage" class="section-header"><a href="#example-usage">Example usage</a></h1>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">Rng</span>, <span class="ident">thread_rng</span>};
@@ -80,7 +80,7 @@ to copy or clone the value, whatever is appropriate for your type.</p>
 </div><div class="item-left module-item"><a class="struct" href="struct.UniformFloat.html" title="rand::distributions::uniform::UniformFloat struct">UniformFloat</a></div><div class="item-right docblock-short"><p>The back-end implementing <a href="trait.UniformSampler.html" title="UniformSampler"><code>UniformSampler</code></a> for floating-point types.</p>
 </div><div class="item-left module-item"><a class="struct" href="struct.UniformInt.html" title="rand::distributions::uniform::UniformInt struct">UniformInt</a></div><div class="item-right docblock-short"><p>The back-end implementing <a href="trait.UniformSampler.html" title="UniformSampler"><code>UniformSampler</code></a> for integer types.</p>
 </div></div><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.SampleBorrow.html" title="rand::distributions::uniform::SampleBorrow trait">SampleBorrow</a></div><div class="item-right docblock-short"><p>Helper trait similar to <a href="https://doc.rust-lang.org/1.56.0/core/borrow/trait.Borrow.html"><code>Borrow</code></a> but implemented
+<div class="item-table"><div class="item-left module-item"><a class="trait" href="trait.SampleBorrow.html" title="rand::distributions::uniform::SampleBorrow trait">SampleBorrow</a></div><div class="item-right docblock-short"><p>Helper trait similar to <a href="https://doc.rust-lang.org/1.56.1/core/borrow/trait.Borrow.html"><code>Borrow</code></a> but implemented
 only for SampleUniform and references to SampleUniform in
 order to resolve ambiguity issues.</p>
 </div><div class="item-left module-item"><a class="trait" href="trait.SampleRange.html" title="rand::distributions::uniform::SampleRange trait">SampleRange</a></div><div class="item-right docblock-short"><p>Range that supports generating a single sample efficiently.</p>
