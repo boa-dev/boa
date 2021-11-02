@@ -1,3 +1,7 @@
+//! CodeBlock
+//!
+//! This module is for the CodeBlock which implements a function representation in the VM
+
 use crate::{
     builtins::function::{
         Captures, ClosureFunctionSignature, Function, NativeFunctionSignature, ThisMode,
@@ -35,12 +39,15 @@ unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 
 /// The internal representation of a JavaScript function.
+///
+/// A CodeBlock is generated for each function compiled by the [ByteCompiler](crate::bytecompiler::ByteCompiler).
+/// It stores the bytecode and the other attributes of the function.
 #[derive(Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
     pub(crate) name: JsString,
 
-    /// The length of this function.
+    /// The number of parameters expected.
     pub(crate) length: u32,
 
     /// Is this function in strict mode.
