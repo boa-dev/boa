@@ -467,7 +467,7 @@ impl JsObject {
                 for param in code.params.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.name() == "arguments";
+                        arguments_in_parameter_names || param.names().contains(&"arguments");
                     is_simple_parameter_list =
                         is_simple_parameter_list && !param.is_rest_param() && param.init().is_none()
                 }
@@ -621,7 +621,7 @@ impl JsObject {
                 for param in code.params.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.name() == "arguments";
+                        arguments_in_parameter_names || param.names().contains(&"arguments");
                     is_simple_parameter_list =
                         is_simple_parameter_list && !param.is_rest_param() && param.init().is_none()
                 }

@@ -49,10 +49,10 @@ pub enum IterableLoopInitializer {
 impl fmt::Display for IterableLoopInitializer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IterableLoopInitializer::Identifier(identifier) => write!(f, "{}: ", identifier),
-            IterableLoopInitializer::Var(declaration) => write!(f, "{}: ", declaration),
-            IterableLoopInitializer::Let(declaration) => write!(f, "{}: ", declaration),
-            IterableLoopInitializer::Const(declaration) => write!(f, "{}: ", declaration),
+            IterableLoopInitializer::Identifier(identifier) => write!(f, "{}", identifier),
+            IterableLoopInitializer::Var(declaration) => write!(f, "var {}", declaration),
+            IterableLoopInitializer::Let(declaration) => write!(f, "let {}", declaration),
+            IterableLoopInitializer::Const(declaration) => write!(f, "const {}", declaration),
         }
     }
 }
