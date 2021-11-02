@@ -811,18 +811,6 @@ impl Context {
         Ok(false)
     }
 
-    /// Unwind the stack.
-    fn unwind(&mut self) -> bool {
-        let mut fp = 0;
-        if let Some(frame) = self.vm.frame.take() {
-            fp = frame.fp;
-        }
-        while self.vm.stack.len() > fp {
-            let _ = self.vm.pop();
-        }
-        true
-    }
-
     pub(crate) fn run(&mut self) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("run", "vm");
 
@@ -898,31 +886,17 @@ impl Context {
                     }
                 }
                 Err(e) => {
-                    if self.vm.frame.is_some() {
-                        if let Some(address) = self.vm.frame().catch {
-                            self.vm.frame_mut().pc = address as usize;
-                            self.vm.frame_mut().catch = None;
-                            self.vm.push(e);
-                        } else {
-                            for _ in 0..self.vm.frame().pop_env_on_return {
-                                self.pop_environment();
-                            }
-                            self.vm.frame_mut().pop_env_on_return = 0;
-
-                            let should_exit = self.unwind();
-                            if should_exit {
-                                return Err(e);
-                            } else {
-                                self.vm.push(e);
-                            }
-                        }
+                    if let Some(address) = self.vm.frame().catch {
+                        self.vm.frame_mut().pc = address as usize;
+                        self.vm.frame_mut().catch = None;
+                        self.vm.push(e);
                     } else {
-                        let should_exit = self.unwind();
-                        if should_exit {
-                            return Err(e);
-                        } else {
-                            self.vm.push(e);
+                        for _ in 0..self.vm.frame().pop_env_on_return {
+                            self.pop_environment();
                         }
+                        self.vm.pop_frame();
+
+                        return Err(e);
                     }
                 }
             }

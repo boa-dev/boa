@@ -684,9 +684,11 @@ impl JsObject {
 
                 let _result = context.run()?;
 
+                let result = context.get_this_binding();
+
                 context.pop_environment();
 
-                context.get_this_binding()
+                result
             }
         }
     }
