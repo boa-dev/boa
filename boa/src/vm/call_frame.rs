@@ -11,7 +11,9 @@ pub struct CallFrame {
     pub(crate) code: Gc<CodeBlock>,
     pub(crate) pc: usize,
     pub(crate) fp: usize,
-    pub(crate) exit_on_return: bool,
     pub(crate) this: JsValue,
     pub(crate) environment: Environment,
+    pub(crate) catch: Option<u32>,
+    pub(crate) pop_env_on_return: usize,
+    pub(crate) finally_no_jump: bool,
 }

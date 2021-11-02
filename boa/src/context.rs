@@ -1050,8 +1050,10 @@ impl Context {
             this: global_object,
             pc: 0,
             fp,
-            exit_on_return: true,
             environment,
+            catch: None,
+            pop_env_on_return: 0,
+            finally_no_jump: false,
         });
         let result = self.run();
 

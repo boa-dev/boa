@@ -7,13 +7,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{ForInLoop, ForLoop, ForOfLoop, Node},
+            node::{iteration::IterableLoopInitializer, ForInLoop, ForLoop, ForOfLoop, Node},
             Const, Keyword, Punctuator,
         },
+        lexer::{Error as LexError, Position, TokenKind},
         parser::{
             expression::Expression,
             statement::declaration::Declaration,
@@ -23,7 +23,6 @@ use crate::{
     },
     BoaProfiler,
 };
-
 use std::io::Read;
 
 /// For statement parsing
@@ -70,7 +69,10 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
-        cursor.expect(Punctuator::OpenParen, "for statement")?;
+        let init_position = cursor
+            .expect(Punctuator::OpenParen, "for statement")?
+            .span()
+            .end();
 
         let init = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Keyword(Keyword::Var) => {
@@ -90,6 +92,8 @@ where
 
         match cursor.peek(0)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
+                let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
+
                 let _ = cursor.next();
                 let expr =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
@@ -107,9 +111,11 @@ where
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
                 }
 
-                return Ok(ForInLoop::new(init.unwrap(), expr, body).into());
+                return Ok(ForInLoop::new(init, expr, body).into());
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
+                let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
+
                 let _ = cursor.next();
                 let iterable =
                     Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
@@ -127,7 +133,7 @@ where
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
                 }
 
-                return Ok(ForOfLoop::new(init.unwrap(), iterable, body).into());
+                return Ok(ForOfLoop::new(init, iterable, body).into());
             }
             _ => {}
         }
@@ -165,5 +171,71 @@ where
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body).into())
+    }
+}
+
+#[inline]
+fn node_to_iterable_loop_initializer(
+    node: &Node,
+    position: Position,
+) -> Result<IterableLoopInitializer, ParseError> {
+    match node {
+        Node::Identifier(ref name) => Ok(IterableLoopInitializer::Identifier(name.clone())),
+        Node::VarDeclList(ref list) => match list.as_ref() {
+            [var] => {
+                if var.init().is_some() {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "a declaration in the head of a for-of loop can't have an initializer"
+                            .into(),
+                        position,
+                    )));
+                }
+                Ok(IterableLoopInitializer::Var(var.clone()))
+            }
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "only one variable can be declared in the head of a for-of loop".into(),
+                position,
+            ))),
+        },
+        Node::LetDeclList(ref list) => match list.as_ref() {
+            [var] => {
+                if var.init().is_some() {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "a declaration in the head of a for-of loop can't have an initializer"
+                            .into(),
+                        position,
+                    )));
+                }
+                Ok(IterableLoopInitializer::Let(var.clone()))
+            }
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "only one variable can be declared in the head of a for-of loop".into(),
+                position,
+            ))),
+        },
+        Node::ConstDeclList(ref list) => match list.as_ref() {
+            [var] => {
+                if var.init().is_some() {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "a declaration in the head of a for-of loop can't have an initializer"
+                            .into(),
+                        position,
+                    )));
+                }
+                Ok(IterableLoopInitializer::Const(var.clone()))
+            }
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "only one variable can be declared in the head of a for-of loop".into(),
+                position,
+            ))),
+        },
+        Node::Assign(_) => Err(ParseError::lex(LexError::Syntax(
+            "a declaration in the head of a for-of loop can't have an initializer".into(),
+            position,
+        ))),
+        _ => Err(ParseError::lex(LexError::Syntax(
+            "unknown left hand side in head of for-of loop".into(),
+            position,
+        ))),
     }
 }

@@ -3,8 +3,14 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::Array, environment::lexical_environment::VariableScope, property::PropertyDescriptor,
-    vm::code_block::Readable, BoaProfiler, Context, JsResult, JsValue,
+    builtins::{iterable::IteratorRecord, Array, ForInIterator},
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        lexical_environment::VariableScope,
+    },
+    property::PropertyDescriptor,
+    vm::code_block::Readable,
+    BoaProfiler, Context, JsBigInt, JsResult, JsString, JsValue,
 };
 use std::{convert::TryInto, mem::size_of, time::Instant};
 
@@ -148,12 +154,32 @@ impl Context {
             }
             Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
             Opcode::PushNewArray => {
-                let count = self.vm.read::<u32>();
-                let mut elements = Vec::with_capacity(count as usize);
-                for _ in 0..count {
-                    elements.push(self.vm.pop());
+                let array = Array::array_create(0, None, self)
+                    .expect("Array creation with 0 length should never fail");
+                self.vm.push(array);
+            }
+            Opcode::PushValueToArray => {
+                let value = self.vm.pop();
+                let array = self.vm.pop();
+                let array = Array::add_to_array_object(&array, &[value], self)?;
+                self.vm.push(array);
+            }
+            Opcode::PushIteratorToArray => {
+                let next_function = self.vm.pop();
+                let for_in_iterator = self.vm.pop();
+                let array = self.vm.pop();
+
+                let iterator = IteratorRecord::new(for_in_iterator, next_function);
+                loop {
+                    let next = iterator.next(self)?;
+
+                    if next.done {
+                        break;
+                    } else {
+                        Array::add_to_array_object(&array, &[next.value], self)?;
+                    }
                 }
-                let array = Array::create_array_from_list(elements, self);
+
                 self.vm.push(array);
             }
             Opcode::Add => bin_op!(add),
@@ -233,12 +259,22 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::Inc => {
-                let value = self.vm.pop().add(&JsValue::Integer(1), self)?;
-                self.vm.push(value);
+                let value = self.vm.pop();
+                match value.to_numeric(self)? {
+                    crate::value::Numeric::Number(number) => self.vm.push(number + 1f64),
+                    crate::value::Numeric::BigInt(bigint) => {
+                        self.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()))
+                    }
+                }
             }
             Opcode::Dec => {
-                let value = self.vm.pop().sub(&JsValue::Integer(1), self)?;
-                self.vm.push(value);
+                let value = self.vm.pop();
+                match value.to_numeric(self)? {
+                    crate::value::Numeric::Number(number) => self.vm.push(number - 1f64),
+                    crate::value::Numeric::BigInt(bigint) => {
+                        self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()))
+                    }
+                }
             }
             Opcode::LogicalNot => {
                 let value = self.vm.pop();
@@ -259,7 +295,21 @@ impl Context {
                 let index = self.vm.read::<u32>();
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
-                self.create_mutable_binding(name.as_ref(), false, VariableScope::Function)?;
+                if !self.has_binding(name.as_ref())? {
+                    self.create_mutable_binding(name.as_ref(), false, VariableScope::Function)?;
+                }
+            }
+            Opcode::DefInitVar => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.variables[index as usize].clone();
+                let value = self.vm.pop();
+
+                if self.has_binding(name.as_ref())? {
+                    self.set_mutable_binding(name.as_ref(), value, self.strict())?;
+                } else {
+                    self.create_mutable_binding(name.as_ref(), false, VariableScope::Function)?;
+                    self.initialize_binding(name.as_ref(), value)?;
+                }
             }
             Opcode::DefLet => {
                 let index = self.vm.read::<u32>();
@@ -267,18 +317,27 @@ impl Context {
 
                 self.create_mutable_binding(name.as_ref(), false, VariableScope::Block)?;
             }
+            Opcode::DefInitLet => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.variables[index as usize].clone();
+                let value = self.vm.pop();
+
+                self.create_mutable_binding(name.as_ref(), false, VariableScope::Block)?;
+                self.initialize_binding(name.as_ref(), value)?;
+            }
             Opcode::DefConst => {
                 let index = self.vm.read::<u32>();
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
-                self.create_immutable_binding(name.as_ref(), false, VariableScope::Block)?;
+                self.create_immutable_binding(name.as_ref(), true, VariableScope::Block)?;
             }
-            Opcode::InitLexical => {
+            Opcode::DefInitConst => {
                 let index = self.vm.read::<u32>();
-                let value = self.vm.pop();
                 let name = self.vm.frame().code.variables[index as usize].clone();
+                let value = self.vm.pop();
 
-                self.initialize_binding(&name, value)?;
+                self.create_immutable_binding(name.as_ref(), true, VariableScope::Block)?;
+                self.initialize_binding(name.as_ref(), value)?;
             }
             Opcode::GetName => {
                 let index = self.vm.read::<u32>();
@@ -310,11 +369,13 @@ impl Context {
                     self.vm.frame_mut().pc = address as usize;
                 }
             }
-            Opcode::JumpIfTrue => {
+            Opcode::JumpIfNotUndefined => {
                 let address = self.vm.read::<u32>();
-                if self.vm.pop().to_boolean() {
+                let value = self.vm.pop();
+                if !value.is_undefined() {
                     self.vm.frame_mut().pc = address as usize;
                 }
+                self.vm.push(value)
             }
             Opcode::LogicalAnd => {
                 let exit = self.vm.read::<u32>();
@@ -509,9 +570,49 @@ impl Context {
                     .__delete__(&key.to_property_key(self)?, self)?;
                 self.vm.push(result);
             }
+            Opcode::CopyDataProperties => {
+                let excluded_key_count = self.vm.read::<u32>();
+                let mut excluded_keys = Vec::with_capacity(excluded_key_count as usize);
+                for _ in 0..excluded_key_count {
+                    excluded_keys.push(self.vm.pop().as_string().unwrap().clone());
+                }
+                let value = self.vm.pop();
+                let object = value.as_object().unwrap();
+                let rest_obj = self.vm.pop();
+                object.copy_data_properties(&rest_obj, excluded_keys, self)?;
+                self.vm.push(value);
+            }
             Opcode::Throw => {
+                if self.vm.frame().pop_env_on_return > 0 {
+                    self.pop_environment();
+                    self.vm.frame_mut().pop_env_on_return -= 1;
+                }
+
                 let value = self.vm.pop();
                 return Err(value);
+            }
+            Opcode::TryStart => {
+                let index = self.vm.read::<u32>();
+                self.vm.frame_mut().catch = Some(index);
+                self.vm.frame_mut().finally_no_jump = false;
+            }
+            Opcode::TryEnd => {
+                self.vm.frame_mut().catch = None;
+            }
+            Opcode::FinallyStart => {
+                self.vm.frame_mut().finally_no_jump = true;
+            }
+            Opcode::FinallyEnd => {
+                if let Some(value) = self.vm.stack.pop() {
+                    return Err(value);
+                }
+            }
+            Opcode::FinallyJump => {
+                let address = self.vm.read::<u32>();
+                if !self.vm.frame().finally_no_jump {
+                    self.vm.frame_mut().pc = address as usize;
+                }
+                self.vm.frame_mut().finally_no_jump = false;
             }
             Opcode::This => {
                 let this = self.get_this_binding()?;
@@ -557,18 +658,153 @@ impl Context {
                     _ => return Err(self.construct_type_error("not a callable function")),
                 };
 
-                let result = object.call_internal(&this, &args, self, false)?;
+                let result = object.__call__(&this, &args, self)?;
+
+                self.vm.push(result);
+            }
+            Opcode::New => {
+                if self.vm.stack_size_limit <= self.vm.stack.len() {
+                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                }
+                let argc = self.vm.read::<u32>();
+                let func = self.vm.pop();
+                let mut args = Vec::with_capacity(argc as usize);
+                for _ in 0..argc {
+                    args.push(self.vm.pop());
+                }
+
+                let result = func
+                    .as_constructor()
+                    .ok_or_else(|| self.construct_type_error("not a constructor"))
+                    .and_then(|cons| cons.__construct__(&args, &cons.clone().into(), self))?;
 
                 self.vm.push(result);
             }
             Opcode::Return => {
-                let exit = self.vm.frame().exit_on_return;
-
-                let _ = self.vm.pop_frame();
-
-                if exit {
-                    return Ok(true);
+                for _ in 0..self.vm.frame().pop_env_on_return {
+                    self.pop_environment();
                 }
+                self.vm.frame_mut().pop_env_on_return = 0;
+                let _ = self.vm.pop_frame();
+                return Ok(true);
+            }
+            Opcode::PushDeclarativeEnvironment => {
+                let env = self.get_current_environment();
+                self.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
+                self.vm.frame_mut().pop_env_on_return += 1;
+            }
+            Opcode::PopEnvironment => {
+                let _ = self.pop_environment();
+                self.vm.frame_mut().pop_env_on_return -= 1;
+            }
+            Opcode::ForInLoopInitIterator => {
+                let address = self.vm.read::<u32>();
+
+                let object = self.vm.pop();
+                if object.is_null_or_undefined() {
+                    self.vm.frame_mut().pc = address as usize;
+                }
+
+                let object = object.to_object(self)?;
+                let for_in_iterator =
+                    ForInIterator::create_for_in_iterator(JsValue::new(object), self);
+                let next_function = for_in_iterator
+                    .get_property("next")
+                    .as_ref()
+                    .map(|p| p.expect_value())
+                    .cloned()
+                    .ok_or_else(|| self.construct_type_error("Could not find property `next`"))?;
+
+                self.vm.push(for_in_iterator);
+                self.vm.push(next_function);
+            }
+            Opcode::InitIterator => {
+                let iterable = self.vm.pop();
+                let iterator = iterable.get_iterator(self, None, None)?;
+
+                self.vm.push(iterator.iterator_object());
+                self.vm.push(iterator.next_function());
+            }
+            Opcode::IteratorNext => {
+                let next_function = self.vm.pop();
+                let for_in_iterator = self.vm.pop();
+
+                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
+                let iterator_result = iterator.next(self)?;
+
+                self.vm.push(for_in_iterator);
+                self.vm.push(next_function);
+                self.vm.push(iterator_result.value);
+            }
+            Opcode::IteratorToArray => {
+                let next_function = self.vm.pop();
+                let for_in_iterator = self.vm.pop();
+
+                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
+                let mut values = Vec::new();
+
+                loop {
+                    let next = iterator.next(self)?;
+
+                    if next.done {
+                        break;
+                    }
+
+                    values.push(next.value);
+                }
+
+                let array = Array::array_create(0, None, self)
+                    .expect("Array creation with 0 length should never fail");
+
+                Array::add_to_array_object(&array.clone().into(), &values, self)?;
+
+                self.vm.push(for_in_iterator);
+                self.vm.push(next_function);
+                self.vm.push(array);
+            }
+            Opcode::ForInLoopNext => {
+                let address = self.vm.read::<u32>();
+
+                let next_function = self.vm.pop();
+                let for_in_iterator = self.vm.pop();
+
+                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
+                let iterator_result = iterator.next(self)?;
+                if iterator_result.done {
+                    self.vm.frame_mut().pc = address as usize;
+                    self.vm.frame_mut().pop_env_on_return -= 1;
+                    self.pop_environment();
+                } else {
+                    self.vm.push(for_in_iterator);
+                    self.vm.push(next_function);
+                    self.vm.push(iterator_result.value);
+                }
+            }
+            Opcode::ConcatToString => {
+                let n = self.vm.read::<u32>();
+                let mut s = JsString::new("");
+
+                for _ in 0..n {
+                    let obj = self.vm.pop();
+                    s = JsString::concat(s, obj.to_string(self)?);
+                }
+
+                self.vm.push(s);
+            }
+            Opcode::RequireObjectCoercible => {
+                let value = self.vm.pop();
+                let value = value.require_object_coercible(self)?;
+                self.vm.push(value);
+            }
+            Opcode::ValueNotNullOrUndefined => {
+                let value = self.vm.pop();
+                if value.is_null() {
+                    return Err(self.construct_type_error("Cannot destructure 'null' value"));
+                }
+                if value.is_undefined() {
+                    return Err(self.construct_type_error("Cannot destructure 'undefined' value"));
+                }
+                self.vm.push(value);
             }
         }
 
@@ -578,13 +814,8 @@ impl Context {
     /// Unwind the stack.
     fn unwind(&mut self) -> bool {
         let mut fp = 0;
-        while let Some(mut frame) = self.vm.frame.take() {
+        if let Some(frame) = self.vm.frame.take() {
             fp = frame.fp;
-            if frame.exit_on_return {
-                break;
-            }
-
-            self.vm.frame = frame.prev.take();
         }
         while self.vm.stack.len() > fp {
             let _ = self.vm.pop();
@@ -601,11 +832,7 @@ impl Context {
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
 
-        let msg = if self.vm.frame().exit_on_return {
-            " VM Start"
-        } else {
-            " Call Frame "
-        };
+        let msg = " VM Start";
 
         if self.vm.trace {
             println!("{}\n", self.vm.frame().code);
@@ -671,11 +898,31 @@ impl Context {
                     }
                 }
                 Err(e) => {
-                    let should_exit = self.unwind();
-                    if should_exit {
-                        return Err(e);
+                    if self.vm.frame.is_some() {
+                        if let Some(address) = self.vm.frame().catch {
+                            self.vm.frame_mut().pc = address as usize;
+                            self.vm.frame_mut().catch = None;
+                            self.vm.push(e);
+                        } else {
+                            for _ in 0..self.vm.frame().pop_env_on_return {
+                                self.pop_environment();
+                            }
+                            self.vm.frame_mut().pop_env_on_return = 0;
+
+                            let should_exit = self.unwind();
+                            if should_exit {
+                                return Err(e);
+                            } else {
+                                self.vm.push(e);
+                            }
+                        }
                     } else {
-                        self.vm.push(e);
+                        let should_exit = self.unwind();
+                        if should_exit {
+                            return Err(e);
+                        } else {
+                            self.vm.push(e);
+                        }
                     }
                 }
             }
