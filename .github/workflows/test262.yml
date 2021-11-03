@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
         with:
           submodules: true
           path: boa
@@ -36,7 +36,7 @@ jobs:
 
       # Run the test suite and upload the results
       - name: Checkout GitHub pages
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
         with:
           ref: gh-pages
           path: gh-pages
