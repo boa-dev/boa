@@ -820,9 +820,13 @@ impl Context {
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const NUMBER_OF_COLUMNS: usize = 4;
 
-        let msg = " VM Start";
-
         if self.vm.trace {
+            let msg = if self.vm.frame().prev.is_some() {
+                " Call Frame "
+            } else {
+                " VM Start "
+            };
+
             println!("{}\n", self.vm.frame().code);
             println!(
                 "{:-^width$}",
