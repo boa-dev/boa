@@ -65,6 +65,9 @@ pub struct CodeBlock {
 
     // Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
+
+    /// Indicates if the codeblock contains a lexical name `arguments`
+    pub(crate) lexical_name_argument: bool,
 }
 
 impl CodeBlock {
@@ -80,6 +83,7 @@ impl CodeBlock {
             constructor,
             this_mode: ThisMode::Global,
             params: Vec::new().into_boxed_slice(),
+            lexical_name_argument: false,
         }
     }
 
@@ -140,7 +144,9 @@ impl CodeBlock {
             | Opcode::LogicalOr
             | Opcode::Coalesce
             | Opcode::Call
+            | Opcode::CallWithRest
             | Opcode::New
+            | Opcode::NewWithRest
             | Opcode::ForInLoopInitIterator
             | Opcode::ForInLoopNext => {
                 let result = self.read::<u32>(*pc).to_string();
@@ -326,7 +332,7 @@ impl JsVmFunction {
 
         let name_property = PropertyDescriptor::builder()
             .value(code.name.clone())
-            .writable(true)
+            .writable(false)
             .enumerable(false)
             .configurable(true)
             .build();
@@ -356,9 +362,9 @@ impl JsVmFunction {
 
         let prototype_property = PropertyDescriptor::builder()
             .value(prototype)
-            .writable(false)
+            .writable(true)
             .enumerable(false)
-            .configurable(true)
+            .configurable(false)
             .build();
 
         constructor
@@ -404,14 +410,25 @@ impl JsObject {
             return context.throw_type_error("not a callable function");
         }
 
+        let mut construct = false;
+
         let body = {
             let object = self.borrow();
             let function = object.as_function().unwrap();
 
             match function {
-                Function::Native { function, .. } => FunctionBody::Native {
-                    function: *function,
-                },
+                Function::Native {
+                    function,
+                    constructor,
+                } => {
+                    if *constructor {
+                        construct = true;
+                    }
+
+                    FunctionBody::Native {
+                        function: *function,
+                    }
+                }
                 Function::Closure {
                     function, captures, ..
                 } => FunctionBody::Closure {
@@ -427,6 +444,9 @@ impl JsObject {
         };
 
         match body {
+            FunctionBody::Native { function } if construct => {
+                function(&JsValue::undefined(), args, context)
+            }
             FunctionBody::Native { function } => function(this, args, context),
             FunctionBody::Closure { function, captures } => {
                 (function)(this, args, captures, context)
@@ -480,8 +500,7 @@ impl JsObject {
                 // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
                 if !lexical_this_mode
                     && !arguments_in_parameter_names
-                    && (has_parameter_expressions
-                        || !code.variables.contains(&JsString::from("arguments")))
+                    && (has_parameter_expressions || !code.lexical_name_argument)
                 {
                     // Add arguments object
                     let arguments_obj =
@@ -634,8 +653,7 @@ impl JsObject {
                 // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
                 if !lexical_this_mode
                     && !arguments_in_parameter_names
-                    && (has_parameter_expressions
-                        || !code.variables.contains(&JsString::from("arguments")))
+                    && (has_parameter_expressions || !code.lexical_name_argument)
                 {
                     // Add arguments object
                     let arguments_obj =

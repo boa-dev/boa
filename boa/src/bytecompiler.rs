@@ -549,10 +549,13 @@ impl ByteCompiler {
                                 self.patch_jump(exit);
                             }
                             LogOp::Or => {
+                                self.emit_opcode(Opcode::Dup);
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalOr);
+                                self.emit_opcode(Opcode::Pop);
                                 self.compile_expr(binary.rhs(), true);
-                                self.emit(Opcode::ToBoolean, &[]);
+                                self.emit_opcode(Opcode::Dup);
                                 self.patch_jump(exit);
+                                self.emit_opcode(Opcode::Pop);
                             }
                             LogOp::Coalesce => {
                                 let exit = self.jump_with_custom_opcode(Opcode::Coalesce);
@@ -789,7 +792,7 @@ impl ByteCompiler {
             Node::ArrayDecl(array) => {
                 self.emit_opcode(Opcode::PushNewArray);
 
-                for element in array.as_ref().iter().rev() {
+                for element in array.as_ref() {
                     self.compile_expr(element, true);
                     if let Node::Spread(_) = element {
                         self.emit_opcode(Opcode::InitIterator);
@@ -812,7 +815,7 @@ impl ByteCompiler {
             Node::Call(_) => self.call(expr, use_expr),
             Node::New(_) => self.call(expr, use_expr),
             Node::TemplateLit(template_literal) => {
-                for element in template_literal.elements() {
+                for element in template_literal.elements().iter().rev() {
                     match element {
                         TemplateElement::String(s) => {
                             self.emit_push_literal(Literal::String(s.as_ref().into()))
@@ -844,11 +847,36 @@ impl ByteCompiler {
             Node::GeneratorExpr(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
+            // TODO: implement AsyncGeneratorExpr
+            Node::AsyncGeneratorExpr(_) => {
+                self.emit_opcode(Opcode::PushUndefined);
+            }
             // TODO: implement Yield
             Node::Yield(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
             Node::TaggedTemplate(template) => {
+                match template.tag() {
+                    Node::GetConstField(field) => {
+                        self.compile_expr(field.obj(), true);
+                        self.emit(Opcode::Dup, &[]);
+                        let index = self.get_or_insert_name(field.field());
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    Node::GetField(field) => {
+                        self.compile_expr(field.obj(), true);
+                        self.emit(Opcode::Dup, &[]);
+                        self.compile_expr(field.field(), true);
+                        self.emit(Opcode::Swap, &[]);
+                        self.emit(Opcode::GetPropertyByValue, &[]);
+                    }
+                    expr => {
+                        self.compile_expr(expr, true);
+                        self.emit_opcode(Opcode::This);
+                        self.emit_opcode(Opcode::Swap);
+                    }
+                }
+
                 for expr in template.exprs().iter().rev() {
                     self.compile_expr(expr, true);
                 }
@@ -873,26 +901,6 @@ impl ByteCompiler {
                 let index = self.get_or_insert_name("raw");
                 self.emit(Opcode::SetPropertyByName, &[index]);
 
-                match template.tag() {
-                    Node::GetConstField(field) => {
-                        self.compile_expr(field.obj(), true);
-                        self.emit(Opcode::Dup, &[]);
-                        let index = self.get_or_insert_name(field.field());
-                        self.emit(Opcode::GetPropertyByName, &[index]);
-                    }
-                    Node::GetField(field) => {
-                        self.compile_expr(field.obj(), true);
-                        self.emit(Opcode::Dup, &[]);
-                        self.compile_expr(field.field(), true);
-                        self.emit(Opcode::Swap, &[]);
-                        self.emit(Opcode::GetPropertyByValue, &[]);
-                    }
-                    expr => {
-                        self.emit(Opcode::This, &[]);
-                        self.compile_expr(expr, true);
-                    }
-                }
-
                 self.emit(Opcode::Call, &[(template.exprs().len() + 1) as u32]);
             }
             _ => unreachable!(),
@@ -906,6 +914,10 @@ impl ByteCompiler {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
+                            if ident.as_ref() == "arguments" {
+                                self.code_block.lexical_name_argument = true;
+                            }
+
                             let index = self.get_or_insert_name(ident.as_ref());
 
                             if let Some(expr) = decl.init() {
@@ -916,6 +928,10 @@ impl ByteCompiler {
                             }
                         }
                         Declaration::Pattern(pattern) => {
+                            if pattern.idents().contains(&"arguments") {
+                                self.code_block.lexical_name_argument = true;
+                            }
+
                             if let Some(init) = decl.init() {
                                 self.compile_expr(init, true);
                             } else {
@@ -931,6 +947,10 @@ impl ByteCompiler {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
+                            if ident.as_ref() == "arguments" {
+                                self.code_block.lexical_name_argument = true;
+                            }
+
                             let index = self.get_or_insert_name(ident.as_ref());
 
                             if let Some(expr) = decl.init() {
@@ -941,6 +961,10 @@ impl ByteCompiler {
                             }
                         }
                         Declaration::Pattern(pattern) => {
+                            if pattern.idents().contains(&"arguments") {
+                                self.code_block.lexical_name_argument = true;
+                            }
+
                             if let Some(init) = decl.init() {
                                 self.compile_expr(init, true);
                             } else {
@@ -956,6 +980,10 @@ impl ByteCompiler {
                 for decl in list.as_ref() {
                     match decl {
                         Declaration::Identifier { ident, .. } => {
+                            if ident.as_ref() == "arguments" {
+                                self.code_block.lexical_name_argument = true;
+                            }
+
                             let index = self.get_or_insert_name(ident.as_ref());
 
                             if let Some(expr) = decl.init() {
@@ -966,6 +994,10 @@ impl ByteCompiler {
                             }
                         }
                         Declaration::Pattern(pattern) => {
+                            if pattern.idents().contains(&"arguments") {
+                                self.code_block.lexical_name_argument = true;
+                            }
+
                             if let Some(init) = decl.init() {
                                 self.compile_expr(init, true);
                             } else {
@@ -1008,7 +1040,7 @@ impl ByteCompiler {
                 self.push_loop_control_info(for_loop.label().map(Into::into), start_address);
 
                 if let Some(final_expr) = for_loop.final_expr() {
-                    self.compile_expr(final_expr, true);
+                    self.compile_expr(final_expr, false);
                 }
 
                 self.patch_jump(initial_jump);
@@ -1078,10 +1110,12 @@ impl ByteCompiler {
 
                 self.emit(Opcode::Jump, &[start_address]);
 
+                self.pop_loop_control_info();
+                self.emit_opcode(Opcode::Pop);
+                self.emit_opcode(Opcode::Pop);
+
                 self.patch_jump(exit);
                 self.patch_jump(early_exit);
-
-                self.pop_loop_control_info();
             }
             Node::ForOfLoop(for_of_loop) => {
                 self.compile_expr(for_of_loop.iterable(), true);
@@ -1308,6 +1342,10 @@ impl ByteCompiler {
             Node::GeneratorDecl(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
+            // TODO: implement AsyncGeneratorDecl
+            Node::AsyncGeneratorDecl(_) => {
+                self.emit_opcode(Opcode::PushUndefined);
+            }
             Node::Empty => {}
             expr => self.compile_expr(expr, use_expr),
         }
@@ -1404,9 +1442,6 @@ impl ByteCompiler {
             _ => unreachable!(),
         };
 
-        for arg in call.args().iter().rev() {
-            self.compile_expr(arg, true);
-        }
         match call.expr() {
             Node::GetConstField(field) => {
                 self.compile_expr(field.obj(), true);
@@ -1422,15 +1457,28 @@ impl ByteCompiler {
                 self.emit(Opcode::GetPropertyByValue, &[]);
             }
             expr => {
-                if kind == CallKind::Call {
-                    self.emit(Opcode::This, &[]);
-                }
                 self.compile_expr(expr, true);
+                if kind == CallKind::Call {
+                    self.emit_opcode(Opcode::This);
+                    self.emit_opcode(Opcode::Swap);
+                }
             }
         }
 
+        for arg in call.args().iter().rev() {
+            self.compile_expr(arg, true);
+        }
+
+        let last_is_rest_parameter = matches!(call.args().last(), Some(Node::Spread(_)));
+
         match kind {
+            CallKind::Call if last_is_rest_parameter => {
+                self.emit(Opcode::CallWithRest, &[call.args().len() as u32])
+            }
             CallKind::Call => self.emit(Opcode::Call, &[call.args().len() as u32]),
+            CallKind::New if last_is_rest_parameter => {
+                self.emit(Opcode::NewWithRest, &[call.args().len() as u32])
+            }
             CallKind::New => self.emit(Opcode::New, &[call.args().len() as u32]),
         }
 

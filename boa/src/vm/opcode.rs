@@ -635,12 +635,26 @@ pub enum Opcode {
     /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
     Call,
 
+    /// Call a function where the last argument is a rest parameter.
+    ///
+    /// Operands: argc: `u32`
+    ///
+    /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
+    CallWithRest,
+
     /// Call construct on a function.
     ///
     /// Operands: argc: `u32`
     ///
     /// Stack: `func`, `arg1`, `arg2`,...`argn` **=>**
     New,
+
+    /// Call construct on a function where the last argument is a rest parameter.
+    ///
+    /// Operands: argc: `u32`
+    ///
+    /// Stack: `func`, `arg1`, `arg2`,...`argn` **=>**
+    NewWithRest,
 
     /// Return from a function.
     Return,
@@ -807,7 +821,9 @@ impl Opcode {
             Opcode::Default => "Default",
             Opcode::GetFunction => "GetFunction",
             Opcode::Call => "Call",
+            Opcode::CallWithRest => "CallWithRest",
             Opcode::New => "New",
+            Opcode::NewWithRest => "NewWithRest",
             Opcode::Return => "Return",
             Opcode::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
             Opcode::PopEnvironment => "PopEnvironment",

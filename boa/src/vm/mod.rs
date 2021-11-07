@@ -297,6 +297,7 @@ impl Context {
 
                 if !self.has_binding(name.as_ref())? {
                     self.create_mutable_binding(name.as_ref(), false, VariableScope::Function)?;
+                    self.initialize_binding(name.as_ref(), JsValue::Undefined)?;
                 }
             }
             Opcode::DefInitVar => {
@@ -316,6 +317,7 @@ impl Context {
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
                 self.create_mutable_binding(name.as_ref(), false, VariableScope::Block)?;
+                self.initialize_binding(name.as_ref(), JsValue::Undefined)?;
             }
             Opcode::DefInitLet => {
                 let index = self.vm.read::<u32>();
@@ -330,6 +332,7 @@ impl Context {
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
                 self.create_immutable_binding(name.as_ref(), true, VariableScope::Block)?;
+                self.initialize_binding(name.as_ref(), JsValue::Undefined)?;
             }
             Opcode::DefInitConst => {
                 let index = self.vm.read::<u32>();
@@ -583,11 +586,6 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::Throw => {
-                if self.vm.frame().pop_env_on_return > 0 {
-                    self.pop_environment();
-                    self.vm.frame_mut().pop_env_on_return -= 1;
-                }
-
                 let value = self.vm.pop();
                 return Err(value);
             }
@@ -646,12 +644,46 @@ impl Context {
                     return Err(self.construct_range_error("Maximum call stack size exceeded"));
                 }
                 let argc = self.vm.read::<u32>();
-                let func = self.vm.pop();
-                let this = self.vm.pop();
                 let mut args = Vec::with_capacity(argc as usize);
                 for _ in 0..argc {
                     args.push(self.vm.pop());
                 }
+
+                let func = self.vm.pop();
+                let this = self.vm.pop();
+
+                let object = match func {
+                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                    _ => return Err(self.construct_type_error("not a callable function")),
+                };
+
+                let result = object.__call__(&this, &args, self)?;
+
+                self.vm.push(result);
+            }
+            Opcode::CallWithRest => {
+                if self.vm.stack_size_limit <= self.vm.stack.len() {
+                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                }
+                let argc = self.vm.read::<u32>();
+                let mut args = Vec::with_capacity(argc as usize);
+                for _ in 0..(argc - 1) {
+                    args.push(self.vm.pop());
+                }
+                let rest_arg_value = self.vm.pop();
+                let func = self.vm.pop();
+                let this = self.vm.pop();
+
+                let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
+                let mut rest_args = Vec::new();
+                loop {
+                    let next = iterator_record.next(self)?;
+                    if next.done {
+                        break;
+                    }
+                    rest_args.push(next.value);
+                }
+                args.append(&mut rest_args);
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -667,11 +699,41 @@ impl Context {
                     return Err(self.construct_range_error("Maximum call stack size exceeded"));
                 }
                 let argc = self.vm.read::<u32>();
-                let func = self.vm.pop();
                 let mut args = Vec::with_capacity(argc as usize);
                 for _ in 0..argc {
                     args.push(self.vm.pop());
                 }
+                let func = self.vm.pop();
+
+                let result = func
+                    .as_constructor()
+                    .ok_or_else(|| self.construct_type_error("not a constructor"))
+                    .and_then(|cons| cons.__construct__(&args, &cons.clone().into(), self))?;
+
+                self.vm.push(result);
+            }
+            Opcode::NewWithRest => {
+                if self.vm.stack_size_limit <= self.vm.stack.len() {
+                    return Err(self.construct_range_error("Maximum call stack size exceeded"));
+                }
+                let argc = self.vm.read::<u32>();
+                let mut args = Vec::with_capacity(argc as usize);
+                for _ in 0..(argc - 1) {
+                    args.push(self.vm.pop());
+                }
+                let rest_arg_value = self.vm.pop();
+                let func = self.vm.pop();
+
+                let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
+                let mut rest_args = Vec::new();
+                loop {
+                    let next = iterator_record.next(self)?;
+                    if next.done {
+                        break;
+                    }
+                    rest_args.push(next.value);
+                }
+                args.append(&mut rest_args);
 
                 let result = func
                     .as_constructor()
@@ -891,6 +953,10 @@ impl Context {
                 }
                 Err(e) => {
                     if let Some(address) = self.vm.frame().catch {
+                        if self.vm.frame().pop_env_on_return > 0 {
+                            self.pop_environment();
+                            self.vm.frame_mut().pop_env_on_return -= 1;
+                        }
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch = None;
                         self.vm.push(e);
