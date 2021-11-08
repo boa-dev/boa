@@ -47,7 +47,7 @@ pub struct CodeBlock {
     /// Name of this function
     pub(crate) name: JsString,
 
-    /// The number of parameters expected.
+    /// The number of arguments expected.
     pub(crate) length: u32,
 
     /// Is this function in strict mode.
