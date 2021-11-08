@@ -93,7 +93,9 @@ for debugging purposes by setting up the verbose flag twice, for example `-vv`. 
 each test that is executed, you can use the triple verbose (`-vvv`) flag.
 
 Finally, if you want to only run one sub-suite or even one test (to just check if you fixed/broke something specific),
-you can do it with the `-s` parameter, and then passing the path to the sub-suite or test that you want to run.
+you can do it with the `-s` parameter, and then passing the path to the sub-suite or test that you want to run. Note
+that the `-s` parameter value should be a path relative to the `test262` directory. For example, to run the number
+type tests, use `-s test/language/types/number`.
 
 ## Communication
 

@@ -173,7 +173,7 @@ enum Cli {
         #[structopt(long, parse(from_os_str), default_value = "./test262")]
         test262_path: PathBuf,
 
-        /// Which specific test or test suite to run.
+        /// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. "test/language/types/number"
         #[structopt(short, long, parse(from_os_str), default_value = "test")]
         suite: PathBuf,
 
