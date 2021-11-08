@@ -13,23 +13,36 @@ use std::panic;
 
 impl TestSuite {
     /// Runs the test suite.
-    pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> SuiteResult {
+    pub(crate) fn run(&self, harness: &Harness, verbose: u8, parallel: bool) -> SuiteResult {
         if verbose != 0 {
             println!("Suite {}:", self.name);
         }
 
-        let suites: Vec<_> = self
-            .suites
-            .par_iter()
-            .map(|suite| suite.run(harness, verbose))
-            .collect();
+        let suites: Vec<_> = if parallel {
+            self.suites
+                .par_iter()
+                .map(|suite| suite.run(harness, verbose, parallel))
+                .collect()
+        } else {
+            self.suites
+                .iter()
+                .map(|suite| suite.run(harness, verbose, parallel))
+                .collect()
+        };
 
-        let tests: Vec<_> = self
-            .tests
-            .par_iter()
-            .map(|test| test.run(harness, verbose))
-            .flatten()
-            .collect();
+        let tests: Vec<_> = if parallel {
+            self.tests
+                .par_iter()
+                .map(|test| test.run(harness, verbose))
+                .flatten()
+                .collect()
+        } else {
+            self.tests
+                .iter()
+                .map(|test| test.run(harness, verbose))
+                .flatten()
+                .collect()
+        };
 
         if verbose != 0 {
             println!();

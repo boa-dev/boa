@@ -180,6 +180,10 @@ enum Cli {
         /// Optional output folder for the full results information.
         #[structopt(short, long, parse(from_os_str))]
         output: Option<PathBuf>,
+
+        /// Execute tests serially
+        #[structopt(short, long)]
+        disable_parallelism: bool,
     },
     Compare {
         /// Base results of the suite.
@@ -204,9 +208,11 @@ fn main() {
             test262_path,
             suite,
             output,
+            disable_parallelism,
         } => {
             run_test_suite(
                 verbose,
+                !disable_parallelism,
                 test262_path.as_path(),
                 suite.as_path(),
                 output.as_deref(),
@@ -221,7 +227,13 @@ fn main() {
 }
 
 /// Runs the full test suite.
-fn run_test_suite(verbose: u8, test262_path: &Path, suite: &Path, output: Option<&Path>) {
+fn run_test_suite(
+    verbose: u8,
+    parallel: bool,
+    test262_path: &Path,
+    suite: &Path,
+    output: Option<&Path>,
+) {
     if let Some(path) = output {
         if path.exists() {
             if !path.is_dir() {
@@ -254,7 +266,7 @@ fn run_test_suite(verbose: u8, test262_path: &Path, suite: &Path, output: Option
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
         }
-        let results = suite.run(&harness, verbose);
+        let results = suite.run(&harness, verbose, parallel);
 
         println!();
         println!("Results:");
