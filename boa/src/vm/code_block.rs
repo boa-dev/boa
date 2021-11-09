@@ -2,6 +2,8 @@
 //!
 //! This module is for the CodeBlock which implements a function representation in the VM
 
+use std::{fmt::Write, mem::size_of};
+
 use crate::{
     builtins::function::{
         arguments::Arguments, Captures, ClosureFunctionSignature, Function,
@@ -20,9 +22,11 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use gc::Gc;
-use std::{convert::TryInto, fmt::Write, mem::size_of};
-
 /// This represents whether a value can be read from [`CodeBlock`] code.
+///
+/// # Safety
+///
+/// This trait should not be implemented on objects that implement `Drop`.
 pub unsafe trait Readable {}
 
 unsafe impl Readable for u8 {}
@@ -205,6 +209,7 @@ impl CodeBlock {
             Opcode::Pop
             | Opcode::Dup
             | Opcode::Swap
+            | Opcode::Swap2
             | Opcode::PushZero
             | Opcode::PushOne
             | Opcode::PushNaN
@@ -383,7 +388,7 @@ impl JsVmFunction {
             .configurable(true)
             .build();
 
-        let function = Function::VmOrdinary { code, environment };
+        let function = Function::Ordinary { code, environment };
 
         let constructor =
             JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
@@ -474,11 +479,10 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environment } => FunctionBody::Ordinary {
+                Function::Ordinary { code, environment } => FunctionBody::Ordinary {
                     code: code.clone(),
                     environment: environment.clone(),
                 },
-                Function::Ordinary { .. } => unreachable!(),
             }
         };
 
@@ -640,11 +644,10 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environment } => FunctionBody::Ordinary {
+                Function::Ordinary { code, environment } => FunctionBody::Ordinary {
                     code: code.clone(),
                     environment: environment.clone(),
                 },
-                Function::Ordinary { .. } => unreachable!(),
             }
         };
 

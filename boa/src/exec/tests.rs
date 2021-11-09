@@ -772,10 +772,6 @@ mod in_operator {
             new a();
         "#;
 
-        #[cfg(not(feature = "vm"))]
-        let error = "Uncaught \"TypeError\": \"a is not a constructor\"";
-
-        #[cfg(feature = "vm")]
         let error = "Uncaught \"TypeError\": \"not a constructor\"";
 
         check_output(&[TestAction::TestEq(scenario, error)]);
@@ -1268,10 +1264,6 @@ fn not_a_function() {
         }
     "#;
 
-    #[cfg(not(feature = "vm"))]
-    let error = "\"TypeError: Value is not callable\"";
-
-    #[cfg(feature = "vm")]
     let error = "\"TypeError: not a callable function\"";
 
     check_output(&[

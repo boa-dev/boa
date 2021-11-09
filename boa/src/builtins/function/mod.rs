@@ -30,8 +30,6 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, NativeObject, ObjectData},
     property::Attribute,
     property::PropertyDescriptor,
-    syntax::ast::node::declaration::Declaration,
-    syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
 };
 use crate::{object::Object, symbol::WellKnownSymbols};
@@ -187,14 +185,6 @@ pub enum Function {
         captures: Captures,
     },
     Ordinary {
-        constructor: bool,
-        this_mode: ThisMode,
-        body: RcStatementList,
-        params: Box<[FormalParameter]>,
-        environment: Environment,
-    },
-    #[cfg(feature = "vm")]
-    VmOrdinary {
         code: Gc<crate::vm::CodeBlock>,
         environment: Environment,
     },
@@ -207,73 +197,12 @@ impl fmt::Debug for Function {
 }
 
 impl Function {
-    // Adds the final rest parameters to the Environment as an array
-    #[cfg(not(feature = "vm"))]
-    pub(crate) fn add_rest_param(
-        param: &FormalParameter,
-        index: usize,
-        args_list: &[JsValue],
-        context: &mut Context,
-        local_env: &Environment,
-    ) {
-        use crate::builtins::Array;
-        // Create array of values
-        let array = Array::new_array(context);
-        Array::add_to_array_object(&array, args_list.get(index..).unwrap_or_default(), context)
-            .unwrap();
-
-        let binding_params = param.run(Some(array), context).unwrap_or_default();
-        for binding_items in binding_params.iter() {
-            // Create binding
-            local_env
-                .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
-                .expect("Failed to create binding");
-
-            // Set binding to value
-            local_env
-                .initialize_binding(
-                    binding_items.0.as_ref(),
-                    JsValue::new(binding_items.1.clone()),
-                    context,
-                )
-                .expect("Failed to intialize binding");
-        }
-    }
-
-    // Adds an argument to the environment
-    #[cfg(not(feature = "vm"))]
-    pub(crate) fn add_arguments_to_environment(
-        param: &FormalParameter,
-        value: JsValue,
-        local_env: &Environment,
-        context: &mut Context,
-    ) {
-        let binding_params = param.run(Some(value), context).unwrap_or_default();
-        for binding_items in binding_params.iter() {
-            // Create binding
-            local_env
-                .create_mutable_binding(binding_items.0.as_ref(), false, true, context)
-                .expect("Failed to create binding");
-
-            // Set binding to value
-            local_env
-                .initialize_binding(
-                    binding_items.0.as_ref(),
-                    JsValue::new(binding_items.1.clone()),
-                    context,
-                )
-                .expect("Failed to intialize binding");
-        }
-    }
-
     /// Returns true if the function object is a constructor.
     pub fn is_constructor(&self) -> bool {
         match self {
             Self::Native { constructor, .. } => *constructor,
             Self::Closure { constructor, .. } => *constructor,
-            Self::Ordinary { constructor, .. } => *constructor,
-            #[cfg(feature = "vm")]
-            Self::VmOrdinary { code, .. } => code.constructor,
+            Self::Ordinary { code, .. } => code.constructor,
         }
     }
 }
@@ -535,63 +464,11 @@ impl BuiltInFunctionObject {
                 },
                 Some(name),
             ) => Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into()),
-            (Function::Ordinary { body, params, .. }, Some(name)) => {
-                let arguments: String = {
-                    let mut argument_list: Vec<Cow<'_, str>> = Vec::new();
-                    for params_item in params.iter() {
-                        let argument_item = match &params_item.declaration() {
-                            Declaration::Identifier { ident, .. } => Cow::Borrowed(ident.as_ref()),
-                            Declaration::Pattern(pattern) => {
-                                Cow::Owned(format!("{{{}}}", pattern.idents().join(",")))
-                            }
-                        };
-                        argument_list.push(argument_item);
-                    }
-                    argument_list.join(",")
-                };
-
-                let statement_list = &*body;
-                // This is a kluge. The implementaion in browser seems to suggest that
-                // the value here is printed exactly as defined in source. I'm not sure if
-                // that's possible here, but for now here's a dumb heuristic that prints functions
-                let is_multiline = {
-                    let value = statement_list.to_string();
-                    value.lines().count() > 1
-                };
-                if is_multiline {
-                    Ok(
-                        // ?? For some reason statement_list string implementation
-                        // sticks a \n at the end no matter what
-                        format!(
-                            "{}({}) {{\n{}}}",
-                            &name,
-                            arguments,
-                            statement_list.to_string()
-                        )
-                        .into(),
-                    )
-                } else {
-                    Ok(format!(
-                        "{}({}) {{{}}}",
-                        &name,
-                        arguments,
-                        // The trim here is to remove a \n stuck at the end
-                        // of the statement_list to_string method
-                        statement_list.to_string().trim()
-                    )
-                    .into())
-                }
-            }
-            #[cfg(feature = "vm")]
-            (Function::VmOrdinary { .. }, Some(name)) if name.is_empty() => {
+            (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
                 Ok("[Function (anonymous)]".into())
             }
-            #[cfg(feature = "vm")]
-            (Function::VmOrdinary { .. }, Some(name)) => {
-                Ok(format!("[Function: {}]", &name).into())
-            }
-            #[cfg(feature = "vm")]
-            (Function::VmOrdinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Ordinary { .. }, Some(name)) => Ok(format!("[Function: {}]", &name).into()),
+            (Function::Ordinary { .. }, None) => Ok("[Function (anonymous)]".into()),
             _ => Ok("TODO".into()),
         }
     }

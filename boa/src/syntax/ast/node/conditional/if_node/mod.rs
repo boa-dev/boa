@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -26,7 +21,7 @@ use serde::{Deserialize, Serialize};
 /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct If {
     cond: Box<Node>,
     body: Box<Node>,
@@ -75,18 +70,6 @@ impl If {
             }
             None => self.body().display(f, indent),
         }
-    }
-}
-
-impl Executable for If {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Ok(if self.cond().run(context)?.to_boolean() {
-            self.body().run(context)?
-        } else if let Some(else_e) = self.else_node() {
-            else_e.run(context)?
-        } else {
-            JsValue::undefined()
-        })
     }
 }
 

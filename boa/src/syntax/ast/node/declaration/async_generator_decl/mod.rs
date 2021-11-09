@@ -1,11 +1,6 @@
 //! Async Generator Declaration
 
-use crate::{
-    exec::Executable,
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
-};
-use gc::{Finalize, Trace};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -18,7 +13,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AsyncGeneratorDecl {
     name: Box<str>,
     parameters: Box<[FormalParameter]>,
@@ -70,14 +65,6 @@ impl AsyncGeneratorDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for AsyncGeneratorDecl {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("AsyncGeneratorDecl", "exec");
-        //TODO: Implement AsyncGeneratorDecl
-        Ok(JsValue::undefined())
     }
 }
 

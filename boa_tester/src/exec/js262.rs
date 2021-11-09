@@ -5,9 +5,6 @@ use boa::{
     Context, JsResult, JsValue,
 };
 
-#[cfg(not(feature = "vm"))]
-use boa::exec::Executable;
-
 /// Initializes the object in the context.
 pub(super) fn init(context: &mut Context) -> JsObject {
     let global_obj = context.global_object();
@@ -90,11 +87,8 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsRe
         match boa::parse(source_text.as_str(), false) {
             // TODO: check strict
             Err(e) => context.throw_type_error(format!("Uncaught Syntax Error: {}", e)),
-            #[cfg(not(feature = "vm"))]
-            Ok(statement_list) => statement_list.run(context),
             // Calling eval here parses the code a second time.
             // TODO: We can fix this after we have have defined the public api for the vm executer.
-            #[cfg(feature = "vm")]
             Ok(_) => context.eval(source_text.as_str()),
         }
     } else {

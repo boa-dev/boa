@@ -1,11 +1,6 @@
 //! Local identifier node.
 
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -28,16 +23,9 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Identifier {
     ident: Box<str>,
-}
-
-impl Executable for Identifier {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Identifier", "exec");
-        context.get_binding_value(self.as_ref())
-    }
 }
 
 impl fmt::Display for Identifier {

@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -27,7 +22,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Throw {
     expr: Box<Node>,
 }
@@ -45,13 +40,6 @@ impl Throw {
         Self {
             expr: Box::new(val.into()),
         }
-    }
-}
-
-impl Executable for Throw {
-    #[inline]
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Err(self.expr().run(context)?)
     }
 }
 

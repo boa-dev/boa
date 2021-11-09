@@ -1,10 +1,4 @@
 use super::Node;
-use crate::{
-    exec::Executable,
-    exec::InterpreterState,
-    gc::{Finalize, Trace},
-    Context, JsResult, JsValue,
-};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -28,7 +22,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Break {
     label: Option<Box<str>>,
 }
@@ -48,16 +42,6 @@ impl Break {
     /// Gets the label of the break statement, if any.
     pub fn label(&self) -> Option<&str> {
         self.label.as_ref().map(Box::as_ref)
-    }
-}
-
-impl Executable for Break {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        context
-            .executor()
-            .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
-
-        Ok(JsValue::undefined())
     }
 }
 

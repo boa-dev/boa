@@ -1,12 +1,6 @@
 //! Array declaration node.
 
 use super::{join_nodes, Node};
-use crate::{
-    builtins::Array,
-    exec::Executable,
-    gc::{Finalize, Trace},
-    BoaProfiler, Context, JsResult, JsValue,
-};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -32,41 +26,10 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArrayDecl {
     #[cfg_attr(feature = "deser", serde(flatten))]
     arr: Box<[Node]>,
-}
-
-impl Executable for ArrayDecl {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
-        let array = Array::new_array(context);
-        let mut elements = Vec::new();
-        for elem in self.as_ref() {
-            if let Node::Spread(ref x) = elem {
-                let val = x.run(context)?;
-                let iterator_record = val.get_iterator(context, None, None)?;
-                // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
-                // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
-                // let mut next_index = 0;
-                loop {
-                    let next = iterator_record.next(context)?;
-                    if next.done {
-                        break;
-                    }
-                    let next_value = next.value;
-                    //next_index += 1;
-                    elements.push(next_value);
-                }
-            } else {
-                elements.push(elem.run(context)?);
-            }
-        }
-
-        Array::add_to_array_object(&array, &elements, context)?;
-        Ok(array)
-    }
 }
 
 impl AsRef<[Node]> for ArrayDecl {

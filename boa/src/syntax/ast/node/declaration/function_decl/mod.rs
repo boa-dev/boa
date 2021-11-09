@@ -1,11 +1,4 @@
-use crate::{
-    builtins::function::ThisMode,
-    environment::lexical_environment::VariableScope,
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -30,7 +23,7 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
 /// [func_expr]: ../enum.Node.html#variant.FunctionExpr
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FunctionDecl {
     name: Box<str>,
     parameters: Box<[FormalParameter]>,
@@ -82,28 +75,6 @@ impl FunctionDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for FunctionDecl {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
-        let val = context.create_function(
-            self.name(),
-            self.parameters().to_vec(),
-            self.body().clone(),
-            true,
-            ThisMode::Global,
-        )?;
-
-        if context.has_binding(self.name())? {
-            context.set_mutable_binding(self.name(), val, context.strict())?;
-        } else {
-            context.create_mutable_binding(self.name(), false, VariableScope::Function)?;
-
-            context.initialize_binding(self.name(), val)?;
-        }
-        Ok(JsValue::undefined())
     }
 }
 

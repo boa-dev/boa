@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -18,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Yield {
     expr: Option<Box<Node>>,
     delegate: bool,
@@ -43,13 +38,6 @@ impl Yield {
             expr: expr.into().map(E::into).map(Box::new),
             delegate,
         }
-    }
-}
-
-impl Executable for Yield {
-    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
-        // TODO: Implement Generator execution
-        Ok(JsValue::undefined())
     }
 }
 

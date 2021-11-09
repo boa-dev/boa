@@ -43,6 +43,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 pub mod bigint;
 pub mod builtins;
+pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environment;
@@ -56,10 +57,6 @@ pub mod string;
 pub mod symbol;
 pub mod syntax;
 pub mod value;
-
-#[cfg(feature = "vm")]
-pub mod bytecompiler;
-#[cfg(feature = "vm")]
 pub mod vm;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
@@ -69,7 +66,7 @@ pub mod prelude {
 
 use std::result::Result as StdResult;
 
-pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
+pub(crate) use crate::profiler::BoaProfiler;
 
 // Export things to root level
 #[doc(inline)]
@@ -81,6 +78,9 @@ use crate::syntax::{
     ast::node::StatementList,
     parser::{ParseError, Parser},
 };
+
+use ::gc::Gc;
+use vm::{CallFrame, CodeBlock, FinallyReturn};
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
@@ -96,6 +96,35 @@ pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementLi
     Parser::new(src_bytes, strict_mode).parse_all()
 }
 
+#[inline]
+pub fn compile(statement_list: &StatementList) -> Gc<CodeBlock> {
+    let mut compiler =
+        crate::bytecompiler::ByteCompiler::new(JsString::new("<main>"), statement_list.strict());
+    compiler.compile_statement_list(statement_list, true);
+    Gc::new(compiler.finish())
+}
+
+#[inline]
+pub fn run(code: &Gc<CodeBlock>, context: &mut Context) -> JsResult<JsValue> {
+    let global_object = context.global_object().into();
+
+    context.vm.push_frame(CallFrame {
+        prev: None,
+        code: code.clone(),
+        this: global_object,
+        pc: 0,
+        catch: Vec::new(),
+        finally_return: FinallyReturn::None,
+        finally_jump: Vec::new(),
+        pop_on_return: 0,
+        pop_env_on_return: 0,
+        param_count: 0,
+        arg_count: 0,
+    });
+
+    context.run()
+}
+
 /// Execute the code using an existing Context
 /// The str is consumed and the state of the Context is changed
 #[cfg(test)]
@@ -106,7 +135,6 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
         |v| v.display().to_string(),
     );
 
-    #[cfg(feature = "vm")]
     context.vm.pop_frame();
 
     result
@@ -118,13 +146,12 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsResult<JsValue> {
+pub(crate) fn forward_val(context: &mut Context, src: &str) -> JsResult<JsValue> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
     let src_bytes: &[u8] = src.as_ref();
     let result = context.eval(src_bytes);
 
-    #[cfg(feature = "vm")]
     context.vm.pop_frame();
 
     // The main_timer needs to be dropped before the BoaProfiler is.
@@ -136,7 +163,7 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsRe
 
 /// Create a clean Context and execute the code
 #[cfg(test)]
-pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
+pub(crate) fn exec(src: &str) -> String {
     let src_bytes: &[u8] = src.as_ref();
 
     match Context::new().eval(src_bytes) {

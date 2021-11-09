@@ -1,12 +1,6 @@
 //! Object node.
 
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    property::PropertyDescriptor,
-    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition, PropertyName},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -36,7 +30,7 @@ mod tests;
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Object {
     properties: Box<[PropertyDefinition]>,
 }
@@ -86,144 +80,6 @@ impl Object {
             }
         }
         write!(f, "{}}}", "    ".repeat(indent))
-    }
-}
-
-impl Executable for Object {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("object", "exec");
-        let obj = context.construct_object();
-
-        // TODO: Implement the rest of the property types.
-        for property in self.properties().iter() {
-            match property {
-                PropertyDefinition::Property(name, value) => {
-                    let name = match name {
-                        PropertyName::Literal(name) => name.clone().into(),
-                        PropertyName::Computed(node) => {
-                            node.run(context)?.to_property_key(context)?
-                        }
-                    };
-                    obj.__define_own_property__(
-                        name,
-                        PropertyDescriptor::builder()
-                            .value(value.run(context)?)
-                            .writable(true)
-                            .enumerable(true)
-                            .configurable(true)
-                            .build(),
-                        context,
-                    )?;
-                }
-                PropertyDefinition::MethodDefinition(kind, name, func) => {
-                    let name = match name {
-                        PropertyName::Literal(name) => name.clone().into(),
-                        PropertyName::Computed(node) => {
-                            node.run(context)?.to_property_key(context)?
-                        }
-                    };
-                    match kind {
-                        MethodDefinitionKind::Ordinary => {
-                            obj.__define_own_property__(
-                                name,
-                                PropertyDescriptor::builder()
-                                    .value(func.run(context)?)
-                                    .writable(true)
-                                    .enumerable(true)
-                                    .configurable(true)
-                                    .build(),
-                                context,
-                            )?;
-                        }
-                        MethodDefinitionKind::Get => {
-                            let set = obj
-                                .__get_own_property__(&name, context)?
-                                .as_ref()
-                                .and_then(|a| a.set())
-                                .cloned();
-                            obj.__define_own_property__(
-                                name,
-                                PropertyDescriptor::builder()
-                                    .maybe_get(func.run(context)?.as_object().cloned())
-                                    .maybe_set(set)
-                                    .enumerable(true)
-                                    .configurable(true)
-                                    .build(),
-                                context,
-                            )?;
-                        }
-                        MethodDefinitionKind::Set => {
-                            let get = obj
-                                .__get_own_property__(&name, context)?
-                                .as_ref()
-                                .and_then(|a| a.get())
-                                .cloned();
-                            obj.__define_own_property__(
-                                name,
-                                PropertyDescriptor::builder()
-                                    .maybe_get(get)
-                                    .maybe_set(func.run(context)?.as_object().cloned())
-                                    .enumerable(true)
-                                    .configurable(true)
-                                    .build(),
-                                context,
-                            )?;
-                        }
-                        &MethodDefinitionKind::Generator => {
-                            // TODO: Implement generator method definition execution.
-                            obj.__define_own_property__(
-                                name,
-                                PropertyDescriptor::builder()
-                                    .value(JsValue::undefined())
-                                    .writable(true)
-                                    .enumerable(true)
-                                    .configurable(true)
-                                    .build(),
-                                context,
-                            )?;
-                        }
-                        &MethodDefinitionKind::AsyncGenerator => {
-                            // TODO: Implement async generator method definition execution.
-                            obj.__define_own_property__(
-                                name,
-                                PropertyDescriptor::builder()
-                                    .value(JsValue::undefined())
-                                    .writable(true)
-                                    .enumerable(true)
-                                    .configurable(true)
-                                    .build(),
-                                context,
-                            )?;
-                        }
-                        &MethodDefinitionKind::Async => {
-                            obj.__define_own_property__(
-                                name,
-                                PropertyDescriptor::builder()
-                                    .value(JsValue::undefined())
-                                    .writable(true)
-                                    .enumerable(true)
-                                    .configurable(true)
-                                    .build(),
-                                context,
-                            )?;
-                        }
-                    }
-                }
-                // [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation
-                PropertyDefinition::SpreadObject(node) => {
-                    let val = node.run(context)?;
-
-                    if val.is_null_or_undefined() {
-                        continue;
-                    }
-
-                    obj.copy_data_properties::<String>(&val, vec![], context)?;
-                }
-                _ => {} // unimplemented!("{:?} type of property", i),
-            }
-        }
-
-        Ok(obj.into())
     }
 }
 

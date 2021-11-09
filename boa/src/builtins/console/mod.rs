@@ -299,7 +299,6 @@ impl Console {
         Ok(JsValue::undefined())
     }
 
-    #[cfg(feature = "vm")]
     fn get_stack_trace(context: &mut Context) -> Vec<String> {
         let mut stack_trace: Vec<String> = vec![];
         let mut prev_frame = context.vm.frame.as_ref();
@@ -310,12 +309,6 @@ impl Console {
         }
 
         stack_trace
-    }
-
-    #[cfg(not(feature = "vm"))]
-    fn get_stack_trace(_: &mut Context) -> Vec<String> {
-        // TODO: Implement stack trace retrieval when "vm" feature is not available
-        vec![]
     }
 
     /// `console.trace(...data)`

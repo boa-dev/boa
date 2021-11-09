@@ -1,9 +1,4 @@
-use crate::{
-    exec::{Executable, InterpreterState},
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -31,7 +26,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Return {
     expr: Option<Box<Node>>,
     label: Option<Box<str>>,
@@ -57,20 +52,6 @@ impl Return {
             expr: expr.into().map(E::into).map(Box::new),
             label: label.into(),
         }
-    }
-}
-
-impl Executable for Return {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let result = match self.expr() {
-            Some(v) => v.run(context),
-            None => Ok(JsValue::undefined()),
-        };
-        // Set flag for return
-        context
-            .executor()
-            .set_current_state(InterpreterState::Return);
-        result
     }
 }
 

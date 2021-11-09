@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -32,7 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GetField {
     obj: Box<Node>,
     field: Box<Node>,
@@ -57,18 +52,6 @@ impl GetField {
             obj: Box::new(value.into()),
             field: Box::new(field.into()),
         }
-    }
-}
-
-impl Executable for GetField {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let mut obj = self.obj().run(context)?;
-        if !obj.is_object() {
-            obj = JsValue::Object(obj.to_object(context)?);
-        }
-        let field = self.field().run(context)?;
-
-        obj.get_field(field.to_property_key(context)?, context)
     }
 }
 

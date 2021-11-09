@@ -195,12 +195,10 @@ impl IteratorRecord {
         }
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn iterator_object(&self) -> &JsValue {
         &self.iterator_object
     }
 
-    #[cfg(feature = "vm")]
     pub(crate) fn next_function(&self) -> &JsValue {
         &self.next_function
     }

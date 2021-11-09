@@ -1,10 +1,4 @@
-use crate::{
-    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
-    exec::{Executable, InterpreterState},
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -22,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ForLoop {
     #[cfg_attr(feature = "deser", serde(flatten))]
     inner: Box<InnerForLoop>,
@@ -97,56 +91,6 @@ impl ForLoop {
     }
 }
 
-impl Executable for ForLoop {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        // Create the block environment.
-        let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
-        {
-            let env = context.get_current_environment();
-            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
-        }
-
-        if let Some(init) = self.init() {
-            init.run(context)?;
-        }
-
-        while self
-            .condition()
-            .map(|cond| cond.run(context).map(|v| v.to_boolean()))
-            .transpose()?
-            .unwrap_or(true)
-        {
-            let result = self.body().run(context)?;
-
-            match context.executor().get_current_state() {
-                InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, context, break);
-                    break;
-                }
-                InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, context, continue);
-                }
-
-                InterpreterState::Return => {
-                    return Ok(result);
-                }
-                InterpreterState::Executing => {
-                    // Continue execution.
-                }
-            }
-
-            if let Some(final_expr) = self.final_expr() {
-                final_expr.run(context)?;
-            }
-        }
-
-        // pop the block env
-        let _ = context.pop_environment();
-
-        Ok(JsValue::undefined())
-    }
-}
-
 impl fmt::Display for ForLoop {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
@@ -161,7 +105,7 @@ impl From<ForLoop> for Node {
 
 /// Inner structure to avoid multiple indirections in the heap.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct InnerForLoop {
     init: Option<Node>,
     condition: Option<Node>,

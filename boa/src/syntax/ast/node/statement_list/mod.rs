@@ -1,12 +1,6 @@
 //! Statement list node.
 
-use crate::{
-    context::StrictType,
-    exec::{Executable, InterpreterState},
-    gc::{empty_trace, Finalize, Trace},
-    syntax::ast::node::{Declaration, Node},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{Declaration, Node};
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
 #[cfg(feature = "deser")]
@@ -24,7 +18,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
     items: Box<[Node]>,
@@ -129,61 +123,6 @@ impl StatementList {
     }
 }
 
-impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("StatementList", "exec");
-
-        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
-        // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = JsValue::default();
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-
-        let strict_before = context.strict_type();
-
-        match context.strict_type() {
-            StrictType::Off if self.strict => context.set_strict(StrictType::Function),
-            StrictType::Function if !self.strict => context.set_strict_mode_off(),
-            _ => {}
-        }
-
-        for (i, item) in self.items().iter().enumerate() {
-            let val = match item.run(context) {
-                Ok(val) => val,
-                Err(e) => {
-                    context.set_strict(strict_before);
-                    return Err(e);
-                }
-            };
-            match context.executor().get_current_state() {
-                InterpreterState::Return => {
-                    // Early return.
-                    obj = val;
-                    break;
-                }
-                InterpreterState::Break(_label) => {
-                    // Early break.
-                    break;
-                }
-                InterpreterState::Continue(_label) => {
-                    break;
-                }
-                InterpreterState::Executing => {
-                    // Continue execution
-                }
-            }
-            if i + 1 == self.items().len() {
-                obj = val;
-            }
-        }
-
-        context.set_strict(strict_before);
-
-        Ok(obj)
-    }
-}
-
 impl<T> From<T> for StatementList
 where
     T: Into<Box<[Node]>>,
@@ -205,7 +144,7 @@ impl fmt::Display for StatementList {
 // List of statements wrapped with Rc. We need this for self mutating functions.
 // Since we need to cheaply clone the function body and drop the borrow of the function object to
 // mutably borrow the function object and call this cloned function body
-#[derive(Clone, Debug, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RcStatementList(Rc<StatementList>);
 
 impl Deref for RcStatementList {
@@ -220,9 +159,4 @@ impl From<StatementList> for RcStatementList {
     fn from(statementlist: StatementList) -> Self {
         Self(Rc::from(statementlist))
     }
-}
-
-// SAFETY: This is safe for types not containing any `Trace` types.
-unsafe impl Trace for RcStatementList {
-    empty_trace!();
 }

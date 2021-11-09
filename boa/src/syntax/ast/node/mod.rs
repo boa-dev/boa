@@ -51,22 +51,19 @@ pub use self::{
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
-use crate::{
-    exec::Executable,
-    gc::{empty_trace, Finalize, Trace},
-    BoaProfiler, Context, JsResult, JsValue,
-};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
 };
+
+use crate::gc::{empty_trace, Finalize, Trace};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 // TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Node {
     /// Array declaration node. [More information](./array/struct.ArrayDecl.html).
     ArrayDecl(ArrayDecl),
@@ -330,72 +327,6 @@ impl Node {
     }
 }
 
-impl Executable for Node {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Executable", "exec");
-        match *self {
-            Node::AsyncFunctionDecl(ref decl) => decl.run(context),
-            Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
-            Node::AsyncGeneratorExpr(ref expr) => expr.run(context),
-            Node::AsyncGeneratorDecl(ref decl) => decl.run(context),
-            Node::AwaitExpr(ref expr) => expr.run(context),
-            Node::Call(ref call) => call.run(context),
-            Node::Const(Const::Null) => Ok(JsValue::null()),
-            Node::Const(Const::Num(num)) => Ok(JsValue::new(num)),
-            Node::Const(Const::Int(num)) => Ok(JsValue::new(num)),
-            Node::Const(Const::BigInt(ref num)) => Ok(JsValue::new(num.clone())),
-            Node::Const(Const::Undefined) => Ok(JsValue::undefined()),
-            // we can't move String from Const into value, because const is a garbage collected value
-            // Which means Drop() get's called on Const, but str will be gone at that point.
-            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            Node::Const(Const::String(ref value)) => Ok(JsValue::new(value.to_string())),
-            Node::Const(Const::Bool(value)) => Ok(JsValue::new(value)),
-            Node::Block(ref block) => block.run(context),
-            Node::Identifier(ref identifier) => identifier.run(context),
-            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
-            Node::GetField(ref get_field) => get_field.run(context),
-            Node::WhileLoop(ref while_loop) => while_loop.run(context),
-            Node::DoWhileLoop(ref do_while) => do_while.run(context),
-            Node::ForLoop(ref for_loop) => for_loop.run(context),
-            Node::ForOfLoop(ref for_of_loop) => for_of_loop.run(context),
-            Node::ForInLoop(ref for_in_loop) => for_in_loop.run(context),
-            Node::If(ref if_smt) => if_smt.run(context),
-            Node::ConditionalOp(ref op) => op.run(context),
-            Node::Switch(ref switch) => switch.run(context),
-            Node::Object(ref obj) => obj.run(context),
-            Node::ArrayDecl(ref arr) => arr.run(context),
-            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionDecl(ref decl) => decl.run(context),
-            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionExpr(ref function_expr) => function_expr.run(context),
-            Node::ArrowFunctionDecl(ref decl) => decl.run(context),
-            Node::BinOp(ref op) => op.run(context),
-            Node::UnaryOp(ref op) => op.run(context),
-            Node::New(ref call) => call.run(context),
-            Node::Return(ref ret) => ret.run(context),
-            Node::TaggedTemplate(ref template) => template.run(context),
-            Node::TemplateLit(ref template) => template.run(context),
-            Node::Throw(ref throw) => throw.run(context),
-            Node::Assign(ref op) => op.run(context),
-            Node::VarDeclList(ref decl) => decl.run(context),
-            Node::LetDeclList(ref decl) => decl.run(context),
-            Node::ConstDeclList(ref decl) => decl.run(context),
-            Node::Spread(ref spread) => spread.run(context),
-            Node::This => {
-                // Will either return `this` binding or undefined
-                context.get_this_binding()
-            }
-            Node::Try(ref try_node) => try_node.run(context),
-            Node::Break(ref break_node) => break_node.run(context),
-            Node::Continue(ref continue_node) => continue_node.run(context),
-            Node::Empty => Ok(JsValue::undefined()),
-            Node::Yield(ref y) => y.run(context),
-            Node::GeneratorDecl(ref decl) => decl.run(context),
-            Node::GeneratorExpr(ref expr) => expr.run(context),
-        }
-    }
-}
-
 /// Utility to join multiple Nodes into a single string.
 fn join_nodes<N>(f: &mut fmt::Formatter<'_>, nodes: &[N]) -> fmt::Result
 where
@@ -428,10 +359,14 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+#[derive(Clone, Debug, PartialEq, Finalize)]
 pub struct FormalParameter {
     declaration: Declaration,
     is_rest_param: bool,
+}
+
+unsafe impl Trace for FormalParameter {
+    empty_trace!();
 }
 
 impl FormalParameter {
@@ -473,25 +408,6 @@ impl FormalParameter {
         self.is_rest_param
     }
 
-    pub fn run(
-        &self,
-        init: Option<JsValue>,
-        context: &mut Context,
-    ) -> JsResult<Vec<(Box<str>, JsValue)>> {
-        match &self.declaration {
-            Declaration::Identifier { ident, .. } => Ok(vec![(
-                ident.as_ref().to_string().into_boxed_str(),
-                init.unwrap(),
-            )]),
-
-            Declaration::Pattern(pattern) => match &pattern {
-                DeclarationPattern::Object(object_pattern) => object_pattern.run(init, context),
-
-                DeclarationPattern::Array(array_pattern) => array_pattern.run(init, context),
-            },
-        }
-    }
-
     pub fn is_identifier(&self) -> bool {
         matches!(&self.declaration, Declaration::Identifier { .. })
     }
@@ -521,7 +437,7 @@ impl Display for FormalParameter {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
     ///
@@ -614,7 +530,7 @@ impl PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Copy, Finalize)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub enum MethodDefinitionKind {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
     ///
@@ -688,10 +604,6 @@ pub enum MethodDefinitionKind {
     Async,
 }
 
-unsafe impl Trace for MethodDefinitionKind {
-    empty_trace!();
-}
-
 /// PropertyName can be either a literal or computed.
 ///
 /// More information:
@@ -699,7 +611,7 @@ unsafe impl Trace for MethodDefinitionKind {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Finalize)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum PropertyName {
     /// A `Literal` property name can be either an identifier, a string or a numeric literal.
     ///
@@ -739,10 +651,6 @@ impl From<Node> for PropertyName {
     fn from(name: Node) -> Self {
         Self::Computed(name)
     }
-}
-
-unsafe impl Trace for PropertyName {
-    empty_trace!();
 }
 
 /// This parses the given source code, and then makes sure that

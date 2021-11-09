@@ -1,10 +1,4 @@
-use crate::{
-    environment::lexical_environment::VariableScope,
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -22,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Assign {
     lhs: Box<Node>,
     rhs: Box<Node>,
@@ -49,49 +43,6 @@ impl Assign {
     /// Gets the right hand side of the assignment operation.
     pub fn rhs(&self) -> &Node {
         &self.rhs
-    }
-}
-
-impl Executable for Assign {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Assign", "exec");
-        let val = self.rhs().run(context)?;
-        match self.lhs() {
-            Node::Identifier(ref name) => {
-                if context.has_binding(name.as_ref())? {
-                    // Binding already exists
-                    context.set_mutable_binding(name.as_ref(), val.clone(), context.strict())?;
-                } else {
-                    context.create_mutable_binding(name.as_ref(), true, VariableScope::Function)?;
-                    context.initialize_binding(name.as_ref(), val.clone())?;
-                }
-            }
-            Node::GetConstField(ref get_const_field) => {
-                let value = get_const_field.obj().run(context)?;
-                let obj = value.to_object(context)?;
-                let succeeded =
-                    obj.__set__(get_const_field.field().into(), val.clone(), value, context)?;
-                if !succeeded && context.strict() {
-                    return context.throw_type_error(
-                        "Assignment to read-only properties is not allowed in strict mode",
-                    );
-                }
-            }
-            Node::GetField(ref get_field) => {
-                let value = get_field.obj().run(context)?;
-                let obj = value.to_object(context)?;
-                let field = get_field.field().run(context)?;
-                let key = field.to_property_key(context)?;
-                let succeeded = obj.__set__(key, val.clone(), value, context)?;
-                if !succeeded && context.strict() {
-                    return context.throw_type_error(
-                        "Assignment to read-only properties is not allowed in strict mode",
-                    );
-                }
-            }
-            _ => (),
-        }
-        Ok(val)
     }
 }
 

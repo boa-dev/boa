@@ -1,13 +1,6 @@
 //! Block AST node.
 
 use super::{Node, StatementList};
-use crate::{
-    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
-    exec::Executable,
-    exec::InterpreterState,
-    gc::{Finalize, Trace},
-    BoaProfiler, Context, JsResult, JsValue,
-};
 use std::{collections::HashSet, fmt};
 
 #[cfg(feature = "deser")]
@@ -33,7 +26,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Block {
     #[cfg_attr(feature = "deser", serde(flatten))]
     statements: StatementList,
@@ -58,53 +51,6 @@ impl Block {
         writeln!(f, "{{")?;
         self.statements.display(f, indentation + 1)?;
         write!(f, "{}}}", "    ".repeat(indentation))
-    }
-}
-
-impl Executable for Block {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Block", "exec");
-        {
-            let env = context.get_current_environment();
-            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
-        }
-
-        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
-        // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = JsValue::default();
-        for statement in self.items() {
-            obj = statement.run(context).map_err(|e| {
-                // No matter how control leaves the Block the LexicalEnvironment is always
-                // restored to its former state.
-                context.pop_environment();
-                e
-            })?;
-
-            match context.executor().get_current_state() {
-                InterpreterState::Return => {
-                    // Early return.
-                    break;
-                }
-                InterpreterState::Break(_label) => {
-                    // TODO, break to a label.
-
-                    // Early break.
-                    break;
-                }
-                InterpreterState::Continue(_label) => {
-                    // TODO, continue to a label
-                    break;
-                }
-                InterpreterState::Executing => {
-                    // Continue execution
-                }
-            }
-        }
-
-        // pop the block env
-        let _ = context.pop_environment();
-
-        Ok(obj)
     }
 }
 

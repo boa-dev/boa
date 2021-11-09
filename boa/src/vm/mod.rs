@@ -125,6 +125,15 @@ impl Context {
                 self.vm.push(first);
                 self.vm.push(second);
             }
+            Opcode::Swap2 => {
+                let first = self.vm.pop();
+                let second = self.vm.pop();
+                let third = self.vm.pop();
+
+                self.vm.push(first);
+                self.vm.push(second);
+                self.vm.push(third);
+            }
             Opcode::PushUndefined => self.vm.push(JsValue::undefined()),
             Opcode::PushNull => self.vm.push(JsValue::null()),
             Opcode::PushTrue => self.vm.push(true),

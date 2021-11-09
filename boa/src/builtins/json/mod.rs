@@ -99,6 +99,8 @@ impl Json {
         #[cfg(feature = "vm")]
         context.vm.pop_frame();
 
+        context.vm.pop_frame();
+
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {
             // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).

@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -24,7 +19,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ConditionalOp {
     condition: Box<Node>,
     if_true: Box<Node>,
@@ -56,16 +51,6 @@ impl ConditionalOp {
             if_true: Box::new(if_true.into()),
             if_false: Box::new(if_false.into()),
         }
-    }
-}
-
-impl Executable for ConditionalOp {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Ok(if self.cond().run(context)?.to_boolean() {
-            self.if_true().run(context)?
-        } else {
-            self.if_false().run(context)?
-        })
     }
 }
 

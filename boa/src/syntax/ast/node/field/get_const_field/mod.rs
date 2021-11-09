@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -31,7 +26,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GetConstField {
     obj: Box<Node>,
     field: Box<str>,
@@ -58,17 +53,6 @@ impl GetConstField {
     /// Gets the name of the field to retrieve.
     pub fn field(&self) -> &str {
         &self.field
-    }
-}
-
-impl Executable for GetConstField {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let mut obj = self.obj().run(context)?;
-        if !obj.is_object() {
-            obj = JsValue::Object(obj.to_object(context)?);
-        }
-
-        obj.get_field(self.field(), context)
     }
 }
 

@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -19,7 +14,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneratorDecl {
     name: Box<str>,
     parameters: Box<[FormalParameter]>,
@@ -71,15 +66,6 @@ impl GeneratorDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for GeneratorDecl {
-    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("GeneratorDecl", "exec");
-        // TODO: Implement GeneratorFunction
-        // https://tc39.es/ecma262/#sec-generatorfunction-objects
-        Ok(JsValue::undefined())
     }
 }
 

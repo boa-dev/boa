@@ -1,10 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::{Call, Node},
-    value::JsValue,
-    BoaProfiler, Context, JsResult,
-};
+use crate::syntax::ast::node::{Call, Node};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -29,7 +23,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-NewExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct New {
     call: Call,
 }
@@ -46,45 +40,8 @@ impl New {
     }
 
     /// Returns the inner call
-    #[cfg(feature = "vm")]
     pub(crate) fn call(&self) -> &Call {
         &self.call
-    }
-}
-
-impl Executable for New {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("New", "exec");
-
-        let func_object = self.expr().run(context)?;
-        let mut v_args = Vec::with_capacity(self.args().len());
-        for arg in self.args() {
-            if let Node::Spread(ref x) = arg {
-                let val = x.run(context)?;
-                let iterator_record = val.get_iterator(context, None, None)?;
-                loop {
-                    let next = iterator_record.next(context)?;
-                    if next.done {
-                        break;
-                    }
-                    let next_value = next.value;
-                    v_args.push(next_value);
-                }
-                break; // after spread we don't accept any new arguments
-            } else {
-                v_args.push(arg.run(context)?);
-            }
-        }
-
-        func_object
-            .as_constructor()
-            .ok_or_else(|| {
-                context.construct_type_error(format!(
-                    "{} is not a constructor",
-                    self.expr().to_string(),
-                ))
-            })
-            .and_then(|cons| cons.construct(&v_args, &cons.clone().into(), context))
     }
 }
 

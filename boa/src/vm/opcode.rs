@@ -25,6 +25,13 @@ pub enum Opcode {
     /// Stack: second, first **=>** first, second
     Swap,
 
+    /// Swap the top value and the third value of the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: v1, v2, v3 **=>** v3, v2, v1
+    Swap2,
+
     /// Push integer `0` on the stack.
     ///
     /// Operands:
@@ -778,13 +785,9 @@ pub enum Opcode {
 
     /// Close an iterator.
     ///
-    /// Operands:
     ///
     /// Stack: iterator, next_function, done **=>**
     IteratorClose,
-
-    /// Consume the iterator and construct and array with all the values.
-    ///
     /// Operands:
     ///
     /// Stack: iterator, next_function **=>** iterator, next_function, array
@@ -873,6 +876,7 @@ impl Opcode {
             Opcode::Pop => "Pop",
             Opcode::Dup => "Dup",
             Opcode::Swap => "Swap",
+            Opcode::Swap2 => "Swap2",
             Opcode::PushZero => "PushZero",
             Opcode::PushOne => "PushOne",
             Opcode::PushInt8 => "PushInt8",

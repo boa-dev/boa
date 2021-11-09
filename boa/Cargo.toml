@@ -15,9 +15,6 @@ rust-version = "1.57"
 profiler = ["measureme"]
 deser = []
 
-# Enable Bytecode generation & execution instead of tree walking
-vm = []
-
 # Enable Boa's WHATWG console object implementation.
 console = []
 

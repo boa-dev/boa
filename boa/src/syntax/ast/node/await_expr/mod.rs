@@ -1,8 +1,6 @@
 //! Await expression node.
 
 use super::Node;
-use crate::{exec::Executable, BoaProfiler, Context, JsResult, JsValue};
-use gc::{Finalize, Trace};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -21,17 +19,9 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AwaitExpr {
     expr: Box<Node>,
-}
-
-impl Executable for AwaitExpr {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("AwaitExpression", "exec");
-        // TODO: Implement AwaitExpr
-        Ok(JsValue::undefined())
-    }
 }
 
 impl<T> From<T> for AwaitExpr

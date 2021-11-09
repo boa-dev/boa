@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::Node,
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::Node;
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -30,7 +25,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
     val: Box<Node>,
 }
@@ -48,13 +43,6 @@ impl Spread {
         Self {
             val: Box::new(val.into()),
         }
-    }
-}
-
-impl Executable for Spread {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        // TODO: for now we can do nothing but return the value as-is
-        self.val().run(context)
     }
 }
 

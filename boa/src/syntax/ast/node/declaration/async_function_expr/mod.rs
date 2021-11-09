@@ -1,11 +1,6 @@
 //! Async Function Expression.
 
-use crate::{
-    exec::Executable,
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsResult, JsValue,
-};
-use gc::{Finalize, Trace};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -21,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AsyncFunctionExpr {
     name: Option<Box<str>>,
     parameters: Box<[FormalParameter]>,
@@ -77,13 +72,6 @@ impl AsyncFunctionExpr {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for AsyncFunctionExpr {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        // TODO: Implement AsyncFunctionExpr
-        Ok(JsValue::undefined())
     }
 }
 

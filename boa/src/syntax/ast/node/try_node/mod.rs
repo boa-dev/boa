@@ -1,13 +1,4 @@
-use crate::{
-    environment::{
-        declarative_environment_record::DeclarativeEnvironmentRecord,
-        lexical_environment::VariableScope,
-    },
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::node::{Block, Declaration, Node},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{Block, Declaration, Node};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -30,7 +21,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Try {
     block: Block,
     catch: Option<Catch>,
@@ -94,63 +85,6 @@ impl Try {
     }
 }
 
-impl Executable for Try {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Try", "exec");
-        let res = self.block().run(context).map_or_else(
-            |err| {
-                if let Some(catch) = self.catch() {
-                    let env = context.get_current_environment();
-                    context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
-
-                    if let Some(param) = catch.parameter() {
-                        match param {
-                            Declaration::Identifier { ident, init } => {
-                                debug_assert!(init.is_none());
-
-                                context.create_mutable_binding(
-                                    ident.as_ref(),
-                                    false,
-                                    VariableScope::Block,
-                                )?;
-                                context.initialize_binding(ident.as_ref(), err)?;
-                            }
-                            Declaration::Pattern(pattern) => {
-                                debug_assert!(pattern.init().is_none());
-
-                                for (ident, value) in pattern.run(Some(err), context)? {
-                                    context.create_mutable_binding(
-                                        ident.as_ref(),
-                                        false,
-                                        VariableScope::Block,
-                                    )?;
-                                    context.initialize_binding(ident.as_ref(), value)?;
-                                }
-                            }
-                        }
-                    }
-
-                    let res = catch.block().run(context);
-
-                    // pop the block env
-                    let _ = context.pop_environment();
-
-                    res
-                } else {
-                    Err(err)
-                }
-            },
-            Ok,
-        );
-
-        if let Some(finally) = self.finally() {
-            finally.run(context)?;
-        }
-
-        res
-    }
-}
-
 impl fmt::Display for Try {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
@@ -165,7 +99,7 @@ impl From<Try> for Node {
 
 /// Catch block.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Catch {
     parameter: Option<Box<Declaration>>,
     block: Block,
@@ -214,7 +148,7 @@ impl fmt::Display for Catch {
 
 /// Finally block.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Finally {
     block: Block,
 }

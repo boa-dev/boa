@@ -23,7 +23,6 @@ regex = "1.5.4"
 lazy_static = "1.4.0"
 
 [features]
-vm = ["Boa/vm"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator = "0.3.2"
