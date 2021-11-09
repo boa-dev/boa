@@ -254,6 +254,8 @@ impl CodeBlock {
             | Opcode::PopEnvironment
             | Opcode::InitIterator
             | Opcode::IteratorNext
+            | Opcode::IteratorNextFull
+            | Opcode::IteratorClose
             | Opcode::IteratorToArray
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined

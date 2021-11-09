@@ -765,8 +765,13 @@ impl ByteCompiler {
                 self.access_get(access, use_expr);
             }
             Node::Assign(assign) => {
-                let access = self.compile_access(assign.lhs());
-                self.access_set(access, Some(assign.rhs()), use_expr);
+                // Implement destructing assignments like here: https://tc39.es/ecma262/#sec-destructuring-assignment
+                if let Node::Object(_) = assign.lhs() {
+                    self.emit_opcode(Opcode::PushUndefined);
+                } else {
+                    let access = self.compile_access(assign.lhs());
+                    self.access_set(access, Some(assign.rhs()), use_expr);
+                }
             }
             Node::GetConstField(node) => {
                 let access = Access::ByName { node };
@@ -1077,7 +1082,7 @@ impl ByteCompiler {
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::DefInitVar, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             self.compile_declaration_pattern(pattern, Opcode::DefInitVar);
@@ -1086,7 +1091,7 @@ impl ByteCompiler {
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::DefInitLet, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             self.compile_declaration_pattern(pattern, Opcode::DefInitLet);
@@ -1095,7 +1100,7 @@ impl ByteCompiler {
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             self.compile_declaration_pattern(pattern, Opcode::DefInitConst);
@@ -1108,11 +1113,11 @@ impl ByteCompiler {
 
                 self.emit(Opcode::Jump, &[start_address]);
 
-                self.pop_loop_control_info();
-                self.emit_opcode(Opcode::Pop);
-                self.emit_opcode(Opcode::Pop);
-
                 self.patch_jump(exit);
+                self.pop_loop_control_info();
+                self.emit_opcode(Opcode::PushFalse);
+                self.emit_opcode(Opcode::IteratorClose);
+
                 self.patch_jump(early_exit);
             }
             Node::ForOfLoop(for_of_loop) => {
@@ -1133,7 +1138,7 @@ impl ByteCompiler {
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::DefInitVar, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             self.compile_declaration_pattern(pattern, Opcode::DefInitVar);
@@ -1142,7 +1147,7 @@ impl ByteCompiler {
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::DefInitLet, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             self.compile_declaration_pattern(pattern, Opcode::DefInitLet);
@@ -1151,7 +1156,7 @@ impl ByteCompiler {
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
-                            self.emit(Opcode::SetName, &[index]);
+                            self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             self.compile_declaration_pattern(pattern, Opcode::DefInitConst);
@@ -1165,8 +1170,9 @@ impl ByteCompiler {
                 self.emit(Opcode::Jump, &[start_address]);
 
                 self.patch_jump(exit);
-
                 self.pop_loop_control_info();
+                self.emit_opcode(Opcode::PushFalse);
+                self.emit_opcode(Opcode::IteratorClose);
             }
             Node::WhileLoop(while_) => {
                 let start_address = self.next_opcode_location();
@@ -1523,7 +1529,6 @@ impl ByteCompiler {
 
                             if let Some(init) = default_init {
                                 let skip = self.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
-                                self.emit_opcode(Opcode::Pop);
                                 self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
@@ -1559,11 +1564,8 @@ impl ByteCompiler {
 
                             if let Some(init) = default_init {
                                 let skip = self.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
-                                self.emit_opcode(Opcode::Pop);
                                 self.compile_expr(init, true);
                                 self.patch_jump(skip);
-                            } else {
-                                self.emit_opcode(Opcode::PushUndefined);
                             }
 
                             self.compile_declaration_pattern(pattern, def);
@@ -1584,15 +1586,23 @@ impl ByteCompiler {
                 self.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 self.emit_opcode(Opcode::InitIterator);
 
-                for binding in pattern.bindings() {
+                for (i, binding) in pattern.bindings().iter().enumerate() {
                     use BindingPatternTypeArray::*;
+
+                    let next = if i == pattern.bindings().len() - 1 {
+                        Opcode::IteratorNextFull
+                    } else {
+                        Opcode::IteratorNext
+                    };
 
                     match binding {
                         // ArrayBindingPattern : [ ]
-                        Empty => {}
+                        Empty => {
+                            self.emit_opcode(Opcode::PushFalse);
+                        }
                         // ArrayBindingPattern : [ Elision ]
                         Elision => {
-                            self.emit_opcode(Opcode::IteratorNext);
+                            self.emit_opcode(next);
                             self.emit_opcode(Opcode::Pop);
                         }
                         // SingleNameBinding : BindingIdentifier Initializer[opt]
@@ -1600,10 +1610,9 @@ impl ByteCompiler {
                             ident,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::IteratorNext);
+                            self.emit_opcode(next);
                             if let Some(init) = default_init {
                                 let skip = self.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
-                                self.emit_opcode(Opcode::Pop);
                                 self.compile_expr(init, true);
                                 self.patch_jump(skip);
                             }
@@ -1613,7 +1622,7 @@ impl ByteCompiler {
                         }
                         // BindingElement : BindingPattern Initializer[opt]
                         BindingPattern { pattern } => {
-                            self.emit_opcode(Opcode::IteratorNext);
+                            self.emit_opcode(next);
                             self.compile_declaration_pattern(pattern, def)
                         }
                         // BindingRestElement : ... BindingIdentifier
@@ -1622,16 +1631,22 @@ impl ByteCompiler {
 
                             let index = self.get_or_insert_name(ident);
                             self.emit(def, &[index]);
+                            self.emit_opcode(Opcode::PushTrue);
                         }
                         // BindingRestElement : ... BindingPattern
                         BindingPatternRest { pattern } => {
                             self.emit_opcode(Opcode::IteratorToArray);
                             self.compile_declaration_pattern(pattern, def);
+                            self.emit_opcode(Opcode::PushTrue);
                         }
                     }
                 }
 
-                self.emit_opcode(Opcode::Pop);
+                if pattern.bindings().is_empty() {
+                    self.emit_opcode(Opcode::PushFalse);
+                }
+
+                self.emit_opcode(Opcode::IteratorClose);
             }
         }
     }

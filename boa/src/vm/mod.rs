@@ -370,8 +370,8 @@ impl Context {
                 let value = self.vm.pop();
                 if !value.is_undefined() {
                     self.vm.frame_mut().pc = address as usize;
+                    self.vm.push(value)
                 }
-                self.vm.push(value);
             }
             Opcode::LogicalAnd => {
                 let exit = self.vm.read::<u32>();
@@ -628,7 +628,7 @@ impl Context {
             Opcode::GetFunction => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let environment = self.vm.frame().environment.clone();
+                let environment = self.get_current_environment();
                 let function = JsVmFunction::new(code, environment, self);
                 self.vm.push(function);
             }
@@ -791,6 +791,27 @@ impl Context {
                 self.vm.push(next_function);
                 self.vm.push(iterator_result.value);
             }
+            Opcode::IteratorNextFull => {
+                let next_function = self.vm.pop();
+                let for_in_iterator = self.vm.pop();
+
+                let iterator = IteratorRecord::new(for_in_iterator.clone(), next_function.clone());
+                let iterator_result = iterator.next(self)?;
+
+                self.vm.push(for_in_iterator);
+                self.vm.push(next_function);
+                self.vm.push(iterator_result.done);
+                self.vm.push(iterator_result.value);
+            }
+            Opcode::IteratorClose => {
+                let done = self.vm.pop();
+                let next_function = self.vm.pop();
+                let for_in_iterator = self.vm.pop();
+                if !done.as_boolean().unwrap() {
+                    let iterator = IteratorRecord::new(for_in_iterator, next_function);
+                    iterator.close(Ok(JsValue::Null), self)?;
+                }
+            }
             Opcode::IteratorToArray => {
                 let next_function = self.vm.pop();
                 let for_in_iterator = self.vm.pop();
@@ -829,6 +850,8 @@ impl Context {
                     self.vm.frame_mut().pc = address as usize;
                     self.vm.frame_mut().pop_env_on_return -= 1;
                     self.pop_environment();
+                    self.vm.push(for_in_iterator);
+                    self.vm.push(next_function);
                 } else {
                     self.vm.push(for_in_iterator);
                     self.vm.push(next_function);

@@ -675,6 +675,16 @@ pub enum Opcode {
     /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `next_value`
     IteratorNext,
 
+    /// Advance the iterator by one and put done and value on the stack.
+    ///
+    /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `done`, `next_value`
+    IteratorNextFull,
+
+    /// Close an iterator.
+    ///
+    /// Stack: `iterator`, `next_function` **=>**
+    IteratorClose,
+
     /// Consume the iterator and construct and array with all the values.
     ///
     /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `array`
@@ -822,6 +832,8 @@ impl Opcode {
             Opcode::ForInLoopInitIterator => "ForInLoopInitIterator",
             Opcode::InitIterator => "InitIterator",
             Opcode::IteratorNext => "IteratorNext",
+            Opcode::IteratorNextFull => "IteratorNextFull",
+            Opcode::IteratorClose => "IteratorClose",
             Opcode::IteratorToArray => "IteratorToArray",
             Opcode::ForInLoopNext => "ForInLoopNext",
             Opcode::ConcatToString => "ConcatToString",
