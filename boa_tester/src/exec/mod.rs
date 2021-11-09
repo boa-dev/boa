@@ -13,23 +13,36 @@ use std::panic;
 
 impl TestSuite {
     /// Runs the test suite.
-    pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> SuiteResult {
+    pub(crate) fn run(&self, harness: &Harness, verbose: u8, parallel: bool) -> SuiteResult {
         if verbose != 0 {
             println!("Suite {}:", self.name);
         }
 
-        let suites: Vec<_> = self
-            .suites
-            .par_iter()
-            .map(|suite| suite.run(harness, verbose))
-            .collect();
+        let suites: Vec<_> = if parallel {
+            self.suites
+                .par_iter()
+                .map(|suite| suite.run(harness, verbose, parallel))
+                .collect()
+        } else {
+            self.suites
+                .iter()
+                .map(|suite| suite.run(harness, verbose, parallel))
+                .collect()
+        };
 
-        let tests: Vec<_> = self
-            .tests
-            .par_iter()
-            .map(|test| test.run(harness, verbose))
-            .flatten()
-            .collect();
+        let tests: Vec<_> = if parallel {
+            self.tests
+                .par_iter()
+                .map(|test| test.run(harness, verbose))
+                .flatten()
+                .collect()
+        } else {
+            self.tests
+                .iter()
+                .map(|test| test.run(harness, verbose))
+                .flatten()
+                .collect()
+        };
 
         if verbose != 0 {
             println!();
@@ -102,7 +115,7 @@ impl Test {
     fn run_once(&self, harness: &Harness, strict: bool, verbose: u8) -> TestResult {
         if verbose > 1 {
             println!(
-                "Starting `{}`{}",
+                "`{}`{}: starting",
                 self.name,
                 if strict { " (strict mode)" } else { "" }
             );
@@ -222,7 +235,9 @@ impl Test {
 
             if verbose > 1 {
                 println!(
-                    "Result: {}",
+                    "`{}`{}: {}",
+                    self.name,
+                    if strict { " (strict mode)" } else { "" },
                     if matches!(result, (TestOutcomeResult::Passed, _)) {
                         "Passed".green()
                     } else if matches!(result, (TestOutcomeResult::Failed, _)) {
@@ -245,7 +260,12 @@ impl Test {
             result
         } else {
             if verbose > 1 {
-                println!("Result: {}", "Ignored".yellow());
+                println!(
+                    "`{}`{}: {}",
+                    self.name,
+                    if strict { " (strict mode)" } else { "" },
+                    "Ignored".yellow()
+                );
             } else {
                 print!("{}", ".".yellow());
             }
@@ -253,7 +273,11 @@ impl Test {
         };
 
         if verbose > 2 {
-            println!("Result text:");
+            println!(
+                "`{}`{}: result text",
+                self.name,
+                if strict { " (strict mode)" } else { "" },
+            );
             println!("{}", result_text);
             println!();
         }
