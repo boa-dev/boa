@@ -1708,10 +1708,10 @@ mkdirp@^0.5.5:
   dependencies:
     minimist "^1.2.5"
 
-monaco-editor@^0.30.0:
-  version "0.30.0"
-  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.30.0.tgz#1c7f9ba1d18c21868ce3a5413ef56351f9df7933"
-  integrity sha512-/k++/ofRmwnwWTpOWYOMGVcqBrqrlt3MP0Mt/cRTQojW7A9fnekcvPQ2iIFA0YSZdPWPN9yYXrYq0xqiUuxT/A==
+monaco-editor@^0.30.1:
+  version "0.30.1"
+  resolved "https://registry.yarnpkg.com/monaco-editor/-/monaco-editor-0.30.1.tgz#47f8d18a0aa2264fc5654581741ab8d7bec01689"
+  integrity sha512-B/y4+b2O5G2gjuxIFtCE2EkM17R2NM7/3F8x0qcPsqy4V83bitJTIO4TIeZpYlzu/xy6INiY/+84BEm6+7Cmzg==
 
 ms@2.0.0:
   version "2.0.0"
