@@ -386,6 +386,13 @@ pub enum Opcode {
     /// Stack: value **=>** (value - 1)
     Dec,
 
+    /// Declare and initialize a function argument.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value **=>**
+    DefInitArg,
+
     /// Declare `var` type variable.
     ///
     /// Operands: name_index: `u32`
@@ -714,6 +721,16 @@ pub enum Opcode {
     /// Stack: `value` **=>** `value`
     ValueNotNullOrUndefined,
 
+    /// Initialize the rest parameter value of a function from the remaining arguments.
+    ///
+    /// Stack: `argument_0` .. `argument_n` **=>** `rest_value`
+    RestParameterInit,
+
+    /// Pop the remaining arguments of a function.
+    ///
+    /// Stack: `argument_0` .. `argument_n` **=>**
+    RestParameterPop,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -790,6 +807,7 @@ impl Opcode {
             Opcode::Neg => "Neg",
             Opcode::Inc => "Inc",
             Opcode::Dec => "Dec",
+            Opcode::DefInitArg => "DefInitArg",
             Opcode::DefVar => "DefVar",
             Opcode::DefInitVar => "DefInitVar",
             Opcode::DefLet => "DefLet",
@@ -839,6 +857,8 @@ impl Opcode {
             Opcode::ConcatToString => "ConcatToString",
             Opcode::RequireObjectCoercible => "RequireObjectCoercible",
             Opcode::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
+            Opcode::RestParameterInit => "FunctionRestParameter",
+            Opcode::RestParameterPop => "RestParameterPop",
             Opcode::Nop => "Nop",
         }
     }

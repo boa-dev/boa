@@ -21,7 +21,7 @@ use crate::{
 };
 use gc::Gc;
 
-use std::{convert::TryInto, fmt::Write, mem::size_of};
+use std::{cmp::Ordering, convert::TryInto, fmt::Write, mem::size_of};
 
 use super::CallFrame;
 
@@ -177,7 +177,8 @@ impl CodeBlock {
                     self.functions[operand as usize].length
                 )
             }
-            Opcode::DefVar
+            Opcode::DefInitArg
+            | Opcode::DefVar
             | Opcode::DefInitVar
             | Opcode::DefLet
             | Opcode::DefInitLet
@@ -259,6 +260,8 @@ impl CodeBlock {
             | Opcode::IteratorToArray
             | Opcode::RequireObjectCoercible
             | Opcode::ValueNotNullOrUndefined
+            | Opcode::RestParameterInit
+            | Opcode::RestParameterPop
             | Opcode::PushValueToArray
             | Opcode::PushIteratorToArray
             | Opcode::PushNewArray
@@ -545,20 +548,19 @@ impl JsObject {
                     local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
                 }
 
-                // Add argument bindings to the function environment
-                for (i, param) in code.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param() {
-                        Function::add_rest_param(param, i, args, context, &local_env);
-                        break;
+                // Push function arguments to the stack.
+                let (args, extra_arg_count) = match code.params.len().cmp(&args.len()) {
+                    Ordering::Greater => {
+                        let mut v = args.to_vec();
+                        v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                        (v, 0)
                     }
+                    Ordering::Less => (args.to_vec(), args.len() - code.params.len()),
+                    Ordering::Equal => (args.to_vec(), 0),
+                };
 
-                    let value = match args.get(i).cloned() {
-                        None => JsValue::undefined(),
-                        Some(value) => value,
-                    };
-
-                    Function::add_arguments_to_environment(param, value, &local_env, context);
+                for arg in args.iter().rev() {
+                    context.vm.push(arg)
                 }
 
                 context.vm.push_frame(CallFrame {
@@ -571,6 +573,7 @@ impl JsObject {
                     catch: None,
                     pop_env_on_return: 0,
                     finally_no_jump: false,
+                    extra_arg_count,
                 });
 
                 let result = context.run();
@@ -698,20 +701,19 @@ impl JsObject {
                     local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
                 }
 
-                // Add argument bindings to the function environment
-                for (i, param) in code.params.iter().enumerate() {
-                    // Rest Parameters
-                    if param.is_rest_param() {
-                        Function::add_rest_param(param, i, args, context, &local_env);
-                        break;
+                // Push function arguments to the stack.
+                let (args, extra_arg_count) = match code.params.len().cmp(&args.len()) {
+                    Ordering::Greater => {
+                        let mut v = args.to_vec();
+                        v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                        (v, 0)
                     }
+                    Ordering::Less => (args.to_vec(), args.len() - code.params.len()),
+                    Ordering::Equal => (args.to_vec(), 0),
+                };
 
-                    let value = match args.get(i).cloned() {
-                        None => JsValue::undefined(),
-                        Some(value) => value,
-                    };
-
-                    Function::add_arguments_to_environment(param, value, &local_env, context);
+                for arg in args.iter().rev() {
+                    context.vm.push(arg)
                 }
 
                 context.vm.push_frame(CallFrame {
@@ -724,6 +726,7 @@ impl JsObject {
                     catch: None,
                     pop_env_on_return: 0,
                     finally_no_jump: false,
+                    extra_arg_count,
                 });
 
                 let _result = context.run()?;

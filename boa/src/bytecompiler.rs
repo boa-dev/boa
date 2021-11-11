@@ -1402,6 +1402,28 @@ impl ByteCompiler {
             top_level: false,
         };
 
+        let mut has_rest_parameter = false;
+        for parameter in parameters {
+            if parameter.is_rest_param() {
+                has_rest_parameter = true;
+                compiler.emit_opcode(Opcode::RestParameterInit);
+            }
+
+            match parameter.declaration() {
+                Declaration::Identifier { ident, .. } => {
+                    let index = compiler.get_or_insert_name(ident.as_ref());
+                    compiler.emit(Opcode::DefInitArg, &[index]);
+                }
+                Declaration::Pattern(pattern) => {
+                    compiler.compile_declaration_pattern(pattern, Opcode::DefInitArg);
+                }
+            }
+        }
+
+        if !has_rest_parameter {
+            compiler.emit_opcode(Opcode::RestParameterPop);
+        }
+
         for node in body.items() {
             compiler.compile_stmt(node, false);
         }

@@ -1072,6 +1072,7 @@ impl Context {
             catch: None,
             pop_env_on_return: 0,
             finally_no_jump: false,
+            extra_arg_count: 0,
         });
         let result = self.run();
 

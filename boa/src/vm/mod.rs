@@ -291,6 +291,14 @@ impl Context {
                 };
                 self.vm.push(value);
             }
+            Opcode::DefInitArg => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.variables[index as usize].clone();
+                let value = self.vm.pop();
+                let local_env = self.get_current_environment();
+                local_env.create_mutable_binding(name.as_ref(), false, true, self).expect("Failed to create argument binding");
+                self.initialize_binding(name.as_ref(), value)?;
+            }
             Opcode::DefVar => {
                 let index = self.vm.read::<u32>();
                 let name = self.vm.frame().code.variables[index as usize].clone();
@@ -883,6 +891,25 @@ impl Context {
                     return self.throw_type_error("Cannot destructure 'undefined' value");
                 }
                 self.vm.push(value);
+            }
+            Opcode::RestParameterInit => {
+                let extra_arg_count = self.vm.frame().extra_arg_count;
+                let mut args = Vec::with_capacity(extra_arg_count);
+
+                args.push(self.vm.pop());
+                for _ in 0..extra_arg_count {
+                    args.push(self.vm.pop());
+                }
+
+                let array = Array::new_array(self);
+                Array::add_to_array_object(&array, &args, self).unwrap();
+
+                self.vm.push(array);
+            }
+            Opcode::RestParameterPop => {
+                for _ in 0..self.vm.frame().extra_arg_count {
+                    self.vm.pop();
+                }
             }
         }
 

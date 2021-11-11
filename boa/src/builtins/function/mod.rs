@@ -208,6 +208,7 @@ impl fmt::Debug for Function {
 
 impl Function {
     // Adds the final rest parameters to the Environment as an array
+    #[cfg(not(feature = "vm"))]
     pub(crate) fn add_rest_param(
         param: &FormalParameter,
         index: usize,
@@ -240,6 +241,7 @@ impl Function {
     }
 
     // Adds an argument to the environment
+    #[cfg(not(feature = "vm"))]
     pub(crate) fn add_arguments_to_environment(
         param: &FormalParameter,
         value: JsValue,
