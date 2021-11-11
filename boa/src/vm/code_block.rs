@@ -729,13 +729,17 @@ impl JsObject {
                     extra_arg_count,
                 });
 
-                let _result = context.run()?;
+                let result = context.run()?;
 
-                let result = context.get_this_binding();
+                let this = context.get_this_binding();
 
                 context.pop_environment();
 
-                result
+                if result.is_object() {
+                    Ok(result)
+                } else {
+                    this
+                }
             }
         }
     }
