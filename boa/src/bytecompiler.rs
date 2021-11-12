@@ -545,17 +545,12 @@ impl ByteCompiler {
                             LogOp::And => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalAnd);
                                 self.compile_expr(binary.rhs(), true);
-                                self.emit(Opcode::ToBoolean, &[]);
                                 self.patch_jump(exit);
                             }
                             LogOp::Or => {
-                                self.emit_opcode(Opcode::Dup);
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalOr);
-                                self.emit_opcode(Opcode::Pop);
                                 self.compile_expr(binary.rhs(), true);
-                                self.emit_opcode(Opcode::Dup);
                                 self.patch_jump(exit);
-                                self.emit_opcode(Opcode::Pop);
                             }
                             LogOp::Coalesce => {
                                 let exit = self.jump_with_custom_opcode(Opcode::Coalesce);
@@ -585,7 +580,6 @@ impl ByteCompiler {
                             AssignOp::BoolAnd => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalAnd);
                                 self.compile_expr(binary.rhs(), true);
-                                self.emit(Opcode::ToBoolean, &[]);
                                 self.patch_jump(exit);
 
                                 None
@@ -593,7 +587,6 @@ impl ByteCompiler {
                             AssignOp::BoolOr => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalOr);
                                 self.compile_expr(binary.rhs(), true);
-                                self.emit(Opcode::ToBoolean, &[]);
                                 self.patch_jump(exit);
 
                                 None

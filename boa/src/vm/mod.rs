@@ -388,7 +388,7 @@ impl Context {
                 let lhs = self.vm.pop();
                 if !lhs.to_boolean() {
                     self.vm.frame_mut().pc = exit as usize;
-                    self.vm.push(false);
+                    self.vm.push(lhs);
                 }
             }
             Opcode::LogicalOr => {
@@ -396,7 +396,7 @@ impl Context {
                 let lhs = self.vm.pop();
                 if lhs.to_boolean() {
                     self.vm.frame_mut().pc = exit as usize;
-                    self.vm.push(true);
+                    self.vm.push(lhs);
                 }
             }
             Opcode::Coalesce => {
