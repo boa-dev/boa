@@ -25,7 +25,7 @@ console = []
 boa_unicode = { path = "../boa_unicode", version = "0.13.0" }
 gc = { version = "0.4.1", features = ["derive"] }
 serde = { version = "1.0.130", features = ["derive", "rc"] }
-serde_json = "1.0.68"
+serde_json = "1.0.69"
 rand = "0.8.4"
 num-traits = "0.2.14"
 regress = "0.4.1"
