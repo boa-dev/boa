@@ -16,5 +16,6 @@ pub struct CallFrame {
     pub(crate) catch: Option<u32>,
     pub(crate) pop_env_on_return: usize,
     pub(crate) finally_no_jump: bool,
-    pub(crate) extra_arg_count: usize,
+    pub(crate) param_count: usize,
+    pub(crate) arg_count: usize,
 }

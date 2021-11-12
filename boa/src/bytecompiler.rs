@@ -1412,6 +1412,11 @@ impl ByteCompiler {
             match parameter.declaration() {
                 Declaration::Identifier { ident, .. } => {
                     let index = compiler.get_or_insert_name(ident.as_ref());
+                    if let Some(init) = parameter.declaration().init() {
+                        let skip = compiler.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
+                        compiler.compile_expr(init, true);
+                        compiler.patch_jump(skip);
+                    }
                     compiler.emit(Opcode::DefInitArg, &[index]);
                 }
                 Declaration::Pattern(pattern) => {

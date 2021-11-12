@@ -548,20 +548,23 @@ impl JsObject {
                     local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
                 }
 
+                let arg_count = args.len();
+
                 // Push function arguments to the stack.
-                let (args, extra_arg_count) = match code.params.len().cmp(&args.len()) {
+                let args = match code.params.len().cmp(&args.len()) {
                     Ordering::Greater => {
                         let mut v = args.to_vec();
                         v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
-                        (v, 0)
+                        v
                     }
-                    Ordering::Less => (args.to_vec(), args.len() - code.params.len()),
-                    Ordering::Equal => (args.to_vec(), 0),
+                    Ordering::Less | Ordering::Equal => args.to_vec(),
                 };
 
                 for arg in args.iter().rev() {
                     context.vm.push(arg)
                 }
+
+                let param_count = code.params.len();
 
                 context.vm.push_frame(CallFrame {
                     prev: None,
@@ -573,7 +576,8 @@ impl JsObject {
                     catch: None,
                     pop_env_on_return: 0,
                     finally_no_jump: false,
-                    extra_arg_count,
+                    param_count,
+                    arg_count,
                 });
 
                 let result = context.run();
@@ -701,20 +705,23 @@ impl JsObject {
                     local_env.initialize_binding("arguments", arguments_obj.into(), context)?;
                 }
 
+                let arg_count = args.len();
+
                 // Push function arguments to the stack.
-                let (args, extra_arg_count) = match code.params.len().cmp(&args.len()) {
+                let args = match code.params.len().cmp(&args.len()) {
                     Ordering::Greater => {
                         let mut v = args.to_vec();
                         v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
-                        (v, 0)
+                        v
                     }
-                    Ordering::Less => (args.to_vec(), args.len() - code.params.len()),
-                    Ordering::Equal => (args.to_vec(), 0),
+                    Ordering::Less | Ordering::Equal => args.to_vec(),
                 };
 
                 for arg in args.iter().rev() {
                     context.vm.push(arg)
                 }
+
+                let param_count = code.params.len();
 
                 context.vm.push_frame(CallFrame {
                     prev: None,
@@ -726,7 +733,8 @@ impl JsObject {
                     catch: None,
                     pop_env_on_return: 0,
                     finally_no_jump: false,
-                    extra_arg_count,
+                    param_count,
+                    arg_count,
                 });
 
                 let result = context.run()?;

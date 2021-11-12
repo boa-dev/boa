@@ -1072,7 +1072,8 @@ impl Context {
             catch: None,
             pop_env_on_return: 0,
             finally_no_jump: false,
-            extra_arg_count: 0,
+            param_count: 0,
+            arg_count: 0,
         });
         let result = self.run();
 

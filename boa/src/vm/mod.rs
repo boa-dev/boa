@@ -296,7 +296,9 @@ impl Context {
                 let name = self.vm.frame().code.variables[index as usize].clone();
                 let value = self.vm.pop();
                 let local_env = self.get_current_environment();
-                local_env.create_mutable_binding(name.as_ref(), false, true, self).expect("Failed to create argument binding");
+                local_env
+                    .create_mutable_binding(name.as_ref(), false, true, self)
+                    .expect("Failed to create argument binding");
                 self.initialize_binding(name.as_ref(), value)?;
             }
             Opcode::DefVar => {
@@ -893,22 +895,30 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::RestParameterInit => {
-                let extra_arg_count = self.vm.frame().extra_arg_count;
-                let mut args = Vec::with_capacity(extra_arg_count);
-
-                args.push(self.vm.pop());
-                for _ in 0..extra_arg_count {
-                    args.push(self.vm.pop());
+                let arg_count = self.vm.frame().arg_count;
+                let param_count = self.vm.frame().param_count;
+                if arg_count >= param_count {
+                    let rest_count = arg_count - param_count + 1;
+                    let mut args = Vec::with_capacity(rest_count);
+                    for _ in 0..rest_count {
+                        args.push(self.vm.pop());
+                    }
+                    let array = Array::new_array(self);
+                    Array::add_to_array_object(&array, &args, self).unwrap();
+                    self.vm.push(array);
+                } else {
+                    self.vm.pop();
+                    let array = Array::new_array(self);
+                    self.vm.push(array);
                 }
-
-                let array = Array::new_array(self);
-                Array::add_to_array_object(&array, &args, self).unwrap();
-
-                self.vm.push(array);
             }
             Opcode::RestParameterPop => {
-                for _ in 0..self.vm.frame().extra_arg_count {
-                    self.vm.pop();
+                let arg_count = self.vm.frame().arg_count;
+                let param_count = self.vm.frame().param_count;
+                if arg_count > param_count {
+                    for _ in 0..(arg_count - param_count) {
+                        self.vm.pop();
+                    }
                 }
             }
         }
