@@ -1092,6 +1092,24 @@
 <span id="1092">1092</span>
 <span id="1093">1093</span>
 <span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1110,11 +1128,8 @@
     <span class="ident">realm::Realm</span>,
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
-            <span class="ident">node</span>::{
-                <span class="ident">statement_list::RcStatementList</span>, <span class="ident">Call</span>, <span class="ident">FormalParameter</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
-                <span class="ident">StatementList</span>,
-            },
-            <span class="ident">Const</span>, <span class="ident">Node</span>,
+            <span class="ident">node</span>::{<span class="ident">statement_list::RcStatementList</span>, <span class="ident">FormalParameter</span>, <span class="ident">StatementList</span>},
+            <span class="ident">Node</span>,
         },
         <span class="ident">Parser</span>,
     },
@@ -1642,12 +1657,11 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="comment">// Runs a `new Error(message)`.</span>
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;Error&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::Error::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">standard_objects</span>().<span class="ident">error_object</span>().<span class="ident">constructor</span>().<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
@@ -1666,12 +1680,15 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="comment">// Runs a `new RangeError(message)`.</span>
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;RangeError&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::RangeError::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">range_error_object</span>()
+                .<span class="ident">constructor</span>()
+                .<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
@@ -1690,12 +1707,15 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="comment">// Runs a `new TypeError(message)`.</span>
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;TypeError&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::TypeError::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">type_error_object</span>()
+                .<span class="ident">constructor</span>()
+                .<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
@@ -1714,11 +1734,15 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;ReferenceError&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::ReferenceError::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">reference_error_object</span>()
+                .<span class="ident">constructor</span>()
+                .<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
@@ -1737,11 +1761,15 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;SyntaxError&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::SyntaxError::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">syntax_error_object</span>()
+                .<span class="ident">constructor</span>()
+                .<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
@@ -1759,11 +1787,15 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;EvalError&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::EvalError::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">eval_error_object</span>()
+                .<span class="ident">constructor</span>()
+                .<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
@@ -1772,11 +1804,15 @@
     <span class="kw">where</span>
         <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">New::from</span>(<span class="ident">Call::new</span>(
-            <span class="ident">Identifier::from</span>(<span class="string">&quot;URIError&quot;</span>),
-            <span class="macro">vec!</span>[<span class="ident">Const::from</span>(<span class="ident">message</span>.<span class="ident">into</span>()).<span class="ident">into</span>()],
-        ))
-        .<span class="ident">run</span>(<span class="self">self</span>)
+        <span class="ident"><span class="kw">crate</span>::builtins::error::UriError::constructor</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">standard_objects</span>()
+                .<span class="ident">uri_error_object</span>()
+                .<span class="ident">constructor</span>()
+                .<span class="ident">into</span>(),
+            <span class="kw-2">&amp;</span>[<span class="ident">message</span>.<span class="ident">into</span>().<span class="ident">into</span>()],
+            <span class="self">self</span>,
+        )
         .<span class="ident">expect</span>(<span class="string">&quot;Into&lt;String&gt; used as message&quot;</span>)
     }
 
