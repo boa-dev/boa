@@ -253,20 +253,31 @@ impl CodeBlock {
 
 impl std::fmt::Display for CodeBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.name != "<main>" {
+            f.write_char('\n')?;
+        }
+
         writeln!(
             f,
-            "----------------- name '{}' (length: {}) ------------------",
-            self.name, self.length
+            "{:-^width$}",
+            format!("Compiled Output: '{}'", self.name),
+            width = 70
         )?;
 
-        writeln!(f, "    Location  Count   Opcode              Operands")?;
+        writeln!(
+            f,
+            "    Location  Count   Opcode                     Operands"
+        )?;
+
+        f.write_char('\n')?;
+
         let mut pc = 0;
         let mut count = 0;
         while pc < self.code.len() {
             let opcode: Opcode = self.code[pc].try_into().unwrap();
             write!(
                 f,
-                "    {:06}    {:04}    {:<20}",
+                "    {:06}    {:04}    {:<27}",
                 pc,
                 count,
                 opcode.as_str()

@@ -869,7 +869,7 @@ impl Context {
     pub(crate) fn run(&mut self) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("run", "vm");
 
-        const COLUMN_WIDTH: usize = 24;
+        const COLUMN_WIDTH: usize = 26;
         const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
         const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
         const OPERAND_COLUMN_WIDTH: usize = COLUMN_WIDTH;
@@ -889,7 +889,7 @@ impl Context {
                 width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - 10
             );
             println!(
-                "{:<time_width$} {:<opcode_width$} {:<operand_width$} Top Of Stack",
+                "{:<time_width$} {:<opcode_width$} {:<operand_width$} Top Of Stack\n",
                 "Time",
                 "Opcode",
                 "Operands",
