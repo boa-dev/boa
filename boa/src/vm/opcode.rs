@@ -414,13 +414,6 @@ pub enum Opcode {
     /// Stack: value **=>**
     DefInitLet,
 
-    /// Declare `const` type variable.
-    ///
-    /// Operands: name_index: `u32`
-    ///
-    /// Stack: **=>**
-    DefConst,
-
     /// Declare and initialize `const` type variable.
     ///
     /// Operands: name_index: `u32`
@@ -791,7 +784,6 @@ impl Opcode {
             Opcode::DefInitVar => "DefInitVar",
             Opcode::DefLet => "DefLet",
             Opcode::DefInitLet => "DefInitLet",
-            Opcode::DefConst => "DefConst",
             Opcode::DefInitConst => "DefInitConst",
             Opcode::GetName => "GetName",
             Opcode::SetName => "SetName",

@@ -167,7 +167,6 @@ impl CodeBlock {
             | Opcode::DefInitVar
             | Opcode::DefLet
             | Opcode::DefInitLet
-            | Opcode::DefConst
             | Opcode::DefInitConst
             | Opcode::GetName
             | Opcode::SetName

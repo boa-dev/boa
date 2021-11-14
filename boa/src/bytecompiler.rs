@@ -985,13 +985,11 @@ impl ByteCompiler {
                             }
 
                             let index = self.get_or_insert_name(ident.as_ref());
-
-                            if let Some(expr) = decl.init() {
-                                self.compile_expr(expr, true);
-                                self.emit(Opcode::DefInitConst, &[index]);
-                            } else {
-                                self.emit(Opcode::DefConst, &[index]);
-                            }
+                            let init = decl
+                                .init()
+                                .expect("const declaration must have initializer");
+                            self.compile_expr(init, true);
+                            self.emit(Opcode::DefInitConst, &[index]);
                         }
                         Declaration::Pattern(pattern) => {
                             if pattern.idents().contains(&"arguments") {

@@ -327,13 +327,6 @@ impl Context {
                 self.create_mutable_binding(name.as_ref(), false, VariableScope::Block)?;
                 self.initialize_binding(name.as_ref(), value)?;
             }
-            Opcode::DefConst => {
-                let index = self.vm.read::<u32>();
-                let name = self.vm.frame().code.variables[index as usize].clone();
-
-                self.create_immutable_binding(name.as_ref(), true, VariableScope::Block)?;
-                self.initialize_binding(name.as_ref(), JsValue::Undefined)?;
-            }
             Opcode::DefInitConst => {
                 let index = self.vm.read::<u32>();
                 let name = self.vm.frame().code.variables[index as usize].clone();
@@ -378,7 +371,7 @@ impl Context {
                 if !value.is_undefined() {
                     self.vm.frame_mut().pc = address as usize;
                 }
-                self.vm.push(value)
+                self.vm.push(value);
             }
             Opcode::LogicalAnd => {
                 let exit = self.vm.read::<u32>();
