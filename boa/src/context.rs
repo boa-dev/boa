@@ -16,11 +16,8 @@ use crate::{
     realm::Realm,
     syntax::{
         ast::{
-            node::{
-                statement_list::RcStatementList, Call, FormalParameter, Identifier, New,
-                StatementList,
-            },
-            Const, Node,
+            node::{statement_list::RcStatementList, FormalParameter, StatementList},
+            Node,
         },
         Parser,
     },
@@ -548,12 +545,11 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new Error(message)`.
-        New::from(Call::new(
-            Identifier::from("Error"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::Error::constructor(
+            &self.standard_objects().error_object().constructor().into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -572,12 +568,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new RangeError(message)`.
-        New::from(Call::new(
-            Identifier::from("RangeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::RangeError::constructor(
+            &self
+                .standard_objects()
+                .range_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -596,12 +595,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new TypeError(message)`.
-        New::from(Call::new(
-            Identifier::from("TypeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::TypeError::constructor(
+            &self
+                .standard_objects()
+                .type_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -620,11 +622,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("ReferenceError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::ReferenceError::constructor(
+            &self
+                .standard_objects()
+                .reference_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -643,11 +649,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("SyntaxError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::SyntaxError::constructor(
+            &self
+                .standard_objects()
+                .syntax_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -665,11 +675,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("EvalError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::EvalError::constructor(
+            &self
+                .standard_objects()
+                .eval_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
@@ -678,11 +692,15 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("URIError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::UriError::constructor(
+            &self
+                .standard_objects()
+                .uri_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
