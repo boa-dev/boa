@@ -199,6 +199,7 @@ impl CodeBlock {
             Opcode::Pop
             | Opcode::Dup
             | Opcode::Swap
+            | Opcode::Swap2
             | Opcode::PushZero
             | Opcode::PushOne
             | Opcode::PushNaN

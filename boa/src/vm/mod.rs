@@ -3,16 +3,17 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::{iterable::IteratorRecord, Array, ForInIterator},
+    builtins::{iterable::IteratorRecord, Array, ForInIterator, Number},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         lexical_environment::VariableScope,
     },
     property::PropertyDescriptor,
+    value::Numeric,
     vm::code_block::Readable,
     BoaProfiler, Context, JsBigInt, JsResult, JsString, JsValue,
 };
-use std::{convert::TryInto, mem::size_of, time::Instant};
+use std::{convert::TryInto, mem::size_of, ops::Neg, time::Instant};
 
 mod call_frame;
 mod code_block;
@@ -121,6 +122,15 @@ impl Context {
 
                 self.vm.push(first);
                 self.vm.push(second);
+            }
+            Opcode::Swap2 => {
+                let first = self.vm.pop();
+                let second = self.vm.pop();
+                let third = self.vm.pop();
+
+                self.vm.push(first);
+                self.vm.push(second);
+                self.vm.push(third);
             }
             Opcode::PushUndefined => self.vm.push(JsValue::undefined()),
             Opcode::PushNull => self.vm.push(JsValue::null()),
@@ -255,14 +265,17 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::Neg => {
-                let value = self.vm.pop().neg(self)?;
-                self.vm.push(value);
+                let value = self.vm.pop();
+                match value.to_numeric(self)? {
+                    Numeric::Number(number) => self.vm.push(number.neg()),
+                    Numeric::BigInt(bigint) => self.vm.push(JsBigInt::neg(&bigint)),
+                }
             }
             Opcode::Inc => {
                 let value = self.vm.pop();
                 match value.to_numeric(self)? {
-                    crate::value::Numeric::Number(number) => self.vm.push(number + 1f64),
-                    crate::value::Numeric::BigInt(bigint) => {
+                    Numeric::Number(number) => self.vm.push(number + 1f64),
+                    Numeric::BigInt(bigint) => {
                         self.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()))
                     }
                 }
@@ -270,8 +283,8 @@ impl Context {
             Opcode::Dec => {
                 let value = self.vm.pop();
                 match value.to_numeric(self)? {
-                    crate::value::Numeric::Number(number) => self.vm.push(number - 1f64),
-                    crate::value::Numeric::BigInt(bigint) => {
+                    Numeric::Number(number) => self.vm.push(number - 1f64),
+                    Numeric::BigInt(bigint) => {
                         self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()))
                     }
                 }
@@ -281,15 +294,11 @@ impl Context {
                 self.vm.push(!value.to_boolean());
             }
             Opcode::BitNot => {
-                let target = self.vm.pop();
-                let num = target.to_number(self)?;
-                let value = if num.is_nan() {
-                    -1
-                } else {
-                    // TODO: this is not spec compliant.
-                    !(num as i32)
-                };
-                self.vm.push(value);
+                let value = self.vm.pop();
+                match value.to_numeric(self)? {
+                    Numeric::Number(number) => self.vm.push(Number::not(number)),
+                    Numeric::BigInt(bigint) => self.vm.push(JsBigInt::not(&bigint)),
+                }
             }
             Opcode::DefInitArg => {
                 let index = self.vm.read::<u32>();
@@ -357,13 +366,11 @@ impl Context {
                 let value = self.vm.pop();
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
-                if self.has_binding(name.as_ref())? {
-                    // Binding already exists
-                    self.set_mutable_binding(name.as_ref(), value, self.strict())?;
-                } else {
-                    self.create_mutable_binding(name.as_ref(), true, VariableScope::Function)?;
-                    self.initialize_binding(name.as_ref(), value)?;
-                }
+                self.set_mutable_binding(
+                    name.as_ref(),
+                    value,
+                    self.strict() || self.vm.frame().code.strict,
+                )?;
             }
             Opcode::Jump => {
                 let address = self.vm.read::<u32>();
@@ -566,6 +573,9 @@ impl Context {
                 let key = self.vm.frame().code.variables[index as usize].clone();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key.into(), self)?;
+                if !result && self.strict() || self.vm.frame().code.strict {
+                    return Err(self.construct_type_error("Cannot delete property"));
+                }
                 self.vm.push(result);
             }
             Opcode::DeletePropertyByValue => {

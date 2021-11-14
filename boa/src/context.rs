@@ -1054,7 +1054,7 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = crate::bytecompiler::ByteCompiler::new(JsString::new("<main>"), false);
+        let mut compiler = crate::bytecompiler::ByteCompiler::new(JsString::new("<main>"), statement_list.strict());
         compiler.compile_statement_list(&statement_list, true);
         let code_block = compiler.finish();
 
