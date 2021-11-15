@@ -16,7 +16,7 @@ use crate::{
     vm::{CodeBlock, Opcode},
     JsBigInt, JsString, JsValue,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, mem::size_of};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Literal {
@@ -36,6 +36,7 @@ struct JumpControlInfo {
     start_address: u32,
     kind: JumpControlInfoKind,
     breaks: Vec<Label>,
+    try_continues: Vec<Label>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -243,6 +244,7 @@ impl ByteCompiler {
             start_address,
             kind: JumpControlInfoKind::Loop,
             breaks: Vec::new(),
+            try_continues: Vec::new(),
         })
     }
 
@@ -264,6 +266,7 @@ impl ByteCompiler {
             start_address,
             kind: JumpControlInfoKind::Switch,
             breaks: Vec::new(),
+            try_continues: Vec::new(),
         })
     }
 
@@ -280,36 +283,54 @@ impl ByteCompiler {
 
     #[inline]
     fn push_try_control_info(&mut self) {
-        self.jump_info.push(JumpControlInfo {
-            label: None,
-            start_address: u32::MAX,
-            kind: JumpControlInfoKind::Try,
-            breaks: Vec::new(),
-        })
+        if !self.jump_info.is_empty() {
+            let start_address = self.jump_info.last().unwrap().start_address;
+
+            self.jump_info.push(JumpControlInfo {
+                label: None,
+                start_address,
+                kind: JumpControlInfoKind::Try,
+                breaks: Vec::new(),
+                try_continues: Vec::new(),
+            })
+        }
     }
 
     #[inline]
     fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) {
-        let mut info = self.jump_info.pop().unwrap();
+        if !self.jump_info.is_empty() {
+            let mut info = self.jump_info.pop().unwrap();
 
-        assert!(info.kind == JumpControlInfoKind::Try);
+            assert!(info.kind == JumpControlInfoKind::Try);
 
-        if let Some(finally_start_address) = finally_start_address {
             let mut breaks = Vec::with_capacity(info.breaks.len());
-            let finally_end = self.jump_with_custom_opcode(Opcode::FinallyJump);
-            for label in info.breaks {
-                if label.index < finally_start_address {
-                    self.patch_jump_with_target(label, finally_start_address);
-                    breaks.push(finally_end);
-                } else {
-                    breaks.push(label);
+
+            if let Some(finally_start_address) = finally_start_address {
+                for label in info.try_continues {
+                    if label.index < finally_start_address {
+                        self.patch_jump_with_target(label, finally_start_address);
+                    } else {
+                        self.patch_jump_with_target(label, info.start_address)
+                    }
                 }
+
+                for label in info.breaks {
+                    if label.index < finally_start_address {
+                        self.patch_jump_with_target(label, finally_start_address);
+                        let Label { mut index } = label;
+                        index -= size_of::<Opcode>() as u32;
+                        index -= size_of::<u32>() as u32;
+                        breaks.push(Label { index });
+                    } else {
+                        breaks.push(label);
+                    }
+                }
+                if let Some(jump_info) = self.jump_info.last_mut() {
+                    jump_info.breaks.append(&mut breaks);
+                }
+            } else if let Some(jump_info) = self.jump_info.last_mut() {
+                jump_info.breaks.append(&mut info.breaks);
             }
-            if let Some(jump_info) = self.jump_info.last_mut() {
-                jump_info.breaks.append(&mut breaks);
-            }
-        } else if let Some(jump_info) = self.jump_info.last_mut() {
-            jump_info.breaks.append(&mut info.breaks);
         }
     }
 
@@ -1198,23 +1219,41 @@ impl ByteCompiler {
                 self.patch_jump(exit);
             }
             Node::Continue(node) => {
-                let label = self.jump();
-                let mut items = self
+                if let Some(start_address) = self
                     .jump_info
-                    .iter_mut()
-                    .rev()
-                    .filter(|info| info.kind == JumpControlInfoKind::Loop);
-                let target = if node.label().is_none() {
-                    items.next()
+                    .last()
+                    .filter(|info| info.kind == JumpControlInfoKind::Try)
+                    .map(|info| info.start_address)
+                {
+                    self.emit(Opcode::FinallySetJump, &[start_address]);
+                    let label = self.jump();
+                    self.jump_info.last_mut().unwrap().try_continues.push(label);
                 } else {
-                    items.find(|info| info.label.as_deref() == node.label())
+                    let label = self.jump();
+                    let mut items = self
+                        .jump_info
+                        .iter_mut()
+                        .rev()
+                        .filter(|info| info.kind == JumpControlInfoKind::Loop);
+                    let address = if node.label().is_none() {
+                        items.next()
+                    } else {
+                        items.find(|info| info.label.as_deref() == node.label())
+                    }
+                    .expect("continue target")
+                    .start_address;
+                    self.patch_jump_with_target(label, address);
                 }
-                .expect("continue target")
-                .start_address;
-
-                self.patch_jump_with_target(label, target);
             }
             Node::Break(node) => {
+                if self
+                    .jump_info
+                    .last()
+                    .filter(|info| info.kind == JumpControlInfoKind::Try)
+                    .is_some()
+                {
+                    self.emit(Opcode::FinallySetJump, &[u32::MAX]);
+                }
                 let label = self.jump();
                 if node.label().is_none() {
                     self.jump_info.last_mut().unwrap().breaks.push(label);
@@ -1278,17 +1317,16 @@ impl ByteCompiler {
                 self.push_try_control_info();
 
                 let try_start = self.jump_with_custom_opcode(Opcode::TryStart);
-
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 for node in t.block().items() {
                     self.compile_stmt(node, false);
                 }
                 self.emit_opcode(Opcode::PopEnvironment);
-
                 self.emit_opcode(Opcode::TryEnd);
-                let finally = self.jump();
 
+                let finally = self.jump();
                 self.patch_jump(try_start);
+
                 if let Some(catch) = t.catch() {
                     self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                     if let Some(decl) = catch.parameter() {
@@ -1312,6 +1350,7 @@ impl ByteCompiler {
                 }
 
                 self.patch_jump(finally);
+
                 if let Some(finally) = t.finally() {
                     self.emit_opcode(Opcode::FinallyStart);
                     let finally_start_address = self.next_opcode_location();

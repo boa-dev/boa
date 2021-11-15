@@ -594,10 +594,8 @@ pub enum Opcode {
     /// End of a finally block.
     FinallyEnd,
 
-    /// Jump if the finally block was entered trough a break statement.
-    ///
-    /// Operands: address: `u32`
-    FinallyJump,
+    /// Set the address for a finally jump.
+    FinallySetJump,
 
     /// Pops value converts it to boolean and pushes it back.
     ///
@@ -845,7 +843,7 @@ impl Opcode {
             Opcode::TryEnd => "TryEnd",
             Opcode::FinallyStart => "FinallyStart",
             Opcode::FinallyEnd => "FinallyEnd",
-            Opcode::FinallyJump => "FinallyJump",
+            Opcode::FinallySetJump => "FinallySetJump",
             Opcode::ToBoolean => "ToBoolean",
             Opcode::This => "This",
             Opcode::Case => "Case",

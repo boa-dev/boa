@@ -606,25 +606,26 @@ impl Context {
             Opcode::TryStart => {
                 let index = self.vm.read::<u32>();
                 self.vm.frame_mut().catch = Some(index);
-                self.vm.frame_mut().finally_no_jump = false;
+                self.vm.frame_mut().finally_jump = None;
             }
             Opcode::TryEnd => {
                 self.vm.frame_mut().catch = None;
             }
             Opcode::FinallyStart => {
-                self.vm.frame_mut().finally_no_jump = true;
+                self.vm.frame_mut().finally_jump = None;
             }
             Opcode::FinallyEnd => {
+                let address = self.vm.frame_mut().finally_jump.take();
                 if let Some(value) = self.vm.stack.pop() {
                     return Err(value);
                 }
-            }
-            Opcode::FinallyJump => {
-                let address = self.vm.read::<u32>();
-                if !self.vm.frame().finally_no_jump {
+                if let Some(address) = address {
                     self.vm.frame_mut().pc = address as usize;
                 }
-                self.vm.frame_mut().finally_no_jump = false;
+            }
+            Opcode::FinallySetJump => {
+                let address = self.vm.read::<u32>();
+                self.vm.frame_mut().finally_jump = Some(address);
             }
             Opcode::This => {
                 let this = self.get_this_binding()?;
