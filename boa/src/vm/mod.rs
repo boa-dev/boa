@@ -6,7 +6,8 @@ use crate::{
     builtins::{iterable::IteratorRecord, Array, ForInIterator, Number},
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
-        lexical_environment::VariableScope,
+        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+        lexical_environment::{Environment, VariableScope},
     },
     property::PropertyDescriptor,
     value::Numeric,
@@ -767,6 +768,32 @@ impl Context {
                 let env = self.get_current_environment();
                 self.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
                 self.vm.frame_mut().pop_env_on_return += 1;
+            }
+            Opcode::PushFunctionEnvironment => {
+                let is_constructor = self.vm.frame().code.constructor;
+                let is_lexical = self.vm.frame().code.this_mode.is_lexical();
+                let current_env = self.get_current_environment();
+                let this = &self.vm.frame().this;
+
+                let new_env = FunctionEnvironmentRecord::new(
+                    this.clone().as_object().unwrap().clone(), //TODO: is this ok? this_function object on stack mb?
+                    if is_constructor || !is_lexical {
+                        Some(this.clone())
+                    } else {
+                        None
+                    },
+                    Some(current_env),
+                    if is_lexical {
+                        BindingStatus::Lexical
+                    } else {
+                        BindingStatus::Uninitialized
+                    },
+                    JsValue::undefined(),
+                    self,
+                )?;
+
+                let new_env: Environment = new_env.into();
+                self.push_environment(new_env);
             }
             Opcode::PopEnvironment => {
                 let _ = self.pop_environment();

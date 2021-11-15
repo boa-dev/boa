@@ -669,6 +669,9 @@ pub enum Opcode {
     /// Push a declarative environment.
     PushDeclarativeEnvironment,
 
+    /// Push a function environment.
+    PushFunctionEnvironment,
+
     /// Pop the current environment.
     PopEnvironment,
 
@@ -854,6 +857,7 @@ impl Opcode {
             Opcode::NewWithRest => "NewWithRest",
             Opcode::Return => "Return",
             Opcode::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
+            Opcode::PushFunctionEnvironment => "PushFunctionEnvironment",
             Opcode::PopEnvironment => "PopEnvironment",
             Opcode::ForInLoopInitIterator => "ForInLoopInitIterator",
             Opcode::InitIterator => "InitIterator",

@@ -253,6 +253,7 @@ impl CodeBlock {
             | Opcode::This
             | Opcode::Return
             | Opcode::PushDeclarativeEnvironment
+            | Opcode::PushFunctionEnvironment
             | Opcode::PopEnvironment
             | Opcode::InitIterator
             | Opcode::IteratorNext
@@ -584,6 +585,9 @@ impl JsObject {
                 let result = context.run();
 
                 context.pop_environment();
+                if has_parameter_expressions {
+                    context.pop_environment();
+                }
 
                 result
             }
@@ -743,6 +747,9 @@ impl JsObject {
                 let this = context.get_this_binding();
 
                 context.pop_environment();
+                if has_parameter_expressions {
+                    context.pop_environment();
+                }
 
                 if result.is_object() {
                     Ok(result)
