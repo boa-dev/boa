@@ -833,7 +833,7 @@ impl ByteCompiler {
             Node::Call(_) => self.call(expr, use_expr),
             Node::New(_) => self.call(expr, use_expr),
             Node::TemplateLit(template_literal) => {
-                for element in template_literal.elements().iter().rev() {
+                for element in template_literal.elements() {
                     match element {
                         TemplateElement::String(s) => {
                             self.emit_push_literal(Literal::String(s.as_ref().into()))
@@ -895,10 +895,6 @@ impl ByteCompiler {
                     }
                 }
 
-                for expr in template.exprs().iter().rev() {
-                    self.compile_expr(expr, true);
-                }
-
                 self.emit_opcode(Opcode::PushNewArray);
                 for raw in template.raws() {
                     self.emit_push_literal(Literal::String(raw.as_ref().into()));
@@ -918,6 +914,10 @@ impl ByteCompiler {
                 self.emit_opcode(Opcode::Dup);
                 let index = self.get_or_insert_name("raw");
                 self.emit(Opcode::SetPropertyByName, &[index]);
+
+                for expr in template.exprs() {
+                    self.compile_expr(expr, true);
+                }
 
                 self.emit(Opcode::Call, &[(template.exprs().len() + 1) as u32]);
             }
@@ -1530,7 +1530,7 @@ impl ByteCompiler {
             }
         }
 
-        for arg in call.args().iter().rev() {
+        for arg in call.args().iter() {
             self.compile_expr(arg, true);
         }
 

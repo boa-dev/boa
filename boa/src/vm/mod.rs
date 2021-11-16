@@ -621,7 +621,7 @@ impl Context {
                 let has_thrown = self.vm.frame().has_thrown;
                 if has_thrown {
                     self.vm.frame_mut().has_thrown = false;
-                    return Err(self.vm.pop())
+                    return Err(self.vm.pop());
                 }
                 if let Some(address) = address {
                     self.vm.frame_mut().pc = address as usize;
@@ -667,6 +667,7 @@ impl Context {
                 for _ in 0..argc {
                     args.push(self.vm.pop());
                 }
+                args.reverse();
 
                 let func = self.vm.pop();
                 let this = self.vm.pop();
@@ -685,11 +686,12 @@ impl Context {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
                 let argc = self.vm.read::<u32>();
+                let rest_arg_value = self.vm.pop();
                 let mut args = Vec::with_capacity(argc as usize);
                 for _ in 0..(argc - 1) {
                     args.push(self.vm.pop());
                 }
-                let rest_arg_value = self.vm.pop();
+                args.reverse();
                 let func = self.vm.pop();
                 let this = self.vm.pop();
 
@@ -722,6 +724,7 @@ impl Context {
                 for _ in 0..argc {
                     args.push(self.vm.pop());
                 }
+                args.reverse();
                 let func = self.vm.pop();
 
                 let result = func
@@ -736,11 +739,12 @@ impl Context {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
                 let argc = self.vm.read::<u32>();
+                let rest_arg_value = self.vm.pop();
                 let mut args = Vec::with_capacity(argc as usize);
                 for _ in 0..(argc - 1) {
                     args.push(self.vm.pop());
                 }
-                let rest_arg_value = self.vm.pop();
+                args.reverse();
                 let func = self.vm.pop();
 
                 let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
@@ -912,13 +916,14 @@ impl Context {
             }
             Opcode::ConcatToString => {
                 let n = self.vm.read::<u32>();
-                let mut s = JsString::new("");
-
+                let mut strings = Vec::with_capacity(n as usize);
                 for _ in 0..n {
-                    let obj = self.vm.pop();
-                    s = JsString::concat(s, obj.to_string(self)?);
+                    strings.push(self.vm.pop().to_string(self)?);
                 }
-
+                strings.reverse();
+                let s = JsString::concat_array(
+                    &strings.iter().map(|s| s.as_str()).collect::<Vec<&str>>(),
+                );
                 self.vm.push(s);
             }
             Opcode::RequireObjectCoercible => {
