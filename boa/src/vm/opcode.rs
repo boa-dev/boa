@@ -133,12 +133,20 @@ pub enum Opcode {
     /// Stack: **=>** object
     PushEmptyObject,
 
-    /// Push array object `{}` value on the stack.
+    /// Push an empty array value on the stack.
     ///
-    /// Operands: n: `u32`
-    ///
-    /// Stack: v1, v1, ... vn **=>** [v1, v2, ..., vn]
+    /// Stack: **=>** `array`
     PushNewArray,
+
+    /// Push a value to an array.
+    ///
+    /// Stack: `array`, `value` **=>** `array`
+    PushValueToArray,
+
+    /// Push all iterator values to an array.
+    ///
+    /// Stack: `array`, `iterator`, `next_function` **=>** `array`
+    PushIteratorToArray,
 
     /// Binary `+` operator.
     ///
@@ -378,33 +386,40 @@ pub enum Opcode {
     /// Stack: value **=>** (value - 1)
     Dec,
 
-    /// Declate `var` type variable.
+    /// Declare `var` type variable.
     ///
     /// Operands: name_index: `u32`
     ///
     /// Stack: **=>**
     DefVar,
 
-    /// Declate `let` type variable.
+    /// Declare and initialize `var` type variable.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value **=>**
+    DefInitVar,
+
+    /// Declare `let` type variable.
     ///
     /// Operands: name_index: `u32`
     ///
     /// Stack: **=>**
     DefLet,
 
-    /// Declate `const` type variable.
+    /// Declare and initialize `let` type variable.
     ///
     /// Operands: name_index: `u32`
     ///
-    /// Stack: **=>**
-    DefConst,
+    /// Stack: value **=>**
+    DefInitLet,
 
-    /// Initialize a lexical binding.
+    /// Declare and initialize `const` type variable.
     ///
     /// Operands: name_index: `u32`
     ///
-    /// Stack: **=>**
-    InitLexical,
+    /// Stack: value **=>**
+    DefInitConst,
 
     /// Find a binding on the environment chain and push its value.
     ///
@@ -510,13 +525,21 @@ pub enum Opcode {
     /// Stack: key, object **=>**
     DeletePropertyByValue,
 
+    /// Copy all properties of one object to another object.
+    ///
+    /// Operands: number of excluded keys: `u32`
+    ///
+    /// Stack: object, rest_object, excluded_key_0 ... excluded_key_n **=>** object
+    CopyDataProperties,
+
     /// Unconditional jump to address.
     ///
     /// Operands: address: `u32`
+    ///
     /// Stack: **=>**
     Jump,
 
-    /// Constional jump to address.
+    /// Conditional jump to address.
     ///
     /// If the value popped is [`falsy`][falsy] then jump to `address`.
     ///
@@ -527,16 +550,14 @@ pub enum Opcode {
     /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
     JumpIfFalse,
 
-    /// Constional jump to address.
+    /// Conditional jump to address.
     ///
-    /// If the value popped is [`truthy`][truthy] then jump to `address`.
+    /// If the value popped is not undefined jump to `address`.
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: cond **=>**
-    ///
-    /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
-    JumpIfTrue,
+    /// Stack: value **=>** value
+    JumpIfNotUndefined,
 
     /// Throw exception
     ///
@@ -544,6 +565,25 @@ pub enum Opcode {
     ///
     /// Stack: `exc` **=>**
     Throw,
+
+    /// Start of a try block.
+    ///
+    /// Operands: address: `u32`
+    TryStart,
+
+    /// End of a try block.
+    TryEnd,
+
+    /// Start of a finally block.
+    FinallyStart,
+
+    /// End of a finally block.
+    FinallyEnd,
+
+    /// Jump if the finally block was entered trough a break statement.
+    ///
+    /// Operands: address: `u32`
+    FinallyJump,
 
     /// Pops value converts it to boolean and pushes it back.
     ///
@@ -588,8 +628,81 @@ pub enum Opcode {
     /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
     Call,
 
+    /// Call a function where the last argument is a rest parameter.
+    ///
+    /// Operands: argc: `u32`
+    ///
+    /// Stack: `func`, `this`, `arg1`, `arg2`,...`argn` **=>**
+    CallWithRest,
+
+    /// Call construct on a function.
+    ///
+    /// Operands: argc: `u32`
+    ///
+    /// Stack: `func`, `arg1`, `arg2`,...`argn` **=>**
+    New,
+
+    /// Call construct on a function where the last argument is a rest parameter.
+    ///
+    /// Operands: argc: `u32`
+    ///
+    /// Stack: `func`, `arg1`, `arg2`,...`argn` **=>**
+    NewWithRest,
+
     /// Return from a function.
     Return,
+
+    /// Push a declarative environment.
+    PushDeclarativeEnvironment,
+
+    /// Pop the current environment.
+    PopEnvironment,
+
+    /// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: `object` **=>** `for_in_iterator`, `next_function`
+    ForInLoopInitIterator,
+
+    /// Initialize an iterator.
+    ///
+    /// Stack: `object` **=>** `iterator`, `next_function`
+    InitIterator,
+
+    /// Advance the iterator by one and put the value on the stack.
+    ///
+    /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `next_value`
+    IteratorNext,
+
+    /// Consume the iterator and construct and array with all the values.
+    ///
+    /// Stack: `iterator`, `next_function` **=>** `for_of_iterator`, `next_function`, `array`
+    IteratorToArray,
+
+    /// Move to the next value in a for..in loop or jump to exit of the loop if done.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: `for_in_iterator`, `next_function` **=>** `for_in_iterator`, `next_function`, `next_result` (if not done)
+    ForInLoopNext,
+
+    /// Concat multiple stack objects into a string.
+    ///
+    /// Operands: number of stack objects: `u32`
+    ///
+    /// Stack: `value1`,...`valuen` **=>** `string`
+    ConcatToString,
+
+    /// Call RequireObjectCoercible on the stack value.
+    ///
+    /// Stack: `value` **=>** `value`
+    RequireObjectCoercible,
+
+    /// Require the stack value to be neither null nor undefined.
+    ///
+    /// Stack: `value` **=>** `value`
+    ValueNotNullOrUndefined,
 
     /// No-operation instruction, does nothing.
     ///
@@ -632,6 +745,8 @@ impl Opcode {
             Opcode::PushLiteral => "PushLiteral",
             Opcode::PushEmptyObject => "PushEmptyObject",
             Opcode::PushNewArray => "PushNewArray",
+            Opcode::PushValueToArray => "PushValueToArray",
+            Opcode::PushIteratorToArray => "PushIteratorToArray",
             Opcode::Add => "Add",
             Opcode::Sub => "Sub",
             Opcode::Div => "Div",
@@ -666,9 +781,10 @@ impl Opcode {
             Opcode::Inc => "Inc",
             Opcode::Dec => "Dec",
             Opcode::DefVar => "DefVar",
+            Opcode::DefInitVar => "DefInitVar",
             Opcode::DefLet => "DefLet",
-            Opcode::DefConst => "DefConst",
-            Opcode::InitLexical => "InitLexical",
+            Opcode::DefInitLet => "DefInitLet",
+            Opcode::DefInitConst => "DefInitConst",
             Opcode::GetName => "GetName",
             Opcode::SetName => "SetName",
             Opcode::GetPropertyByName => "GetPropertyByName",
@@ -681,17 +797,36 @@ impl Opcode {
             Opcode::SetPropertySetterByValue => "SetPropertySetterByValue",
             Opcode::DeletePropertyByName => "DeletePropertyByName",
             Opcode::DeletePropertyByValue => "DeletePropertyByValue",
+            Opcode::CopyDataProperties => "CopyDataProperties",
             Opcode::Jump => "Jump",
             Opcode::JumpIfFalse => "JumpIfFalse",
-            Opcode::JumpIfTrue => "JumpIfTrue",
+            Opcode::JumpIfNotUndefined => "JumpIfNotUndefined",
             Opcode::Throw => "Throw",
+            Opcode::TryStart => "TryStart",
+            Opcode::TryEnd => "TryEnd",
+            Opcode::FinallyStart => "FinallyStart",
+            Opcode::FinallyEnd => "FinallyEnd",
+            Opcode::FinallyJump => "FinallyJump",
             Opcode::ToBoolean => "ToBoolean",
             Opcode::This => "This",
             Opcode::Case => "Case",
             Opcode::Default => "Default",
             Opcode::GetFunction => "GetFunction",
             Opcode::Call => "Call",
+            Opcode::CallWithRest => "CallWithRest",
+            Opcode::New => "New",
+            Opcode::NewWithRest => "NewWithRest",
             Opcode::Return => "Return",
+            Opcode::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
+            Opcode::PopEnvironment => "PopEnvironment",
+            Opcode::ForInLoopInitIterator => "ForInLoopInitIterator",
+            Opcode::InitIterator => "InitIterator",
+            Opcode::IteratorNext => "IteratorNext",
+            Opcode::IteratorToArray => "IteratorToArray",
+            Opcode::ForInLoopNext => "ForInLoopNext",
+            Opcode::ConcatToString => "ConcatToString",
+            Opcode::RequireObjectCoercible => "RequireObjectCoercible",
+            Opcode::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
             Opcode::Nop => "Nop",
         }
     }

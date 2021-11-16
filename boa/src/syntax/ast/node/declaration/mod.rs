@@ -437,8 +437,15 @@ impl DeclarationPatternObject {
 
     /// Gets the initialization node for the object binding pattern, if any.
     #[inline]
-    pub(in crate::syntax) fn init(&self) -> Option<&Node> {
+    pub(crate) fn init(&self) -> Option<&Node> {
         self.init.as_ref()
+    }
+
+    /// Gets the bindings for the object binding pattern.
+    #[inline]
+    #[cfg(feature = "vm")]
+    pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeObject> {
+        &self.bindings
     }
 
     /// Initialize the values of an object binding pattern.
@@ -560,7 +567,7 @@ impl DeclarationPatternObject {
 
     /// Gets the list of identifiers declared by the object binding pattern.
     #[inline]
-    pub(in crate::syntax) fn idents(&self) -> Vec<&str> {
+    pub(crate) fn idents(&self) -> Vec<&str> {
         let mut idents = Vec::new();
 
         for binding in &self.bindings {
@@ -645,8 +652,15 @@ impl DeclarationPatternArray {
 
     /// Gets the initialization node for the array binding pattern, if any.
     #[inline]
-    pub(in crate::syntax) fn init(&self) -> Option<&Node> {
+    pub(crate) fn init(&self) -> Option<&Node> {
         self.init.as_ref()
+    }
+
+    /// Gets the bindings for the array binding pattern.
+    #[inline]
+    #[cfg(feature = "vm")]
+    pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeArray> {
+        &self.bindings
     }
 
     /// Initialize the values of an array binding pattern.
@@ -847,7 +861,7 @@ impl DeclarationPatternArray {
 
     /// Gets the list of identifiers declared by the array binding pattern.
     #[inline]
-    pub(in crate::syntax) fn idents(&self) -> Vec<&str> {
+    pub(crate) fn idents(&self) -> Vec<&str> {
         let mut idents = Vec::new();
 
         for binding in &self.bindings {

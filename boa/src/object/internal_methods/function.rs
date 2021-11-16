@@ -1,17 +1,25 @@
 use crate::{
-    builtins::function::{Captures, ClosureFunctionSignature, Function, NativeFunctionSignature},
+    object::{
+        internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
+        JsObject,
+    },
+    Context, JsResult, JsValue,
+};
+
+#[cfg(not(feature = "vm"))]
+use crate::{
+    builtins::function::{
+        arguments::Arguments, Captures, ClosureFunctionSignature, Function, NativeFunctionSignature,
+    },
+    context::StandardObjects,
     environment::{
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
     exec::{Executable, InterpreterState},
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, ObjectData},
     syntax::ast::node::RcStatementList,
-    Context, JsResult, JsValue,
 };
-
-use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
-use crate::{builtins::function::arguments::Arguments, context::StandardObjects};
 
 /// Definitions of the internal object methods for function objects.
 ///
@@ -46,7 +54,10 @@ fn function_call(
     args: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    call_construct(obj, this, args, context, false)
+    #[cfg(not(feature = "vm"))]
+    return call_construct(obj, this, args, context, false);
+    #[cfg(feature = "vm")]
+    return obj.call_internal(this, args, context);
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -63,7 +74,10 @@ fn function_construct(
     new_target: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    call_construct(obj, new_target, args, context, true)
+    #[cfg(not(feature = "vm"))]
+    return call_construct(obj, new_target, args, context, true);
+    #[cfg(feature = "vm")]
+    return obj.construct_internal(args, new_target, context);
 }
 
 /// Internal implementation of [`call`](#method.call) and [`construct`](#method.construct).
@@ -77,6 +91,7 @@ fn function_construct(
 /// <https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody>
 /// <https://tc39.es/ecma262/#sec-ordinarycallevaluatebody>
 #[track_caller]
+#[cfg(not(feature = "vm"))]
 pub(super) fn call_construct(
     obj: &JsObject,
     this_target: &JsValue,

@@ -44,6 +44,12 @@ impl New {
     pub fn args(&self) -> &[Node] {
         self.call.args()
     }
+
+    /// Returns the inner call
+    #[cfg(feature = "vm")]
+    pub(crate) fn call(&self) -> &Call {
+        &self.call
+    }
 }
 
 impl Executable for New {
