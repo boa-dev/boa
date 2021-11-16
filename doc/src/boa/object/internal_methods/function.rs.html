@@ -317,20 +317,43 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::function</span>::{<span class="ident">Captures</span>, <span class="ident">ClosureFunctionSignature</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
+    <span class="ident">object</span>::{
+        <span class="ident">internal_methods</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>},
+        <span class="ident">JsObject</span>,
+    },
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">builtins::function</span>::{
+        <span class="ident">arguments::Arguments</span>, <span class="ident">Captures</span>, <span class="ident">ClosureFunctionSignature</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>,
+    },
+    <span class="ident">context::StandardObjects</span>,
     <span class="ident">environment</span>::{
         <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
         <span class="ident">lexical_environment::Environment</span>,
     },
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
-    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ObjectData</span>},
     <span class="ident">syntax::ast::node::RcStatementList</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
-
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::function::arguments::Arguments</span>, <span class="ident">context::StandardObjects</span>};
 
 <span class="doccomment">/// Definitions of the internal object methods for function objects.</span>
 <span class="doccomment">///</span>
@@ -365,7 +388,10 @@
     <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="ident">call_construct</span>(<span class="ident">obj</span>, <span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="bool-val">false</span>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
+    <span class="kw">return</span> <span class="ident">call_construct</span>(<span class="ident">obj</span>, <span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="bool-val">false</span>);
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+    <span class="kw">return</span> <span class="ident">obj</span>.<span class="ident">call_internal</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>);
 }
 
 <span class="doccomment">/// Construct an instance of this object with the specified arguments.</span>
@@ -382,7 +408,10 @@
     <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="ident">call_construct</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="bool-val">true</span>)
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
+    <span class="kw">return</span> <span class="ident">call_construct</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>, <span class="ident">args</span>, <span class="ident">context</span>, <span class="bool-val">true</span>);
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+    <span class="kw">return</span> <span class="ident">obj</span>.<span class="ident">construct_internal</span>(<span class="ident">args</span>, <span class="ident">new_target</span>, <span class="ident">context</span>);
 }
 
 <span class="doccomment">/// Internal implementation of [`call`](#method.call) and [`construct`](#method.construct).</span>
@@ -396,6 +425,7 @@
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody&gt;</span>
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ordinarycallevaluatebody&gt;</span>
 <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">call_construct</span>(
     <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">this_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,

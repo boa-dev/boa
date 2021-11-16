@@ -1110,6 +1110,8 @@
 <span id="1110">1110</span>
 <span id="1111">1111</span>
 <span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -2180,8 +2182,10 @@
             <span class="ident">this</span>: <span class="ident">global_object</span>,
             <span class="ident">pc</span>: <span class="number">0</span>,
             <span class="ident">fp</span>,
-            <span class="ident">exit_on_return</span>: <span class="bool-val">true</span>,
             <span class="ident">environment</span>,
+            <span class="ident">catch</span>: <span class="prelude-val">None</span>,
+            <span class="ident">pop_env_on_return</span>: <span class="number">0</span>,
+            <span class="ident">finally_no_jump</span>: <span class="bool-val">false</span>,
         });
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>();
 

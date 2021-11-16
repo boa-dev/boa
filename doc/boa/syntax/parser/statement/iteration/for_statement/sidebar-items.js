@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ForStatement","For statement parsing"]]});
+initSidebarItems({"fn":[["node_to_iterable_loop_initializer",""]],"struct":[["ForStatement","For statement parsing"]]});
