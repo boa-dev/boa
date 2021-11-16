@@ -607,17 +607,21 @@ impl Context {
                 let index = self.vm.read::<u32>();
                 self.vm.frame_mut().catch = Some(index);
                 self.vm.frame_mut().finally_jump = None;
+                self.vm.frame_mut().has_thrown = false;
             }
             Opcode::TryEnd => {
                 self.vm.frame_mut().catch = None;
+                self.vm.frame_mut().has_thrown = false;
             }
             Opcode::FinallyStart => {
                 self.vm.frame_mut().finally_jump = None;
             }
             Opcode::FinallyEnd => {
                 let address = self.vm.frame_mut().finally_jump.take();
-                if let Some(value) = self.vm.stack.pop() {
-                    return Err(value);
+                let has_thrown = self.vm.frame().has_thrown;
+                if has_thrown {
+                    self.vm.frame_mut().has_thrown = false;
+                    return Err(self.vm.pop())
                 }
                 if let Some(address) = address {
                     self.vm.frame_mut().pc = address as usize;
@@ -1050,6 +1054,7 @@ impl Context {
                         }
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch = None;
+                        self.vm.frame_mut().has_thrown = true;
                         self.vm.push(e);
                     } else {
                         for _ in 0..self.vm.frame().pop_env_on_return {

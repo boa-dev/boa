@@ -1070,6 +1070,7 @@ impl Context {
             fp,
             environment,
             catch: None,
+            has_thrown: false,
             finally_jump: None,
             pop_env_on_return: 0,
             param_count: 0,

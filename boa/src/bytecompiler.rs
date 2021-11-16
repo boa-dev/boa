@@ -1225,6 +1225,7 @@ impl ByteCompiler {
                     .filter(|info| info.kind == JumpControlInfoKind::Try)
                     .map(|info| info.start_address)
                 {
+                    self.emit_opcode(Opcode::TryEnd);
                     self.emit(Opcode::FinallySetJump, &[start_address]);
                     let label = self.jump();
                     self.jump_info.last_mut().unwrap().try_continues.push(label);
@@ -1252,6 +1253,7 @@ impl ByteCompiler {
                     .filter(|info| info.kind == JumpControlInfoKind::Try)
                     .is_some()
                 {
+                    self.emit_opcode(Opcode::TryEnd);
                     self.emit(Opcode::FinallySetJump, &[u32::MAX]);
                 }
                 let label = self.jump();
