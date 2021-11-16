@@ -906,12 +906,6 @@ impl ByteCompiler {
                 }
 
                 self.emit_opcode(Opcode::PushNewArray);
-                for raw in template.raws() {
-                    self.emit_push_literal(Literal::String(raw.as_ref().into()));
-                    self.emit_opcode(Opcode::PushValueToArray);
-                }
-
-                self.emit_opcode(Opcode::PushNewArray);
                 for cooked in template.cookeds() {
                     if let Some(cooked) = cooked {
                         self.emit_push_literal(Literal::String(cooked.as_ref().into()));
@@ -920,8 +914,15 @@ impl ByteCompiler {
                     }
                     self.emit_opcode(Opcode::PushValueToArray);
                 }
-
                 self.emit_opcode(Opcode::Dup);
+
+                self.emit_opcode(Opcode::PushNewArray);
+                for raw in template.raws() {
+                    self.emit_push_literal(Literal::String(raw.as_ref().into()));
+                    self.emit_opcode(Opcode::PushValueToArray);
+                }
+
+                self.emit_opcode(Opcode::Swap);
                 let index = self.get_or_insert_name("raw");
                 self.emit(Opcode::SetPropertyByName, &[index]);
 
