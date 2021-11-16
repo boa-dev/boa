@@ -184,6 +184,7 @@ impl CodeBlock {
             | Opcode::DefInitLet
             | Opcode::DefInitConst
             | Opcode::GetName
+            | Opcode::GetNameOrUndefined
             | Opcode::SetName
             | Opcode::GetPropertyByName
             | Opcode::SetPropertyByName

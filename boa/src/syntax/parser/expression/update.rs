@@ -10,7 +10,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, op::UnaryOp, Node, Punctuator},
-        lexer::{TokenKind, Error as LexError},
+        lexer::{Error as LexError, TokenKind},
         parser::{
             expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
             ParseResult, TokenParser,
@@ -86,10 +86,14 @@ where
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let ok = match &lhs {
                         Node::Identifier(_) if !strict => true,
-                        Node::Identifier(ident) if !["eval", "arguments"].contains(&ident.as_ref()) => true,
+                        Node::Identifier(ident)
+                            if !["eval", "arguments"].contains(&ident.as_ref()) =>
+                        {
+                            true
+                        }
                         Node::GetConstField(_) => true,
                         Node::GetField(_) => true,
-                        _ => false
+                        _ => false,
                     };
                     if !ok {
                         return Err(ParseError::lex(LexError::Syntax(
@@ -105,10 +109,14 @@ where
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let ok = match &lhs {
                         Node::Identifier(_) if !strict => true,
-                        Node::Identifier(ident) if !["eval", "arguments"].contains(&ident.as_ref()) => true,
+                        Node::Identifier(ident)
+                            if !["eval", "arguments"].contains(&ident.as_ref()) =>
+                        {
+                            true
+                        }
                         Node::GetConstField(_) => true,
                         Node::GetField(_) => true,
-                        _ => false
+                        _ => false,
                     };
                     if !ok {
                         return Err(ParseError::lex(LexError::Syntax(

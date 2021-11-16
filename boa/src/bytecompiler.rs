@@ -496,7 +496,17 @@ impl ByteCompiler {
                     UnaryOp::Plus => Some(Opcode::Pos),
                     UnaryOp::Not => Some(Opcode::LogicalNot),
                     UnaryOp::Tilde => Some(Opcode::BitNot),
-                    UnaryOp::TypeOf => Some(Opcode::TypeOf),
+                    UnaryOp::TypeOf => {
+                        match &unary.target() {
+                            Node::Identifier(identifier) => {
+                                let index = self.get_or_insert_name(identifier.as_ref());
+                                self.emit(Opcode::GetNameOrUndefined, &[index]);
+                            }
+                            expr => self.compile_expr(expr, true),
+                        }
+                        self.emit_opcode(Opcode::TypeOf);
+                        None
+                    }
                     UnaryOp::Void => Some(Opcode::Void),
                 };
 

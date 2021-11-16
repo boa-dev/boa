@@ -362,6 +362,17 @@ impl Context {
                 let value = self.get_binding_value(&name)?;
                 self.vm.push(value);
             }
+            Opcode::GetNameOrUndefined => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.variables[index as usize].clone();
+
+                let value = if self.has_binding(&name)? {
+                    self.get_binding_value(&name)?
+                } else {
+                    JsValue::Undefined
+                };
+                self.vm.push(value)
+            }
             Opcode::SetName => {
                 let index = self.vm.read::<u32>();
                 let value = self.vm.pop();

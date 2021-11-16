@@ -442,6 +442,13 @@ pub enum Opcode {
     /// Stack: **=>** value
     GetName,
 
+    /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: **=>** value
+    GetNameOrUndefined,
+
     /// Find a binding on the environment chain and assign its value.
     ///
     /// Operands: name_index: `u32`
@@ -823,6 +830,7 @@ impl Opcode {
             Opcode::DefInitLet => "DefInitLet",
             Opcode::DefInitConst => "DefInitConst",
             Opcode::GetName => "GetName",
+            Opcode::GetNameOrUndefined => "GetNameOrUndefined",
             Opcode::SetName => "SetName",
             Opcode::GetPropertyByName => "GetPropertyByName",
             Opcode::GetPropertyByValue => "GetPropertyByValue",
