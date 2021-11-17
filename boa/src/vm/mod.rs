@@ -472,7 +472,12 @@ impl Context {
 
                 let name = self.vm.frame().code.variables[index as usize].clone();
 
-                object.set(name, value, true, self)?;
+                object.set(
+                    name,
+                    value,
+                    self.strict() || self.vm.frame().code.strict,
+                    self,
+                )?;
             }
             Opcode::SetPropertyByValue => {
                 let object = self.vm.pop();
@@ -485,7 +490,12 @@ impl Context {
                 };
 
                 let key = key.to_property_key(self)?;
-                object.set(key, value, true, self)?;
+                object.set(
+                    key,
+                    value,
+                    self.strict() || self.vm.frame().code.strict,
+                    self,
+                )?;
             }
             Opcode::SetPropertyGetterByName => {
                 let index = self.vm.read::<u32>();
@@ -596,6 +606,9 @@ impl Context {
                 let result = object
                     .to_object(self)?
                     .__delete__(&key.to_property_key(self)?, self)?;
+                if !result && self.strict() || self.vm.frame().code.strict {
+                    return Err(self.construct_type_error("Cannot delete property"));
+                }
                 self.vm.push(result);
             }
             Opcode::CopyDataProperties => {

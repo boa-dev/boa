@@ -611,22 +611,25 @@ impl ByteCompiler {
                             AssignOp::BoolAnd => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalAnd);
                                 self.compile_expr(binary.rhs(), true);
+                                let access = self.compile_access(binary.lhs());
+                                self.access_set(access, None, use_expr);
                                 self.patch_jump(exit);
-
                                 None
                             }
                             AssignOp::BoolOr => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalOr);
                                 self.compile_expr(binary.rhs(), true);
+                                let access = self.compile_access(binary.lhs());
+                                self.access_set(access, None, use_expr);
                                 self.patch_jump(exit);
-
                                 None
                             }
                             AssignOp::Coalesce => {
                                 let exit = self.jump_with_custom_opcode(Opcode::Coalesce);
                                 self.compile_expr(binary.rhs(), true);
+                                let access = self.compile_access(binary.lhs());
+                                self.access_set(access, None, use_expr);
                                 self.patch_jump(exit);
-
                                 None
                             }
                         };
@@ -634,10 +637,9 @@ impl ByteCompiler {
                         if let Some(opcode) = opcode {
                             self.compile_expr(binary.rhs(), true);
                             self.emit(opcode, &[]);
+                            let access = self.compile_access(binary.lhs());
+                            self.access_set(access, None, use_expr);
                         }
-
-                        let access = self.compile_access(binary.lhs());
-                        self.access_set(access, None, use_expr);
                     }
                     BinOp::Comma => {
                         self.emit(Opcode::Pop, &[]);
