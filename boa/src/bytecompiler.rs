@@ -658,20 +658,20 @@ impl ByteCompiler {
                     match property {
                         PropertyDefinition::IdentifierReference(identifier_reference) => {
                             let index = self.get_or_insert_name(identifier_reference);
-                            self.emit(Opcode::SetPropertyByName, &[index]);
+                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyDefinition::Property(name, node) => match name {
                             PropertyName::Literal(name) => {
                                 self.compile_stmt(node, true);
                                 self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name(name);
-                                self.emit(Opcode::SetPropertyByName, &[index]);
+                                self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
                                 self.compile_stmt(name_node, true);
                                 self.compile_stmt(node, true);
                                 self.emit_opcode(Opcode::Swap2);
-                                self.emit_opcode(Opcode::SetPropertyByValue);
+                                self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                             }
                         },
                         PropertyDefinition::MethodDefinition(kind, name, func) => {
@@ -709,13 +709,13 @@ impl ByteCompiler {
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap);
                                         let index = self.get_or_insert_name(name);
-                                        self.emit(Opcode::SetPropertyByName, &[index]);
+                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                     }
                                     PropertyName::Computed(name_node) => {
                                         self.compile_stmt(name_node, true);
                                         self.compile_stmt(&func.clone().into(), true);
                                         self.emit_opcode(Opcode::Swap2);
-                                        self.emit_opcode(Opcode::SetPropertyByValue);
+                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                     }
                                 },
                                 MethodDefinitionKind::Generator => {
@@ -725,13 +725,13 @@ impl ByteCompiler {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
                                             let index = self.get_or_insert_name(name);
-                                            self.emit(Opcode::SetPropertyByName, &[index]);
+                                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                         }
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap2);
-                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                         }
                                     }
                                 }
@@ -742,13 +742,13 @@ impl ByteCompiler {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
                                             let index = self.get_or_insert_name(name);
-                                            self.emit(Opcode::SetPropertyByName, &[index])
+                                            self.emit(Opcode::DefineOwnPropertyByName, &[index])
                                         }
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap2);
-                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                         }
                                     }
                                 }
@@ -759,13 +759,13 @@ impl ByteCompiler {
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap);
                                             let index = self.get_or_insert_name(name);
-                                            self.emit(Opcode::SetPropertyByName, &[index])
+                                            self.emit(Opcode::DefineOwnPropertyByName, &[index])
                                         }
                                         PropertyName::Computed(name_node) => {
                                             self.compile_stmt(name_node, true);
                                             self.emit_opcode(Opcode::PushUndefined);
                                             self.emit_opcode(Opcode::Swap2);
-                                            self.emit_opcode(Opcode::SetPropertyByValue);
+                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                         }
                                     }
                                 }

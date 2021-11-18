@@ -479,6 +479,30 @@ impl Context {
                     self,
                 )?;
             }
+            Opcode::DefineOwnPropertyByName => {
+                let index = self.vm.read::<u32>();
+
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+
+                let name = self.vm.frame().code.variables[index as usize].clone();
+
+                object.__define_own_property__(
+                    name.into(),
+                    PropertyDescriptor::builder()
+                        .value(value)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
             Opcode::SetPropertyByValue => {
                 let object = self.vm.pop();
                 let key = self.vm.pop();
@@ -494,6 +518,29 @@ impl Context {
                     key,
                     value,
                     self.strict() || self.vm.frame().code.strict,
+                    self,
+                )?;
+            }
+            Opcode::DefineOwnPropertyByValue => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let value = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+
+                let key = key.to_property_key(self)?;
+
+                object.__define_own_property__(
+                    key,
+                    PropertyDescriptor::builder()
+                        .value(value)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
                     self,
                 )?;
             }

@@ -483,6 +483,13 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     SetPropertyByName,
 
+    /// Defines a own property of an object by name.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineOwnPropertyByName,
+
     /// Sets a property by value of an object.
     ///
     /// Like `object[key] = value`
@@ -491,6 +498,13 @@ pub enum Opcode {
     ///
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
+
+    /// Defines a own property of an object by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, key, object **=>**
+    DefineOwnPropertyByValue,
 
     /// Sets a getter property by name of an object.
     ///
@@ -835,7 +849,9 @@ impl Opcode {
             Opcode::GetPropertyByName => "GetPropertyByName",
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
+            Opcode::DefineOwnPropertyByName => "DefineOwnPropertyByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
+            Opcode::DefineOwnPropertyByValue => "DefineOwnPropertyByValue",
             Opcode::SetPropertyGetterByName => "SetPropertyGetterByName",
             Opcode::SetPropertyGetterByValue => "SetPropertyGetterByValue",
             Opcode::SetPropertySetterByName => "SetPropertySetterByName",

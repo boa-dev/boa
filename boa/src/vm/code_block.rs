@@ -188,6 +188,7 @@ impl CodeBlock {
             | Opcode::SetName
             | Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
+            | Opcode::DefineOwnPropertyByName
             | Opcode::SetPropertyGetterByName
             | Opcode::SetPropertySetterByName
             | Opcode::DeletePropertyByName
@@ -243,6 +244,7 @@ impl CodeBlock {
             | Opcode::Dec
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
+            | Opcode::DefineOwnPropertyByValue
             | Opcode::SetPropertyGetterByValue
             | Opcode::SetPropertySetterByValue
             | Opcode::DeletePropertyByValue
