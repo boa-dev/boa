@@ -694,12 +694,16 @@ impl Context {
                 args.reverse();
 
                 let func = self.vm.pop();
-                let this = self.vm.pop();
+                let mut this = self.vm.pop();
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
+
+                if this.is_null_or_undefined() {
+                    this = self.global_object().into();
+                }
 
                 let result = object.__call__(&this, &args, self)?;
 
@@ -717,7 +721,7 @@ impl Context {
                 }
                 args.reverse();
                 let func = self.vm.pop();
-                let this = self.vm.pop();
+                let mut this = self.vm.pop();
 
                 let iterator_record = rest_arg_value.get_iterator(self, None, None)?;
                 let mut rest_args = Vec::new();
@@ -734,6 +738,10 @@ impl Context {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
+
+                if this.is_null_or_undefined() {
+                    this = self.global_object().into();
+                }
 
                 let result = object.__call__(&this, &args, self)?;
 
