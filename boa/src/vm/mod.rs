@@ -676,19 +676,40 @@ impl Context {
             }
             Opcode::TryStart => {
                 let index = self.vm.read::<u32>();
-                self.vm.frame_mut().catch = Some(index);
-                self.vm.frame_mut().finally_jump = None;
+                self.vm.frame_mut().catch.push(index);
+                self.vm.frame_mut().finally_jump.push(None);
                 self.vm.frame_mut().has_thrown = false;
             }
             Opcode::TryEnd => {
-                self.vm.frame_mut().catch = None;
+                self.vm.frame_mut().catch.pop();
+                self.vm.frame_mut().has_thrown = false;
+            }
+            Opcode::CatchStart => {
+                let index = self.vm.read::<u32>();
+                self.vm.frame_mut().catch.push(index);
+            }
+            Opcode::CatchEnd => {
+                self.vm.frame_mut().catch.pop();
+                self.vm.frame_mut().has_thrown = false;
+            }
+            Opcode::CatchEnd2 => {
                 self.vm.frame_mut().has_thrown = false;
             }
             Opcode::FinallyStart => {
-                self.vm.frame_mut().finally_jump = None;
+                *self
+                    .vm
+                    .frame_mut()
+                    .finally_jump
+                    .last_mut()
+                    .expect("finally jump must exist here") = None;
             }
             Opcode::FinallyEnd => {
-                let address = self.vm.frame_mut().finally_jump.take();
+                let address = self
+                    .vm
+                    .frame_mut()
+                    .finally_jump
+                    .pop()
+                    .expect("finally jump must exist here");
                 let has_thrown = self.vm.frame().has_thrown;
                 if has_thrown {
                     self.vm.frame_mut().has_thrown = false;
@@ -700,7 +721,12 @@ impl Context {
             }
             Opcode::FinallySetJump => {
                 let address = self.vm.read::<u32>();
-                self.vm.frame_mut().finally_jump = Some(address);
+                *self
+                    .vm
+                    .frame_mut()
+                    .finally_jump
+                    .last_mut()
+                    .expect("finally jump must exist here") = Some(address);
             }
             Opcode::This => {
                 let this = self.get_this_binding()?;
@@ -1131,13 +1157,14 @@ impl Context {
                     }
                 }
                 Err(e) => {
-                    if let Some(address) = self.vm.frame().catch {
+                    if let Some(address) = self.vm.frame().catch.last() {
+                        let address = *address;
                         if self.vm.frame().pop_env_on_return > 0 {
                             self.pop_environment();
                             self.vm.frame_mut().pop_env_on_return -= 1;
                         }
                         self.vm.frame_mut().pc = address as usize;
-                        self.vm.frame_mut().catch = None;
+                        self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().has_thrown = true;
                         self.vm.push(e);
                     } else {

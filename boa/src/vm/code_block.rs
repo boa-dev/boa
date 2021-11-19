@@ -151,6 +151,7 @@ impl CodeBlock {
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
             | Opcode::TryStart
+            | Opcode::CatchStart
             | Opcode::FinallySetJump
             | Opcode::Case
             | Opcode::Default
@@ -251,6 +252,8 @@ impl CodeBlock {
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::TryEnd
+            | Opcode::CatchEnd
+            | Opcode::CatchEnd2
             | Opcode::FinallyStart
             | Opcode::FinallyEnd
             | Opcode::This
@@ -578,9 +581,9 @@ impl JsObject {
                     pc: 0,
                     fp: context.vm.stack.len(),
                     environment: local_env,
-                    catch: None,
+                    catch: Vec::new(),
                     has_thrown: false,
-                    finally_jump: None,
+                    finally_jump: Vec::new(),
                     pop_env_on_return: 0,
                     param_count,
                     arg_count,
@@ -739,9 +742,9 @@ impl JsObject {
                     pc: 0,
                     fp: context.vm.stack.len(),
                     environment: local_env,
-                    catch: None,
+                    catch: Vec::new(),
                     has_thrown: false,
-                    finally_jump: None,
+                    finally_jump: Vec::new(),
                     pop_env_on_return: 0,
                     param_count,
                     arg_count,

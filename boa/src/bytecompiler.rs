@@ -1343,6 +1343,11 @@ impl ByteCompiler {
                 self.patch_jump(try_start);
 
                 if let Some(catch) = t.catch() {
+                    let catch_start = if t.finally().is_some() {
+                        Some(self.jump_with_custom_opcode(Opcode::CatchStart))
+                    } else {
+                        None
+                    };
                     self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                     if let Some(decl) = catch.parameter() {
                         match decl {
@@ -1361,7 +1366,12 @@ impl ByteCompiler {
                         self.compile_stmt(node, false);
                     }
                     self.emit_opcode(Opcode::PopEnvironment);
-                    self.emit_opcode(Opcode::TryEnd);
+                    if let Some(catch_start) = catch_start {
+                        self.emit_opcode(Opcode::CatchEnd);
+                        self.patch_jump(catch_start);
+                    } else {
+                        self.emit_opcode(Opcode::CatchEnd2);
+                    }
                 }
 
                 self.patch_jump(finally);

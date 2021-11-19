@@ -609,6 +609,15 @@ pub enum Opcode {
     /// End of a try block.
     TryEnd,
 
+    /// Start of a catch block.
+    CatchStart,
+
+    /// End of a catch block.
+    CatchEnd,
+
+    /// End of a catch block.
+    CatchEnd2,
+
     /// Start of a finally block.
     FinallyStart,
 
@@ -865,6 +874,9 @@ impl Opcode {
             Opcode::Throw => "Throw",
             Opcode::TryStart => "TryStart",
             Opcode::TryEnd => "TryEnd",
+            Opcode::CatchStart => "CatchStart",
+            Opcode::CatchEnd => "CatchEnd",
+            Opcode::CatchEnd2 => "CatchEnd2",
             Opcode::FinallyStart => "FinallyStart",
             Opcode::FinallyEnd => "FinallyEnd",
             Opcode::FinallySetJump => "FinallySetJump",
