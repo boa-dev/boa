@@ -582,7 +582,16 @@ impl BuiltInFunctionObject {
                     .into())
                 }
             }
-
+            #[cfg(feature = "vm")]
+            (Function::VmOrdinary { .. }, Some(name)) if name.is_empty() => {
+                Ok("[Function (anonymous)]".into())
+            }
+            #[cfg(feature = "vm")]
+            (Function::VmOrdinary { .. }, Some(name)) => {
+                Ok(format!("[Function: {}]", &name).into())
+            }
+            #[cfg(feature = "vm")]
+            (Function::VmOrdinary { .. }, None) => Ok("[Function (anonymous)]".into()),
             _ => Ok("TODO".into()),
         }
     }
