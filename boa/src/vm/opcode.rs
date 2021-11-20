@@ -603,7 +603,7 @@ pub enum Opcode {
 
     /// Start of a try block.
     ///
-    /// Operands: address: `u32`
+    /// Operands: next_address: `u32`, finally_address: `u32`
     TryStart,
 
     /// End of a try block.

@@ -1331,7 +1331,8 @@ impl ByteCompiler {
             Node::Try(t) => {
                 self.push_try_control_info();
 
-                let try_start = self.jump_with_custom_opcode(Opcode::TryStart);
+                let try_start = self.next_opcode_location();
+                self.emit(Opcode::TryStart, &[Self::DUMMY_ADDRESS, 0]);
                 self.emit_opcode(Opcode::PushDeclarativeEnvironment);
                 for node in t.block().items() {
                     self.compile_stmt(node, false);
@@ -1340,7 +1341,7 @@ impl ByteCompiler {
                 self.emit_opcode(Opcode::TryEnd);
 
                 let finally = self.jump();
-                self.patch_jump(try_start);
+                self.patch_jump(Label { index: try_start });
 
                 if let Some(catch) = t.catch() {
                     let catch_start = if t.finally().is_some() {
@@ -1379,6 +1380,12 @@ impl ByteCompiler {
                 if let Some(finally) = t.finally() {
                     self.emit_opcode(Opcode::FinallyStart);
                     let finally_start_address = self.next_opcode_location();
+                    self.patch_jump_with_target(
+                        Label {
+                            index: try_start + 4,
+                        },
+                        finally_start_address,
+                    );
 
                     for node in finally.items() {
                         self.compile_stmt(node, false);

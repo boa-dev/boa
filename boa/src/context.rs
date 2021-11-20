@@ -21,6 +21,7 @@ use crate::{
         },
         Parser,
     },
+    vm::FinallyReturn,
     BoaProfiler, Executable, JsResult, JsString, JsValue,
 };
 
@@ -1073,7 +1074,7 @@ impl Context {
             fp,
             environment,
             catch: Vec::new(),
-            has_thrown: false,
+            finally_return: FinallyReturn::None,
             finally_jump: Vec::new(),
             pop_env_on_return: 0,
             param_count: 0,

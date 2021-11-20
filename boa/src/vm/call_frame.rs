@@ -13,10 +13,23 @@ pub struct CallFrame {
     pub(crate) fp: usize,
     pub(crate) this: JsValue,
     pub(crate) environment: Environment,
-    pub(crate) catch: Vec<u32>,
-    pub(crate) has_thrown: bool,
+    pub(crate) catch: Vec<CatchAddresses>,
+    pub(crate) finally_return: FinallyReturn,
     pub(crate) finally_jump: Vec<Option<u32>>,
     pub(crate) pop_env_on_return: usize,
     pub(crate) param_count: usize,
     pub(crate) arg_count: usize,
+}
+
+#[derive(Debug)]
+pub(crate) struct CatchAddresses {
+    pub(crate) next: u32,
+    pub(crate) finally: Option<u32>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) enum FinallyReturn {
+    None,
+    Ok,
+    Err,
 }

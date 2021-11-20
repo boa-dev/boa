@@ -23,7 +23,7 @@ use gc::Gc;
 
 use std::{cmp::Ordering, convert::TryInto, fmt::Write, mem::size_of};
 
-use super::CallFrame;
+use super::{call_frame::FinallyReturn, CallFrame};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 pub unsafe trait Readable {}
@@ -150,7 +150,6 @@ impl CodeBlock {
             | Opcode::Jump
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
-            | Opcode::TryStart
             | Opcode::CatchStart
             | Opcode::FinallySetJump
             | Opcode::Case
@@ -167,6 +166,13 @@ impl CodeBlock {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
+            }
+            Opcode::TryStart => {
+                let operand1 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                let operand2 = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                format!("{}, {}", operand1, operand2)
             }
             Opcode::GetFunction => {
                 let operand = self.read::<u32>(*pc);
@@ -582,7 +588,7 @@ impl JsObject {
                     fp: context.vm.stack.len(),
                     environment: local_env,
                     catch: Vec::new(),
-                    has_thrown: false,
+                    finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
                     pop_env_on_return: 0,
                     param_count,
@@ -743,7 +749,7 @@ impl JsObject {
                     fp: context.vm.stack.len(),
                     environment: local_env,
                     catch: Vec::new(),
-                    has_thrown: false,
+                    finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
                     pop_env_on_return: 0,
                     param_count,

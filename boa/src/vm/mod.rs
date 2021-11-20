@@ -11,7 +11,7 @@ use crate::{
     },
     property::PropertyDescriptor,
     value::Numeric,
-    vm::code_block::Readable,
+    vm::{call_frame::CatchAddresses, code_block::Readable},
     BoaProfiler, Context, JsBigInt, JsResult, JsString, JsValue,
 };
 use std::{convert::TryInto, mem::size_of, ops::Neg, time::Instant};
@@ -21,6 +21,7 @@ mod code_block;
 mod opcode;
 
 pub use call_frame::CallFrame;
+pub(crate) use call_frame::FinallyReturn;
 pub use code_block::{CodeBlock, JsVmFunction};
 pub use opcode::Opcode;
 
@@ -675,25 +676,33 @@ impl Context {
                 return Err(value);
             }
             Opcode::TryStart => {
-                let index = self.vm.read::<u32>();
-                self.vm.frame_mut().catch.push(index);
+                let next = self.vm.read::<u32>();
+                let finally = self.vm.read::<u32>();
+                let finally = if finally != 0 { Some(finally) } else { None };
+                self.vm
+                    .frame_mut()
+                    .catch
+                    .push(CatchAddresses { next, finally });
                 self.vm.frame_mut().finally_jump.push(None);
-                self.vm.frame_mut().has_thrown = false;
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::TryEnd => {
                 self.vm.frame_mut().catch.pop();
-                self.vm.frame_mut().has_thrown = false;
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::CatchStart => {
-                let index = self.vm.read::<u32>();
-                self.vm.frame_mut().catch.push(index);
+                let finally = self.vm.read::<u32>();
+                self.vm.frame_mut().catch.push(CatchAddresses {
+                    next: finally,
+                    finally: Some(finally),
+                });
             }
             Opcode::CatchEnd => {
                 self.vm.frame_mut().catch.pop();
-                self.vm.frame_mut().has_thrown = false;
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::CatchEnd2 => {
-                self.vm.frame_mut().has_thrown = false;
+                self.vm.frame_mut().finally_return = FinallyReturn::None;
             }
             Opcode::FinallyStart => {
                 *self
@@ -710,13 +719,24 @@ impl Context {
                     .finally_jump
                     .pop()
                     .expect("finally jump must exist here");
-                let has_thrown = self.vm.frame().has_thrown;
-                if has_thrown {
-                    self.vm.frame_mut().has_thrown = false;
-                    return Err(self.vm.pop());
-                }
-                if let Some(address) = address {
-                    self.vm.frame_mut().pc = address as usize;
+                match self.vm.frame_mut().finally_return {
+                    FinallyReturn::None => {
+                        if let Some(address) = address {
+                            self.vm.frame_mut().pc = address as usize;
+                        }
+                    }
+                    FinallyReturn::Ok => {
+                        for _ in 0..self.vm.frame().pop_env_on_return {
+                            self.pop_environment();
+                        }
+                        self.vm.frame_mut().pop_env_on_return = 0;
+                        let _ = self.vm.pop_frame();
+                        return Ok(true);
+                    }
+                    FinallyReturn::Err => {
+                        self.vm.frame_mut().finally_return = FinallyReturn::None;
+                        return Err(self.vm.pop());
+                    }
                 }
             }
             Opcode::FinallySetJump => {
@@ -871,12 +891,20 @@ impl Context {
                 self.vm.push(result);
             }
             Opcode::Return => {
-                for _ in 0..self.vm.frame().pop_env_on_return {
-                    self.pop_environment();
+                if let Some(finally_address) = self.vm.frame().catch.last().and_then(|c| c.finally)
+                {
+                    let frame = self.vm.frame_mut();
+                    frame.pc = finally_address as usize;
+                    frame.finally_return = FinallyReturn::Ok;
+                    frame.catch.pop();
+                } else {
+                    for _ in 0..self.vm.frame().pop_env_on_return {
+                        self.pop_environment();
+                    }
+                    self.vm.frame_mut().pop_env_on_return = 0;
+                    let _ = self.vm.pop_frame();
+                    return Ok(true);
                 }
-                self.vm.frame_mut().pop_env_on_return = 0;
-                let _ = self.vm.pop_frame();
-                return Ok(true);
             }
             Opcode::PushDeclarativeEnvironment => {
                 let env = self.get_current_environment();
@@ -1158,14 +1186,14 @@ impl Context {
                 }
                 Err(e) => {
                     if let Some(address) = self.vm.frame().catch.last() {
-                        let address = *address;
+                        let address = address.next;
                         if self.vm.frame().pop_env_on_return > 0 {
                             self.pop_environment();
                             self.vm.frame_mut().pop_env_on_return -= 1;
                         }
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch.pop();
-                        self.vm.frame_mut().has_thrown = true;
+                        self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.push(e);
                     } else {
                         for _ in 0..self.vm.frame().pop_env_on_return {
