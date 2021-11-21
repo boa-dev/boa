@@ -21,7 +21,6 @@ use crate::{
         },
         Parser,
     },
-    vm::FinallyReturn,
     BoaProfiler, Executable, JsResult, JsString, JsValue,
 };
 
@@ -29,7 +28,7 @@ use crate::{
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
-use crate::vm::Vm;
+use crate::vm::{FinallyReturn, Vm};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
