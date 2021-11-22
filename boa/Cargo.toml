@@ -15,7 +15,6 @@ rust-version = "1.57"
 profiler = ["measureme"]
 deser = []
 
-
 # Enable Boa's WHATWG console object implementation.
 console = []
 

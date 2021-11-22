@@ -1,10 +1,6 @@
 //! Async Function Expression.
 
-use crate::{
-    exec::Executable,
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -77,13 +73,6 @@ impl AsyncFunctionExpr {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for AsyncFunctionExpr {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        // TODO: Implement AsyncFunctionExpr
-        Ok(JsValue::undefined())
     }
 }
 

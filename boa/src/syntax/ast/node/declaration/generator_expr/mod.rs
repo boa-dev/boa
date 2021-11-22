@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -85,14 +83,6 @@ impl GeneratorExpr {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for GeneratorExpr {
-    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
-        // TODO: Implement GeneratorFunction
-        // https://tc39.es/ecma262/#sec-generatorfunction-objects
-        Ok(JsValue::undefined())
     }
 }
 

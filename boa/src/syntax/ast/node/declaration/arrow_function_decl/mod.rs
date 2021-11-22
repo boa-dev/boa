@@ -1,9 +1,6 @@
 use crate::{
-    builtins::function::ThisMode,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -68,18 +65,6 @@ impl ArrowFunctionDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for ArrowFunctionDecl {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        context.create_function(
-            "",
-            self.params().to_vec(),
-            self.body().clone(),
-            false,
-            ThisMode::Lexical,
-        )
     }
 }
 

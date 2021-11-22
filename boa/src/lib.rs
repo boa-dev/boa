@@ -66,7 +66,7 @@ pub mod prelude {
 
 use std::result::Result as StdResult;
 
-pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
+pub(crate) use crate::profiler::BoaProfiler;
 
 // Export things to root level
 #[doc(inline)]

@@ -478,10 +478,10 @@ impl JsObject {
                     code: code.clone(),
                     environment: environment.clone(),
                 },
-                Function::Ordinary { .. } => unreachable!(),
             }
         };
 
+        
         match body {
             FunctionBody::Native { function } if construct => {
                 function(&JsValue::undefined(), args, context)
@@ -644,7 +644,6 @@ impl JsObject {
                     code: code.clone(),
                     environment: environment.clone(),
                 },
-                Function::Ordinary { .. } => unreachable!(),
             }
         };
 

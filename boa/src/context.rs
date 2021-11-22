@@ -2,31 +2,20 @@
 
 use crate::{
     builtins::{
-        self,
-        function::{Function, NativeFunctionSignature, ThisMode},
-        intrinsics::IntrinsicObjects,
-        iterable::IteratorPrototypes,
-        typed_array::TypedArray,
+        self, function::NativeFunctionSignature, intrinsics::IntrinsicObjects,
+        iterable::IteratorPrototypes, typed_array::TypedArray,
     },
     class::{Class, ClassBuilder},
-    exec::Interpreter,
-    object::PROTOTYPE,
     object::{FunctionBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{
-        ast::{
-            node::{statement_list::RcStatementList, FormalParameter, StatementList},
-            Node,
-        },
-        Parser,
-    },
-    BoaProfiler, Executable, JsResult, JsString, JsValue,
+    syntax::Parser,
+    vm::{FinallyReturn, Vm},
+    BoaProfiler, JsResult, JsString, JsValue,
 };
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
-use crate::vm::{FinallyReturn, Vm};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -329,7 +318,6 @@ impl StandardObjects {
 pub(crate) enum StrictType {
     Off,
     Global,
-    Function,
 }
 
 /// Javascript context. It is the primary way to interact with the runtime.
@@ -378,9 +366,6 @@ pub struct Context {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
 
-    /// The current executor.
-    executor: Interpreter,
-
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
@@ -406,10 +391,8 @@ pub struct Context {
 impl Default for Context {
     fn default() -> Self {
         let realm = Realm::create();
-        let executor = Interpreter::new();
         let mut context = Self {
             realm,
-            executor,
             #[cfg(feature = "console")]
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
@@ -451,11 +434,6 @@ impl Context {
         Default::default()
     }
 
-    #[inline]
-    pub fn executor(&mut self) -> &mut Interpreter {
-        &mut self.executor
-    }
-
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
     pub(crate) fn console(&self) -> &Console {
@@ -472,19 +450,7 @@ impl Context {
     /// Returns if strict mode is currently active.
     #[inline]
     pub fn strict(&self) -> bool {
-        matches!(self.strict, StrictType::Global | StrictType::Function)
-    }
-
-    /// Returns the strict mode type.
-    #[inline]
-    pub(crate) fn strict_type(&self) -> StrictType {
-        self.strict
-    }
-
-    /// Set strict type.
-    #[inline]
-    pub(crate) fn set_strict(&mut self, strict: StrictType) {
-        self.strict = strict;
+        matches!(self.strict, StrictType::Global)
     }
 
     /// Disable the strict mode.
@@ -716,75 +682,6 @@ impl Context {
         Err(self.construct_uri_error(message))
     }
 
-    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<N, P>(
-        &mut self,
-        name: N,
-        params: P,
-        mut body: StatementList,
-        constructor: bool,
-        this_mode: ThisMode,
-    ) -> JsResult<JsValue>
-    where
-        N: Into<JsString>,
-        P: Into<Box<[FormalParameter]>>,
-    {
-        let name = name.into();
-        let function_prototype = self.standard_objects().function_object().prototype();
-
-        // Every new function has a prototype property pre-made
-        let prototype = self.construct_object();
-
-        // If a function is defined within a strict context, it is strict.
-        if self.strict() {
-            body.set_strict(true);
-        }
-
-        let params = params.into();
-        let params_len = params.len();
-        let func = Function::Ordinary {
-            constructor,
-            this_mode,
-            body: RcStatementList::from(body),
-            params,
-            environment: self.get_current_environment().clone(),
-        };
-
-        let function =
-            JsObject::from_proto_and_data(function_prototype, ObjectData::function(func));
-
-        // Set constructor field to the newly created Value (function object)
-        let constructor = PropertyDescriptor::builder()
-            .value(function.clone())
-            .writable(true)
-            .enumerable(false)
-            .configurable(true);
-        prototype.define_property_or_throw("constructor", constructor, self)?;
-
-        let prototype = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(true)
-            .enumerable(false)
-            .configurable(false);
-        function.define_property_or_throw(PROTOTYPE, prototype, self)?;
-
-        let length = PropertyDescriptor::builder()
-            .value(params_len)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        function.define_property_or_throw("length", length, self)?;
-
-        let name = PropertyDescriptor::builder()
-            .value(name)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        function.define_property_or_throw("name", name, self)?;
-
-        Ok(function.into())
-    }
-
     /// Register a global native function.
     ///
     /// This is more efficient that creating a closure function, since this does not allocate,
@@ -874,29 +771,6 @@ impl Context {
             obj.__has_property__(key, self)
         } else {
             Ok(false)
-        }
-    }
-
-    #[inline]
-    pub(crate) fn set_value(&mut self, node: &Node, value: JsValue) -> JsResult<JsValue> {
-        match node {
-            Node::Identifier(ref name) => {
-                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
-                Ok(value)
-            }
-            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
-                .obj()
-                .run(self)?
-                .set_field(get_const_field_node.field(), value, false, self)?),
-            Node::GetField(ref get_field) => {
-                let field = get_field.field().run(self)?;
-                let key = field.to_property_key(self)?;
-                Ok(get_field
-                    .obj()
-                    .run(self)?
-                    .set_field(key, value, false, self)?)
-            }
-            _ => self.throw_type_error(format!("invalid assignment to {}", node)),
         }
     }
 

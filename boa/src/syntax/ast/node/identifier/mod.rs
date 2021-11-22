@@ -1,10 +1,8 @@
 //! Local identifier node.
 
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -31,13 +29,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Identifier {
     ident: Box<str>,
-}
-
-impl Executable for Identifier {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Identifier", "exec");
-        context.get_binding_value(self.as_ref())
-    }
 }
 
 impl fmt::Display for Identifier {

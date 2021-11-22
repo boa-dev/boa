@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -56,16 +54,6 @@ impl ConditionalOp {
             if_true: Box::new(if_true.into()),
             if_false: Box::new(if_false.into()),
         }
-    }
-}
-
-impl Executable for ConditionalOp {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Ok(if self.cond().run(context)?.to_boolean() {
-            self.if_true().run(context)?
-        } else {
-            self.if_false().run(context)?
-        })
     }
 }
 

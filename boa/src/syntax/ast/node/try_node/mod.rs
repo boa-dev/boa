@@ -1,12 +1,6 @@
 use crate::{
-    environment::{
-        declarative_environment_record::DeclarativeEnvironmentRecord,
-        lexical_environment::VariableScope,
-    },
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Block, Declaration, Node},
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -91,63 +85,6 @@ impl Try {
             finally.display(f, indentation)?;
         }
         Ok(())
-    }
-}
-
-impl Executable for Try {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("Try", "exec");
-        let res = self.block().run(context).map_or_else(
-            |err| {
-                if let Some(catch) = self.catch() {
-                    let env = context.get_current_environment();
-                    context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
-
-                    if let Some(param) = catch.parameter() {
-                        match param {
-                            Declaration::Identifier { ident, init } => {
-                                debug_assert!(init.is_none());
-
-                                context.create_mutable_binding(
-                                    ident.as_ref(),
-                                    false,
-                                    VariableScope::Block,
-                                )?;
-                                context.initialize_binding(ident.as_ref(), err)?;
-                            }
-                            Declaration::Pattern(pattern) => {
-                                debug_assert!(pattern.init().is_none());
-
-                                for (ident, value) in pattern.run(Some(err), context)? {
-                                    context.create_mutable_binding(
-                                        ident.as_ref(),
-                                        false,
-                                        VariableScope::Block,
-                                    )?;
-                                    context.initialize_binding(ident.as_ref(), value)?;
-                                }
-                            }
-                        }
-                    }
-
-                    let res = catch.block().run(context);
-
-                    // pop the block env
-                    let _ = context.pop_environment();
-
-                    res
-                } else {
-                    Err(err)
-                }
-            },
-            Ok,
-        );
-
-        if let Some(finally) = self.finally() {
-            finally.run(context)?;
-        }
-
-        res
     }
 }
 

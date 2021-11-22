@@ -1,10 +1,8 @@
 //! Switch node.
 //!
 use crate::{
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -119,84 +117,6 @@ impl Switch {
             default.display(f, indentation + 2)?;
         }
         write!(f, "{}}}", indent)
-    }
-}
-
-impl Executable for Switch {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let val = self.val().run(context)?;
-        let mut result = JsValue::null();
-        let mut matched = false;
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-
-        // If a case block does not end with a break statement then subsequent cases will be run without
-        // checking their conditions until a break is encountered.
-        let mut fall_through: bool = false;
-
-        for case in self.cases().iter() {
-            let cond = case.condition();
-            let block = case.body();
-            if fall_through || val.strict_equals(&cond.run(context)?) {
-                matched = true;
-                let result = block.run(context)?;
-                match context.executor().get_current_state() {
-                    InterpreterState::Return => {
-                        // Early return.
-                        return Ok(result);
-                    }
-                    InterpreterState::Break(_label) => {
-                        // TODO, break to a label.
-                        // Break statement encountered so therefore end switch statement.
-                        context
-                            .executor()
-                            .set_current_state(InterpreterState::Executing);
-                        break;
-                    }
-                    InterpreterState::Continue(_label) => {
-                        // TODO, continue to a label.
-                        break;
-                    }
-                    InterpreterState::Executing => {
-                        // Continuing execution / falling through to next case statement(s).
-                        fall_through = true;
-                    }
-                }
-            }
-        }
-
-        if !matched {
-            if let Some(default) = self.default() {
-                context
-                    .executor()
-                    .set_current_state(InterpreterState::Executing);
-                for (i, item) in default.iter().enumerate() {
-                    let val = item.run(context)?;
-                    match context.executor().get_current_state() {
-                        InterpreterState::Return => {
-                            // Early return.
-                            result = val;
-                            break;
-                        }
-                        InterpreterState::Break(_label) => {
-                            // TODO, break to a label.
-
-                            // Early break.
-                            break;
-                        }
-                        _ => {
-                            // Continue execution
-                        }
-                    }
-                    if i == default.len() - 1 {
-                        result = val;
-                    }
-                }
-            }
-        }
-
-        Ok(result)
     }
 }
 

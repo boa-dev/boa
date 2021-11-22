@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -45,13 +43,6 @@ impl Throw {
         Self {
             expr: Box::new(val.into()),
         }
-    }
-}
-
-impl Executable for Throw {
-    #[inline]
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        Err(self.expr().run(context)?)
     }
 }
 

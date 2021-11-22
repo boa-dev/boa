@@ -1,11 +1,8 @@
 //! Statement list node.
 
 use crate::{
-    context::StrictType,
-    exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::{Declaration, Node},
-    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
@@ -126,61 +123,6 @@ impl StatementList {
             }
         }
         set
-    }
-}
-
-impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("StatementList", "exec");
-
-        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
-        // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = JsValue::default();
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-
-        let strict_before = context.strict_type();
-
-        match context.strict_type() {
-            StrictType::Off if self.strict => context.set_strict(StrictType::Function),
-            StrictType::Function if !self.strict => context.set_strict_mode_off(),
-            _ => {}
-        }
-
-        for (i, item) in self.items().iter().enumerate() {
-            let val = match item.run(context) {
-                Ok(val) => val,
-                Err(e) => {
-                    context.set_strict(strict_before);
-                    return Err(e);
-                }
-            };
-            match context.executor().get_current_state() {
-                InterpreterState::Return => {
-                    // Early return.
-                    obj = val;
-                    break;
-                }
-                InterpreterState::Break(_label) => {
-                    // Early break.
-                    break;
-                }
-                InterpreterState::Continue(_label) => {
-                    break;
-                }
-                InterpreterState::Executing => {
-                    // Continue execution
-                }
-            }
-            if i + 1 == self.items().len() {
-                obj = val;
-            }
-        }
-
-        context.set_strict(strict_before);
-
-        Ok(obj)
     }
 }
 

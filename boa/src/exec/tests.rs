@@ -772,9 +772,10 @@ mod in_operator {
             new a();
         "#;
 
-        let error = "Uncaught \"TypeError\": \"not a constructor\"";
-
-        check_output(&[TestAction::TestEq(scenario, error)]);
+        check_output(&[TestAction::TestEq(
+            scenario,
+            "Uncaught \"TypeError\": \"not a constructor\"",
+        )]);
     }
 
     #[test]
@@ -1264,13 +1265,11 @@ fn not_a_function() {
         }
     "#;
 
-    let error = "\"TypeError: not a callable function\"";
-
     check_output(&[
         TestAction::Execute(init),
-        TestAction::TestEq(scenario1, error),
-        TestAction::TestEq(scenario2, error),
-        TestAction::TestEq(scenario3, error),
+        TestAction::TestEq(scenario1, "\"TypeError: not a callable function\""),
+        TestAction::TestEq(scenario2, "\"TypeError: not a callable function\""),
+        TestAction::TestEq(scenario3, "\"TypeError: not a callable function\""),
     ]);
 }
 

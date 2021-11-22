@@ -1,8 +1,6 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -43,13 +41,6 @@ impl Yield {
             expr: expr.into().map(E::into).map(Box::new),
             delegate,
         }
-    }
-}
-
-impl Executable for Yield {
-    fn run(&self, _context: &mut Context) -> JsResult<JsValue> {
-        // TODO: Implement Generator execution
-        Ok(JsValue::undefined())
     }
 }
 

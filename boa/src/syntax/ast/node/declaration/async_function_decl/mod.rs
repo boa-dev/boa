@@ -1,10 +1,6 @@
 //! Async Function Declaration.
 
-use crate::{
-    exec::Executable,
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsResult, JsValue,
-};
+use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
 use gc::{Finalize, Trace};
 use std::fmt;
 
@@ -72,14 +68,6 @@ impl AsyncFunctionDecl {
             self.body.display(f, indentation + 1)?;
             write!(f, "{}}}", "    ".repeat(indentation))
         }
-    }
-}
-
-impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
-        let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
-        // TODO: Implement AsyncFunctionDecl
-        Ok(JsValue::undefined())
     }
 }
 

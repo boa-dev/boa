@@ -1,8 +1,6 @@
 use crate::{
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -70,34 +68,6 @@ impl DoWhileLoop {
         write!(f, "do ")?;
         self.body().display(f, indentation)?;
         write!(f, " while ({})", self.cond())
-    }
-}
-
-impl Executable for DoWhileLoop {
-    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
-        let mut result;
-        loop {
-            result = self.body().run(context)?;
-            match context.executor().get_current_state() {
-                InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, context, break);
-                    break;
-                }
-                InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, context, continue);
-                }
-                InterpreterState::Return => {
-                    return Ok(result);
-                }
-                InterpreterState::Executing => {
-                    // Continue execution.
-                }
-            }
-            if !self.cond().run(context)?.to_boolean() {
-                break;
-            }
-        }
-        Ok(result)
     }
 }
 
